@@ -1,4 +1,5 @@
 # coding=utf-8
+import asyncio
 import base64
 import io
 import json
@@ -18,7 +19,7 @@ class config_B:
     配置文件 config.json 的 查找 和 更新
     """
 
-    def __init__(self, uid: int, dirname: str = "Bili_config"):
+    def __init__(self, uid: int, dirname: str):
         """
         @param uid: 用户id
         @param dirname: 配置文件 config.json 所在文件夹名
@@ -26,9 +27,9 @@ class config_B:
         # 字符串化UID
         self.uid = str(uid)
         # 配置文件 config.json 路径
-        self.configpath = f'.\\{dirname}\\config.json'
-        if not os.path.exists(".\\" + dirname):
-            os.makedirs(dirname)
+        self.configpath = f'{dirname}\\config.json'
+        if not os.path.exists(dirname):
+            os.makedirs(dirname, exist_ok=True)
 
     def update(self, cookies: dict):
         """
@@ -75,6 +76,7 @@ class config_B:
             pass
         return cookies
 
+
 def dict2cookieformat(jsondict: dict) -> str:
     """
     将 dict 转换为 cookie格式
@@ -91,6 +93,7 @@ def dict2cookieformat(jsondict: dict) -> str:
         cookie = cookie[:-1]
     return cookie
 
+
 def url_decoded(url_string: str) -> str:
     """
     将 UTF-8 解码成 URL编码
@@ -100,6 +103,7 @@ def url_decoded(url_string: str) -> str:
     # 使用quote()函数将URL编码转换为UTF-8
     utf8_encoded = quote(url_string, encoding='utf-8')
     return utf8_encoded
+
 
 def qr_encode(qr_str: str, border: int = 2, invert: bool = False):
     """
@@ -146,6 +150,101 @@ def qr_encode(qr_str: str, border: int = 2, invert: bool = False):
     return out
 
 
+# 不登录也能用的api
+def getRoomInfoOld(mid: int) -> dict:
+    """
+    直接用Bid查询到的直播间基础信息<br>
+    @param mid: B站UID
+    @type mid: int
+    @return:
+    <table>
+        <thead>
+        <tr>
+            <th>字段</th>
+            <th>类型</th>
+            <th>内容</th>
+            <th>备注</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>roomStatus</td>
+            <td>num</td>
+            <td>直播间状态</td>
+            <td>0：无房间<br>1：有房间</td>
+        </tr>
+        <tr>
+            <td>roundStatus</td>
+            <td>num</td>
+            <td>轮播状态</td>
+            <td>0：未轮播<br>1：轮播</td>
+        </tr>
+        <tr>
+            <td>liveStatus</td>
+            <td>num</td>
+            <td>直播状态</td>
+            <td>0：未开播<br>1：直播中</td>
+        </tr>
+        <tr>
+            <td>url</td>
+            <td>str</td>
+            <td>直播间网页url</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>title</td>
+            <td>str</td>
+            <td>直播间标题</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>cover</td>
+            <td>str</td>
+            <td>直播间封面url</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>online</td>
+            <td>num</td>
+            <td>直播间人气</td>
+            <td>值为上次直播时刷新</td>
+        </tr>
+        <tr>
+            <td>roomid</td>
+            <td>num</td>
+            <td>直播间id（短号）</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>broadcast_type</td>
+            <td>num</td>
+            <td>0</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>online_hidden</td>
+            <td>num</td>
+            <td>0</td>
+            <td></td>
+        </tr>
+        </tbody>
+    </table>
+    @rtype: dict
+    """
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\
+        (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0",
+    }
+    api = "https://api.live.bilibili.com/room/v1/Room/getRoomInfoOld"
+    data = {
+        "mid": mid,
+    }
+    RoomInfoOld = requests.get(api, headers=headers, params=data).json()
+    return RoomInfoOld["data"]
+
+
+# end
+
 
 # 登陆用函数
 def generate() -> dict:
@@ -164,6 +263,7 @@ def generate() -> dict:
     url = data['url']
     qrcode_key = data['qrcode_key']
     return {'url': url, 'qrcode_key': qrcode_key}
+
 
 def poll(qrcode_key: str) -> dict[str, dict[str, str] | int]:
     """
@@ -191,6 +291,10 @@ def poll(qrcode_key: str) -> dict[str, dict[str, str] | int]:
     @rtype: dict
     """
     global data
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\
+        (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0",
+    }
     api = f'https://passport.bilibili.com/x/passport-login/web/qrcode/poll?qrcode_key={qrcode_key}'
     DedeUserID8DedeUserID__ckMd58SESSDATA8bili_jct = requests.get(api, data=qrcode_key, headers=headers).json()
     data = DedeUserID8DedeUserID__ckMd58SESSDATA8bili_jct['data']
@@ -212,6 +316,7 @@ def poll(qrcode_key: str) -> dict[str, dict[str, str] | int]:
                 data = data.split('=')
                 data_dict[data[0]] = data[1]
             return data_dict
+
         data_dict = urldata_dict(data['url'])
         cookies["DedeUserID"] = data_dict['DedeUserID']
         cookies["DedeUserID__ckMd5"] = data_dict['DedeUserID__ckMd5']
@@ -221,14 +326,16 @@ def poll(qrcode_key: str) -> dict[str, dict[str, str] | int]:
         buvid3 = requests.get(f'https://www.bilibili.com/video/', headers=headers)
         cookies.update(buvid3.cookies.get_dict())
     return {'code': code, 'cookies': cookies}
-# end
 
+
+# end
 
 
 # 登陆后才能用的函数
 class master:
     def __init__(self, cookie: str,
-                 UA: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0"):
+                 UA: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+                           "Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0"):
         """
         完善 浏览器headers
         @param cookies: B站cookie 的 cookies
@@ -4296,6 +4403,8 @@ class master:
         headers = self.headers
         nav = requests.get(api, headers=headers).json()
         return nav["data"]
+
+
 # end
 
 
@@ -4307,6 +4416,7 @@ async def start_login(uid: int = 0, dirname: str = "Biliconfig"):
     :param dirname: 文件保存目录
     :return: dict
     """
+    global code, cookies
     # 获取uid对应的cookies
     configb = config_B(uid=uid, dirname=dirname)
     cookies = configb.check()
@@ -4321,69 +4431,74 @@ async def start_login(uid: int = 0, dirname: str = "Biliconfig"):
         # 获取二维码
         qr = qr_encode(url)
         # 输出二维码图形字符串
-        print(qr["str"])
+        obs.script_log(obs.LOG_WARNING, qr["str"])
         # 获取二维码key
         qrcode_key = url8qrcode_key['qrcode_key']
         # 获取二维码扫描登陆状态
         code = poll(qrcode_key)['code']
-        print(code)
+        obs.script_log(obs.LOG_WARNING, str(code))
 
         # 轮询二维码扫描登录状态
-        async def check_poll(code):
+        def check_poll():
+            global code, cookies
             """
             二维码扫描登录状态检测
             @param code: 一个初始的状态，用于启动轮询
             @return: cookies，超时为{}
             """
-            while True:
-                code_ = code
-                poll_ = poll(qrcode_key)
-                code = poll_['code']
-                if code_ != code:
-                    # 二维码扫描登陆状态改变时，输出改变后状态
-                    print(code)
-                    pass
-                if code == 0 or code == 86038:
-                    # 二维码扫描登陆状态为成功或者超时时获取cookies结束[轮询二维码扫描登陆状态]
-                    cookies = poll_['cookies']
-                    break
-            return cookies
+            code_ = code
+            poll_ = poll(qrcode_key)
+            code = poll_['code']
+            if code_ != code:
+                # 二维码扫描登陆状态改变时，输出改变后状态
+                obs.script_log(obs.LOG_WARNING, str(code))
+                pass
+            if code == 0 or code == 86038:
+                # 二维码扫描登陆状态为成功或者超时时获取cookies结束[轮询二维码扫描登陆状态]
+                cookies = poll_['cookies']
+                if cookies:
+                    # 获取登陆账号cookies中携带的uid
+                    uid = int(cookies['DedeUserID'])
+                    # 记录
+                    configb = config_B(uid=uid, dirname=dirname)
+                    configb.update(cookies)
+                    # 记录到默认登录字段
+                    configb = config_B(uid=0, dirname=dirname)
+                    configb.update(cookies)
+                obs.remove_current_callback()
 
-        cookies = await check_poll(code)
+        obs.timer_add(check_poll, 1000)
+        # cookies = await check_poll(code)
+        #
+        # return {'uid': int(cookies['DedeUserID']), 'cookies': cookies, 'cookie': dict2cookieformat(cookies)}
 
-    if cookies:
-        # 获取登陆账号cookies中携带的uid
-        uid = int(cookies['DedeUserID'])
-        # 记录
-        configb = config_B(uid=uid, dirname=dirname)
-        configb.update(cookies)
-        # 记录到默认登录字段
-        configb = config_B(uid=0, dirname=dirname)
-        configb.update(cookies)
-    return {'uid': int(cookies['DedeUserID']), 'cookies': cookies, 'cookie': dict2cookieformat(cookies)}
+
 # end
-
-
-
-
-
-
-
-
 
 
 # --[[正式插件]]
 
 # --- 设置默认值
 def script_defaults(settings):
-    global current_settings
+    global current_settings, islogin, uname, roomStatus, roomid
     current_settings = settings
     # 创建插件日志文件夹
     try:
         os.makedirs(f"{script_path()}bilibili-live", exist_ok=True)
     except:
         obs.script_log(obs.LOG_WARNING, "权限不足！")
-
+    configb = config_B(uid=0, dirname=f"{script_path()}bilibili-live")
+    cookies = configb.check()
+    print(cookies)
+    interface_nav_ = master(dict2cookieformat(cookies)).interface_nav()
+    islogin = interface_nav_["isLogin"]
+    roomStatus = "_"
+    if islogin:
+        uname = interface_nav_["uname"]
+        RoomInfoOld = getRoomInfoOld(cookies['DedeUserID'])
+        roomStatus = RoomInfoOld["roomStatus"]
+        if roomStatus == 1:
+            roomid = RoomInfoOld["roomid"]
     pass
 
 
@@ -4426,12 +4541,41 @@ def script_load(settings):
 # --- 一个名为script_properties的函数定义了用户可以使用的属性
 def script_properties():
     props = obs.obs_properties_create()  # 创建一个 OBS 属性集对象，他将包含所有控件对应的属性对象
+
     # 创建分组框对应的属性集
     setting_props = obs.obs_properties_create()
     # 添加一个分组框【配置】，他包含了用于登录的子控件
     obs.obs_properties_add_group(props, 'setting', '配置', obs.OBS_GROUP_NORMAL, setting_props)
+    # 添加一个只读文本框，用于表示登录状态
+    if islogin:
+        login_status_text = f"{uname} 已登录"
+        info_type = obs.OBS_TEXT_INFO_NORMAL
+    else:
+        login_status_text = "未登录"
+        info_type = obs.OBS_TEXT_INFO_WARNING
+    # 添加表示登录状态文本框
+    login_status = obs.obs_properties_add_text(setting_props, 'login_status', f'登录状态：{login_status_text}',
+                                               obs.OBS_TEXT_INFO)
+    obs.obs_property_text_set_info_type(login_status, info_type)
+    # 添加一个只读文本框，用于表示直播间状态
+    if roomStatus == "_":
+        roomStatus_text = f"未登录"
+        info_type = obs.OBS_TEXT_INFO_ERROR
+    elif roomStatus == 0:
+        roomStatus_text = "无"
+        info_type = obs.OBS_TEXT_INFO_WARNING
+    elif roomStatus == 1:
+        roomStatus_text = roomid
+        info_type = obs.OBS_TEXT_INFO_NORMAL
+    # 添加表示直播间状态文本框
+    room_status = obs.obs_properties_add_text(setting_props, 'room_status', f'直播间：{roomStatus_text}',
+                                               obs.OBS_TEXT_INFO)
+    obs.obs_property_text_set_info_type(room_status, info_type)
+
+
     # 添加一个组合框，用于选择账号
-    uid = obs.obs_properties_add_list(setting_props, 'mid', 'B站登录id：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING)
+    uid = obs.obs_properties_add_list(setting_props, 'mid', 'B站登录id：', obs.OBS_COMBO_TYPE_EDITABLE,
+                                      obs.OBS_COMBO_FORMAT_STRING)
     # 为组合框添加选项
 
     obs.obs_property_list_add_string(uid, 'YouTube', 'yt')
@@ -4443,5 +4587,5 @@ def script_properties():
 def refresh_pressed(props, prop):
     message = obs.obs_data_get_string(current_settings, 'mid')
     obs.script_log(obs.LOG_WARNING, message)
-
+    asyncio.run(start_login(message, f"{script_path()}bilibili-live"))
     pass
