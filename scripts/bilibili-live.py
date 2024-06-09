@@ -4439,7 +4439,17 @@ async def start_login(uid: int = 0, dirname: str = "Biliconfig"):
         qrcode_key = url8qrcode_key['qrcode_key']
         # 获取二维码扫描登陆状态
         code = poll(qrcode_key)['code']
-        obs.script_log(obs.LOG_WARNING, str(code))
+        def code_t (code):
+            if code == 0:
+                return "登录成功"
+            elif code == 86101:
+                return "未扫码"
+            elif code == 86090:
+                return "二维码已扫码未确认"
+            elif code == 86038:
+                return "二维码已失效"
+
+        obs.script_log(obs.LOG_WARNING, str(code_t (code)))
 
         # 轮询二维码扫描登录状态
         def check_poll():
@@ -4454,7 +4464,7 @@ async def start_login(uid: int = 0, dirname: str = "Biliconfig"):
             code = poll_['code']
             if code_ != code:
                 # 二维码扫描登陆状态改变时，输出改变后状态
-                obs.script_log(obs.LOG_WARNING, str(code))
+                obs.script_log(obs.LOG_WARNING, str(code_t (code)))
                 pass
             if code == 0 or code == 86038:
                 # 二维码扫描登陆状态为成功或者超时时获取cookies结束[轮询二维码扫描登陆状态]
@@ -4484,7 +4494,7 @@ async def start_login(uid: int = 0, dirname: str = "Biliconfig"):
 # --- 设置默认值
 def script_defaults(settings):
     print("默认值")
-    global current_settings, islogin, uname, roomStatus, roomid, liveStatus
+    global current_settings, islogin, uname, roomStatus, roomid, liveStatus, userid_uname
     current_settings = settings
     # 创建插件日志文件夹
     try:
@@ -4494,7 +4504,7 @@ def script_defaults(settings):
     # 获取默认账户
     configb = config_B(uid=0, dirname=f"{script_path()}bilibili-live")
     cookies = configb.check()
-    print(cookies)
+    # print(cookies)
     # 检测默认账户可用性
     interface_nav_ = master(dict2cookieformat(cookies)).interface_nav()
     islogin = interface_nav_["isLogin"]
@@ -4507,7 +4517,6 @@ def script_defaults(settings):
         if roomStatus == 1:
             roomid = RoomInfoOld["roomid"]
             liveStatus = RoomInfoOld["liveStatus"]
-
     # 获取其他账户
     config = {}
     if os.path.exists(f"{script_path()}bilibili-live/config.json"):
@@ -4515,8 +4524,15 @@ def script_defaults(settings):
             config = json.load(j)
     # 检测其他账户可用性
     if config:
+        userid_uname = {}
         del config["0"]
-
+        for i in config:
+            configb = config_B(uid=int(i), dirname=f"{script_path()}bilibili-live")
+            cookies = configb.check()
+            interface_nav_ = master(dict2cookieformat(cookies)).interface_nav()
+            islogin = interface_nav_["isLogin"]
+            if islogin:
+                userid_uname[i] = interface_nav_["uname"]
 
 
 
@@ -4540,7 +4556,7 @@ def script_description():
    <a href="https://link.bilibili.com/p/center/index#/my-room/start-live">B站直播设置后台</a> 使用<br>\
        浏览器的开发人员工具获取cookie<br><br>\
 <font color="#ee4343">【cookie！为账号的{极重要}的隐私信息!】</font><br>\
-<font color="#ee4343">【！请 不要泄露给他人!】</font><br>\
+<font color="#ee4343">【！不要泄露给他人!】</font><br>\
 <br>\
 如果报错：<br>\
    请关闭梯子和加速器<br>\
@@ -4583,15 +4599,16 @@ def script_properties():
     if os.path.exists(f"{script_path()}bilibili-live/config.json"):
         with open(f"{script_path()}bilibili-live/config.json", "r", encoding="utf-8") as j:
             config = json.load(j)
-            for i in config:
+        if config:
+            for i in userid_uname:
                 if i != "0":
                     if i == config["0"]["DedeUserID"]:
-                        obs.obs_property_list_insert_string(uid, 0, i, i)
+                        obs.obs_property_list_insert_string(uid, 0, userid_uname[i], i)
                     else:
-                        obs.obs_property_list_add_string(uid, i, i)
+                        obs.obs_property_list_add_string(uid, userid_uname[i], i)
                 # print(config[i])
                 pass
-    obs.obs_property_list_add_string(uid, '添加新的账号', '-1')
+    obs.obs_property_list_add_string(uid, '添加新的账号', "-1")
 
     # 添加一个只读文本框，用于表示[直播间状态]
     if roomStatus == "_":
@@ -4608,12 +4625,13 @@ def script_properties():
                                                obs.OBS_TEXT_INFO)
     obs.obs_property_text_set_info_type(room_status, info_type)
 
-    obs.obs_properties_add_button(props, "login", "登录", refresh_pressed)
+    obs.obs_properties_add_button(setting_props, "login", "登录", refresh_pressed)
     return props
 
 
 def refresh_pressed(props, prop):
     message = obs.obs_data_get_string(current_settings, 'mid')
-    obs.script_log(obs.LOG_WARNING, message)
     asyncio.run(start_login(int(message), f"{script_path()}bilibili-live"))
+    if message != "-1":
+        obs.script_log(obs.LOG_WARNING, message+"[登录成功]")
     pass
