@@ -4493,7 +4493,6 @@ async def start_login(uid: int = 0, dirname: str = "Biliconfig"):
 
 # --- 设置默认值
 def script_defaults(settings):
-    print("默认值")
     global current_settings, islogin, uname, roomStatus, roomid, liveStatus, userid_uname
     current_settings = settings
     # 创建插件日志文件夹
@@ -4547,7 +4546,7 @@ def script_description():
         不同操作系统请查看<br>\
             菜鸟教程<a href="https://www.runoob.com/python3/python3-install.html">Python3 环境搭建</a><br>\
 <font color=yellow>!脚本路径中尽量不要有中文</font><br>\
-<font color=green size=4>请在认为完成全部操作后点击<font color="white" size=5>⟳</font>重新载入插件</font><br>\
+<font color=green size=4>请在认为完成操作后点击<font color="white" size=5>⟳</font>重新载入插件</font><br>\
 配置cookie：<br>\
 <font color=yellow>！请看着脚本日志操作</font><br>\
 扫描配置cookie请 提前增加<br>\
@@ -4618,7 +4617,12 @@ def script_properties():
         roomStatus_text = "无"
         info_type = obs.OBS_TEXT_INFO_WARNING
     elif roomStatus == 1:
-        roomStatus_text = roomid
+        roomStatus_text = str(roomid)
+        if liveStatus:
+            live_Status = "开播中"
+        else:
+            live_Status = "未开播"
+        roomStatus_text += f"【{live_Status}】"
         info_type = obs.OBS_TEXT_INFO_NORMAL
     # 添加表示[直播间状态]文本框
     room_status = obs.obs_properties_add_text(setting_props, 'room_status', f'直播间：{roomStatus_text}',
@@ -4633,5 +4637,5 @@ def refresh_pressed(props, prop):
     message = obs.obs_data_get_string(current_settings, 'mid')
     asyncio.run(start_login(int(message), f"{script_path()}bilibili-live"))
     if message != "-1":
-        obs.script_log(obs.LOG_WARNING, message+"[登录成功]")
+        obs.script_log(obs.LOG_INFO, message+"[登录成功]")
     pass
