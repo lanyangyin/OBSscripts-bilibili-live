@@ -4416,13 +4416,16 @@ async def start_login(uid: int = 0, dirname: str = "Biliconfig"):
     :param dirname: 文件保存目录
     :return: dict
     """
-    global code, cookies
+    global code
     # 获取uid对应的cookies
     configb = config_B(uid=uid, dirname=dirname)
     cookies = configb.check()
     # 尝试使用存录的cookies登录
     islogin = master(dict2cookieformat(cookies)).interface_nav()["isLogin"]
     if islogin:
+        # 记录到默认登录字段
+        configb = config_B(uid=0, dirname=dirname)
+        configb.update(cookies)
         return {'uid': int(cookies['DedeUserID']), 'cookies': cookies, 'cookie': dict2cookieformat(cookies)}
     else:  # cookies无法登录或者没有记录所填的uid
         # 申请登录二维码
@@ -4440,7 +4443,7 @@ async def start_login(uid: int = 0, dirname: str = "Biliconfig"):
 
         # 轮询二维码扫描登录状态
         def check_poll():
-            global code, cookies
+            global code
             """
             二维码扫描登录状态检测
             @param code: 一个初始的状态，用于启动轮询
@@ -4480,18 +4483,22 @@ async def start_login(uid: int = 0, dirname: str = "Biliconfig"):
 
 # --- 设置默认值
 def script_defaults(settings):
-    global current_settings, islogin, uname, roomStatus, roomid
+    print("默认值")
+    global current_settings, islogin, uname, roomStatus, roomid, liveStatus
     current_settings = settings
     # 创建插件日志文件夹
     try:
         os.makedirs(f"{script_path()}bilibili-live", exist_ok=True)
     except:
         obs.script_log(obs.LOG_WARNING, "权限不足！")
+    # 获取默认账户
     configb = config_B(uid=0, dirname=f"{script_path()}bilibili-live")
     cookies = configb.check()
     print(cookies)
+    # 检测默认账户可用性
     interface_nav_ = master(dict2cookieformat(cookies)).interface_nav()
     islogin = interface_nav_["isLogin"]
+    # 检测默认账户直播间基础信息
     roomStatus = "_"
     if islogin:
         uname = interface_nav_["uname"]
@@ -4499,7 +4506,18 @@ def script_defaults(settings):
         roomStatus = RoomInfoOld["roomStatus"]
         if roomStatus == 1:
             roomid = RoomInfoOld["roomid"]
-    pass
+            liveStatus = RoomInfoOld["liveStatus"]
+
+    # 获取其他账户
+    config = {}
+    if os.path.exists(f"{script_path()}bilibili-live/config.json"):
+        with open(f"{script_path()}bilibili-live/config.json", "r", encoding="utf-8") as j:
+            config = json.load(j)
+    # 检测其他账户可用性
+    if config:
+        del config["0"]
+
+
 
 
 # --- 一个名为script_description的函数返回显示给的描述
@@ -4527,7 +4545,7 @@ def script_description():
 如果报错：<br>\
    请关闭梯子和加速器<br>\
    Windows请尝试使用<font color="#ee4343">管理员</font>权限运行obs<br>\
-   其它系统请联系制作者<br>\
+   其它系统请联系开发者<br>\
 </pre></body></html>')
     return t
 
@@ -4546,18 +4564,36 @@ def script_properties():
     setting_props = obs.obs_properties_create()
     # 添加一个分组框【配置】，他包含了用于登录的子控件
     obs.obs_properties_add_group(props, 'setting', '配置', obs.OBS_GROUP_NORMAL, setting_props)
-    # 添加一个只读文本框，用于表示登录状态
+    # 添加一个只读文本框，用于表示[登录状态]
     if islogin:
         login_status_text = f"{uname} 已登录"
         info_type = obs.OBS_TEXT_INFO_NORMAL
     else:
         login_status_text = "未登录"
         info_type = obs.OBS_TEXT_INFO_WARNING
-    # 添加表示登录状态文本框
+    # 添加表示[登录状态]文本框
     login_status = obs.obs_properties_add_text(setting_props, 'login_status', f'登录状态：{login_status_text}',
                                                obs.OBS_TEXT_INFO)
     obs.obs_property_text_set_info_type(login_status, info_type)
-    # 添加一个只读文本框，用于表示直播间状态
+
+    # 添加一个组合框，用于选择账号
+    uid = obs.obs_properties_add_list(setting_props, 'mid', '可登录用户名：', obs.OBS_COMBO_TYPE_LIST,
+                                      obs.OBS_COMBO_FORMAT_STRING)
+    # 为组合框添加选项
+    if os.path.exists(f"{script_path()}bilibili-live/config.json"):
+        with open(f"{script_path()}bilibili-live/config.json", "r", encoding="utf-8") as j:
+            config = json.load(j)
+            for i in config:
+                if i != "0":
+                    if i == config["0"]["DedeUserID"]:
+                        obs.obs_property_list_insert_string(uid, 0, i, i)
+                    else:
+                        obs.obs_property_list_add_string(uid, i, i)
+                # print(config[i])
+                pass
+    obs.obs_property_list_add_string(uid, '添加新的账号', '-1')
+
+    # 添加一个只读文本框，用于表示[直播间状态]
     if roomStatus == "_":
         roomStatus_text = f"未登录"
         info_type = obs.OBS_TEXT_INFO_ERROR
@@ -4567,18 +4603,10 @@ def script_properties():
     elif roomStatus == 1:
         roomStatus_text = roomid
         info_type = obs.OBS_TEXT_INFO_NORMAL
-    # 添加表示直播间状态文本框
+    # 添加表示[直播间状态]文本框
     room_status = obs.obs_properties_add_text(setting_props, 'room_status', f'直播间：{roomStatus_text}',
                                                obs.OBS_TEXT_INFO)
     obs.obs_property_text_set_info_type(room_status, info_type)
-
-
-    # 添加一个组合框，用于选择账号
-    uid = obs.obs_properties_add_list(setting_props, 'mid', 'B站登录id：', obs.OBS_COMBO_TYPE_EDITABLE,
-                                      obs.OBS_COMBO_FORMAT_STRING)
-    # 为组合框添加选项
-
-    obs.obs_property_list_add_string(uid, 'YouTube', 'yt')
 
     obs.obs_properties_add_button(props, "login", "登录", refresh_pressed)
     return props
@@ -4587,5 +4615,5 @@ def script_properties():
 def refresh_pressed(props, prop):
     message = obs.obs_data_get_string(current_settings, 'mid')
     obs.script_log(obs.LOG_WARNING, message)
-    asyncio.run(start_login(message, f"{script_path()}bilibili-live"))
+    asyncio.run(start_login(int(message), f"{script_path()}bilibili-live"))
     pass
