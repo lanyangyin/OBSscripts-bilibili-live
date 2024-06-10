@@ -4439,7 +4439,8 @@ async def start_login(uid: int = 0, dirname: str = "Biliconfig"):
         qrcode_key = url8qrcode_key['qrcode_key']
         # 获取二维码扫描登陆状态
         code = poll(qrcode_key)['code']
-        def code_t (code):
+
+        def code_t(code):
             if code == 0:
                 return "登录成功"
             elif code == 86101:
@@ -4449,7 +4450,7 @@ async def start_login(uid: int = 0, dirname: str = "Biliconfig"):
             elif code == 86038:
                 return "二维码已失效"
 
-        obs.script_log(obs.LOG_WARNING, str(code_t (code)))
+        obs.script_log(obs.LOG_WARNING, str(code_t(code)))
 
         # 轮询二维码扫描登录状态
         def check_poll():
@@ -4464,7 +4465,7 @@ async def start_login(uid: int = 0, dirname: str = "Biliconfig"):
             code = poll_['code']
             if code_ != code:
                 # 二维码扫描登陆状态改变时，输出改变后状态
-                obs.script_log(obs.LOG_WARNING, str(code_t (code)))
+                obs.script_log(obs.LOG_WARNING, str(code_t(code)))
                 pass
             if code == 0 or code == 86038:
                 # 二维码扫描登陆状态为成功或者超时时获取cookies结束[轮询二维码扫描登陆状态]
@@ -4475,9 +4476,9 @@ async def start_login(uid: int = 0, dirname: str = "Biliconfig"):
                     # 记录
                     configb = config_B(uid=uid, dirname=dirname)
                     configb.update(cookies)
-                    # 记录到默认登录字段
-                    configb = config_B(uid=0, dirname=dirname)
-                    configb.update(cookies)
+                    # # 记录到默认登录字段
+                    # configb = config_B(uid=0, dirname=dirname)
+                    # configb.update(cookies)
                 obs.remove_current_callback()
 
         obs.timer_add(check_poll, 1000)
@@ -4516,6 +4517,7 @@ def script_defaults(settings):
         if roomStatus == 1:
             roomid = RoomInfoOld["roomid"]
             liveStatus = RoomInfoOld["liveStatus"]
+
     # 获取其他账户
     config = {}
     if os.path.exists(f"{script_path()}bilibili-live/config.json"):
@@ -4528,11 +4530,10 @@ def script_defaults(settings):
         for i in config:
             configb = config_B(uid=int(i), dirname=f"{script_path()}bilibili-live")
             cookies = configb.check()
-            interface_nav_ = master(dict2cookieformat(cookies)).interface_nav()
-            islogin = interface_nav_["isLogin"]
-            if islogin:
-                userid_uname[i] = interface_nav_["uname"]
-
+            interface_nav__ = master(dict2cookieformat(cookies)).interface_nav()
+            islogin_ = interface_nav__["isLogin"]
+            if islogin_:
+                userid_uname[i] = interface_nav__["uname"]
 
 
 # --- 一个名为script_description的函数返回显示给的描述
@@ -4562,6 +4563,21 @@ def script_description():
    Windows请尝试使用<font color="#ee4343">管理员</font>权限运行obs<br>\
    其它系统请联系开发者<br>\
 </pre></body></html>')
+    t = ('<html lang="zh-CN"><body><pre>\
+本插件基于python3<br>\
+    如果未安装python3，请前往<br>\
+        <a href="https://www.python.org/">python官网</a><br>\
+        或者<br>\
+        <a href="https://python.p2hp.com/">python中文网 官网</a>下载安装<br>\
+        不同操作系统请查看<br>\
+            菜鸟教程<a href="https://www.runoob.com/python3/python3-install.html">Python3 环境搭建</a><br>\
+<font color=yellow>!脚本路径中尽量不要有中文</font><br>\
+<font color=green size=4>请在认为完成操作后点击<font color="white" size=5>⟳</font>重新载入插件</font><br>\
+如果报错：<br>\
+   请关闭梯子和加速器<br>\
+   Windows请尝试使用<font color="#ee4343">管理员</font>权限运行obs<br>\
+   其它问题请联系开发者<br>\
+</pre></body></html>')
     return t
 
 
@@ -4570,30 +4586,34 @@ def script_load(settings):
     obs.script_log(obs.LOG_INFO, "已载入：bilibili-live")
     pass
 
+# 控件状态更新时调用
+def script_update(settings):
+    obs.script_log(obs.LOG_INFO, "操作更新https://www.bjtime.net/time2.php")
+
 
 # --- 一个名为script_properties的函数定义了用户可以使用的属性
 def script_properties():
     props = obs.obs_properties_create()  # 创建一个 OBS 属性集对象，他将包含所有控件对应的属性对象
 
-    # 创建分组框对应的属性集
+    global setting_props, live_props
+    # 创建【配置】分组框对应的属性集
     setting_props = obs.obs_properties_create()
     # 添加一个分组框【配置】，他包含了用于登录的子控件
     obs.obs_properties_add_group(props, 'setting', '配置', obs.OBS_GROUP_NORMAL, setting_props)
     # 添加一个只读文本框，用于表示[登录状态]
     if islogin:
-        login_status_text = f"{uname} 已登录"
+        login_status_txt = f"{uname} 已登录"
         info_type = obs.OBS_TEXT_INFO_NORMAL
     else:
-        login_status_text = "未登录"
+        login_status_txt = "未登录"
         info_type = obs.OBS_TEXT_INFO_WARNING
     # 添加表示[登录状态]文本框
-    login_status = obs.obs_properties_add_text(setting_props, 'login_status', f'登录状态：{login_status_text}',
-                                               obs.OBS_TEXT_INFO)
-    obs.obs_property_text_set_info_type(login_status, info_type)
-
-    # 添加一个组合框，用于选择账号
-    uid = obs.obs_properties_add_list(setting_props, 'mid', '可登录用户名：', obs.OBS_COMBO_TYPE_LIST,
-                                      obs.OBS_COMBO_FORMAT_STRING)
+    login_status_text = obs.obs_properties_add_text(setting_props, 'login_status_text', f'登录状态：{login_status_txt}',
+                                                    obs.OBS_TEXT_INFO)
+    obs.obs_property_text_set_info_type(login_status_text, info_type)
+    # 添加一个组合框，用于[选择账号]
+    uid_list = obs.obs_properties_add_list(setting_props, 'uid_list', '用户：', obs.OBS_COMBO_TYPE_LIST,
+                                           obs.OBS_COMBO_FORMAT_STRING)
     # 为组合框添加选项
     if os.path.exists(f"{script_path()}bilibili-live/config.json"):
         with open(f"{script_path()}bilibili-live/config.json", "r", encoding="utf-8") as j:
@@ -4601,19 +4621,25 @@ def script_properties():
         if config:
             for i in userid_uname:
                 if i != "0":
-                    if i == config["0"]["DedeUserID"]:
-                        obs.obs_property_list_insert_string(uid, 0, userid_uname[i], i)
-                    else:
-                        obs.obs_property_list_add_string(uid, userid_uname[i], i)
+                    try:
+                        if i == config["0"]["DedeUserID"]:
+                            obs.obs_property_list_insert_string(uid_list, 0, userid_uname[i], i)
+                        else:
+                            obs.obs_property_list_add_string(uid_list, userid_uname[i], i)
+                    except:
+                        obs.obs_property_list_add_string(uid_list, userid_uname[i], i)
                 # print(config[i])
                 pass
-    obs.obs_property_list_add_string(uid, '添加新的账号', "-1")
-
+    obs.obs_property_list_add_string(uid_list, '添加新的账号', "-1")
+    # 添加一个【登录】的按钮用于确认
+    obs.obs_properties_add_button(setting_props, "login", "登录", login)
+    # ————————————————————————————————————————————————————————————————
+    # 创建【直播】分组框对应的属性集
+    live_props = obs.obs_properties_create()
+    # 添加一个分组框【直播】，他包含了用于直播的子控件
+    live_group = obs.obs_properties_add_group(props, 'live', '直播', obs.OBS_GROUP_NORMAL, live_props)
     # 添加一个只读文本框，用于表示[直播间状态]
-    if roomStatus == "_":
-        roomStatus_text = f"未登录"
-        info_type = obs.OBS_TEXT_INFO_ERROR
-    elif roomStatus == 0:
+    if roomStatus == 0:
         roomStatus_text = "无"
         info_type = obs.OBS_TEXT_INFO_WARNING
     elif roomStatus == 1:
@@ -4624,18 +4650,124 @@ def script_properties():
             live_Status = "未开播"
         roomStatus_text += f"【{live_Status}】"
         info_type = obs.OBS_TEXT_INFO_NORMAL
-    # 添加表示[直播间状态]文本框
-    room_status = obs.obs_properties_add_text(setting_props, 'room_status', f'直播间：{roomStatus_text}',
-                                               obs.OBS_TEXT_INFO)
-    obs.obs_property_text_set_info_type(room_status, info_type)
+    else:
+        roomStatus_text = f"未登录"
+        info_type = obs.OBS_TEXT_INFO_ERROR
+    # 添加表示[直播间状态]只读文本框
+    room_status_text = obs.obs_properties_add_text(live_props, 'room_status_text', f'直播间：{roomStatus_text}',
+                                                   obs.OBS_TEXT_INFO)
+    obs.obs_property_text_set_info_type(room_status_text, info_type)
+    # 添加一个【选择一级分区】的组合框
+    area1_list = obs.obs_properties_add_list(live_props, 'area1_list', '一级分组：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING)
+    # 添加一个【确认一级分区】的按钮
+    area1_true_button = obs.obs_properties_add_button(live_props, "area1_true_button", "确认一级分区", start_area1)
 
-    obs.obs_properties_add_button(setting_props, "login", "登录", refresh_pressed)
+    # 添加一个【选择二级分区】的组合框
+    area2_list = obs.obs_properties_add_list(live_props, 'area2_list', '二级分组：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING)
+    # 添加一个【确认二级分区】的按钮
+    area2_true_button = obs.obs_properties_add_button(live_props, "area2_true_button", "确认分区", start_area)
+
+    # 添加一个【开播】的按钮
+    start_live_button = obs.obs_properties_add_button(live_props, "start_live_button", "开始直播", start_live)
+    # 添加一个【停播】的按钮
+    stop_live_button = obs.obs_properties_add_button(live_props, "stop_live_button", "结束直播", stop_live)
+    if roomStatus == 1:
+        if liveStatus:
+            obs.obs_property_set_visible(start_live_button, False)
+            obs.obs_property_set_visible(stop_live_button, True)
+        else:
+            obs.obs_property_set_visible(start_live_button, True)
+            obs.obs_property_set_visible(stop_live_button, False)
+
+    # 更新【直播】分组框状态
+    if roomStatus == 1:
+        obs.obs_property_set_enabled(live_group, True)
+    else:
+        obs.obs_property_set_enabled(live_group, False)
     return props
 
 
-def refresh_pressed(props, prop):
-    message = obs.obs_data_get_string(current_settings, 'mid')
-    asyncio.run(start_login(int(message), f"{script_path()}bilibili-live"))
-    if message != "-1":
-        obs.script_log(obs.LOG_INFO, message+"[登录成功]")
+def login(props, prop):
+    message = obs.obs_data_get_string(current_settings, 'uid_list')
+    asyncio.run(start_login(int(message), dirname=f"{script_path()}bilibili-live"))
+    if message == "-1":
+        # 如果添加账户 移除默认账户
+        configb = config_B(uid=0, dirname=f"{script_path()}bilibili-live")
+        configb.update({})
+    # 获取默认账户
+    configb = config_B(uid=0, dirname=f"{script_path()}bilibili-live")
+    cookies = configb.check()
+    # 检测默认账户可用性
+    interface_nav_ = master(dict2cookieformat(cookies)).interface_nav()
+    islogin = interface_nav_["isLogin"]
+    # 检测默认账户直播间基础信息
+    roomStatus = "_"
+    if islogin:
+        uname = interface_nav_["uname"]
+        RoomInfoOld = getRoomInfoOld(cookies['DedeUserID'])
+        roomStatus = RoomInfoOld["roomStatus"]
+        if roomStatus == 1:
+            roomid = RoomInfoOld["roomid"]
+            liveStatus = RoomInfoOld["liveStatus"]
+        obs.script_log(obs.LOG_INFO, message + "[登录成功]")
+
+    # ——————————————————————————————————————————————————————————————————————————————————————
+    # 更新[登录状态]只读文本框
+    if islogin:
+        login_status_txt = f"{uname} 已登录"
+        info_type = obs.OBS_TEXT_INFO_NORMAL
+    else:
+        login_status_txt = "未登录，\n请登录后点击⟳重新载入插件\n重新选择登录用户"
+        info_type = obs.OBS_TEXT_INFO_WARNING
+    # 获取表示[登录状态]文本框
+    login_status_text = obs.obs_properties_get(setting_props, "login_status_text")
+    # 更新[登录状态]文本框内容
+    obs.obs_property_set_description(login_status_text, f'登录状态：{login_status_txt}')
+    obs.obs_property_text_set_info_type(login_status_text, info_type)
+
+    # ——————————————————————————————————————————————————————————————————————————————
+    # 更新[直播间状态]只读文本框
+    if roomStatus == 0:
+        roomStatus_txt = "无"
+        info_type = obs.OBS_TEXT_INFO_WARNING
+    elif roomStatus == 1:
+        roomStatus_txt = str(roomid)
+        if liveStatus:
+            live_Status = "开播中"
+        else:
+            live_Status = "未开播"
+        roomStatus_txt += f"【{live_Status}】"
+        info_type = obs.OBS_TEXT_INFO_NORMAL
+    else:
+        roomStatus_txt = f"未登录"
+        info_type = obs.OBS_TEXT_INFO_ERROR
+    # 获取表示[直播间状态]文本框
+    room_status_text = obs.obs_properties_get(live_props, "room_status_text")
+    # 更新[直播间状态]文本框内容
+    obs.obs_property_set_description(room_status_text, f'直播间：{roomStatus_txt}')
+    obs.obs_property_text_set_info_type(room_status_text, info_type)
+
+    # 获取【直播】分组框
+    live_group = obs.obs_properties_get(props, "live")
+    # 更新【直播】分组框状态
+    if roomStatus == 1:
+        obs.obs_property_set_enabled(live_group, True)
+    else:
+        obs.obs_property_set_enabled(live_group, False)
+    return True
+
+
+def start_area1(props, prop):
     pass
+
+def start_area(props, prop):
+    pass
+
+def start_live(props, prop):
+    print('start_live')
+    pass
+
+def stop_live(props, prop):
+    print('stop_live')
+    pass
+
