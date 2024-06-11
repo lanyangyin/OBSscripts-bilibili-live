@@ -5270,7 +5270,26 @@ def stop_live(props, prop):
 
 def send(props, prop):
     print("发送弹幕")
-    # 获取【弹幕内容】的文本框
+    # 获得【弹幕发送到的直播间】的组合框
+    SentRoom_list = obs.obs_properties_get(danmu_props, "SentRoom_list")
+    # 获得【弹幕发送到的直播间】
+    SentRoom = obs.obs_data_get_string(current_settings, 'SentRoom_list')
+    SentUid = obs.obs_data_get_string(current_settings, 'SentUid_list')
+    print(SentRoom, SentUid)
+    try:
+        RoomBaseInfo = getRoomBaseInfo(int(SentRoom))
+        print(RoomBaseInfo)
+    except:
+        obs.obs_data_set_string(current_settings, 'SentRoom_list', "请输入正常直播间号")
+    else:
+        if RoomBaseInfo["by_room_ids"]:
+            for r in RoomBaseInfo["by_room_ids"]:
+                print(RoomBaseInfo["by_room_ids"][r]["uname"], r)
+                obs.obs_property_list_add_string(SentRoom_list, RoomBaseInfo["by_room_ids"][r]["uname"], r)
+        else:
+            obs.obs_data_set_string(current_settings, 'SentRoom_list', "请输入正常直播间号")
+
+    # 清空【弹幕内容】的文本框
     obs.obs_data_set_string(current_settings, 'danmu_msg', "")
     return True
 
