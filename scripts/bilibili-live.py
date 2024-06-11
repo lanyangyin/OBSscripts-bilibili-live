@@ -5122,16 +5122,4 @@ def stop_live(props, prop):
 
 
 def return_liveStatus(props, prop):
-    # 获取【开播】的按钮
-    start_live_button = obs.obs_properties_get(live_props, "start_live_button")
-    # 获取【停播】的按钮
-    stop_live_button = obs.obs_properties_get(live_props, "stop_live_button")
-    # 根据直播状态更改按钮状态
-    if DefaultroomStatus == 1:
-        if DefaultliveStatus:
-            obs.obs_property_set_visible(start_live_button, False)
-            obs.obs_property_set_visible(stop_live_button, True)
-        else:
-            obs.obs_property_set_visible(start_live_button, True)
-            obs.obs_property_set_visible(stop_live_button, False)
     return True
