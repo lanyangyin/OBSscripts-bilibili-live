@@ -150,6 +150,8 @@ def qr_encode(qr_str: str, border: int = 2, invert: bool = False):
     return out
 
 
+# end
+
 # 不登录也能用的api
 def getRoomInfoOld(mid: int) -> dict:
     """
@@ -241,6 +243,278 @@ def getRoomInfoOld(mid: int) -> dict:
     }
     RoomInfoOld = requests.get(api, headers=headers, params=data).json()
     return RoomInfoOld["data"]
+
+
+def getRoomBaseInfo(room_id: int):
+    """
+    直播间的
+    @param room_id:
+    @return:
+    "data": {
+    "by_uids": {
+
+    },
+    "by_room_ids": {
+        "25322725": {
+            "room_id": 25322725,
+            "uid": 143474500,
+            "area_id": 192,
+            "live_status": 0,
+            "live_url": "https://live.bilibili.com/25322725",
+            "parent_area_id": 5,
+            "title": "obsのlua插件2测试",
+            "parent_area_name": "电台",
+            "area_name": "聊天电台",
+            "live_time": "0000-00-00 00:00:00",
+            "description": "个人简介测试",
+            "tags": "我的个人标签测试",
+            "attention": 35,
+            "online": 0,
+            "short_id": 0,
+            "uname": "兰阳音",
+            "cover": "http://i0.hdslb.com/bfs/live/new_room_cover/c17af2dbbbdfce33888e834bdb720edbf9515f95.jpg",
+            "background": "",
+            "join_slide": 1,
+            "live_id": 0,
+            "live_id_str": "0"
+        }
+    }
+  }
+    """
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\
+        (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0",
+    }
+    api = "https://api.live.bilibili.com/xlive/web-room/v1/index/getRoomBaseInfo"
+    data = {
+        'room_ids': room_id,
+        'req_biz': "link-center"
+    }
+    RoomBaseInfo = requests.get(api, headers=headers, params=data).json()
+    return RoomBaseInfo["data"]
+
+
+def Area_getList():
+    """
+    获取直播分区
+    @return:
+    <table>
+    <thead>
+    <tr>
+        <th>字段</th>
+        <th>类型</th>
+        <th>内容</th>
+        <th>备注</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>code</td>
+        <td>num</td>
+        <td>返回值</td>
+        <td>0：成功</td>
+    </tr>
+    <tr>
+        <td>msg</td>
+        <td>str</td>
+        <td>错误信息</td>
+        <td>默认为success</td>
+    </tr>
+    <tr>
+        <td>message</td>
+        <td>str</td>
+        <td>错误信息</td>
+        <td>默认为success</td>
+    </tr>
+    <tr>
+        <td>data</td>
+        <td>array</td>
+        <td>父分区列表</td>
+        <td></td>
+    </tr>
+    </tbody>
+</table>
+<p><code>data</code>数组：</p>
+<table>
+    <thead>
+    <tr>
+        <th>项</th>
+        <th>类型</th>
+        <th>内容</th>
+        <th>备注</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>0</td>
+        <td>obj</td>
+        <td>父分区1</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>n</td>
+        <td>obj</td>
+        <td>父分区(n+1)</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>……</td>
+        <td>obj</td>
+        <td>……</td>
+        <td>……</td>
+    </tr>
+    </tbody>
+</table>
+<p><code>data</code>数组中的对象：</p>
+<table>
+    <thead>
+    <tr>
+        <th>字段</th>
+        <th>类型</th>
+        <th>内容</th>
+        <th>备注</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>id</td>
+        <td>num</td>
+        <td>父分区id</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>name</td>
+        <td>name</td>
+        <td>父分区名</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>list</td>
+        <td>list</td>
+        <td>子分区列表</td>
+        <td></td>
+    </tr>
+    </tbody>
+</table>
+<p><code>data</code>数组中的对象中的<code>list</code>数组：</p>
+<table>
+    <thead>
+    <tr>
+        <th>项</th>
+        <th>类型</th>
+        <th>内容</th>
+        <th>备注</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>0</td>
+        <td>obj</td>
+        <td>子分区1</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>n</td>
+        <td>obj</td>
+        <td>子分区(n+1)</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>……</td>
+        <td>obj</td>
+        <td>……</td>
+        <td>……</td>
+    </tr>
+    </tbody>
+</table>
+<p><code>list</code>数组中的对象：</p>
+<table>
+    <thead>
+    <tr>
+        <th>字段</th>
+        <th>类型</th>
+        <th>内容</th>
+        <th>备注</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>id</td>
+        <td>str</td>
+        <td>子分区id</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>parent_id</td>
+        <td>str</td>
+        <td>父分区id</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>old_area_id</td>
+        <td>str</td>
+        <td>旧分区id</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>name</td>
+        <td>str</td>
+        <td>子分区名</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>act_id</td>
+        <td>str</td>
+        <td>0</td>
+        <td><strong>作用尚不明确</strong></td>
+    </tr>
+    <tr>
+        <td>pk_status</td>
+        <td>str</td>
+        <td>？？？</td>
+        <td><strong>作用尚不明确</strong></td>
+    </tr>
+    <tr>
+        <td>hot_status</td>
+        <td>num</td>
+        <td>是否为热门分区</td>
+        <td>0：否<br>1：是</td>
+    </tr>
+    <tr>
+        <td>lock_status</td>
+        <td>str</td>
+        <td>0</td>
+        <td><strong>作用尚不明确</strong></td>
+    </tr>
+    <tr>
+        <td>pic</td>
+        <td>str</td>
+        <td>子分区标志图片url</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>parent_name</td>
+        <td>str</td>
+        <td>父分区名</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>area_type</td>
+        <td>num</td>
+        <td></td>
+        <td></td>
+    </tr>
+    </tbody>
+</table>
+
+    """
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\
+        (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0",
+    }
+    api = "https://api.live.bilibili.com/room/v1/Area/getList"
+    AreaList = requests.get(api, headers=headers).json()
+    return AreaList["data"]
 
 
 # end
@@ -4494,7 +4768,7 @@ async def start_login(uid: int = 0, dirname: str = "Biliconfig"):
 
 # --- 设置默认值
 def script_defaults(settings):
-    global current_settings, islogin, uname, roomStatus, roomid, liveStatus, userid_uname
+    global current_settings, Defaultislogin, Defaultuname, DefaultroomStatus, Defaultroomid, DefaultArea, DefaultliveStatus, allAreaList, userid_uname
     current_settings = settings
     # 创建插件日志文件夹
     try:
@@ -4507,17 +4781,32 @@ def script_defaults(settings):
     # print(cookies)
     # 检测默认账户可用性
     interface_nav_ = master(dict2cookieformat(cookies)).interface_nav()
-    islogin = interface_nav_["isLogin"]
+    Defaultislogin = interface_nav_["isLogin"]
     # 检测默认账户直播间基础信息
-    roomStatus = "_"
-    if islogin:
-        uname = interface_nav_["uname"]
+    DefaultroomStatus = "_"
+    if Defaultislogin:
+        Defaultuname = interface_nav_["uname"]
         RoomInfoOld = getRoomInfoOld(cookies['DedeUserID'])
-        roomStatus = RoomInfoOld["roomStatus"]
-        if roomStatus == 1:
-            roomid = RoomInfoOld["roomid"]
-            liveStatus = RoomInfoOld["liveStatus"]
+        DefaultroomStatus = RoomInfoOld["roomStatus"]
+        if DefaultroomStatus == 1:
+            Defaultroomid = RoomInfoOld["roomid"]
+            DefaultliveStatus = RoomInfoOld["liveStatus"]
 
+    # 获取默认账号直播间分区
+    DefaultArea = {}
+    if Defaultislogin:
+        if DefaultroomStatus == 1:
+            RoomBaseInfo = getRoomBaseInfo(Defaultroomid)["by_room_ids"][str(Defaultroomid)]
+            DefaultArea = {
+                "id": RoomBaseInfo["parent_area_id"],
+                "name": RoomBaseInfo["parent_area_name"],
+                "data": {
+                    "id": RoomBaseInfo["area_id"],
+                    "name": RoomBaseInfo["area_name"],
+                }
+            }
+    # 获取完整直播分区
+    allAreaList = Area_getList()
     # 获取其他账户
     config = {}
     if os.path.exists(f"{script_path()}bilibili-live/config.json"):
@@ -4586,6 +4875,7 @@ def script_load(settings):
     obs.script_log(obs.LOG_INFO, "已载入：bilibili-live")
     pass
 
+
 # 控件状态更新时调用
 def script_update(settings):
     obs.script_log(obs.LOG_INFO, "操作更新https://www.bjtime.net/time2.php")
@@ -4602,7 +4892,7 @@ def script_properties():
     obs.obs_properties_add_group(props, 'setting', '配置', obs.OBS_GROUP_NORMAL, setting_props)
     # 添加一个只读文本框，用于表示[登录状态]
     if islogin:
-        login_status_txt = f"{uname} 已登录"
+        login_status_txt = f"{Defaultuname} 已登录"
         info_type = obs.OBS_TEXT_INFO_NORMAL
     else:
         login_status_txt = "未登录"
@@ -4639,12 +4929,12 @@ def script_properties():
     # 添加一个分组框【直播】，他包含了用于直播的子控件
     live_group = obs.obs_properties_add_group(props, 'live', '直播', obs.OBS_GROUP_NORMAL, live_props)
     # 添加一个只读文本框，用于表示[直播间状态]
-    if roomStatus == 0:
+    if DefaultroomStatus == 0:
         roomStatus_text = "无"
         info_type = obs.OBS_TEXT_INFO_WARNING
-    elif roomStatus == 1:
-        roomStatus_text = str(roomid)
-        if liveStatus:
+    elif DefaultroomStatus == 1:
+        roomStatus_text = str(Defaultroomid)
+        if DefaultliveStatus:
             live_Status = "开播中"
         else:
             live_Status = "未开播"
@@ -4658,29 +4948,53 @@ def script_properties():
                                                    obs.OBS_TEXT_INFO)
     obs.obs_property_text_set_info_type(room_status_text, info_type)
     # 添加一个【选择一级分区】的组合框
-    area1_list = obs.obs_properties_add_list(live_props, 'area1_list', '一级分组：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING)
+    area1_list = obs.obs_properties_add_list(live_props, 'area1_list', '一级分组：', obs.OBS_COMBO_TYPE_LIST,
+                                             obs.OBS_COMBO_FORMAT_STRING)
+    for area in allAreaList:
+        try:
+            if area["id"] == DefaultArea["id"]:
+                obs.obs_property_list_insert_string(area1_list, 0, area["name"], str(area["id"]))
+            else:
+                obs.obs_property_list_add_string(area1_list, area["name"], str(area["id"]))
+        except:
+            obs.obs_property_list_add_string(area1_list, area["name"], str(area["id"]))
     # 添加一个【确认一级分区】的按钮
     area1_true_button = obs.obs_properties_add_button(live_props, "area1_true_button", "确认一级分区", start_area1)
 
     # 添加一个【选择二级分区】的组合框
-    area2_list = obs.obs_properties_add_list(live_props, 'area2_list', '二级分组：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING)
-    # 添加一个【确认二级分区】的按钮
+    area2_list = obs.obs_properties_add_list(live_props, 'area2_list', '二级分组：', obs.OBS_COMBO_TYPE_LIST,
+                                             obs.OBS_COMBO_FORMAT_STRING)
+    area1_id = obs.obs_data_get_string(current_settings, 'area1_list')
+    for area in allAreaList:
+        if area1_id == str(area["id"]):
+            for area2 in area["list"]:
+                try:
+                    if str(area2["id"]) == str(DefaultArea["data"]["id"]):
+                        obs.obs_property_list_insert_string(area2_list, 0, area2["name"], str(area2["id"]))
+                    else:
+                        obs.obs_property_list_add_string(area2_list, area2["name"], str(area2["id"]))
+                except:
+                    obs.obs_property_list_add_string(area2_list, area2["name"], str(area2["id"]))
+            break
+    # 添加一个【确认分区】的按钮
     area2_true_button = obs.obs_properties_add_button(live_props, "area2_true_button", "确认分区", start_area)
 
     # 添加一个【开播】的按钮
     start_live_button = obs.obs_properties_add_button(live_props, "start_live_button", "开始直播", start_live)
     # 添加一个【停播】的按钮
     stop_live_button = obs.obs_properties_add_button(live_props, "stop_live_button", "结束直播", stop_live)
-    if roomStatus == 1:
-        if liveStatus:
+    if DefaultroomStatus == 1:
+        if DefaultliveStatus:
             obs.obs_property_set_visible(start_live_button, False)
             obs.obs_property_set_visible(stop_live_button, True)
         else:
             obs.obs_property_set_visible(start_live_button, True)
             obs.obs_property_set_visible(stop_live_button, False)
+    # 添加一个【更新直播状态】的按钮
+    return_liveStatus_button = obs.obs_properties_add_button(live_props, "return_liveStatus_button", "更新直播状态", return_liveStatus)
 
     # 更新【直播】分组框状态
-    if roomStatus == 1:
+    if DefaultroomStatus == 1:
         obs.obs_property_set_enabled(live_group, True)
     else:
         obs.obs_property_set_enabled(live_group, False)
@@ -4688,9 +5002,9 @@ def script_properties():
 
 
 def login(props, prop):
-    message = obs.obs_data_get_string(current_settings, 'uid_list')
-    asyncio.run(start_login(int(message), dirname=f"{script_path()}bilibili-live"))
-    if message == "-1":
+    uid = obs.obs_data_get_string(current_settings, 'uid_list')
+    asyncio.run(start_login(int(uid), dirname=f"{script_path()}bilibili-live"))
+    if uid == "-1":
         # 如果添加账户 移除默认账户
         configb = config_B(uid=0, dirname=f"{script_path()}bilibili-live")
         configb.update({})
@@ -4709,7 +5023,7 @@ def login(props, prop):
         if roomStatus == 1:
             roomid = RoomInfoOld["roomid"]
             liveStatus = RoomInfoOld["liveStatus"]
-        obs.script_log(obs.LOG_INFO, message + "[登录成功]")
+        obs.script_log(obs.LOG_INFO, uid + "[登录成功]")
 
     # ——————————————————————————————————————————————————————————————————————————————————————
     # 更新[登录状态]只读文本框
@@ -4758,16 +5072,24 @@ def login(props, prop):
 
 
 def start_area1(props, prop):
-    pass
+    area2_list = obs.obs_properties_get(live_props, "area2_list")
+    obs.obs_property_list_clear(area2_list)
+    return True
+
 
 def start_area(props, prop):
     pass
+
 
 def start_live(props, prop):
     print('start_live')
     pass
 
+
 def stop_live(props, prop):
     print('stop_live')
     pass
 
+
+def return_liveStatus(props, prop):
+    pass
