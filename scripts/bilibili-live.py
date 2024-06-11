@@ -4964,7 +4964,9 @@ def script_properties():
     # 添加一个【选择二级分区】的组合框
     area2_list = obs.obs_properties_add_list(live_props, 'area2_list', '二级分组：', obs.OBS_COMBO_TYPE_LIST,
                                              obs.OBS_COMBO_FORMAT_STRING)
+    # 获取一级分组id
     area1_id = obs.obs_data_get_string(current_settings, 'area1_list')
+    # 更新【二级分区】的组合框
     for area in allAreaList:
         if area1_id == str(area["id"]):
             for area2 in area["list"]:
@@ -4983,6 +4985,7 @@ def script_properties():
     start_live_button = obs.obs_properties_add_button(live_props, "start_live_button", "开始直播", start_live)
     # 添加一个【停播】的按钮
     stop_live_button = obs.obs_properties_add_button(live_props, "stop_live_button", "结束直播", stop_live)
+    # 根据直播状态更改按钮状态
     if DefaultroomStatus == 1:
         if DefaultliveStatus:
             obs.obs_property_set_visible(start_live_button, False)
@@ -5061,6 +5064,19 @@ def login(props, prop):
     obs.obs_property_set_description(room_status_text, f'直播间：{roomStatus_txt}')
     obs.obs_property_text_set_info_type(room_status_text, info_type)
 
+    # 获取【开播】的按钮
+    start_live_button = obs.obs_properties_get(live_props, "start_live_button")
+    # 获取【停播】的按钮
+    stop_live_button = obs.obs_properties_get(live_props, "stop_live_button")
+    # 根据直播状态更改按钮状态
+    if roomStatus == 1:
+        if liveStatus:
+            obs.obs_property_set_visible(start_live_button, False)
+            obs.obs_property_set_visible(stop_live_button, True)
+        else:
+            obs.obs_property_set_visible(start_live_button, True)
+            obs.obs_property_set_visible(stop_live_button, False)
+
     # 获取【直播】分组框
     live_group = obs.obs_properties_get(props, "live")
     # 更新【直播】分组框状态
@@ -5074,6 +5090,20 @@ def login(props, prop):
 def start_area1(props, prop):
     area2_list = obs.obs_properties_get(live_props, "area2_list")
     obs.obs_property_list_clear(area2_list)
+    # 获取一级分组id
+    area1_id = obs.obs_data_get_string(current_settings, 'area1_list')
+    # 更新【二级分区】的组合框
+    for area in allAreaList:
+        if area1_id == str(area["id"]):
+            for area2 in area["list"]:
+                try:
+                    if str(area2["id"]) == str(DefaultArea["data"]["id"]):
+                        obs.obs_property_list_insert_string(area2_list, 0, area2["name"], str(area2["id"]))
+                    else:
+                        obs.obs_property_list_add_string(area2_list, area2["name"], str(area2["id"]))
+                except:
+                    obs.obs_property_list_add_string(area2_list, area2["name"], str(area2["id"]))
+            break
     return True
 
 
@@ -5092,4 +5122,16 @@ def stop_live(props, prop):
 
 
 def return_liveStatus(props, prop):
-    pass
+    # 获取【开播】的按钮
+    start_live_button = obs.obs_properties_get(live_props, "start_live_button")
+    # 获取【停播】的按钮
+    stop_live_button = obs.obs_properties_get(live_props, "stop_live_button")
+    # 根据直播状态更改按钮状态
+    if DefaultroomStatus == 1:
+        if DefaultliveStatus:
+            obs.obs_property_set_visible(start_live_button, False)
+            obs.obs_property_set_visible(stop_live_button, True)
+        else:
+            obs.obs_property_set_visible(start_live_button, True)
+            obs.obs_property_set_visible(stop_live_button, False)
+    return True
