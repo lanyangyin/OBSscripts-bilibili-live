@@ -4948,7 +4948,7 @@ def script_properties():
                                                    obs.OBS_TEXT_INFO)
     obs.obs_property_text_set_info_type(room_status_text, info_type)
     # 添加一个【选择一级分区】的组合框
-    area1_list = obs.obs_properties_add_list(live_props, 'area1_list', '一级分组：', obs.OBS_COMBO_TYPE_LIST,
+    area1_list = obs.obs_properties_add_list(live_props, 'area1_list', '一级分区：', obs.OBS_COMBO_TYPE_LIST,
                                              obs.OBS_COMBO_FORMAT_STRING)
     for area in allAreaList:
         try:
@@ -4962,7 +4962,7 @@ def script_properties():
     area1_true_button = obs.obs_properties_add_button(live_props, "area1_true_button", "确认一级分区", start_area1)
 
     # 添加一个【选择二级分区】的组合框
-    area2_list = obs.obs_properties_add_list(live_props, 'area2_list', '二级分组：', obs.OBS_COMBO_TYPE_LIST,
+    area2_list = obs.obs_properties_add_list(live_props, 'area2_list', '二级分区：', obs.OBS_COMBO_TYPE_LIST,
                                              obs.OBS_COMBO_FORMAT_STRING)
     # 获取一级分组id
     area1_id = obs.obs_data_get_string(current_settings, 'area1_list')
@@ -4979,7 +4979,7 @@ def script_properties():
                     obs.obs_property_list_add_string(area2_list, area2["name"], str(area2["id"]))
             break
     # 添加一个【确认分区】的按钮
-    area2_true_button = obs.obs_properties_add_button(live_props, "area2_true_button", "确认分区", start_area)
+    area2_true_button = obs.obs_properties_add_button(live_props, "area2_true_button", "{确认分区}", start_area)
 
     # 添加一个【开播】的按钮
     start_live_button = obs.obs_properties_add_button(live_props, "start_live_button", "开始直播", start_live)
