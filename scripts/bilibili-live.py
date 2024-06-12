@@ -4730,21 +4730,24 @@ class CsrfAuthenticationL:
         }
         self.cookies = cookie2dict(cookie)
         self.cookie = cookie
+        self.csrf = self.cookies["bili_jct"]
+
 
     def AnchorChangeRoomArea(self, area_id: int):
         """
         更改直播分区
-        @param area_id:
+        @param area_id:二级分区id
         @return:
         """
         api = "https://api.live.bilibili.com/xlive/app-blink/v2/room/AnchorChangeRoomArea"
         headers = self.headers
+        csrf = self.csrf
         data = {
             "platform": "pc",
             "room_id": master(self.cookie).getRoomHighlightState(),
             "area_id": area_id,
-            "csrf": self.cookies["bili_jct"],
-            "csrf_token": self.cookies["bili_jct"],
+            "csrf": csrf,
+            "csrf_token": csrf,
         }
         changeroomarea_ReturnValue = requests.post(api, headers=headers, params=data).json()
         return changeroomarea_ReturnValue
@@ -4757,13 +4760,14 @@ class CsrfAuthenticationL:
         """
         api = "https://api.live.bilibili.com/room/v1/Room/startLive"
         headers = self.headers
+        csrf = self.csrf
         data = {
             "platform": "pc",
             "room_id": master(self.cookie).getRoomHighlightState(),
             "area_v2": area_id,
             "backup_stream": 0,
-            "csrf": self.cookies["bili_jct"],
-            "csrf_token": self.cookies["bili_jct"],
+            "csrf": csrf,
+            "csrf_token": csrf,
         }
         startLive_ReturnValue = requests.post(api, headers=headers, params=data).json()
         return startLive_ReturnValue
@@ -4775,14 +4779,51 @@ class CsrfAuthenticationL:
         """
         api = "https://api.live.bilibili.com/room/v1/Room/stopLive"
         headers = self.headers
+        csrf = self.csrf
         data = {
             "platform": "pc",
             "room_id": master(self.cookie).getRoomHighlightState(),
-            "csrf": self.cookies["bili_jct"],
-            "csrf_token": self.cookies["bili_jct"],
+            "csrf": csrf,
+            "csrf_token": csrf,
         }
         stopLive_ReturnValue = requests.post(api, headers=headers, params=data).json()
         return stopLive_ReturnValue
+
+    def FetchWebUpStreamAddr(self, reset_key: bool = False):
+        """
+        推流信息
+        @param reset_key: 布尔值，是否更新
+        @return:
+        """
+        api = "https://api.live.bilibili.com/xlive/app-blink/v1/live/FetchWebUpStreamAddr"
+        headers = self.headers
+        csrf = self.csrf
+        data = {
+            "platform": "pc",
+            "backup_stream": 0,
+            "reset_key": reset_key,
+            "csrf": csrf,
+            "csrf_token": csrf,
+        }
+        FetchWebUpStreamAddre_ReturnValue = requests.post(api, headers=headers, params=data).json()
+        return FetchWebUpStreamAddre_ReturnValue
+
+    def send(self, roomid: int, msg: str):
+        api = "https://api.live.bilibili.com/msg/send"
+        headers = self.headers
+        csrf = self.csrf
+        data = {
+            'msg': msg,
+            'color': 16777215,
+            'fontsize': 25,
+            'rnd': str(time.time())[:8],
+            'roomid': roomid,
+            'csrf': csrf,
+            'csrf_token': csrf
+        }
+        send_ReturnValue = requests.post(api, headers=headers, params=data).json()
+        return send_ReturnValue
+
 
 
 # end
@@ -4929,6 +4970,8 @@ def script_defaults(settings):
             islogin_ = interface_nav__["isLogin"]
             if islogin_:
                 userid_uname[i] = interface_nav__["uname"]
+    # 清空【弹幕内容】的文本框
+    obs.obs_data_set_string(current_settings, 'danmu_msg_text', "")
 
 
 # --- 一个名为script_description的函数返回显示给的描述
@@ -5109,7 +5152,7 @@ def script_properties():
     # 添加一个组合框，用于选择【发送弹幕的用户】
     SentUid_list = obs.obs_properties_add_list(danmu_props, 'SentUid_list', '发出弹幕的用户：', obs.OBS_COMBO_TYPE_LIST,
                                            obs.OBS_COMBO_FORMAT_STRING)
-    # 为【发送弹幕的用户】组合框添加选项
+    # 为组合框【发送弹幕的用户】添加选项
     if os.path.exists(f"{script_path()}bilibili-live/config.json"):
         with open(f"{script_path()}bilibili-live/config.json", "r", encoding="utf-8") as j:
             config = json.load(j)
@@ -5118,10 +5161,18 @@ def script_properties():
                 if i != "0":
                     obs.obs_property_list_add_string(SentUid_list, userid_uname[i], i)
     # 添加一个选择【弹幕发送到的直播间】的组合框
-    SentRoom_list = obs.obs_properties_add_list(danmu_props, 'SentRoom_list', '弹幕发送到：', obs.OBS_COMBO_TYPE_EDITABLE,
+    SentRoom_list = obs.obs_properties_add_list(danmu_props, 'SentRoom_list', '弹幕发送到：', obs.OBS_COMBO_TYPE_LIST,
                                            obs.OBS_COMBO_FORMAT_STRING)
+    # 为组合框【弹幕发送到的直播间】添加选项
+    if os.path.exists(f"{script_path()}bilibili-live/roomid_set_data.json"):
+        with open(f"{script_path()}bilibili-live/roomid_set_data.json", "r", encoding="utf-8") as j:
+            roomid_set_data = eval(j.read())
+        for roomid in roomid_set_data:
+            RoomBaseInfo = getRoomBaseInfo(int(roomid))
+            obs.obs_property_list_add_string(SentRoom_list, RoomBaseInfo["by_room_ids"][str(roomid)]["uname"], str(roomid))
+
     # 添加一个【弹幕内容】的文本框
-    obs.obs_properties_add_text(danmu_props, 'danmu_msg', '弹幕内容：', obs.OBS_TEXT_MULTILINE)
+    obs.obs_properties_add_text(danmu_props, 'danmu_msg_text', '弹幕内容：', obs.OBS_TEXT_MULTILINE)
     # 添加一个【发送弹幕】的按钮
     send_button = obs.obs_properties_add_button(danmu_props, 'send_button', '发送弹幕', send)
     return props
@@ -5272,25 +5323,54 @@ def send(props, prop):
     print("发送弹幕")
     # 获得【弹幕发送到的直播间】的组合框
     SentRoom_list = obs.obs_properties_get(danmu_props, "SentRoom_list")
+    # 清空组合框【弹幕发送到的直播间】
+    obs.obs_property_list_clear(SentRoom_list)
+    # 获得【弹幕内容】
+    danmu_msg = obs.obs_data_get_string(current_settings, 'danmu_msg_text')
+    # 清空【弹幕内容】的文本框
+    obs.obs_data_set_string(current_settings, 'danmu_msg_text', "")
     # 获得【弹幕发送到的直播间】
     SentRoom = obs.obs_data_get_string(current_settings, 'SentRoom_list')
+    # 获得[发出弹幕的用户]
     SentUid = obs.obs_data_get_string(current_settings, 'SentUid_list')
-    print(SentRoom, SentUid)
-    try:
-        RoomBaseInfo = getRoomBaseInfo(int(SentRoom))
-        print(RoomBaseInfo)
-    except:
-        obs.obs_data_set_string(current_settings, 'SentRoom_list', "请输入正常直播间号")
-    else:
-        if RoomBaseInfo["by_room_ids"]:
-            for r in RoomBaseInfo["by_room_ids"]:
-                print(RoomBaseInfo["by_room_ids"][r]["uname"], r)
-                obs.obs_property_list_add_string(SentRoom_list, RoomBaseInfo["by_room_ids"][r]["uname"], r)
+    # 添加或者减少发送的直播间
+    if str(danmu_msg).startswith("\n"):
+        roomid_set_data = set()
+        danmu_room_additions_and_deletions = str(danmu_msg).strip()
+        if danmu_room_additions_and_deletions == "-":
+            # 获得【弹幕发送到的直播间】
+            danmu_room_delet = obs.obs_data_get_string(current_settings, 'SentRoom_list')
+            if os.path.exists(f"{script_path()}bilibili-live/roomid_set_data.json"):
+                with open(f"{script_path()}bilibili-live/roomid_set_data.json", "r", encoding="utf-8") as j:
+                    roomid_set_data = eval(j.read())
+                with open(f"{script_path()}bilibili-live/roomid_set_data.json", "w", encoding="utf-8") as j:
+                    roomid_set_data.discard(danmu_room_delet)
+                    j.write(str(roomid_set_data))
+                pass
         else:
-            obs.obs_data_set_string(current_settings, 'SentRoom_list', "请输入正常直播间号")
+            danmu_room_add = danmu_room_additions_and_deletions
+            try:
+                RoomBaseInfo = getRoomBaseInfo(int(danmu_room_add))
+                for long_roomid in RoomBaseInfo["by_room_ids"]:
+                    if os.path.exists(f"{script_path()}bilibili-live/roomid_set_data.json"):
+                        with open(f"{script_path()}bilibili-live/roomid_set_data.json", "r", encoding="utf-8") as j:
+                            roomid_set_data = eval(j.read())
+                    with open(f"{script_path()}bilibili-live/roomid_set_data.json", "w", encoding="utf-8") as j:
+                        roomid_set_data.add(long_roomid)
+                        j.write(str(roomid_set_data))
+            except:
+                obs.obs_data_set_string(current_settings, 'danmu_msg_text', "请输入正常直播间号")
+    else:
 
-    # 清空【弹幕内容】的文本框
-    obs.obs_data_set_string(current_settings, 'danmu_msg', "")
+        pass
+
+    # 刷新[弹幕发送到直播间]列表
+    if os.path.exists(f"{script_path()}bilibili-live/roomid_set_data.json"):
+        with open(f"{script_path()}bilibili-live/roomid_set_data.json", "r", encoding="utf-8") as j:
+            roomid_set_data = eval(j.read())
+        for roomid in roomid_set_data:
+            RoomBaseInfo = getRoomBaseInfo(int(roomid))
+            obs.obs_property_list_add_string(SentRoom_list, RoomBaseInfo["by_room_ids"][str(roomid)]["uname"], str(roomid))
     return True
 
 
