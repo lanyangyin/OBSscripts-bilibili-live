@@ -7,6 +7,7 @@ import os
 import pprint
 import re
 import sys
+import threading
 import time
 import urllib
 from urllib.parse import quote
@@ -101,7 +102,8 @@ def split_by_n(seq, n):
 def split_of_list(txt: str, str_list: list):
     # 定义列表和字符串
     text = txt
-    text = text.replace("'", "’").replace(",", "，")
+    text = (text.replace("\"", "”").replace("'", "’").replace(",", "，")
+            .replace("[", "【").replace("]", "】").replace("\n", ""))
     for ostr in str_list:
         text = text.replace(ostr, f"\', \'{ostr}\', \'")
     text = f"[\'{text}\']"
@@ -577,6 +579,27 @@ def Area_getList():
     return AreaList["data"]
 
 
+def getDanmuInfo(roomid: int) -> dict:
+    """
+    获取信息流认证秘钥
+    @param roomid: 直播间真实id
+    @return:
+    <p>根对象：</p>
+    <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>code</td><td>num</td><td>返回值</td><td>0：成功<br>65530：token错误（登录错误）<br>1：错误<br>60009：分区不存在<br><strong>（其他错误码有待补充）</strong></td></tr><tr><td>message</td><td>str</td><td>错误信息</td><td>默认为空</td></tr><tr><td>ttl</td><td>num</td><td>1</td><td></td></tr><tr><td>data</td><td>obj</td><td>信息本体</td><td></td></tr></tbody></table>
+    <p><code>data</code>对象：</p>
+    <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>group</td><td>str</td><td>live</td><td></td></tr><tr><td>business_id</td><td>num</td><td>0</td><td></td></tr><tr><td>refresh_row_factor</td><td>num</td><td>0.125</td><td></td></tr><tr><td>refresh_rate</td><td>num</td><td>100</td><td></td></tr><tr><td>max_delay</td><td>num</td><td>5000</td><td></td></tr><tr><td>token</td><td>str</td><td>认证秘钥</td><td></td></tr><tr><td>host_list</td><td>array</td><td>信息流服务器节点列表</td><td></td></tr></tbody></table>
+    <p><code>host_list</code>数组中的对象：</p>
+    <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>host</td><td>str</td><td>服务器域名</td><td></td></tr><tr><td>port</td><td>num</td><td>tcp端口</td><td></td></tr><tr><td>wss_port</td><td>num</td><td>wss端口</td><td></td></tr><tr><td>ws_port</td><td>num</td><td>ws端口</td><td></td></tr></tbody></table>
+    """
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\
+        (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0",
+    }
+    url = f'https://api.live.bilibili.com/xlive/web-room/v1/index/getDanmuInfo?id={roomid}'
+    response = requests.get(url, headers=headers).json()
+    return response
+
+
 # end
 
 
@@ -671,7 +694,7 @@ class master:
                                               "like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0"):
         """
         完善 浏览器headers
-        @param cookies: B站cookie 的 cookies
+        @param cookie: B站cookie
         @param UA: 浏览器User-Agent
         """
         self.headers = {
@@ -4310,6 +4333,15 @@ class master:
         dynamic = dynamics
         return dynamic
 
+    def get_user_info(self) -> dict:
+        """
+        获得个人基础信息
+        """
+        url = "https://api.live.bilibili.com/xlive/web-ucenter/user/get_user_info"
+        headers = self.headers
+        response = requests.get(url, headers=headers).json()
+        return response['data']
+
     def interface_nav(self):
         """
         获取登录后导航栏用户信息
@@ -5835,16 +5867,22 @@ def send(props, prop):
     return True
 
 
-def show_danmu(props, prop):
-
-    pass
-
-
 def correct_mask_word():
     correct_word = str(pypinyin.pinyin(cb.paste(), style=pypinyin.Style.TONE2))
     print(correct_word)
     cb.copy(correct_word.replace("[", "").replace("]", "").replace(", ", "_").replace("'", ""))
     pass
+
+
+def show_danmu(props, prop):
+    def print_numbers():
+        for i in range(1, 100):
+            time.sleep(1)
+            print(f"Number {i}")
+    t1 = threading.Thread(target=print_numbers)
+    t1.start()
+    pass
+
 
 def script_unload():
     """
