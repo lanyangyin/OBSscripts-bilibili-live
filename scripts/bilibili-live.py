@@ -12,6 +12,7 @@ import urllib
 from urllib.parse import quote
 
 import obspython as obs
+import pypinyin
 import qrcode
 import requests
 import pandas.io.clipboard as cb
@@ -5429,6 +5430,10 @@ def script_properties():
     # 设置按钮[发送弹幕]的可用状态
     obs.obs_property_set_enabled(send_button, send_button_enabled)
 
+    # 添加按钮[更改屏蔽词]
+    correct_mask_word_button = obs.obs_properties_add_button(danmu_props, 'correct_mask_word_button', '更改屏蔽词',
+                                                             lambda ps, p: correct_mask_word())
+
     # 添加按钮[显示弹幕]
     show_danmu_button = obs.obs_properties_add_button(danmu_props, 'show_danmu_button', '显示弹幕', show_danmu)
     return props
@@ -5802,8 +5807,19 @@ def send(props, prop):
                     if send_danmu_msg_word_num != 20:
                         send_danmu_msg_word_num -= 10
                         danmu_msg_list_num = 0
+                    else:
+                        danmu_msg_list_num += 1
                 elif danmu_send_info['message'] == "您发送弹幕的频率过快":
                     pass
+                elif danmu_send_info['message'] == "f":
+                    erro_msg = send_danmu_msg_split_list_dict[send_danmu_msg_word_num][danmu_msg_list_num]
+                    danmu_msg_list_nume = danmu_msg_list_num
+                    danmu_msg_list_num = len(send_danmu_msg_split_list_dict[send_danmu_msg_word_num])
+                    while danmu_msg_list_nume < len(send_danmu_msg_split_list_dict[send_danmu_msg_word_num]):
+                        danmu_msg_list_nume += 1
+                        if danmu_msg_list_nume < len(send_danmu_msg_split_list_dict[send_danmu_msg_word_num]) - 1:
+                            erro_msg += send_danmu_msg_split_list_dict[send_danmu_msg_word_num][danmu_msg_list_nume]
+                    cb.copy(erro_msg)
                 else:
                     danmu_msg_list_num += 1
             else:
@@ -5813,15 +5829,22 @@ def send(props, prop):
                 obs.remove_current_callback()
 
         if not send_danmu_msg_list_clock:
-            obs.timer_add(send_danmu_msg_list, 800)
+            obs.timer_add(send_danmu_msg_list, 1000)
             # 清空 文本框【弹幕内容】 的内容
             obs.obs_data_set_string(current_settings, 'danmu_msg_text', "")
     return True
 
 
 def show_danmu(props, prop):
+
     pass
 
+
+def correct_mask_word():
+    correct_word = str(pypinyin.pinyin(cb.paste(), style=pypinyin.Style.TONE2))
+    print(correct_word)
+    cb.copy(correct_word.replace("[", "").replace("]", "").replace(", ", "_").replace("'", ""))
+    pass
 
 def script_unload():
     """
