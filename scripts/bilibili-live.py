@@ -5,6 +5,7 @@ import io
 import json
 import os
 import pprint
+import re
 import sys
 import time
 import urllib
@@ -94,6 +95,21 @@ def split_by_n(seq, n):
     @rtype: list
     """
     return [seq[i:i + n] for i in range(0, len(seq), n)]
+
+
+def split_of_list(txt: str, str_list: list):
+    # 定义列表和字符串
+    text = txt
+    text = text.replace("'", "’").replace(",", "，")
+    for ostr in str_list:
+        text = text.replace(ostr, f"\', \'{ostr}\', \'")
+    text = f"[\'{text}\']"
+    split_text = eval(text)
+    l = []
+    for i in split_text:
+        if i:
+            l.append(i)
+    return l
 
 
 def dict2cookieformat(jsondict: dict) -> str:
@@ -4957,7 +4973,7 @@ def script_defaults(settings):
     """
     global Default_roomStatus, DefaultArea, DefaultliveStatus, \
         allAreaList, \
-        uid_list_value, \
+        uid_list_dict_elements, \
         login_status_text_value, login_status_text_type, \
         Default_uname, \
         room_status_text_type, \
@@ -4966,7 +4982,7 @@ def script_defaults(settings):
         rtmp_copy_button_visible, stream_copy_button_visible, stream_updata_button_visible, \
         area1_true_button_visible, area2_true_button_visible, \
         area1_list_visible, area2_list_visible, \
-        SentUid_list_value, SentRoom_list_value, face_list_value, send_button_enabled
+        SentUid_list_value, SentRoom_list_value, emoji_face_list_dict_elements, send_button_enabled
 
     # 创建插件日志文件夹
     try:
@@ -4993,7 +5009,7 @@ def script_defaults(settings):
         login_status_text_type = obs.OBS_TEXT_INFO_WARNING
 
     # 设置"全部账户"给组合框[用户]
-    uid_list_value = {}
+    uid_list_dict_elements = {}
     if os.path.exists(f"{script_path()}bilibili-live/config.json"):
         with open(f"{script_path()}bilibili-live/config.json", "r", encoding="utf-8") as j:
             config = json.load(j)
@@ -5005,8 +5021,8 @@ def script_defaults(settings):
                     interface_nav = master(dict2cookieformat(cookies)).interface_nav()
                     islogin = interface_nav["isLogin"]
                     if islogin:
-                        uid_list_value[uid] = interface_nav["uname"]
-    uid_list_value = uid_list_value
+                        uid_list_dict_elements[uid] = interface_nav["uname"]
+    uid_list_dict_elements = uid_list_dict_elements
     # 设置'默认账户'昵称为 组合框[用户] 的内容
     if Default_islogin:
         Default_uname = interface_nav_Default["uname"]
@@ -5111,7 +5127,7 @@ def script_defaults(settings):
         stop_live_button_visible = False
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # 为组合框[发出弹幕的用户]添加选项
-    SentUid_list_value = uid_list_value
+    SentUid_list_value = uid_list_dict_elements
 
     # 为组合框[弹幕发送到]添加选项
     SentRoom_list_value = set()
@@ -5120,7 +5136,7 @@ def script_defaults(settings):
             SentRoom_list_value = eval(j.read())
 
     # 为组合框[emoji表情]添加选项
-    face_list_value = {}
+    emoji_face_list_dict_elements = {}
     for SentRoom_one in SentRoom_list_value:
         for SentUid_one in SentUid_list_value:
             Sent_one_Uid = SentUid_one
@@ -5129,8 +5145,9 @@ def script_defaults(settings):
         SentRoom_one_cookies = config_B(uid=int(Sent_one_Uid), dirname=f"{script_path()}bilibili-live").check()
         Emoticons = master(dict2cookieformat(SentRoom_one_cookies)).GetEmoticons(int(SentRoom_one))
         for emoji_face in Emoticons[0]['emoticons']:
-            face_list_value[emoji_face["emoji"]] = emoji_face["descript"]
+            emoji_face_list_dict_elements[emoji_face["emoji"]] = emoji_face["descript"]
         break
+    emoji_face_list_dict_elements = emoji_face_list_dict_elements
 
     # 清空文本框[弹幕内容]
     obs.obs_data_set_string(settings, 'danmu_msg_text', "")
@@ -5266,14 +5283,14 @@ def script_properties():
         setting_props, 'uid_list', '用户：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING
     )
     # 为组合框[选择账号]添加选项
-    for i in uid_list_value:
+    for i in uid_list_dict_elements:
         try:
-            if uid_list_value[i] == Default_uname:
-                obs.obs_property_list_insert_string(uid_list, 0, uid_list_value[i], i)
+            if uid_list_dict_elements[i] == Default_uname:
+                obs.obs_property_list_insert_string(uid_list, 0, uid_list_dict_elements[i], i)
             else:
-                obs.obs_property_list_add_string(uid_list, uid_list_value[i], i)
+                obs.obs_property_list_add_string(uid_list, uid_list_dict_elements[i], i)
         except:
-            obs.obs_property_list_add_string(uid_list, uid_list_value[i], i)
+            obs.obs_property_list_add_string(uid_list, uid_list_dict_elements[i], i)
     # 为组合框[选择账号]添加一个登录新账号的选项
     obs.obs_property_list_add_string(uid_list, '添加新的账号', "-1")
 
@@ -5399,9 +5416,9 @@ def script_properties():
         danmu_props, 'emoji_face_list', 'emoji表情：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING
     )
     # 为组合框[emoji表情]添加选项
-    for emoji_face in emoji_face_list_value:
+    for emoji_face in emoji_face_list_dict_elements:
         obs.obs_property_list_add_string(
-            emoji_face_list, emoji_face_list_value[emoji_face], emoji_face
+            emoji_face_list, emoji_face_list_dict_elements[emoji_face], emoji_face
         )
 
     # 添加一个[弹幕内容]的文本框
@@ -5413,7 +5430,7 @@ def script_properties():
     obs.obs_property_set_enabled(send_button, send_button_enabled)
 
     # 添加按钮[显示弹幕]
-    show_danmu_button = obs.obs_properties_add_button(danmu_props, 'show_danmu_button', '发送弹幕', show_danmu)
+    show_danmu_button = obs.obs_properties_add_button(danmu_props, 'show_danmu_button', '显示弹幕', show_danmu)
     return props
 
 
@@ -5438,14 +5455,14 @@ def login(props, prop):
     # 清空组合框[选择账号]
     obs.obs_property_list_clear(uid_list)
     # 为组合框[选择账号]添加选项
-    for i in uid_list_value:
+    for i in uid_list_dict_elements:
         try:
-            if uid_list_value[i] == Default_uname:
-                obs.obs_property_list_insert_string(uid_list, 0, uid_list_value[i], i)
+            if uid_list_dict_elements[i] == Default_uname:
+                obs.obs_property_list_insert_string(uid_list, 0, uid_list_dict_elements[i], i)
             else:
-                obs.obs_property_list_add_string(uid_list, uid_list_value[i], i)
+                obs.obs_property_list_add_string(uid_list, uid_list_dict_elements[i], i)
         except:
-            obs.obs_property_list_add_string(uid_list, uid_list_value[i], i)
+            obs.obs_property_list_add_string(uid_list, uid_list_dict_elements[i], i)
     # 为组合框[选择账号]添加一个登录新账号的选项
     obs.obs_property_list_add_string(uid_list, '添加新的账号', "-1")
 
@@ -5517,9 +5534,9 @@ def login(props, prop):
     # 清空组合框[emoji表情]
     obs.obs_property_list_clear(emoji_face_list)
     # 为组合框[emoji表情]添加选项
-    for emoji_face in emoji_face_list_value:
+    for emoji_face in emoji_face_list_dict_elements:
         obs.obs_property_list_add_string(
-            emoji_face_list, emoji_face_list_value[emoji_face], emoji_face
+            emoji_face_list, emoji_face_list_dict_elements[emoji_face], emoji_face
         )
 
     # 清空组合框[弹幕发送到]
@@ -5621,6 +5638,8 @@ def stop_live(props, prop):
 
 # 设定 计时器 中的 弹幕消息切片 元素序号
 danmu_msg_list_num = 0
+# 弹幕字数等级
+send_danmu_msg_word_num = 40
 # 设定 计时器 的使用状态
 send_danmu_msg_list_clock = False
 
@@ -5679,45 +5698,129 @@ def send(props, prop):
 
     # 将弹幕发送到直播间
     if not str(danmu_msg).startswith("\n"):
-        global danmu_msg_list_num, danmu_msg_list, send_danmu_msg_list_clock
+        global danmu_msg_list_num, send_danmu_msg_list_clock, \
+            send_danmu_msg_split_list_dict, send_danmu_msg_word_num
         obs.script_log(obs.LOG_INFO, "发送弹幕")
-        # 检测弹幕字数
+        # 弹幕切分
         if not send_danmu_msg_list_clock:
-            danmu_msg_list = split_by_n(danmu_msg, 20)
-
+            danmu_msg_list_split = split_of_list(danmu_msg, list(emoji_face_list_dict_elements.keys()))
+            # print(9, danmu_msg_list_split)
+            danmu_msg_word_num_max_lever_list = [40, 30, 20]
+            send_danmu_msg_split_transfer_t = ''
+            send_danmu_msg_split_list_dict = {}
+            for danmu_msg_word_num_max in danmu_msg_word_num_max_lever_list:
+                # 根据不同等级的弹幕字数，制造 弹幕内容切分 列表
+                danmu_msg_split_word_num = 0
+                send_danmu_msg_split_list = []
+                send_danmu_msg_split_t = ''
+                for danmu_msg_list_split_element in danmu_msg_list_split:
+                    # print(danmu_msg_list_split_element)
+                    # 使用表情切分弹幕内容，将文字和表情分开, 获得列表
+                    send_danmu_msg_split_t += danmu_msg_list_split_element
+                    if danmu_msg_list_split_element in emoji_face_list_dict_elements:
+                        # print(0)
+                        # 若是表情则 弹幕字数 +1
+                        danmu_msg_split_word_num += 1
+                        # 根据 弹幕字数，组合 发送弹幕切分列表
+                        if danmu_msg_split_word_num == danmu_msg_word_num_max:
+                            # 当 弹幕字数 为 可发送最大字数 时， 重置弹幕计数
+                            danmu_msg_split_word_num = 0
+                            # 添加入 发送弹幕切分列表
+                            send_danmu_msg_split_list.append(send_danmu_msg_split_t)
+                            # 重置 这次从 表情切分弹幕内容 获取的 弹幕内容
+                            send_danmu_msg_split_t = ''
+                    elif danmu_msg_list_split_element not in emoji_face_list_dict_elements:
+                        # print(1)
+                        # 若是普通弹幕则 弹幕字数 +普通弹幕字数
+                        danmu_msg_split_word_num += len(danmu_msg_list_split_element)
+                        # print("len", len(danmu_msg_list_split_element))
+                        # 根据 弹幕字数，组合发送弹幕切分列表
+                        if danmu_msg_split_word_num == danmu_msg_word_num_max:
+                            # 当 弹幕字数 为 可发送最大字数 时， 重置弹幕计数
+                            danmu_msg_split_word_num = 0
+                            # 添加入 发送弹幕切分列表
+                            send_danmu_msg_split_list.append(send_danmu_msg_split_t)
+                            # 重置 这次从 表情切分弹幕内容 获取的 弹幕内容
+                            send_danmu_msg_split_t = ''
+                        elif danmu_msg_split_word_num > danmu_msg_word_num_max:
+                            # 将在 开头的 可发送最大字数 添加入 发送弹幕切分列表，避免后续将 表情重定符 算入弹幕字数
+                            ll_danmu_msg_word_max_num = danmu_msg_word_num_max - danmu_msg_split_word_num
+                            # print(send_danmu_msg_split_t[:ll_danmu_msg_word_max_num], ll_danmu_msg_word_max_num)
+                            send_danmu_msg_split_list.append(send_danmu_msg_split_t[:ll_danmu_msg_word_max_num])
+                            # 重置弹幕计数
+                            danmu_msg_split_word_num = 0
+                            # 将 除了 开头的 可发送最大字数 的 弹幕内容
+                            send_danmu_msg_split_t = send_danmu_msg_split_t[ll_danmu_msg_word_max_num:]
+                            # print(send_danmu_msg_split_t)
+                            # 弹幕计数 除了 开头的 可发送最大字数 的 弹幕内容
+                            danmu_msg_split_word_num += len(send_danmu_msg_split_t)
+                            if danmu_msg_split_word_num == danmu_msg_word_num_max:
+                                # 当 弹幕字数 为 可发送最大字数 时， 重置弹幕计数
+                                danmu_msg_split_word_num = 0
+                                # 添加入 发送弹幕切分列表
+                                send_danmu_msg_split_list.append(send_danmu_msg_split_t)
+                                # 重置 这次从 表情切分弹幕内容 获取的 弹幕内容
+                                send_danmu_msg_split_t = ''
+                            elif danmu_msg_split_word_num > danmu_msg_word_num_max:
+                                send_danmu_msg_split_t_split = split_by_n(send_danmu_msg_split_t, danmu_msg_word_num_max)
+                                # print(101, send_danmu_msg_split_t_split)
+                                for send_danmu_msg_split_t in send_danmu_msg_split_t_split[:-1]:
+                                    send_danmu_msg_split_list.append(send_danmu_msg_split_t)
+                                send_danmu_msg_split_t = send_danmu_msg_split_t_split[-1]
+                                # print(111, send_danmu_msg_split_t)
+                                danmu_msg_split_word_num = len(send_danmu_msg_split_t)
+                                if danmu_msg_split_word_num == danmu_msg_word_num_max:
+                                    danmu_msg_split_word_num = 0
+                                    send_danmu_msg_split_list.append(send_danmu_msg_split_t)
+                send_danmu_msg_split_list.append(send_danmu_msg_split_t)
+                send_danmu_msg_split_list_dict.update({danmu_msg_word_num_max: send_danmu_msg_split_list})
         def send_danmu_msg_list():
             """
             发送弹幕
             :return:
             """
-            global danmu_msg_list_num, danmu_msg_list, send_danmu_msg_list_clock
-            if danmu_msg_list_num < len(danmu_msg_list):
+            global danmu_msg_list_num, send_danmu_msg_list_clock, \
+                send_danmu_msg_split_list_dict, send_danmu_msg_word_num
+            # pprint.pprint(send_danmu_msg_split_list_dict)
+            if danmu_msg_list_num < len(send_danmu_msg_split_list_dict[send_danmu_msg_word_num]):
                 send_danmu_msg_list_clock = True
                 # 发送弹幕
                 danmu_send_info = CsrfAuthenticationL(dict2cookieformat(cookies)).send(
-                    int(SentRoom), danmu_msg_list[danmu_msg_list_num]
+                    int(SentRoom), send_danmu_msg_split_list_dict[send_danmu_msg_word_num][danmu_msg_list_num]
                 )
                 # 检测弹幕是否发送成功
                 send_success = danmu_send_info['data']['mode_info']['user']['title']
                 if send_success:
                     obs.script_log(obs.LOG_INFO,
-                                   f"弹幕发送成功：{danmu_msg_list[danmu_msg_list_num]}，{danmu_send_info['message']}"
+                                   f"弹幕发送成功：{send_danmu_msg_split_list_dict[send_danmu_msg_word_num][danmu_msg_list_num]}"
                                    )
                 else:
                     obs.script_log(obs.LOG_INFO,
-                                   f"弹幕发送失败：{danmu_msg_list[danmu_msg_list_num]}，{danmu_send_info['message']}"
+                                   f"弹幕发送失败：{send_danmu_msg_split_list_dict[send_danmu_msg_word_num][danmu_msg_list_num]}，{danmu_send_info['message']}"
                                    )
-                danmu_msg_list_num += 1
+                if danmu_send_info['message'] == "超出限制长度":
+                    if send_danmu_msg_word_num != 20:
+                        send_danmu_msg_word_num -= 10
+                        danmu_msg_list_num = 0
+                elif danmu_send_info['message'] == "您发送弹幕的频率过快":
+                    pass
+                else:
+                    danmu_msg_list_num += 1
             else:
                 send_danmu_msg_list_clock = False
                 danmu_msg_list_num = 0
+                send_danmu_msg_word_num = 40
                 obs.remove_current_callback()
 
         if not send_danmu_msg_list_clock:
-            obs.timer_add(send_danmu_msg_list, 1000)
+            obs.timer_add(send_danmu_msg_list, 800)
             # 清空 文本框【弹幕内容】 的内容
             obs.obs_data_set_string(current_settings, 'danmu_msg_text', "")
     return True
+
+
+def show_danmu(props, prop):
+    pass
 
 
 def script_unload():
@@ -5725,7 +5828,4 @@ def script_unload():
     在脚本被卸载时调用。
     """
     obs.script_log(obs.LOG_INFO, "已卸载：bilibili-live")
-
-def show_danmu():
-    pass
 
