@@ -5014,7 +5014,7 @@ def script_defaults(settings):
         rtmp_copy_button_visible, stream_copy_button_visible, stream_updata_button_visible, \
         area1_true_button_visible, area2_true_button_visible, \
         area1_list_visible, area2_list_visible, \
-        SentUid_list_value, SentRoom_list_value, emoji_face_list_dict_elements, send_button_enabled
+        SentUid_list_value, SentRoom_list_set_elements, emoji_face_list_dict_elements, send_button_enabled
 
     # 创建插件日志文件夹
     try:
@@ -5162,14 +5162,14 @@ def script_defaults(settings):
     SentUid_list_value = uid_list_dict_elements
 
     # 为组合框[弹幕发送到]添加选项
-    SentRoom_list_value = set()
+    SentRoom_list_set_elements = set()
     if os.path.exists(f"{script_path()}bilibili-live/roomid_set_data.json"):
         with open(f"{script_path()}bilibili-live/roomid_set_data.json", "r", encoding="utf-8") as j:
-            SentRoom_list_value = eval(j.read())
+            SentRoom_list_set_elements = eval(j.read())
 
     # 为组合框[emoji表情]添加选项
     emoji_face_list_dict_elements = {}
-    for SentRoom_one in SentRoom_list_value:
+    for SentRoom_one in SentRoom_list_set_elements:
         for SentUid_one in SentUid_list_value:
             Sent_one_Uid = SentUid_one
             break
@@ -5247,13 +5247,15 @@ def script_load(settings):
     相反，该参数用于脚本中可能使用的任何额外的内部设置数据。
     :param settings:与脚本关联的设置。
     """
-    global current_settings, emoji_face_list_value
+    global current_settings, emoji_face_list_value, SentRoom_list_value
     # obs_data_t 类型的数据对象。这个数据对象可以用来存储和管理设置项，例如场景、源或过滤器的配置信息
     # settings = obs.obs_data_create()
     current_settings = settings
     obs.script_log(obs.LOG_INFO, "已载入：bilibili-live")
     # 获得 组合框【emoji表情】 的内容
     emoji_face_list_value = obs.obs_data_get_string(current_settings, "emoji_face_list")
+    # 获得 组合框【弹幕发送到】 的内容
+    SentRoom_list_value = obs.obs_data_get_string(current_settings, "SentRoom_list")
 
 
 # 控件状态更新时调用
@@ -5262,10 +5264,13 @@ def script_update(settings):
     当用户更改了脚本的设置(如果有的话)时调用。
     :param settings:与脚本关联的设置。
     """
-    global emoji_face_list_value
+    global emoji_face_list_value, SentRoom_list_value, danmu_wokeing_is
     if emoji_face_list_value != obs.obs_data_get_string(current_settings, "emoji_face_list"):
         emoji_face_list_value = obs.obs_data_get_string(current_settings, "emoji_face_list")
         cb.copy(emoji_face_list_value)
+    if SentRoom_list_value != obs.obs_data_get_string(current_settings, "SentRoom_list"):
+        SentRoom_list_value = obs.obs_data_get_string(current_settings, "SentRoom_list")
+        danmu_wokeing_is = False
 
 # --- 一个名为script_properties的函数定义了用户可以使用的属性
 def script_properties():
@@ -5436,7 +5441,7 @@ def script_properties():
         danmu_props, 'SentRoom_list', '弹幕发送到：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING
     )
     # 为组合框[弹幕发送到]添加选项
-    for SentRoomid in SentRoom_list_value:
+    for SentRoomid in SentRoom_list_set_elements:
         # 获得 保存到直播间 的 信息
         RoomBaseInfo = getRoomBaseInfo(int(SentRoomid))
         obs.obs_property_list_add_string(
@@ -5578,7 +5583,7 @@ def login(props, prop):
     # 清空组合框[弹幕发送到]
     obs.obs_property_list_clear(SentRoom_list)
     # 为组合框[弹幕发送到]添加选项
-    for roomid in SentRoom_list_value:
+    for roomid in SentRoom_list_set_elements:
         # 获得 保存到直播间 的 信息
         RoomBaseInfo = getRoomBaseInfo(int(roomid))
         obs.obs_property_list_add_string(
