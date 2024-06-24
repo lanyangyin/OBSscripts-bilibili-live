@@ -10,6 +10,7 @@ import sys
 import threading
 import time
 import urllib
+import zlib
 from urllib.parse import quote
 
 import obspython as obs
@@ -17,6 +18,7 @@ import pypinyin
 import qrcode
 import requests
 import pandas.io.clipboard as cb
+import websockets
 
 
 # def script_path():
@@ -578,26 +580,6 @@ def Area_getList():
     AreaList = requests.get(api, headers=headers).json()
     return AreaList["data"]
 
-
-def getDanmuInfo(roomid: int) -> dict:
-    """
-    获取信息流认证秘钥
-    @param roomid: 直播间真实id
-    @return:
-    <p>根对象：</p>
-    <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>code</td><td>num</td><td>返回值</td><td>0：成功<br>65530：token错误（登录错误）<br>1：错误<br>60009：分区不存在<br><strong>（其他错误码有待补充）</strong></td></tr><tr><td>message</td><td>str</td><td>错误信息</td><td>默认为空</td></tr><tr><td>ttl</td><td>num</td><td>1</td><td></td></tr><tr><td>data</td><td>obj</td><td>信息本体</td><td></td></tr></tbody></table>
-    <p><code>data</code>对象：</p>
-    <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>group</td><td>str</td><td>live</td><td></td></tr><tr><td>business_id</td><td>num</td><td>0</td><td></td></tr><tr><td>refresh_row_factor</td><td>num</td><td>0.125</td><td></td></tr><tr><td>refresh_rate</td><td>num</td><td>100</td><td></td></tr><tr><td>max_delay</td><td>num</td><td>5000</td><td></td></tr><tr><td>token</td><td>str</td><td>认证秘钥</td><td></td></tr><tr><td>host_list</td><td>array</td><td>信息流服务器节点列表</td><td></td></tr></tbody></table>
-    <p><code>host_list</code>数组中的对象：</p>
-    <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>host</td><td>str</td><td>服务器域名</td><td></td></tr><tr><td>port</td><td>num</td><td>tcp端口</td><td></td></tr><tr><td>wss_port</td><td>num</td><td>wss端口</td><td></td></tr><tr><td>ws_port</td><td>num</td><td>ws端口</td><td></td></tr></tbody></table>
-    """
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\
-        (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0",
-    }
-    url = f'https://api.live.bilibili.com/xlive/web-room/v1/index/getDanmuInfo?id={roomid}'
-    response = requests.get(url, headers=headers).json()
-    return response
 
 
 # end
@@ -4794,6 +4776,23 @@ class master:
         Emoticons = requests.get(api, headers=headers, params=params).json()["data"]["data"]
         return Emoticons
 
+    def getDanmuInfo(self, roomid: int) -> dict:
+        """
+        获取信息流认证秘钥
+        @param roomid: 直播间真实id
+        @return:
+        <p>根对象：</p>
+        <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>code</td><td>num</td><td>返回值</td><td>0：成功<br>65530：token错误（登录错误）<br>1：错误<br>60009：分区不存在<br><strong>（其他错误码有待补充）</strong></td></tr><tr><td>message</td><td>str</td><td>错误信息</td><td>默认为空</td></tr><tr><td>ttl</td><td>num</td><td>1</td><td></td></tr><tr><td>data</td><td>obj</td><td>信息本体</td><td></td></tr></tbody></table>
+        <p><code>data</code>对象：</p>
+        <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>group</td><td>str</td><td>live</td><td></td></tr><tr><td>business_id</td><td>num</td><td>0</td><td></td></tr><tr><td>refresh_row_factor</td><td>num</td><td>0.125</td><td></td></tr><tr><td>refresh_rate</td><td>num</td><td>100</td><td></td></tr><tr><td>max_delay</td><td>num</td><td>5000</td><td></td></tr><tr><td>token</td><td>str</td><td>认证秘钥</td><td></td></tr><tr><td>host_list</td><td>array</td><td>信息流服务器节点列表</td><td></td></tr></tbody></table>
+        <p><code>host_list</code>数组中的对象：</p>
+        <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>host</td><td>str</td><td>服务器域名</td><td></td></tr><tr><td>port</td><td>num</td><td>tcp端口</td><td></td></tr><tr><td>wss_port</td><td>num</td><td>wss端口</td><td></td></tr><tr><td>ws_port</td><td>num</td><td>ws端口</td><td></td></tr></tbody></table>
+        """
+        headers = self.headers
+        url = f'https://api.live.bilibili.com/xlive/web-room/v1/index/getDanmuInfo?id={roomid}'
+        response = requests.get(url, headers=headers).json()
+        return response
+
 
 class CsrfAuthenticationL:
     def __init__(self, cookie: str, UA=None):
@@ -5873,15 +5872,254 @@ def correct_mask_word():
     cb.copy(correct_word.replace("[", "").replace("]", "").replace(", ", "_").replace("'", ""))
     pass
 
-
+danmu_wokeing_is = False
 def show_danmu(props, prop):
-    def print_numbers():
-        for i in range(1, 100):
-            time.sleep(1)
-            print(f"Number {i}")
-    t1 = threading.Thread(target=print_numbers)
+    global danmu_wokeing_is
+    # 获得组合框[发出弹幕的用户]的内容
+    SentUid = obs.obs_data_get_string(current_settings, 'SentUid_list')
+    # 获取[发出弹幕的用户]账户cookies
+    cookies = config_B(uid=int(SentUid), dirname=f"{script_path()}bilibili-live").check()
+    # 获得组合框【弹幕发送到】 的内容
+    SentRoom = obs.obs_data_get_string(current_settings, 'SentRoom_list')
+    class Danmu:
+        global danmu_wokeing_is
+        def __init__(self, cookie: str):
+            self.cookie = cookie
+
+        def get_websocket_client(self, roomid: int):
+            global roomid_for_Danmu, danmu_wokeing_is
+            roomid_for_Danmu = roomid
+            danmu_info = master(self.cookie).getDanmuInfo(roomid)
+            token = danmu_info['data']['token']
+            host = danmu_info['data']['host_list'][-1]
+            wss_url = f"wss://{host['host']}:{host['wss_port']}/sub"
+
+            user_info = master(self.cookie).get_user_info()
+            cookie = cookie2dict(self.cookie)
+            auth_body = {
+                "uid": user_info["uid"],
+                "roomid": roomid,
+                "protover": 2,
+                "buvid": cookie['buvid3'],
+                "platform": "web",
+                "type": 3,
+                "key": token
+            }
+            return self.WebSocketClient(wss_url, auth_body)
+
+        class WebSocketClient:
+            global danmu_wokeing_is
+            HEARTBEAT_INTERVAL = 30
+            VERSION_NORMAL = 0
+            VERSION_ZIP = 2
+
+            def __init__(self, url: str, auth_body: dict):
+                self.url = url
+                self.auth_body = auth_body
+                # pprint.pprint(auth_body)
+                self.saved_danmudata = set()
+
+            async def connect(self):
+                global danmu_wokeing_is
+                async with websockets.connect(self.url) as ws:
+                    await self.on_open(ws)
+                    while danmu_wokeing_is:
+                        message = await ws.recv()
+                        await self.on_message(message)
+
+            async def on_open(self, ws):
+                print("Connected to server...")
+                await ws.send(self.pack(self.auth_body, 7))
+                asyncio.create_task(self.send_heartbeat(ws))  # 这里不能加await
+
+            async def send_heartbeat(self, ws):
+                while True:
+                    await ws.send(self.pack(None, 2))
+                    await asyncio.sleep(self.HEARTBEAT_INTERVAL)
+
+            async def on_message(self, message):
+                if isinstance(message, bytes):
+                    self.unpack(message)
+
+            def pack(self, content: dict, code: int) -> bytes:
+                content_bytes = json.dumps(content).encode('utf-8') if content else b''
+                header = (len(content_bytes) + 16).to_bytes(4, 'big') + \
+                         (16).to_bytes(2, 'big') + \
+                         self.VERSION_NORMAL.to_bytes(2, 'big') + \
+                         code.to_bytes(4, 'big') + \
+                         (1).to_bytes(4, 'big')
+                return header + content_bytes
+
+            def unpack(self, byte_buffer: bytes):
+                global roomid_for_Danmu
+                package_len = int.from_bytes(byte_buffer[0:4], 'big')
+                head_length = int.from_bytes(byte_buffer[4:6], 'big')
+                prot_ver = int.from_bytes(byte_buffer[6:8], 'big')
+                opt_code = int.from_bytes(byte_buffer[8:12], 'big')
+
+                content_bytes = byte_buffer[16:package_len]
+                if prot_ver == self.VERSION_ZIP:
+                    content_bytes = zlib.decompress(content_bytes)
+                    self.unpack(content_bytes)
+                    return
+
+                content = content_bytes.decode('utf-8')
+                if opt_code == 8:  # AUTH_REPLY
+                    print(
+                        f"尝试连接【{getRoomBaseInfo(roomid_for_Danmu)['by_room_ids'][str(roomid_for_Danmu)]['uname']}】的直播间")
+                    print(f"身份验证回复: {content}\n")
+                elif opt_code == 5:  # SEND_SMS_REPLY
+                    if content not in self.saved_danmudata:
+                        self.saved_danmudata.add(content)
+                        # print(f"Danmu message at {datetime.datetime.now()}: {content}")
+                        if json.loads(content)['cmd'] == "DANMU_MSG":
+                            pass
+                            contentinfo = json.loads(content)['info']
+                            contentinfo[0][15]['extra'] = json.loads(contentinfo[0][15]['extra'])
+                            tfo = contentinfo[0][15]['extra']['content']
+                            afo = ""
+                            if contentinfo[0][15]['extra']['reply_uname']:
+                                afo = f" @{contentinfo[0][15]['extra']['reply_uname']} "
+                            ufo = contentinfo[0][15]['user']['base']['name']
+                            mfo = ''
+                            if contentinfo[0][15]['user']['medal']:
+                                fmedal = contentinfo[0][15]['user']['medal']
+                                mfo = f"【{fmedal['name']}|{fmedal['level']}】"
+                            wfo = ''
+                            if contentinfo[-2] != [0]:
+                                wfo = str(contentinfo[-2])
+                            print(f"{wfo}{mfo}{ufo}：{afo}{tfo}")
+                        elif json.loads(content)['cmd'] == "WIDGET_BANNER":
+                            pass
+                        elif json.loads(content)['cmd'] == "INTERACT_WORD":
+                            pass
+                            contentdata = json.loads(content)['data']
+                            # pprint.pprint(contentdata)
+                            tfo = "进入直播间或关注消息"
+                            if contentdata['msg_type'] == 1:
+                                tfo = "进入直播间"
+                            elif contentdata['msg_type'] == 2:
+                                tfo = "关注直播间"
+                            ufo = contentdata['uname']
+                            mfo = ""
+                            if contentdata['fans_medal']:
+                                fmedal = contentdata['fans_medal']
+                                mfo = f"【{fmedal['medal_name']}|{fmedal['medal_level']}】"
+                            wfo = ''
+                            try:
+                                if json.loads(content)['data']['uinfo']['wealth']['level']:
+                                    wfo = f"[{json.loads(content)['data']['uinfo']['wealth']['level']}]"
+                            except:
+                                pass
+                            print(f"{tfo}：\t{wfo}{mfo}{ufo}")
+                        elif json.loads(content)['cmd'] == "DM_INTERACTION":
+                            pass
+                            contentdata = json.loads(content)['data']
+                            contentdata['data'] = json.loads(contentdata['data'])
+                            tfo = "连续发送弹幕或点赞"
+                            if contentdata['type'] == 102:
+                                tfo = ""
+                                for contentdatacombo in contentdata['data']['combo'][:-1]:
+                                    tfo += f"热词：\t{contentdatacombo['cnt']}\t人{contentdatacombo['guide']}{contentdatacombo['content']}\n"
+                                tfo += f"连续弹幕：\t{contentdata['data']['combo'][-1]['cnt']}\t人{contentdata['data']['combo'][-1]['guide']}{contentdata['data']['combo'][-1]['content']}"
+                            elif contentdata['type'] == 106:
+                                tfo = f"连续点赞：\t{contentdata['data']['cnt']}\t{contentdata['data']['suffix_text']}"
+                            print(f"{tfo}")
+                        elif json.loads(content)['cmd'] == "GUARD_BUY":
+                            pass
+                            contentdata = json.loads(content)['data']
+                            tfo = f"上舰：\t{contentdata['username']}\t购买{contentdata['num']}个\t【{contentdata['gift_name']}】"
+                            print(f"{tfo}")
+                        elif json.loads(content)['cmd'] == "LIKE_INFO_V3_CLICK":
+                            pass
+                            contentdata = json.loads(content)['data']
+                            tfo = contentdata['like_text']
+                            ufo = contentdata['uname']
+                            mfo = ""
+                            if contentdata['fans_medal']:
+                                fmedal = contentdata['fans_medal']
+                                mfo = f"【{fmedal['medal_name']}|{fmedal['guard_level']}】"
+                            wfo = ''
+                            try:
+                                if contentdata['uinfo']['wealth']['level']:
+                                    wfo = f"[{contentdata['uinfo']['wealth']['level']}]"
+                            except:
+                                pass
+                            print(f"点赞：\t{wfo}{mfo}{ufo}\t{tfo}")
+                        elif json.loads(content)['cmd'] == "LIKE_INFO_V3_UPDATE":
+                            pass
+                            contentdata = json.loads(content)['data']
+                            print(f"点赞数：\t{contentdata['click_count']}")
+                        elif json.loads(content)['cmd'] == "ONLINE_RANK_COUNT":
+                            pass
+                            contentdata = json.loads(content)['data']
+                            print(f"高能用户数：\t{contentdata['count']}")
+                        elif json.loads(content)['cmd'] == "WATCHED_CHANGE":
+                            pass
+                            contentdata = json.loads(content)['data']
+                            print(f"直播间看过人数：\t{contentdata['num']}\t{contentdata['text_large']}")
+                        elif json.loads(content)['cmd'] == "ONLINE_RANK_V2":
+                            pass
+                        elif json.loads(content)['cmd'] == "STOP_LIVE_ROOM_LIST":
+                            pass
+                        elif json.loads(content)['cmd'] == "PK_BATTLE_PRE_NEW":
+                            pass
+                        elif json.loads(content)['cmd'] == "PK_BATTLE_PRE":
+                            pass
+                        elif json.loads(content)['cmd'] == "PK_BATTLE_START":
+                            pass
+                        elif json.loads(content)['cmd'] == "RECOMMEND_CARD":
+                            pass
+                        elif json.loads(content)['cmd'] == "SEND_GIFT":
+                            pass
+                            contentdata = json.loads(content)['data']
+                            # pprint.pprint(contentdata)
+                            ufo = contentdata['uname']
+                            mfo = ""
+                            if contentdata['medal_info']['medal_name']:
+                                medali = contentdata['medal_info']
+                                mfo = f"【{medali['medal_name']}|{medali['medal_level']}】"
+                            wfo = ''
+                            if contentdata['wealth_level'] != 0:
+                                wfo = f"[{contentdata['wealth_level']}]"
+                            tfo = ''
+                            if contentdata['batch_combo_send']:
+                                tfo += contentdata['batch_combo_send']['action']
+                                if contentdata['batch_combo_send']['blind_gift']:
+                                    contentdata_bcsb_g = contentdata['batch_combo_send']['blind_gift']
+                                    tfo += f"\t【{contentdata_bcsb_g['original_gift_name']}】{contentdata_bcsb_g['gift_action']}"
+                                    coin = f"{contentdata_bcsb_g['gift_tip_price'] / 1000}￥\t{(contentdata_bcsb_g['gift_tip_price'] - contentdata['total_coin']) / 1000}￥"
+                                else:
+                                    coin = f"{contentdata['total_coin'] / 1000}￥"
+                                tfo += f"{contentdata['num']}个《{contentdata['batch_combo_send']['gift_name']}》\t{coin}"
+                            else:
+                                tfo += f"{contentdata['action']}{contentdata['num']}个《{contentdata['giftName']}》"
+                            print(f'礼物：\t{wfo}{mfo}{ufo}\t{tfo}')
+                        elif json.loads(content)['cmd'] == "NOTICE_MSG":
+                            pass
+                        else:
+                            pprint.pprint(json.loads(content)['cmd'])
+
+                if len(byte_buffer) > package_len:
+                    self.unpack(byte_buffer[package_len:])
+
+            async def main(self):
+                await self.connect()
+
+    print(3)
+    # danmu_wokeing_is = True
+    def danmu_s():
+        global danmu_wokeing_is
+        if danmu_wokeing_is:
+            danmu_wokeing_is = False
+        else:
+            danmu_wokeing_is = True
+            asyncio.run(Danmu(dict2cookieformat(cookies)).get_websocket_client(int(SentRoom)).main())
+
+    t1 = threading.Thread(target=danmu_s)
     t1.start()
-    pass
+
+    return True
 
 
 def script_unload():
