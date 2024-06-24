@@ -5014,7 +5014,7 @@ def script_defaults(settings):
         rtmp_copy_button_visible, stream_copy_button_visible, stream_updata_button_visible, \
         area1_true_button_visible, area2_true_button_visible, \
         area1_list_visible, area2_list_visible, \
-        SentUid_list_value, SentRoom_list_set_elements, emoji_face_list_dict_elements, send_button_enabled
+        SentUid_list_dict_elements, SentRoom_list_set_elements, emoji_face_list_dict_elements, send_button_enabled
 
     # 创建插件日志文件夹
     try:
@@ -5159,7 +5159,7 @@ def script_defaults(settings):
         stop_live_button_visible = False
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # 为组合框[发出弹幕的用户]添加选项
-    SentUid_list_value = uid_list_dict_elements
+    SentUid_list_dict_elements = uid_list_dict_elements
 
     # 为组合框[弹幕发送到]添加选项
     SentRoom_list_set_elements = set()
@@ -5170,7 +5170,7 @@ def script_defaults(settings):
     # 为组合框[emoji表情]添加选项
     emoji_face_list_dict_elements = {}
     for SentRoom_one in SentRoom_list_set_elements:
-        for SentUid_one in SentUid_list_value:
+        for SentUid_one in SentUid_list_dict_elements:
             Sent_one_Uid = SentUid_one
             break
         # 获取账户
@@ -5185,7 +5185,7 @@ def script_defaults(settings):
     obs.obs_data_set_string(settings, 'danmu_msg_text', "")
 
     # 设置[发送弹幕]按钮可用状态
-    if SentUid_list_value:
+    if SentUid_list_dict_elements:
         send_button_enabled = True
     else:
         send_button_enabled = False
@@ -5433,8 +5433,8 @@ def script_properties():
         , obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING
     )
     # 为组合框[发出弹幕的用户]添加选项
-    for SentUid in SentUid_list_value:
-        obs.obs_property_list_add_string(SentUid_list, SentUid_list_value[SentUid], SentUid)
+    for SentUid in SentUid_list_dict_elements:
+        obs.obs_property_list_add_string(SentUid_list, SentUid_list_dict_elements[SentUid], SentUid)
 
     # 添加组合框[弹幕发送到]
     SentRoom_list = obs.obs_properties_add_list(
@@ -5569,8 +5569,8 @@ def login(props, prop):
     # 清空组合框[发出弹幕的用户]
     obs.obs_property_list_clear(SentUid_list)
     # 为组合框[发出弹幕的用户]添加选项
-    for SentUid in SentUid_list_value:
-        obs.obs_property_list_add_string(SentUid_list, SentUid_list_value[SentUid], SentUid)
+    for SentUid in SentUid_list_dict_elements:
+        obs.obs_property_list_add_string(SentUid_list, SentUid_list_dict_elements[SentUid], SentUid)
 
     # 清空组合框[emoji表情]
     obs.obs_property_list_clear(emoji_face_list)
@@ -5873,7 +5873,7 @@ def send(props, prop):
 
 def correct_mask_word():
     correct_word = str(pypinyin.pinyin(cb.paste(), style=pypinyin.Style.TONE2))
-    print(correct_word)
+    obs.script_log(obs.LOG_INFO, correct_word)
     cb.copy(correct_word.replace("[", "").replace("]", "").replace(", ", "_").replace("'", ""))
     pass
 
@@ -5970,9 +5970,9 @@ def show_danmu(props, prop):
 
                 content = content_bytes.decode('utf-8')
                 if opt_code == 8:  # AUTH_REPLY
-                    print(
+                    obs.script_log(obs.LOG_INFO,
                         f"尝试连接【{getRoomBaseInfo(roomid_for_Danmu)['by_room_ids'][str(roomid_for_Danmu)]['uname']}】的直播间")
-                    print(f"身份验证回复: {content}\n")
+                    obs.script_log(obs.LOG_INFO, f"身份验证回复: {content}\n")
                 elif opt_code == 5:  # SEND_SMS_REPLY
                     if content not in self.saved_danmudata:
                         self.saved_danmudata.add(content)
@@ -5993,7 +5993,7 @@ def show_danmu(props, prop):
                             wfo = ''
                             if contentinfo[-2] != [0]:
                                 wfo = str(contentinfo[-2])
-                            print(f"{wfo}{mfo}{ufo}：{afo}{tfo}")
+                            obs.script_log(obs.LOG_INFO, f"{wfo}{mfo}{ufo}：{afo}{tfo}")
                         elif json.loads(content)['cmd'] == "WIDGET_BANNER":
                             pass
                         elif json.loads(content)['cmd'] == "INTERACT_WORD":
@@ -6016,7 +6016,7 @@ def show_danmu(props, prop):
                                     wfo = f"[{json.loads(content)['data']['uinfo']['wealth']['level']}]"
                             except:
                                 pass
-                            print(f"{tfo}：\t{wfo}{mfo}{ufo}")
+                            obs.script_log(obs.LOG_INFO, f"{tfo}：\t{wfo}{mfo}{ufo}")
                         elif json.loads(content)['cmd'] == "DM_INTERACTION":
                             pass
                             contentdata = json.loads(content)['data']
@@ -6029,12 +6029,12 @@ def show_danmu(props, prop):
                                 tfo += f"连续弹幕：\t{contentdata['data']['combo'][-1]['cnt']}\t人{contentdata['data']['combo'][-1]['guide']}{contentdata['data']['combo'][-1]['content']}"
                             elif contentdata['type'] == 106:
                                 tfo = f"连续点赞：\t{contentdata['data']['cnt']}\t{contentdata['data']['suffix_text']}"
-                            print(f"{tfo}")
+                            obs.script_log(obs.LOG_INFO, f"{tfo}")
                         elif json.loads(content)['cmd'] == "GUARD_BUY":
                             pass
                             contentdata = json.loads(content)['data']
                             tfo = f"上舰：\t{contentdata['username']}\t购买{contentdata['num']}个\t【{contentdata['gift_name']}】"
-                            print(f"{tfo}")
+                            obs.script_log(obs.LOG_INFO, f"{tfo}")
                         elif json.loads(content)['cmd'] == "LIKE_INFO_V3_CLICK":
                             pass
                             contentdata = json.loads(content)['data']
@@ -6050,19 +6050,19 @@ def show_danmu(props, prop):
                                     wfo = f"[{contentdata['uinfo']['wealth']['level']}]"
                             except:
                                 pass
-                            print(f"点赞：\t{wfo}{mfo}{ufo}\t{tfo}")
+                            obs.script_log(obs.LOG_INFO, f"点赞：\t{wfo}{mfo}{ufo}\t{tfo}")
                         elif json.loads(content)['cmd'] == "LIKE_INFO_V3_UPDATE":
                             pass
                             contentdata = json.loads(content)['data']
-                            print(f"点赞数：\t{contentdata['click_count']}")
+                            obs.script_log(obs.LOG_INFO, f"点赞数：\t{contentdata['click_count']}")
                         elif json.loads(content)['cmd'] == "ONLINE_RANK_COUNT":
                             pass
                             contentdata = json.loads(content)['data']
-                            print(f"高能用户数：\t{contentdata['count']}")
+                            obs.script_log(obs.LOG_INFO, f"高能用户数：\t{contentdata['count']}")
                         elif json.loads(content)['cmd'] == "WATCHED_CHANGE":
                             pass
                             contentdata = json.loads(content)['data']
-                            print(f"直播间看过人数：\t{contentdata['num']}\t{contentdata['text_large']}")
+                            obs.script_log(obs.LOG_INFO, f"直播间看过人数：\t{contentdata['num']}\t{contentdata['text_large']}")
                         elif json.loads(content)['cmd'] == "ONLINE_RANK_V2":
                             pass
                         elif json.loads(content)['cmd'] == "STOP_LIVE_ROOM_LIST":
@@ -6099,7 +6099,7 @@ def show_danmu(props, prop):
                                 tfo += f"{contentdata['num']}个《{contentdata['batch_combo_send']['gift_name']}》\t{coin}"
                             else:
                                 tfo += f"{contentdata['action']}{contentdata['num']}个《{contentdata['giftName']}》"
-                            print(f'礼物：\t{wfo}{mfo}{ufo}\t{tfo}')
+                            obs.script_log(obs.LOG_INFO, f'礼物：\t{wfo}{mfo}{ufo}\t{tfo}')
                         elif json.loads(content)['cmd'] == "NOTICE_MSG":
                             pass
                         else:
