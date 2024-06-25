@@ -20,6 +20,9 @@ import requests
 import pandas.io.clipboard as cb
 import websockets
 
+# 初始弹幕输出状态
+danmu_working_is = False
+danmu_start_is = False
 
 # def script_path():
 #     pass
@@ -5241,7 +5244,7 @@ def script_defaults(settings):
         rtmp_copy_button_visible, stream_copy_button_visible, stream_updata_button_visible, \
         area1_true_button_visible, area2_true_button_visible, \
         area1_list_visible, area2_list_visible, \
-        SentUid_list_dict_elements, SentRoom_list_set_elements, emoji_face_list_dict_elements, send_button_enabled
+        SentUid_list_dict_elements, SentRoom_list_set_elements, SentRoom_list_enabled, emoji_face_list_dict_elements, send_button_enabled
 
     # 创建插件日志文件夹
     try:
@@ -5394,6 +5397,11 @@ def script_defaults(settings):
         with open(f"{script_path()}bilibili-live/roomid_set_data.json", "r", encoding="utf-8") as j:
             SentRoom_list_set_elements = eval(j.read())
 
+    # 根据弹幕输出状态更改 组合框【弹幕发送到】的可用性
+    if danmu_working_is:
+        SentRoom_list_enabled = False
+    else:
+        SentRoom_list_enabled = True
 
     # 为组合框[emoji表情]添加选项
     emoji_face_list_dict_elements = {}
@@ -5486,8 +5494,6 @@ def script_load(settings):
     SentRoom_list_value = obs.obs_data_get_string(current_settings, "SentRoom_list")
 
 # 控件状态更新时调用
-danmu_working_is = False
-danmu_start_is = False
 def script_update(settings):
     """
     当用户更改了脚本的设置(如果有的话)时调用。
@@ -5696,6 +5702,8 @@ def script_properties():
         obs.obs_property_list_add_string(
             SentRoom_list, RoomBaseInfo["by_room_ids"][str(SentRoomid)]["uname"] + "_的直播间", str(SentRoomid)
         )
+    # 设置按钮[弹幕发送到]的可用状态
+    obs.obs_property_set_enabled(SentRoom_list, SentRoom_list_enabled)
 
     # 添加组合框[emoji表情]
     emoji_face_list = obs.obs_properties_add_list(
@@ -5838,6 +5846,8 @@ def login(props, prop):
         obs.obs_property_list_add_string(
             SentRoom_list, RoomBaseInfo["by_room_ids"][str(roomid)]["uname"] + "_的直播间", str(roomid)
         )
+    # 设置按钮[弹幕发送到]的可用状态
+    obs.obs_property_set_enabled(SentRoom_list, SentRoom_list_enabled)
 
     # 设置按钮[发送弹幕]的可用状态
     obs.obs_property_set_enabled(send_button, send_button_enabled)
@@ -6127,24 +6137,24 @@ def correct_mask_word():
     pass
 
 def show_danmu(props, prop):
-    global danmu_start_is
+    global danmu_start_is, danmu_working_is
     # 获得组合框[发出弹幕的用户]的内容
     SentUid = obs.obs_data_get_string(current_settings, 'SentUid_list')
     # 获取[发出弹幕的用户]账户cookies
     cookies = config_B(uid=int(SentUid), dirname=f"{script_path()}bilibili-live").check()
     # 获得组合框【弹幕发送到】 的内容
     SentRoom = obs.obs_data_get_string(current_settings, 'SentRoom_list')
-
     def danmu_s():
-        global danmu_start_is
-        if danmu_start_is:
-            danmu_start_is = False
-        else:
-            danmu_start_is = True
             asyncio.run(Danmu(dict2cookieformat(cookies)).get_websocket_client(int(SentRoom)).main())
-    t1 = threading.Thread(target=danmu_s)
-    t1.start()
-
+    if danmu_working_is:
+        danmu_start_is = False
+        obs.obs_property_set_enabled(SentRoom_list, True)
+    else:
+        danmu_start_is = True
+        obs.obs_property_set_enabled(SentRoom_list, False)
+        t1 = threading.Thread(target=danmu_s)
+        t1.start()
+        # 更改 组合框【弹幕发送到】的可用性
     return True
 
 
