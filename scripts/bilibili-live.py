@@ -24,7 +24,6 @@ import websockets
 def script_path():
     pass
 
-
 # 工具类函数
 class config_B:
     """
@@ -5233,6 +5232,7 @@ def script_defaults(settings):
     调用以设置与脚本关联的默认设置(如果有的话)。为了设置其默认值，您通常会调用默认值函数。
     :param settings:与脚本关联的设置。
     """
+    global scripts_data_dirpath, scripts_config_filepath, scripts_roomid_filepath
     global Default_roomStatus, DefaultArea, DefaultliveStatus, \
         allAreaList, \
         uid_list_dict_elements, uid_list_enabled, \
@@ -5249,13 +5249,16 @@ def script_defaults(settings):
         emoji_face_list_dict_elements, \
         send_button_enabled, show_danmu_button_enabled
 
+    scripts_data_dirpath = f"{script_path()}bilibili-live"
+    scripts_config_filepath = Path(scripts_data_dirpath) / "config.json"
+    scripts_roomid_filepath = Path(scripts_data_dirpath) / "roomid_set_data.json"
     # 创建插件日志文件夹
     try:
-        os.makedirs(f"{script_path()}bilibili-live", exist_ok=True)
+        os.makedirs(scripts_data_dirpath, exist_ok=True)
     except:
         obs.script_log(obs.LOG_WARNING, "权限不足！")
     # 获取'默认账户'cookie
-    Default_cookies = config_B(uid=0, dirname=f"{script_path()}bilibili-live").check()
+    Default_cookies = config_B(uid=0, dirname=scripts_data_dirpath).check()
     # 获取'默认账户'登录信息
     interface_nav_Default = master(dict2cookieformat(Default_cookies)).interface_nav()
     # 检测'默认账户'可用性
@@ -5275,14 +5278,14 @@ def script_defaults(settings):
 
     # 设置"全部账户"给组合框[用户]
     uid_list_dict_elements = {}
-    if os.path.exists(Path(f"{script_path()}bilibili-live") / "config.json"):
-        with open(Path(f"{script_path()}bilibili-live") / "config.json", "r", encoding="utf-8") as j:
+    if os.path.exists(scripts_config_filepath):
+        with open(scripts_config_filepath, "r", encoding="utf-8") as j:
             config = json.load(j)
             # 从 "所有账户"配置 中 删除 '默认用户'配置，获得"全部账户"
             if "0" in config:
                 del config["0"]
                 for uid in config:
-                    cookies = config_B(uid=int(uid), dirname=f"{script_path()}bilibili-live").check()
+                    cookies = config_B(uid=int(uid), dirname=scripts_data_dirpath).check()
                     interface_nav = master(dict2cookieformat(cookies)).interface_nav()
                     islogin = interface_nav["isLogin"]
                     if islogin:
@@ -5407,8 +5410,8 @@ def script_defaults(settings):
 
     # 为组合框[弹幕发送到]添加选项
     SentRoom_list_set_elements = set()
-    if os.path.exists(Path(f"{script_path()}bilibili-live") / "roomid_set_data.json"):
-        with open(Path(f"{script_path()}bilibili-live") / "roomid_set_data.json", "r", encoding="utf-8") as j:
+    if os.path.exists(scripts_roomid_filepath):
+        with open(scripts_roomid_filepath, "r", encoding="utf-8") as j:
             SentRoom_list_set_elements = eval(j.read())
     SentRoom_list_set_elements = SentRoom_list_set_elements
     # 为组合框[弹幕发送到]设置内容
@@ -5531,11 +5534,11 @@ def script_update(settings):
         # 获得组合框[选择账号]的内容
         uid_list_value = obs.obs_data_get_string(current_settings, 'uid_list')
         # 获取[选择账号]的内容对应的账户cookies
-        cookies = config_B(uid=int(uid_list_value), dirname=f"{script_path()}bilibili-live").check()
+        cookies = config_B(uid=int(uid_list_value), dirname=scripts_data_dirpath).check()
         # # 获得组合框[发出弹幕的用户]的内容
         # SentUid_list_value = obs.obs_data_get_string(current_settings, 'SentUid_list')
         # # 获取[发出弹幕的用户]的内容对应的账户cookies
-        # cookies = config_B(uid=int(SentUid_list_value), dirname=f"{script_path()}bilibili-live").check()
+        # cookies = config_B(uid=int(SentUid_list_value), dirname=scripts_data_dirpath).check()
         # 获得组合框【弹幕发送到】 的内容
         SentRoom = obs.obs_data_get_string(current_settings, 'SentRoom_list')
         # 当  弹幕正在输出时 将 刷新弹幕输出的直播间
@@ -5779,8 +5782,8 @@ def login(props, prop):
     uid = obs.obs_data_get_string(current_settings, 'uid_list')
     if uid == "-1":
         # 如果添加账户 移除默认账户
-        config_B(uid=0, dirname=f"{script_path()}bilibili-live").update({})
-    start_login(int(uid), dirname=f"{script_path()}bilibili-live")
+        config_B(uid=0, dirname=scripts_data_dirpath).update({})
+    start_login(int(uid), dirname=scripts_data_dirpath)
     # 更新OBS配置信息
     script_defaults(current_settings)
     # ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
@@ -5922,7 +5925,7 @@ def start_area1(props, prop):
 
 def start_area():
     # 获取默认账户
-    cookies = config_B(uid=0, dirname=f"{script_path()}bilibili-live").check()
+    cookies = config_B(uid=0, dirname=scripts_data_dirpath).check()
     # 获取二级分区id
     area2_id = obs.obs_data_get_string(current_settings, 'area2_list')
     CsrfAuthenticationL(dict2cookieformat(cookies)).AnchorChangeRoomArea(int(area2_id))
@@ -5932,7 +5935,7 @@ def start_area():
 def start_live(props, prop):
     obs.script_log(obs.LOG_INFO, 'start_live')
     # 获取默认账户
-    cookies = config_B(uid=0, dirname=f"{script_path()}bilibili-live").check()
+    cookies = config_B(uid=0, dirname=scripts_data_dirpath).check()
     # 开播
     if cookies:
         # 获取二级分区id
@@ -5949,21 +5952,21 @@ def start_live(props, prop):
 
 def rtmp_address_copy(props, prop):
     # 获取默认账户
-    cookies = config_B(uid=0, dirname=f"{script_path()}bilibili-live").check()
+    cookies = config_B(uid=0, dirname=scripts_data_dirpath).check()
     cb.copy(CsrfAuthenticationL(dict2cookieformat(cookies)).FetchWebUpStreamAddr()['data']['addr']['addr'])
     pass
 
 
 def rtmp_stream_code_copy(props, prop):
     # 获取默认账户
-    cookies = config_B(uid=0, dirname=f"{script_path()}bilibili-live").check()
+    cookies = config_B(uid=0, dirname=scripts_data_dirpath).check()
     cb.copy(CsrfAuthenticationL(dict2cookieformat(cookies)).FetchWebUpStreamAddr()['data']['addr']['code'])
     pass
 
 
 def rtmp_stream_code_updata(props, prop):
     # 获取默认账户
-    cookies = config_B(uid=0, dirname=f"{script_path()}bilibili-live").check()
+    cookies = config_B(uid=0, dirname=scripts_data_dirpath).check()
     cb.copy(CsrfAuthenticationL(dict2cookieformat(cookies)).FetchWebUpStreamAddr(True)['data']['addr']['code'])
     pass
 
@@ -5971,7 +5974,7 @@ def rtmp_stream_code_updata(props, prop):
 def stop_live(props, prop):
     obs.script_log(obs.LOG_INFO, 'stop_live')
     # 获取默认账户
-    cookies = config_B(uid=0, dirname=f"{script_path()}bilibili-live").check()
+    cookies = config_B(uid=0, dirname=scripts_data_dirpath).check()
     # 停播
     if cookies:
         CsrfAuthenticationL(dict2cookieformat(cookies)).stopLive()
@@ -5993,7 +5996,7 @@ def send(props, prop):
     # 获得组合框[发出弹幕的用户]的内容
     SentUid = obs.obs_data_get_string(current_settings, 'SentUid_list')
     # 获取[发出弹幕的用户]账户cookies
-    cookies = config_B(uid=int(SentUid), dirname=f"{script_path()}bilibili-live").check()
+    cookies = config_B(uid=int(SentUid), dirname=scripts_data_dirpath).check()
     # 获得组合框【弹幕发送到】 的内容
     SentRoom = obs.obs_data_get_string(current_settings, 'SentRoom_list')
     # 获得 文本框【弹幕内容】 的内容
@@ -6011,10 +6014,10 @@ def send(props, prop):
         if danmu_room_add_or_delet in ["-", "－"]:
             # 获得组合框【弹幕发送到】的内容
             danmu_room_delet = SentRoom
-            if os.path.exists(Path(f"{script_path()}bilibili-live") / "roomid_set_data.json"):
-                with open(Path(f"{script_path()}bilibili-live") / "roomid_set_data.json", "r", encoding="utf-8") as j:
+            if os.path.exists(scripts_roomid_filepath):
+                with open(scripts_roomid_filepath, "r", encoding="utf-8") as j:
                     roomid_set_data = eval(j.read())
-                with open(Path(f"{script_path()}bilibili-live") / "roomid_set_data.json", "w", encoding="utf-8") as j:
+                with open(scripts_roomid_filepath, "w", encoding="utf-8") as j:
                     roomid_set_data.discard(danmu_room_delet)
                     j.write(str(roomid_set_data))
                 obs.script_log(obs.LOG_INFO, "删除直播间")
@@ -6024,10 +6027,10 @@ def send(props, prop):
             try:
                 RoomBaseInfo = getRoomBaseInfo(int(danmu_room_add))
                 for long_roomid in RoomBaseInfo["by_room_ids"]:
-                    if os.path.exists(Path(f"{script_path()}bilibili-live") / "roomid_set_data.json"):
-                        with open(Path(f"{script_path()}bilibili-live") / "roomid_set_data.json", "r", encoding="utf-8") as j:
+                    if os.path.exists(scripts_roomid_filepath):
+                        with open(scripts_roomid_filepath, "r", encoding="utf-8") as j:
                             roomid_set_data = eval(j.read())
-                    with open(Path(f"{script_path()}bilibili-live") / "roomid_set_data.json", "w", encoding="utf-8") as j:
+                    with open(scripts_roomid_filepath, "w", encoding="utf-8") as j:
                         roomid_set_data.add(long_roomid)
                         j.write(str(roomid_set_data))
                 obs.script_log(obs.LOG_INFO, "添加直播间")
@@ -6036,8 +6039,8 @@ def send(props, prop):
                 obs.obs_data_set_string(current_settings, 'danmu_msg_text', "请输入正常直播间号")
         # 刷新[弹幕发送到]列表
         obs.obs_property_list_clear(SentRoom_list)
-        if os.path.exists(Path(f"{script_path()}bilibili-live") / "roomid_set_data.json"):
-            with open(Path(f"{script_path()}bilibili-live") / "roomid_set_data.json", "r", encoding="utf-8") as j:
+        if os.path.exists(scripts_roomid_filepath):
+            with open(scripts_roomid_filepath, "r", encoding="utf-8") as j:
                 roomid_set_data = eval(j.read())
             for roomid in roomid_set_data:
                 RoomBaseInfo = getRoomBaseInfo(int(roomid))
@@ -6196,11 +6199,11 @@ def correct_mask_word():
 def show_danmu(props, prop):
     global DanMu
     # 获取'默认账户'cookie
-    cookies = config_B(uid=0, dirname=f"{script_path()}bilibili-live").check()
+    cookies = config_B(uid=0, dirname=scripts_data_dirpath).check()
     # # 获得组合框[发出弹幕的用户]的内容
     # SentUid_list_value = obs.obs_data_get_string(current_settings, 'SentUid_list')
     # # 获取[发出弹幕的用户]账户cookies
-    # cookies = config_B(uid=int(SentUid_list_value), dirname=f"{script_path()}bilibili-live").check()
+    # cookies = config_B(uid=int(SentUid_list_value), dirname=scripts_data_dirpath).check()
     # 获得组合框【弹幕发送到】 的内容
     SentRoom = obs.obs_data_get_string(current_settings, 'SentRoom_list')
 
