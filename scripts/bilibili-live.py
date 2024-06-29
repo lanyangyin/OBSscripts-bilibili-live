@@ -5243,7 +5243,8 @@ def script_defaults(settings):
         rtmp_copy_button_visible, stream_copy_button_visible, stream_updata_button_visible, \
         area1_true_button_visible, area2_true_button_visible, \
         area1_list_visible, area2_list_visible, \
-        SentUid_list_dict_elements, SentRoom_list_set_elements, SentRoom_list_enabled, emoji_face_list_dict_elements, send_button_enabled
+        SentUid_list_dict_elements, SentRoom_list_set_elements, SentRoom_list_enabled, emoji_face_list_dict_elements, \
+        send_button_enabled, show_danmu_button_enabled
 
     # 创建插件日志文件夹
     try:
@@ -5406,20 +5407,20 @@ def script_defaults(settings):
     if os.path.exists(f"{script_path()}bilibili-live/roomid_set_data.json"):
         with open(f"{script_path()}bilibili-live/roomid_set_data.json", "r", encoding="utf-8") as j:
             SentRoom_list_set_elements = eval(j.read())
+    SentRoom_list_set_elements = SentRoom_list_set_elements
 
     # 根据弹幕输出状态更改 组合框【弹幕发送到】的可用性
     SentRoom_list_enabled = uid_list_enabled
 
     # 为组合框[emoji表情]添加选项
     emoji_face_list_dict_elements = {}
-
-    print((SentRoom_list_count := obs.obs_property_list_item_count(SentRoom_list)) == False, SentRoom_list_count)
-    if Default_islogin and SentRoom_list_count:
+    if Default_islogin and len(SentRoom_list_set_elements):
         SentRoom_list_value = obs.obs_data_get_string(settings, 'SentRoom_list')
         Emoticons = master(dict2cookieformat(Default_cookies)).GetEmoticons(int(SentRoom_list_value))
         for emoji_face in Emoticons[0]['emoticons']:
             emoji_face_list_dict_elements[emoji_face["emoji"]] = emoji_face["descript"]
     emoji_face_list_dict_elements = emoji_face_list_dict_elements
+
 
     # 清空文本框[弹幕内容]
     obs.obs_data_set_string(settings, 'danmu_msg_text', "")
@@ -5430,7 +5431,11 @@ def script_defaults(settings):
     else:
         send_button_enabled = False
 
-    # show_danmu_button
+    # 设置[显示弹幕]按钮可用状态
+    if Default_islogin and len(SentRoom_list_set_elements):
+        show_danmu_button_enabled = True
+    else:
+        show_danmu_button_enabled = False
 
 # --- 一个名为script_description的函数返回显示给的描述
 def script_description():
@@ -5749,6 +5754,9 @@ def script_properties():
 
     # 添加按钮[显示弹幕]
     show_danmu_button = obs.obs_properties_add_button(show_danmu_group, 'show_danmu_button', '显示弹幕', show_danmu)
+    # 设置按钮[显示弹幕]的可用状态
+    obs.obs_property_set_enabled(show_danmu_button, show_danmu_button_enabled)
+
     return props
 
 
@@ -5871,6 +5879,10 @@ def login(props, prop):
 
     # 设置按钮[发送弹幕]的可用状态
     obs.obs_property_set_enabled(send_button, send_button_enabled)
+
+    ###########################################################################
+    # 设置按钮[显示弹幕]的可用状态
+    obs.obs_property_set_enabled(show_danmu_button, show_danmu_button_enabled)
     return True
 
 
@@ -5951,7 +5963,6 @@ def stop_live(props, prop):
         CsrfAuthenticationL(dict2cookieformat(cookies)).stopLive()
     # 设置组合框[用户]为'默认用户'
     obs.obs_data_set_string(current_settings, 'uid_list', cookies["DedeUserID"])
-
     login(props, prop)
     return True
 
@@ -5976,7 +5987,11 @@ def send(props, prop):
     # # 清空 文本框【弹幕内容】 的内容
     # obs.obs_data_set_string(current_settings, 'danmu_msg_text', "")
     # 当以 \n 开头 执行 添加或者减少发送的直播间
-    if str(danmu_msg).startswith("\n"):
+    try:
+        DanMu_danmu_working_is = DanMu.danmu_working_is
+    except:
+        DanMu_danmu_working_is = False
+    if str(danmu_msg).startswith("\n") and not DanMu_danmu_working_is:
         roomid_set_data = set()
         danmu_room_add_or_delet = str(danmu_msg).strip()
         if danmu_room_add_or_delet in ["-", "－"]:
@@ -6015,6 +6030,9 @@ def send(props, prop):
                 obs.obs_property_list_add_string(
                     SentRoom_list, RoomBaseInfo["by_room_ids"][str(roomid)]["uname"] + "_的直播间", str(roomid)
                 )
+        # 设置组合框[用户]为'默认用户'
+        obs.obs_data_set_string(current_settings, 'uid_list', cookies["DedeUserID"])
+        login(props, prop)
 
     # 将弹幕发送到直播间
     if not str(danmu_msg).startswith("\n"):
@@ -6163,10 +6181,8 @@ def correct_mask_word():
 
 def show_danmu(props, prop):
     global DanMu
-    # 获得组合框[选择账号]的内容
-    uid_list_value = obs.obs_data_get_string(current_settings, 'uid_list')
-    # 获取[选择账号]的内容对应的账户cookies
-    cookies = config_B(uid=int(uid_list_value), dirname=f"{script_path()}bilibili-live").check()
+    # 获取'默认账户'cookie
+    cookies = config_B(uid=0, dirname=f"{script_path()}bilibili-live").check()
     # # 获得组合框[发出弹幕的用户]的内容
     # SentUid_list_value = obs.obs_data_get_string(current_settings, 'SentUid_list')
     # # 获取[发出弹幕的用户]账户cookies
@@ -6179,14 +6195,21 @@ def show_danmu(props, prop):
         DanMu = Danmu(dict2cookieformat(cookies)).connect_room(int(SentRoom))
         print(DanMu.danmu_start_is)
         DanMu.start()
-    if DanMu.danmu_working_is:
-        DanMu.danmu_start_is = False
-        obs.obs_property_set_enabled(SentRoom_list, True)
-    else:
+    try:
+        if DanMu.danmu_working_is:
+            DanMu.danmu_start_is = False
+            obs.obs_property_set_enabled(SentRoom_list, True)
+        else:
+            # 更改 组合框【弹幕发送到】的可用性
+            obs.obs_property_set_enabled(SentRoom_list, False)
+            t1 = threading.Thread(target=danmu_s)
+            t1.start()
+    except:
+        # 更改 组合框【弹幕发送到】的可用性
         obs.obs_property_set_enabled(SentRoom_list, False)
         t1 = threading.Thread(target=danmu_s)
         t1.start()
-        # 更改 组合框【弹幕发送到】的可用性
+
     return True
 
 
