@@ -5411,6 +5411,9 @@ def script_defaults(settings):
         with open(Path(f"{script_path()}bilibili-live") / "roomid_set_data.json", "r", encoding="utf-8") as j:
             SentRoom_list_set_elements = eval(j.read())
     SentRoom_list_set_elements = SentRoom_list_set_elements
+    # 为组合框[弹幕发送到]设置内容
+    if SentRoom_list_set_elements:
+        obs.obs_data_set_string(settings, 'SentRoom_list', list(SentRoom_list_set_elements)[0])
 
     # 根据弹幕输出状态更改 组合框【弹幕发送到】的可用性
     SentRoom_list_enabled = uid_list_enabled
