@@ -16,7 +16,7 @@ import obspython as obs
 import pypinyin
 import qrcode
 import requests
-import pandas.io.clipboard as cb
+import pyperclip as cb
 import websockets
 
 
