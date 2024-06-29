@@ -5,7 +5,6 @@ import io
 import json
 import os
 import pprint
-import re
 import sys
 import threading
 import time
@@ -19,14 +18,6 @@ import qrcode
 import requests
 import pandas.io.clipboard as cb
 import websockets
-
-# 初始弹幕输出状态
-danmu_working_is = False
-
-try:
-    DanMu.danmu_start_is = False
-except:
-    pass
 
 
 def script_path():
@@ -4997,7 +4988,6 @@ def start_login(uid: int = 0, dirname: str = "Biliconfig"):
 
 
 class Danmu:
-    global danmu_working_is
 
     def __init__(self, cookie: str):
         self.cookie = cookie
@@ -5028,8 +5018,8 @@ class Danmu:
         return self._WebSocketClient(wss_url, auth_body)
 
     class _WebSocketClient:
-        global danmu_working_is
         danmu_start_is = True
+        danmu_working_is = True
         HEARTBEAT_INTERVAL = 30
         VERSION_NORMAL = 0
         VERSION_ZIP = 2
@@ -5041,14 +5031,13 @@ class Danmu:
             # self.saved_danmudata = set()
 
         async def connect(self):
-            global danmu_working_is
             async with websockets.connect(self.url) as ws:
                 await self.on_open(ws)
                 while self.danmu_start_is:
-                    danmu_working_is = True
+                    self.danmu_working_is = True
                     message = await ws.recv()
                     await self.on_message(message)
-                danmu_working_is = False
+                self.danmu_working_is = False
 
         async def on_open(self, ws):
             print("Connected to server...")
@@ -5064,7 +5053,7 @@ class Danmu:
             if isinstance(message, bytes):
                 self.unpack(message)
 
-        def pack(self, content: dict, code: int) -> bytes:
+        def pack(self, content: dict|None, code: int) -> bytes:
             content_bytes = json.dumps(content).encode('utf-8') if content else b''
             header = (len(content_bytes) + 16).to_bytes(4, 'big') + \
                      (16).to_bytes(2, 'big') + \
@@ -5299,19 +5288,24 @@ def script_defaults(settings):
     if Default_islogin:
         Default_uname = interface_nav_Default["uname"]
     # 根据弹幕输出状态更改 组合框【用户】的可用性
-    if danmu_working_is:
-        uid_list_enabled = False
-    else:
+    try:
+        if DanMu.danmu_working_is:
+            uid_list_enabled = False
+        else:
+            uid_list_enabled = True
+    except:
         uid_list_enabled = True
 
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # 获取'默认账户'直播间基础信息
     Default_roomStatus = "_"
+    RoomInfoOld = {}
     if Default_islogin:
         RoomInfoOld = getRoomInfoOld(Default_cookies['DedeUserID'])
         Default_roomStatus = RoomInfoOld["roomStatus"]
 
     # 设置 只读文本框[直播间状态] 的内容
+    Defaultroomid = 0
     if Default_roomStatus == 0:
         room_status_text_value = "无"
     elif Default_roomStatus == 1:
@@ -5414,23 +5408,17 @@ def script_defaults(settings):
             SentRoom_list_set_elements = eval(j.read())
 
     # 根据弹幕输出状态更改 组合框【弹幕发送到】的可用性
-    if danmu_working_is:
-        SentRoom_list_enabled = False
-    else:
-        SentRoom_list_enabled = True
+    SentRoom_list_enabled = uid_list_enabled
 
     # 为组合框[emoji表情]添加选项
     emoji_face_list_dict_elements = {}
-    for SentRoom_one in SentRoom_list_set_elements:
-        for SentUid_one in SentUid_list_dict_elements:
-            Sent_one_Uid = SentUid_one
-            break
-        # 获取账户
-        SentRoom_one_cookies = config_B(uid=int(Sent_one_Uid), dirname=f"{script_path()}bilibili-live").check()
-        Emoticons = master(dict2cookieformat(SentRoom_one_cookies)).GetEmoticons(int(SentRoom_one))
+
+    print((SentRoom_list_count := obs.obs_property_list_item_count(SentRoom_list)) == False, SentRoom_list_count)
+    if Default_islogin and SentRoom_list_count:
+        SentRoom_list_value = obs.obs_data_get_string(settings, 'SentRoom_list')
+        Emoticons = master(dict2cookieformat(Default_cookies)).GetEmoticons(int(SentRoom_list_value))
         for emoji_face in Emoticons[0]['emoticons']:
             emoji_face_list_dict_elements[emoji_face["emoji"]] = emoji_face["descript"]
-        break
     emoji_face_list_dict_elements = emoji_face_list_dict_elements
 
     # 清空文本框[弹幕内容]
@@ -5442,6 +5430,7 @@ def script_defaults(settings):
     else:
         send_button_enabled = False
 
+    # show_danmu_button
 
 # --- 一个名为script_description的函数返回显示给的描述
 def script_description():
@@ -5516,7 +5505,7 @@ def script_update(settings):
     当用户更改了脚本的设置(如果有的话)时调用。
     :param settings:与脚本关联的设置。
     """
-    global emoji_face_list_value, SentRoom_list_value, danmu_working_is, DanMu
+    global emoji_face_list_value, SentRoom_list_value, DanMu
     # 当 组合框【emoji表情】 的内容 更改时 将 组合框【emoji表情】 的内容 载入剪贴板
     if emoji_face_list_value != obs.obs_data_get_string(current_settings, "emoji_face_list"):
         emoji_face_list_value = obs.obs_data_get_string(current_settings, "emoji_face_list")
@@ -5535,17 +5524,20 @@ def script_update(settings):
         # 获得组合框【弹幕发送到】 的内容
         SentRoom = obs.obs_data_get_string(current_settings, 'SentRoom_list')
         # 当  弹幕正在输出时 将 刷新弹幕输出的直播间
-        if danmu_working_is:
-            # 关闭当前正在输出的弹幕
-            DanMu.danmu_start_is = False
+        try:
+            if DanMu.danmu_working_is:
+                # 关闭当前正在输出的弹幕
+                DanMu.danmu_start_is = False
 
-            # 为 新的直播间 开启新输出的弹幕
-            def danmu_s():
-                global DanMu
-                DanMu = Danmu(dict2cookieformat(cookies)).connect_room(int(SentRoom))
-                DanMu.start()
-            t1 = threading.Thread(target=danmu_s)
-            t1.start()
+                # 为 新的直播间 开启新输出的弹幕
+                def danmu_s():
+                    global DanMu
+                    DanMu = Danmu(dict2cookieformat(cookies)).connect_room(int(SentRoom))
+                    DanMu.start()
+                t1 = threading.Thread(target=danmu_s)
+                t1.start()
+        except:
+            pass
 
 
 # --- 一个名为script_properties的函数定义了用户可以使用的属性
@@ -5573,7 +5565,8 @@ def script_properties():
     global SentUid_list, \
         SentRoom_list, \
         emoji_face_list, \
-        send_button
+        send_button, \
+        show_danmu_button
 
     # 为【配置】分组框建立属性集
     setting_props = obs.obs_properties_create()
@@ -6027,7 +6020,8 @@ def send(props, prop):
     if not str(danmu_msg).startswith("\n"):
         global danmu_msg_list_num, send_danmu_msg_list_clock, \
             send_danmu_msg_split_list_dict, send_danmu_msg_word_num
-        obs.script_log(obs.LOG_INFO, "发送弹幕")
+        if not DanMu.danmu_working_is:
+            obs.script_log(obs.LOG_INFO, "发送弹幕")
         # 弹幕切分
         if not send_danmu_msg_list_clock:
             danmu_msg_list_split = split_of_list(danmu_msg, list(emoji_face_list_dict_elements.keys()))
@@ -6119,9 +6113,10 @@ def send(props, prop):
                 # 检测弹幕是否发送成功
                 send_success = danmu_send_info['data']['mode_info']['user']['title']
                 if send_success:
-                    obs.script_log(obs.LOG_INFO,
-                                   f"弹幕发送成功：{send_danmu_msg_split_list_dict[send_danmu_msg_word_num][danmu_msg_list_num]}"
-                                   )
+                    if not DanMu.danmu_working_is:
+                        obs.script_log(obs.LOG_INFO,
+                                       f"弹幕发送成功：{send_danmu_msg_split_list_dict[send_danmu_msg_word_num][danmu_msg_list_num]}"
+                                       )
                 else:
                     obs.script_log(obs.LOG_INFO,
                                    f"弹幕发送失败：{send_danmu_msg_split_list_dict[send_danmu_msg_word_num][danmu_msg_list_num]}，{danmu_send_info['message']}"
@@ -6155,18 +6150,19 @@ def send(props, prop):
             obs.timer_add(send_danmu_msg_list, 1000)
             # 清空 文本框【弹幕内容】 的内容
             obs.obs_data_set_string(current_settings, 'danmu_msg_text', "")
+
     return True
 
 
 def correct_mask_word():
     correct_word = str(pypinyin.pinyin(cb.paste(), style=pypinyin.Style.TONE2))
-    obs.script_log(obs.LOG_INFO, correct_word)
+    # obs.script_log(obs.LOG_INFO, correct_word)
     cb.copy(correct_word.replace("[", "").replace("]", "").replace(", ", "_").replace("'", ""))
     pass
 
 
 def show_danmu(props, prop):
-    global danmu_working_is, DanMu
+    global DanMu
     # 获得组合框[选择账号]的内容
     uid_list_value = obs.obs_data_get_string(current_settings, 'uid_list')
     # 获取[选择账号]的内容对应的账户cookies
@@ -6183,7 +6179,7 @@ def show_danmu(props, prop):
         DanMu = Danmu(dict2cookieformat(cookies)).connect_room(int(SentRoom))
         print(DanMu.danmu_start_is)
         DanMu.start()
-    if danmu_working_is:
+    if DanMu.danmu_working_is:
         DanMu.danmu_start_is = False
         obs.obs_property_set_enabled(SentRoom_list, True)
     else:
