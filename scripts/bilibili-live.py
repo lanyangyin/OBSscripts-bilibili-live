@@ -4998,12 +4998,11 @@ def start_login(uid: int = 0, dirname: str = "Biliconfig"):
 
 class Danmu:
     global danmu_working_is
+
     def __init__(self, cookie: str):
         self.cookie = cookie
 
-    def get_websocket_client(self, roomid: int):
-        global roomid_for_Danmu, danmu_working_is
-        roomid_for_Danmu = roomid
+    def _get_websocket_client(self, roomid: int):
         danmu_info = master(self.cookie).getDanmuInfo(roomid)
         token = danmu_info['data']['token']
         host = danmu_info['data']['host_list'][-1]
@@ -5024,11 +5023,11 @@ class Danmu:
 
     def connect_room(self, roomid: int):
         obs.script_log(obs.LOG_INFO,
-                       f"尝试连接【{getRoomBaseInfo(roomid_for_Danmu)['by_room_ids'][str(roomid_for_Danmu)]['uname']}】的直播间")
-        wss_url, auth_body = self.get_websocket_client(roomid)
-        return self.WebSocketClient(wss_url, auth_body)
+                       f"尝试连接【{getRoomBaseInfo(roomid)['by_room_ids'][str(roomid)]['uname']}】的直播间")
+        wss_url, auth_body = self._get_websocket_client(roomid)
+        return self._WebSocketClient(wss_url, auth_body)
 
-    class WebSocketClient:
+    class _WebSocketClient:
         global danmu_working_is
         danmu_start_is = True
         HEARTBEAT_INTERVAL = 30
@@ -5039,7 +5038,7 @@ class Danmu:
             self.url = url
             self.auth_body = auth_body
             # pprint.pprint(auth_body)
-            self.saved_danmudata = set()
+            # self.saved_danmudata = set()
 
         async def connect(self):
             global danmu_working_is
@@ -5075,7 +5074,6 @@ class Danmu:
             return header + content_bytes
 
         def unpack(self, byte_buffer: bytes):
-            global roomid_for_Danmu
             package_len = int.from_bytes(byte_buffer[0:4], 'big')
             head_length = int.from_bytes(byte_buffer[4:6], 'big')
             prot_ver = int.from_bytes(byte_buffer[6:8], 'big')
@@ -5091,143 +5089,143 @@ class Danmu:
             if opt_code == 8:  # AUTH_REPLY
                 obs.script_log(obs.LOG_INFO, f"身份验证回复: {content}\n")
             elif opt_code == 5:  # SEND_SMS_REPLY
-                if content not in self.saved_danmudata:
-                    self.saved_danmudata.add(content)
-                    # print(f"Danmu message at {datetime.datetime.now()}: {content}")
-                    if json.loads(content)['cmd'] == "DANMU_MSG":
+                # if content not in self.saved_danmudata:
+                #     self.saved_danmudata.add(content)
+                #     # print(f"Danmu message at {datetime.datetime.now()}: {content}")
+                if json.loads(content)['cmd'] == "DANMU_MSG":
+                    pass
+                    contentinfo = json.loads(content)['info']
+                    contentinfo[0][15]['extra'] = json.loads(contentinfo[0][15]['extra'])
+                    tfo = contentinfo[0][15]['extra']['content']
+                    afo = ""
+                    if contentinfo[0][15]['extra']['reply_uname']:
+                        afo = f" @{contentinfo[0][15]['extra']['reply_uname']} "
+                    ufo = contentinfo[0][15]['user']['base']['name']
+                    mfo = ''
+                    if contentinfo[0][15]['user']['medal']:
+                        fmedal = contentinfo[0][15]['user']['medal']
+                        mfo = f"【{fmedal['name']}|{fmedal['level']}】"
+                    wfo = ''
+                    if contentinfo[-2] != [0]:
+                        wfo = str(contentinfo[-2])
+                    obs.script_log(obs.LOG_INFO, f"{wfo}{mfo}{ufo}：{afo}{tfo}")
+                elif json.loads(content)['cmd'] == "WIDGET_BANNER":
+                    pass
+                elif json.loads(content)['cmd'] == "INTERACT_WORD":
+                    pass
+                    contentdata = json.loads(content)['data']
+                    # pprint.pprint(contentdata)
+                    tfo = "进入直播间或关注消息"
+                    if contentdata['msg_type'] == 1:
+                        tfo = "进入直播间"
+                    elif contentdata['msg_type'] == 2:
+                        tfo = "关注直播间"
+                    ufo = contentdata['uname']
+                    mfo = ""
+                    if contentdata['fans_medal']:
+                        fmedal = contentdata['fans_medal']
+                        mfo = f"【{fmedal['medal_name']}|{fmedal['medal_level']}】"
+                    wfo = ''
+                    try:
+                        if json.loads(content)['data']['uinfo']['wealth']['level']:
+                            wfo = f"[{json.loads(content)['data']['uinfo']['wealth']['level']}]"
+                    except:
                         pass
-                        contentinfo = json.loads(content)['info']
-                        contentinfo[0][15]['extra'] = json.loads(contentinfo[0][15]['extra'])
-                        tfo = contentinfo[0][15]['extra']['content']
-                        afo = ""
-                        if contentinfo[0][15]['extra']['reply_uname']:
-                            afo = f" @{contentinfo[0][15]['extra']['reply_uname']} "
-                        ufo = contentinfo[0][15]['user']['base']['name']
-                        mfo = ''
-                        if contentinfo[0][15]['user']['medal']:
-                            fmedal = contentinfo[0][15]['user']['medal']
-                            mfo = f"【{fmedal['name']}|{fmedal['level']}】"
-                        wfo = ''
-                        if contentinfo[-2] != [0]:
-                            wfo = str(contentinfo[-2])
-                        obs.script_log(obs.LOG_INFO, f"{wfo}{mfo}{ufo}：{afo}{tfo}")
-                    elif json.loads(content)['cmd'] == "WIDGET_BANNER":
+                    obs.script_log(obs.LOG_INFO, f"{tfo}：\t{wfo}{mfo}{ufo}")
+                elif json.loads(content)['cmd'] == "DM_INTERACTION":
+                    pass
+                    contentdata = json.loads(content)['data']
+                    contentdata['data'] = json.loads(contentdata['data'])
+                    tfo = "连续发送弹幕或点赞"
+                    if contentdata['type'] == 102:
+                        tfo = ""
+                        for contentdatacombo in contentdata['data']['combo'][:-1]:
+                            tfo += f"热词：\t{contentdatacombo['cnt']}\t人{contentdatacombo['guide']}{contentdatacombo['content']}\n"
+                        tfo += f"连续弹幕：\t{contentdata['data']['combo'][-1]['cnt']}\t人{contentdata['data']['combo'][-1]['guide']}{contentdata['data']['combo'][-1]['content']}"
+                    elif contentdata['type'] == 106:
+                        tfo = f"连续点赞：\t{contentdata['data']['cnt']}\t{contentdata['data']['suffix_text']}"
+                    obs.script_log(obs.LOG_INFO, f"{tfo}")
+                elif json.loads(content)['cmd'] == "GUARD_BUY":
+                    pass
+                    contentdata = json.loads(content)['data']
+                    tfo = f"上舰：\t{contentdata['username']}\t购买{contentdata['num']}个\t【{contentdata['gift_name']}】"
+                    obs.script_log(obs.LOG_INFO, f"{tfo}")
+                elif json.loads(content)['cmd'] == "LIKE_INFO_V3_CLICK":
+                    pass
+                    contentdata = json.loads(content)['data']
+                    tfo = contentdata['like_text']
+                    ufo = contentdata['uname']
+                    mfo = ""
+                    if contentdata['fans_medal']:
+                        fmedal = contentdata['fans_medal']
+                        mfo = f"【{fmedal['medal_name']}|{fmedal['guard_level']}】"
+                    wfo = ''
+                    try:
+                        if contentdata['uinfo']['wealth']['level']:
+                            wfo = f"[{contentdata['uinfo']['wealth']['level']}]"
+                    except:
                         pass
-                    elif json.loads(content)['cmd'] == "INTERACT_WORD":
-                        pass
-                        contentdata = json.loads(content)['data']
-                        # pprint.pprint(contentdata)
-                        tfo = "进入直播间或关注消息"
-                        if contentdata['msg_type'] == 1:
-                            tfo = "进入直播间"
-                        elif contentdata['msg_type'] == 2:
-                            tfo = "关注直播间"
-                        ufo = contentdata['uname']
-                        mfo = ""
-                        if contentdata['fans_medal']:
-                            fmedal = contentdata['fans_medal']
-                            mfo = f"【{fmedal['medal_name']}|{fmedal['medal_level']}】"
-                        wfo = ''
-                        try:
-                            if json.loads(content)['data']['uinfo']['wealth']['level']:
-                                wfo = f"[{json.loads(content)['data']['uinfo']['wealth']['level']}]"
-                        except:
-                            pass
-                        obs.script_log(obs.LOG_INFO, f"{tfo}：\t{wfo}{mfo}{ufo}")
-                    elif json.loads(content)['cmd'] == "DM_INTERACTION":
-                        pass
-                        contentdata = json.loads(content)['data']
-                        contentdata['data'] = json.loads(contentdata['data'])
-                        tfo = "连续发送弹幕或点赞"
-                        if contentdata['type'] == 102:
-                            tfo = ""
-                            for contentdatacombo in contentdata['data']['combo'][:-1]:
-                                tfo += f"热词：\t{contentdatacombo['cnt']}\t人{contentdatacombo['guide']}{contentdatacombo['content']}\n"
-                            tfo += f"连续弹幕：\t{contentdata['data']['combo'][-1]['cnt']}\t人{contentdata['data']['combo'][-1]['guide']}{contentdata['data']['combo'][-1]['content']}"
-                        elif contentdata['type'] == 106:
-                            tfo = f"连续点赞：\t{contentdata['data']['cnt']}\t{contentdata['data']['suffix_text']}"
-                        obs.script_log(obs.LOG_INFO, f"{tfo}")
-                    elif json.loads(content)['cmd'] == "GUARD_BUY":
-                        pass
-                        contentdata = json.loads(content)['data']
-                        tfo = f"上舰：\t{contentdata['username']}\t购买{contentdata['num']}个\t【{contentdata['gift_name']}】"
-                        obs.script_log(obs.LOG_INFO, f"{tfo}")
-                    elif json.loads(content)['cmd'] == "LIKE_INFO_V3_CLICK":
-                        pass
-                        contentdata = json.loads(content)['data']
-                        tfo = contentdata['like_text']
-                        ufo = contentdata['uname']
-                        mfo = ""
-                        if contentdata['fans_medal']:
-                            fmedal = contentdata['fans_medal']
-                            mfo = f"【{fmedal['medal_name']}|{fmedal['guard_level']}】"
-                        wfo = ''
-                        try:
-                            if contentdata['uinfo']['wealth']['level']:
-                                wfo = f"[{contentdata['uinfo']['wealth']['level']}]"
-                        except:
-                            pass
-                        obs.script_log(obs.LOG_INFO, f"点赞：\t{wfo}{mfo}{ufo}\t{tfo}")
-                    elif json.loads(content)['cmd'] == "LIKE_INFO_V3_UPDATE":
-                        pass
-                        contentdata = json.loads(content)['data']
-                        obs.script_log(obs.LOG_INFO, f"点赞数：\t{contentdata['click_count']}")
-                    elif json.loads(content)['cmd'] == "ONLINE_RANK_COUNT":
-                        pass
-                        contentdata = json.loads(content)['data']
-                        obs.script_log(obs.LOG_INFO, f"高能用户数：\t{contentdata['count']}")
-                    elif json.loads(content)['cmd'] == "WATCHED_CHANGE":
-                        pass
-                        contentdata = json.loads(content)['data']
-                        obs.script_log(obs.LOG_INFO,
-                                       f"直播间看过人数：\t{contentdata['num']}\t{contentdata['text_large']}")
-                    elif json.loads(content)['cmd'] == "ONLINE_RANK_V2":
-                        pass
-                    elif json.loads(content)['cmd'] == "STOP_LIVE_ROOM_LIST":
-                        pass
-                    elif json.loads(content)['cmd'] == "PK_BATTLE_PRE_NEW":
-                        pass
-                    elif json.loads(content)['cmd'] == "PK_BATTLE_PRE":
-                        pass
-                    elif json.loads(content)['cmd'] == "PK_BATTLE_START":
-                        pass
-                    elif json.loads(content)['cmd'] == "RECOMMEND_CARD":
-                        pass
-                    elif json.loads(content)['cmd'] == "SEND_GIFT":
-                        pass
-                        contentdata = json.loads(content)['data']
-                        # pprint.pprint(contentdata)
-                        ufo = contentdata['uname']
-                        mfo = ""
-                        if contentdata['medal_info']['medal_name']:
-                            medali = contentdata['medal_info']
-                            mfo = f"【{medali['medal_name']}|{medali['medal_level']}】"
-                        wfo = ''
-                        if contentdata['wealth_level'] != 0:
-                            wfo = f"[{contentdata['wealth_level']}]"
-                        tfo = ''
-                        if contentdata['batch_combo_send']:
-                            tfo += contentdata['batch_combo_send']['action']
-                            if contentdata['batch_combo_send']['blind_gift']:
-                                contentdata_bcsb_g = contentdata['batch_combo_send']['blind_gift']
-                                tfo += f"\t【{contentdata_bcsb_g['original_gift_name']}】{contentdata_bcsb_g['gift_action']}"
-                                coin = f"{contentdata_bcsb_g['gift_tip_price'] / 1000}￥\t{(contentdata_bcsb_g['gift_tip_price'] - contentdata['total_coin']) / 1000}￥"
-                            else:
-                                coin = f"{contentdata['total_coin'] / 1000}￥"
-                            tfo += f"{contentdata['num']}个《{contentdata['batch_combo_send']['gift_name']}》\t{coin}"
+                    obs.script_log(obs.LOG_INFO, f"点赞：\t{wfo}{mfo}{ufo}\t{tfo}")
+                elif json.loads(content)['cmd'] == "LIKE_INFO_V3_UPDATE":
+                    pass
+                    contentdata = json.loads(content)['data']
+                    obs.script_log(obs.LOG_INFO, f"点赞数：\t{contentdata['click_count']}")
+                elif json.loads(content)['cmd'] == "ONLINE_RANK_COUNT":
+                    pass
+                    contentdata = json.loads(content)['data']
+                    obs.script_log(obs.LOG_INFO, f"高能用户数：\t{contentdata['count']}")
+                elif json.loads(content)['cmd'] == "WATCHED_CHANGE":
+                    pass
+                    contentdata = json.loads(content)['data']
+                    obs.script_log(obs.LOG_INFO,
+                                   f"直播间看过人数：\t{contentdata['num']}\t{contentdata['text_large']}")
+                elif json.loads(content)['cmd'] == "ONLINE_RANK_V2":
+                    pass
+                elif json.loads(content)['cmd'] == "STOP_LIVE_ROOM_LIST":
+                    pass
+                elif json.loads(content)['cmd'] == "PK_BATTLE_PRE_NEW":
+                    pass
+                elif json.loads(content)['cmd'] == "PK_BATTLE_PRE":
+                    pass
+                elif json.loads(content)['cmd'] == "PK_BATTLE_START":
+                    pass
+                elif json.loads(content)['cmd'] == "RECOMMEND_CARD":
+                    pass
+                elif json.loads(content)['cmd'] == "SEND_GIFT":
+                    pass
+                    contentdata = json.loads(content)['data']
+                    # pprint.pprint(contentdata)
+                    ufo = contentdata['uname']
+                    mfo = ""
+                    if contentdata['medal_info']['medal_name']:
+                        medali = contentdata['medal_info']
+                        mfo = f"【{medali['medal_name']}|{medali['medal_level']}】"
+                    wfo = ''
+                    if contentdata['wealth_level'] != 0:
+                        wfo = f"[{contentdata['wealth_level']}]"
+                    tfo = ''
+                    if contentdata['batch_combo_send']:
+                        tfo += contentdata['batch_combo_send']['action']
+                        if contentdata['batch_combo_send']['blind_gift']:
+                            contentdata_bcsb_g = contentdata['batch_combo_send']['blind_gift']
+                            tfo += f"\t【{contentdata_bcsb_g['original_gift_name']}】{contentdata_bcsb_g['gift_action']}"
+                            coin = f"{contentdata_bcsb_g['gift_tip_price'] / 1000}￥\t{(contentdata_bcsb_g['gift_tip_price'] - contentdata['total_coin']) / 1000}￥"
                         else:
-                            tfo += f"{contentdata['action']}{contentdata['num']}个《{contentdata['giftName']}》"
-                        obs.script_log(obs.LOG_INFO, f'礼物：\t{wfo}{mfo}{ufo}\t{tfo}')
-                    elif json.loads(content)['cmd'] == "NOTICE_MSG":
-                        pass
+                            coin = f"{contentdata['total_coin'] / 1000}￥"
+                        tfo += f"{contentdata['num']}个《{contentdata['batch_combo_send']['gift_name']}》\t{coin}"
                     else:
-                        pprint.pprint(json.loads(content)['cmd'])
+                        tfo += f"{contentdata['action']}{contentdata['num']}个《{contentdata['giftName']}》"
+                    obs.script_log(obs.LOG_INFO, f'礼物：\t{wfo}{mfo}{ufo}\t{tfo}')
+                elif json.loads(content)['cmd'] == "NOTICE_MSG":
+                    pass
+                else:
+                    pprint.pprint(json.loads(content)['cmd'])
 
             if len(byte_buffer) > package_len:
                 self.unpack(byte_buffer[package_len:])
 
-        async def main(self):
-            await self.connect()
+        def start(self):
+            asyncio.run(self.connect())
 
 
 # end
@@ -5247,7 +5245,7 @@ def script_defaults(settings):
     """
     global Default_roomStatus, DefaultArea, DefaultliveStatus, \
         allAreaList, \
-        uid_list_dict_elements, \
+        uid_list_dict_elements, uid_list_enabled, \
         login_status_text_value, login_status_text_type, \
         Default_uname, \
         room_status_text_type, \
@@ -5300,6 +5298,12 @@ def script_defaults(settings):
     # 设置'默认账户'昵称为 组合框[用户] 的内容
     if Default_islogin:
         Default_uname = interface_nav_Default["uname"]
+    # 根据弹幕输出状态更改 组合框【用户】的可用性
+    if danmu_working_is:
+        uid_list_enabled = False
+    else:
+        uid_list_enabled = True
+
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # 获取'默认账户'直播间基础信息
     Default_roomStatus = "_"
@@ -5512,34 +5516,36 @@ def script_update(settings):
     当用户更改了脚本的设置(如果有的话)时调用。
     :param settings:与脚本关联的设置。
     """
-    global emoji_face_list_value, SentRoom_list_value, danmu_start_is, danmu_working_is
+    global emoji_face_list_value, SentRoom_list_value, danmu_working_is, DanMu
+    # 当 组合框【emoji表情】 的内容 更改时 将 组合框【emoji表情】 的内容 载入剪贴板
     if emoji_face_list_value != obs.obs_data_get_string(current_settings, "emoji_face_list"):
         emoji_face_list_value = obs.obs_data_get_string(current_settings, "emoji_face_list")
         cb.copy(emoji_face_list_value)
+    # 当 组合框【弹幕发送到】 的内容 更改时 将 刷新弹幕输出的直播间
     if SentRoom_list_value != obs.obs_data_get_string(current_settings, "SentRoom_list"):
         SentRoom_list_value = obs.obs_data_get_string(current_settings, "SentRoom_list")
-        # 获得组合框[发出弹幕的用户]的内容
-        SentUid = obs.obs_data_get_string(current_settings, 'SentUid_list')
-        # 获取[发出弹幕的用户]账户cookies
-        cookies = config_B(uid=int(SentUid), dirname=f"{script_path()}bilibili-live").check()
+        # 获得组合框[选择账号]的内容
+        uid_list_value = obs.obs_data_get_string(current_settings, 'uid_list')
+        # 获取[选择账号]的内容对应的账户cookies
+        cookies = config_B(uid=int(uid_list_value), dirname=f"{script_path()}bilibili-live").check()
+        # # 获得组合框[发出弹幕的用户]的内容
+        # SentUid_list_value = obs.obs_data_get_string(current_settings, 'SentUid_list')
+        # # 获取[发出弹幕的用户]的内容对应的账户cookies
+        # cookies = config_B(uid=int(SentUid_list_value), dirname=f"{script_path()}bilibili-live").check()
         # 获得组合框【弹幕发送到】 的内容
         SentRoom = obs.obs_data_get_string(current_settings, 'SentRoom_list')
-        if danmu_start_is:
-            danmu_start_is = False
-            while danmu_working_is:
-                pass
+        # 当  弹幕正在输出时 将 刷新弹幕输出的直播间
+        if danmu_working_is:
+            # 关闭当前正在输出的弹幕
+            DanMu.danmu_start_is = False
 
+            # 为 新的直播间 开启新输出的弹幕
             def danmu_s():
-                global danmu_start_is
-                if danmu_start_is:
-                    danmu_start_is = False
-                else:
-                    danmu_start_is = True
-                    asyncio.run(Danmu(dict2cookieformat(cookies)).get_websocket_client(int(SentRoom)).main())
-
-            if not danmu_working_is:
-                t1 = threading.Thread(target=danmu_s)
-                t1.start()
+                global DanMu
+                DanMu = Danmu(dict2cookieformat(cookies)).connect_room(int(SentRoom))
+                DanMu.start()
+            t1 = threading.Thread(target=danmu_s)
+            t1.start()
 
 
 # --- 一个名为script_properties的函数定义了用户可以使用的属性
@@ -5553,7 +5559,8 @@ def script_properties():
     # 通常用于自动生成用户界面小部件，也可以用来枚举特定设置的可用值或有效值。
     global setting_props, \
         live_props, \
-        danmu_props
+        send_danmu_group, \
+        show_danmu_group
     global login_status_text, \
         uid_list
     global room_status_text, \
@@ -5572,8 +5579,10 @@ def script_properties():
     setting_props = obs.obs_properties_create()
     # 为【直播】分组框建立属性集
     live_props = obs.obs_properties_create()
-    # 为【弹幕】分组框建立属性集
-    danmu_props = obs.obs_properties_create()
+    # 为【发送弹幕】分组框建立属性集
+    send_danmu_group = obs.obs_properties_create()
+    # 为【输出弹幕】分组框建立属性集
+    show_danmu_group = obs.obs_properties_create()
     # —————————————————————————————————————————————————————————————————————————————————————————————————————
     # 添加分组框【配置】，包含用于登录的子控件
     obs.obs_properties_add_group(props, 'setting_group', '配置', obs.OBS_GROUP_NORMAL, setting_props)
@@ -5694,12 +5703,12 @@ def script_properties():
     # 添加普通文本框[直播公告]
     # 添加普通文本框[直播简介]
     # ————————————————————————————————————————————————————————————————————————————————
-    # 添加分组框【弹幕】，包含用于弹幕的子控件
-    obs.obs_properties_add_group(props, 'danmu_group', '弹幕', obs.OBS_GROUP_NORMAL, danmu_props)
+    # 添加 分组框【发送弹幕】，包含用于弹幕的子控件
+    obs.obs_properties_add_group(props, 'send_danmu_group', '发送弹幕', obs.OBS_GROUP_NORMAL, send_danmu_group)
 
     # 添加组合框[发出弹幕的用户]
     SentUid_list = obs.obs_properties_add_list(
-        danmu_props, 'SentUid_list', '发出弹幕的用户：'
+        send_danmu_group, 'SentUid_list', '发出弹幕的用户：'
         , obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING
     )
     # 为组合框[发出弹幕的用户]添加选项
@@ -5708,7 +5717,7 @@ def script_properties():
 
     # 添加组合框[弹幕发送到]
     SentRoom_list = obs.obs_properties_add_list(
-        danmu_props, 'SentRoom_list', '弹幕发送到：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING
+        send_danmu_group, 'SentRoom_list', '弹幕发送到：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING
     )
     # 为组合框[弹幕发送到]添加选项
     for SentRoomid in SentRoom_list_set_elements:
@@ -5722,7 +5731,7 @@ def script_properties():
 
     # 添加组合框[emoji表情]
     emoji_face_list = obs.obs_properties_add_list(
-        danmu_props, 'emoji_face_list', 'emoji表情：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING
+        send_danmu_group, 'emoji_face_list', 'emoji表情：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING
     )
     # 为组合框[emoji表情]添加选项
     for emoji_face in emoji_face_list_dict_elements:
@@ -5731,19 +5740,22 @@ def script_properties():
         )
 
     # 添加一个[弹幕内容]的文本框
-    obs.obs_properties_add_text(danmu_props, 'danmu_msg_text', '弹幕内容：', obs.OBS_TEXT_MULTILINE)
+    obs.obs_properties_add_text(send_danmu_group, 'danmu_msg_text', '弹幕内容：', obs.OBS_TEXT_MULTILINE)
 
     # 添加按钮[发送弹幕]
-    send_button = obs.obs_properties_add_button(danmu_props, 'send_button', '发送弹幕', send)
+    send_button = obs.obs_properties_add_button(send_danmu_group, 'send_button', '发送弹幕', send)
     # 设置按钮[发送弹幕]的可用状态
     obs.obs_property_set_enabled(send_button, send_button_enabled)
 
     # 添加按钮[更改屏蔽词]
-    correct_mask_word_button = obs.obs_properties_add_button(danmu_props, 'correct_mask_word_button', '更改屏蔽词',
+    correct_mask_word_button = obs.obs_properties_add_button(send_danmu_group, 'correct_mask_word_button', '更改屏蔽词',
                                                              lambda ps, p: correct_mask_word())
+    # ————————————————————————————————————————————————————————————————————————————————
+    # 添加 分组框【输出弹幕】，包含用于弹幕的子控件
+    obs.obs_properties_add_group(props, 'show_danmu_group', '输出弹幕', obs.OBS_GROUP_NORMAL, show_danmu_group)
 
     # 添加按钮[显示弹幕]
-    show_danmu_button = obs.obs_properties_add_button(danmu_props, 'show_danmu_button', '显示弹幕', show_danmu)
+    show_danmu_button = obs.obs_properties_add_button(show_danmu_group, 'show_danmu_button', '显示弹幕', show_danmu)
     return props
 
 
@@ -6021,7 +6033,6 @@ def send(props, prop):
             danmu_msg_list_split = split_of_list(danmu_msg, list(emoji_face_list_dict_elements.keys()))
             # print(9, danmu_msg_list_split)
             danmu_msg_word_num_max_lever_list = [40, 30, 20]
-            send_danmu_msg_split_transfer_t = ''
             send_danmu_msg_split_list_dict = {}
             for danmu_msg_word_num_max in danmu_msg_word_num_max_lever_list:
                 # 根据不同等级的弹幕字数，制造 弹幕内容切分 列表
@@ -6155,11 +6166,15 @@ def correct_mask_word():
 
 
 def show_danmu(props, prop):
-    global danmu_start_is, danmu_working_is, DanMu
-    # 获得组合框[发出弹幕的用户]的内容
-    SentUid = obs.obs_data_get_string(current_settings, 'SentUid_list')
-    # 获取[发出弹幕的用户]账户cookies
-    cookies = config_B(uid=int(SentUid), dirname=f"{script_path()}bilibili-live").check()
+    global danmu_working_is, DanMu
+    # 获得组合框[选择账号]的内容
+    uid_list_value = obs.obs_data_get_string(current_settings, 'uid_list')
+    # 获取[选择账号]的内容对应的账户cookies
+    cookies = config_B(uid=int(uid_list_value), dirname=f"{script_path()}bilibili-live").check()
+    # # 获得组合框[发出弹幕的用户]的内容
+    # SentUid_list_value = obs.obs_data_get_string(current_settings, 'SentUid_list')
+    # # 获取[发出弹幕的用户]账户cookies
+    # cookies = config_B(uid=int(SentUid_list_value), dirname=f"{script_path()}bilibili-live").check()
     # 获得组合框【弹幕发送到】 的内容
     SentRoom = obs.obs_data_get_string(current_settings, 'SentRoom_list')
 
@@ -6167,14 +6182,11 @@ def show_danmu(props, prop):
         global DanMu
         DanMu = Danmu(dict2cookieformat(cookies)).connect_room(int(SentRoom))
         print(DanMu.danmu_start_is)
-        asyncio.run(DanMu.main())
-
-
+        DanMu.start()
     if danmu_working_is:
         DanMu.danmu_start_is = False
         obs.obs_property_set_enabled(SentRoom_list, True)
     else:
-        DanMu.danmu_start_is = True
         obs.obs_property_set_enabled(SentRoom_list, False)
         t1 = threading.Thread(target=danmu_s)
         t1.start()
