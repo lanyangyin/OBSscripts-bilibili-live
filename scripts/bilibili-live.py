@@ -5243,7 +5243,9 @@ def script_defaults(settings):
         rtmp_copy_button_visible, stream_copy_button_visible, stream_updata_button_visible, \
         area1_true_button_visible, area2_true_button_visible, \
         area1_list_visible, area2_list_visible, \
-        SentUid_list_dict_elements, SentRoom_list_set_elements, SentRoom_list_enabled, emoji_face_list_dict_elements, \
+        SentUid_list_dict_elements, SentRoom_list_set_elements, \
+        SentRoom_list_enabled, emoji_face_list_visible, \
+        emoji_face_list_dict_elements, \
         send_button_enabled, show_danmu_button_enabled
 
     # 创建插件日志文件夹
@@ -5420,7 +5422,11 @@ def script_defaults(settings):
         for emoji_face in Emoticons[0]['emoticons']:
             emoji_face_list_dict_elements[emoji_face["emoji"]] = emoji_face["descript"]
     emoji_face_list_dict_elements = emoji_face_list_dict_elements
-
+    # 根据直播状态更改 组合框[emoji表情] 可见状态
+    if Default_islogin and len(SentRoom_list_set_elements):
+        emoji_face_list_visible = True
+    else:
+        emoji_face_list_visible = False
 
     # 清空文本框[弹幕内容]
     obs.obs_data_set_string(settings, 'danmu_msg_text', "")
@@ -5736,6 +5742,8 @@ def script_properties():
         obs.obs_property_list_add_string(
             emoji_face_list, emoji_face_list_dict_elements[emoji_face], emoji_face
         )
+    # 根据直播状态更改 组合框[emoji表情] 可见状态
+    obs.obs_property_set_visible(emoji_face_list, emoji_face_list_visible)
 
     # 添加一个[弹幕内容]的文本框
     obs.obs_properties_add_text(send_danmu_group, 'danmu_msg_text', '弹幕内容：', obs.OBS_TEXT_MULTILINE)
@@ -5864,6 +5872,8 @@ def login(props, prop):
         obs.obs_property_list_add_string(
             emoji_face_list, emoji_face_list_dict_elements[emoji_face], emoji_face
         )
+    # 根据直播状态更改 组合框[emoji表情] 可见状态
+    obs.obs_property_set_visible(emoji_face_list, emoji_face_list_visible)
 
     # 清空组合框[弹幕发送到]
     obs.obs_property_list_clear(SentRoom_list)
