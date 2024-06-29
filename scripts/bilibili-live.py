@@ -22,10 +22,16 @@ import websockets
 
 # 初始弹幕输出状态
 danmu_working_is = False
-danmu_start_is = False
 
-# def script_path():
-#     pass
+try:
+    DanMu.danmu_start_is = False
+except:
+    pass
+
+
+def script_path():
+    pass
+
 
 # 工具类函数
 class config_B:
@@ -108,7 +114,7 @@ def split_of_list(txt: str, str_list: list):
     # 定义列表和字符串
     text = txt
     text = (text.replace("\"", "”").replace("'", "’").replace(",", "，")
-            .replace("[", "【").replace("]", "】").replace("\n", ""))
+            .replace("\n", ""))
     for ostr in str_list:
         text = text.replace(ostr, f"\', \'{ostr}\', \'")
     text = f"[\'{text}\']"
@@ -582,7 +588,6 @@ def Area_getList():
     api = "https://api.live.bilibili.com/room/v1/Area/getList"
     AreaList = requests.get(api, headers=headers).json()
     return AreaList["data"]
-
 
 
 # end
@@ -4990,13 +4995,14 @@ def start_login(uid: int = 0, dirname: str = "Biliconfig"):
         #
         # return {'uid': int(cookies['DedeUserID']), 'cookies': cookies, 'cookie': dict2cookieformat(cookies)}
 
+
 class Danmu:
-    global danmu_start_is, danmu_working_is
+    global danmu_working_is
     def __init__(self, cookie: str):
         self.cookie = cookie
 
     def get_websocket_client(self, roomid: int):
-        global roomid_for_Danmu, danmu_start_is, danmu_working_is
+        global roomid_for_Danmu, danmu_working_is
         roomid_for_Danmu = roomid
         danmu_info = master(self.cookie).getDanmuInfo(roomid)
         token = danmu_info['data']['token']
@@ -5014,10 +5020,17 @@ class Danmu:
             "type": 3,
             "key": token
         }
+        return wss_url, auth_body
+
+    def connect_room(self, roomid: int):
+        obs.script_log(obs.LOG_INFO,
+                       f"尝试连接【{getRoomBaseInfo(roomid_for_Danmu)['by_room_ids'][str(roomid_for_Danmu)]['uname']}】的直播间")
+        wss_url, auth_body = self.get_websocket_client(roomid)
         return self.WebSocketClient(wss_url, auth_body)
 
     class WebSocketClient:
-        global danmu_start_is, danmu_working_is
+        global danmu_working_is
+        danmu_start_is = True
         HEARTBEAT_INTERVAL = 30
         VERSION_NORMAL = 0
         VERSION_ZIP = 2
@@ -5029,10 +5042,10 @@ class Danmu:
             self.saved_danmudata = set()
 
         async def connect(self):
-            global danmu_start_is, danmu_working_is
+            global danmu_working_is
             async with websockets.connect(self.url) as ws:
                 await self.on_open(ws)
-                while danmu_start_is:
+                while self.danmu_start_is:
                     danmu_working_is = True
                     message = await ws.recv()
                     await self.on_message(message)
@@ -5076,8 +5089,6 @@ class Danmu:
 
             content = content_bytes.decode('utf-8')
             if opt_code == 8:  # AUTH_REPLY
-                obs.script_log(obs.LOG_INFO,
-                    f"尝试连接【{getRoomBaseInfo(roomid_for_Danmu)['by_room_ids'][str(roomid_for_Danmu)]['uname']}】的直播间")
                 obs.script_log(obs.LOG_INFO, f"身份验证回复: {content}\n")
             elif opt_code == 5:  # SEND_SMS_REPLY
                 if content not in self.saved_danmudata:
@@ -5168,7 +5179,8 @@ class Danmu:
                     elif json.loads(content)['cmd'] == "WATCHED_CHANGE":
                         pass
                         contentdata = json.loads(content)['data']
-                        obs.script_log(obs.LOG_INFO, f"直播间看过人数：\t{contentdata['num']}\t{contentdata['text_large']}")
+                        obs.script_log(obs.LOG_INFO,
+                                       f"直播间看过人数：\t{contentdata['num']}\t{contentdata['text_large']}")
                     elif json.loads(content)['cmd'] == "ONLINE_RANK_V2":
                         pass
                     elif json.loads(content)['cmd'] == "STOP_LIVE_ROOM_LIST":
@@ -5493,6 +5505,7 @@ def script_load(settings):
     # 获得 组合框【弹幕发送到】 的内容
     SentRoom_list_value = obs.obs_data_get_string(current_settings, "SentRoom_list")
 
+
 # 控件状态更新时调用
 def script_update(settings):
     """
@@ -5515,6 +5528,7 @@ def script_update(settings):
             danmu_start_is = False
             while danmu_working_is:
                 pass
+
             def danmu_s():
                 global danmu_start_is
                 if danmu_start_is:
@@ -5522,6 +5536,7 @@ def script_update(settings):
                 else:
                     danmu_start_is = True
                     asyncio.run(Danmu(dict2cookieformat(cookies)).get_websocket_client(int(SentRoom)).main())
+
             if not danmu_working_is:
                 t1 = threading.Thread(target=danmu_s)
                 t1.start()
@@ -6062,7 +6077,8 @@ def send(props, prop):
                                 # 重置 这次从 表情切分弹幕内容 获取的 弹幕内容
                                 send_danmu_msg_split_t = ''
                             elif danmu_msg_split_word_num > danmu_msg_word_num_max:
-                                send_danmu_msg_split_t_split = split_by_n(send_danmu_msg_split_t, danmu_msg_word_num_max)
+                                send_danmu_msg_split_t_split = split_by_n(send_danmu_msg_split_t,
+                                                                          danmu_msg_word_num_max)
                                 # print(101, send_danmu_msg_split_t_split)
                                 for send_danmu_msg_split_t in send_danmu_msg_split_t_split[:-1]:
                                     send_danmu_msg_split_list.append(send_danmu_msg_split_t)
@@ -6074,6 +6090,7 @@ def send(props, prop):
                                     send_danmu_msg_split_list.append(send_danmu_msg_split_t)
                 send_danmu_msg_split_list.append(send_danmu_msg_split_t)
                 send_danmu_msg_split_list_dict.update({danmu_msg_word_num_max: send_danmu_msg_split_list})
+
         def send_danmu_msg_list():
             """
             发送弹幕
@@ -6136,21 +6153,28 @@ def correct_mask_word():
     cb.copy(correct_word.replace("[", "").replace("]", "").replace(", ", "_").replace("'", ""))
     pass
 
+
 def show_danmu(props, prop):
-    global danmu_start_is, danmu_working_is
+    global danmu_start_is, danmu_working_is, DanMu
     # 获得组合框[发出弹幕的用户]的内容
     SentUid = obs.obs_data_get_string(current_settings, 'SentUid_list')
     # 获取[发出弹幕的用户]账户cookies
     cookies = config_B(uid=int(SentUid), dirname=f"{script_path()}bilibili-live").check()
     # 获得组合框【弹幕发送到】 的内容
     SentRoom = obs.obs_data_get_string(current_settings, 'SentRoom_list')
+
     def danmu_s():
-            asyncio.run(Danmu(dict2cookieformat(cookies)).get_websocket_client(int(SentRoom)).main())
+        global DanMu
+        DanMu = Danmu(dict2cookieformat(cookies)).connect_room(int(SentRoom))
+        print(DanMu.danmu_start_is)
+        asyncio.run(DanMu.main())
+
+
     if danmu_working_is:
-        danmu_start_is = False
+        DanMu.danmu_start_is = False
         obs.obs_property_set_enabled(SentRoom_list, True)
     else:
-        danmu_start_is = True
+        DanMu.danmu_start_is = True
         obs.obs_property_set_enabled(SentRoom_list, False)
         t1 = threading.Thread(target=danmu_s)
         t1.start()
@@ -6163,4 +6187,3 @@ def script_unload():
     在脚本被卸载时调用。
     """
     obs.script_log(obs.LOG_INFO, "已卸载：bilibili-live")
-
