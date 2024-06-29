@@ -38,7 +38,7 @@ class config_B:
         # 字符串化UID
         self.uid = str(uid)
         # 配置文件 config.json 路径
-        self.configpath = f'{dirname}\\config.json'
+        self.configpath = os.path.join(f'{dirname}', "config.json")
         if not os.path.exists(dirname):
             os.makedirs(dirname, exist_ok=True)
 
@@ -5274,8 +5274,8 @@ def script_defaults(settings):
 
     # 设置"全部账户"给组合框[用户]
     uid_list_dict_elements = {}
-    if os.path.exists(f"{script_path()}bilibili-live/config.json"):
-        with open(f"{script_path()}bilibili-live/config.json", "r", encoding="utf-8") as j:
+    if os.path.exists(os.path.join(f"{script_path()}bilibili-live", "config.json")):
+        with open(os.path.join(f"{script_path()}bilibili-live", "config.json"), "r", encoding="utf-8") as j:
             config = json.load(j)
             # 从 "所有账户"配置 中 删除 '默认用户'配置，获得"全部账户"
             if "0" in config:
@@ -5406,8 +5406,8 @@ def script_defaults(settings):
 
     # 为组合框[弹幕发送到]添加选项
     SentRoom_list_set_elements = set()
-    if os.path.exists(f"{script_path()}bilibili-live/roomid_set_data.json"):
-        with open(f"{script_path()}bilibili-live/roomid_set_data.json", "r", encoding="utf-8") as j:
+    if os.path.exists(os.path.join(f"{script_path()}bilibili-live", "roomid_set_data.json")):
+        with open(os.path.join(f"{script_path()}bilibili-live", "roomid_set_data.json"), "r", encoding="utf-8") as j:
             SentRoom_list_set_elements = eval(j.read())
     SentRoom_list_set_elements = SentRoom_list_set_elements
 
@@ -6007,10 +6007,10 @@ def send(props, prop):
         if danmu_room_add_or_delet in ["-", "－"]:
             # 获得组合框【弹幕发送到】的内容
             danmu_room_delet = SentRoom
-            if os.path.exists(f"{script_path()}bilibili-live/roomid_set_data.json"):
-                with open(f"{script_path()}bilibili-live/roomid_set_data.json", "r", encoding="utf-8") as j:
+            if os.path.exists(os.path.join(f"{script_path()}bilibili-live", "roomid_set_data.json")):
+                with open(os.path.join(f"{script_path()}bilibili-live", "roomid_set_data.json"), "r", encoding="utf-8") as j:
                     roomid_set_data = eval(j.read())
-                with open(f"{script_path()}bilibili-live/roomid_set_data.json", "w", encoding="utf-8") as j:
+                with open(os.path.join(f"{script_path()}bilibili-live", "roomid_set_data.json"), "w", encoding="utf-8") as j:
                     roomid_set_data.discard(danmu_room_delet)
                     j.write(str(roomid_set_data))
                 obs.script_log(obs.LOG_INFO, "删除直播间")
@@ -6020,10 +6020,10 @@ def send(props, prop):
             try:
                 RoomBaseInfo = getRoomBaseInfo(int(danmu_room_add))
                 for long_roomid in RoomBaseInfo["by_room_ids"]:
-                    if os.path.exists(f"{script_path()}bilibili-live/roomid_set_data.json"):
-                        with open(f"{script_path()}bilibili-live/roomid_set_data.json", "r", encoding="utf-8") as j:
+                    if os.path.exists(os.path.join(f"{script_path()}bilibili-live", "roomid_set_data.json")):
+                        with open(os.path.join(f"{script_path()}bilibili-live", "roomid_set_data.json"), "r", encoding="utf-8") as j:
                             roomid_set_data = eval(j.read())
-                    with open(f"{script_path()}bilibili-live/roomid_set_data.json", "w", encoding="utf-8") as j:
+                    with open(os.path.join(f"{script_path()}bilibili-live", "roomid_set_data.json"), "w", encoding="utf-8") as j:
                         roomid_set_data.add(long_roomid)
                         j.write(str(roomid_set_data))
                 obs.script_log(obs.LOG_INFO, "添加直播间")
@@ -6032,8 +6032,8 @@ def send(props, prop):
                 obs.obs_data_set_string(current_settings, 'danmu_msg_text', "请输入正常直播间号")
         # 刷新[弹幕发送到]列表
         obs.obs_property_list_clear(SentRoom_list)
-        if os.path.exists(f"{script_path()}bilibili-live/roomid_set_data.json"):
-            with open(f"{script_path()}bilibili-live/roomid_set_data.json", "r", encoding="utf-8") as j:
+        if os.path.exists(os.path.join(f"{script_path()}bilibili-live", "roomid_set_data.json")):
+            with open(os.path.join(f"{script_path()}bilibili-live", "roomid_set_data.json"), "r", encoding="utf-8") as j:
                 roomid_set_data = eval(j.read())
             for roomid in roomid_set_data:
                 RoomBaseInfo = getRoomBaseInfo(int(roomid))
