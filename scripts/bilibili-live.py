@@ -713,13 +713,13 @@ def poll(qrcode_key: str) -> dict[str, dict[str, str] | int]:
 
 # 登陆后才能用的函数
 class master:
-    def __init__(self, cookie: str, UA: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, "
-                                              "like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0"):
+    def __init__(self, cookie: str):
         """
         完善 浏览器headers
         @param cookie: B站cookie
-        @param UA: 浏览器User-Agent
         """
+        UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+              "Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0")
         self.headers = {
             "User-Agent": UA,
             "cookie": cookie,
@@ -4834,18 +4834,28 @@ class master:
         response = requests.get(url, headers=headers).json()
         return response
 
+    def getRoomNews(self):
+        # 获取直播公告
+        headers = self.headers
+        api = "https://api.live.bilibili.com/xlive/app-blink/v1/index/getRoomNews"
+        params = {
+            'room_id': self.getRoomHighlightState(),
+            'uid': cookie2dict(self.headers["cookie"])["DedeUserID"]
+        }
+        getRoomNews_ReturnValue = requests.get(api, headers=headers, params=params).json()
+        return getRoomNews_ReturnValue["data"]["content"]
+
 
 class CsrfAuthenticationL:
-    def __init__(self, cookie: str, UA=None):
+    def __init__(self, cookie: str):
         """
         需要Csrf
         :param cookie:
         :param UA:
         :type UA: str
         """
-        if not UA:
-            UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
-                  "Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0")
+        UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+              "Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0")
         self.headers = {
             "User-Agent": UA,
             "cookie": cookie,
@@ -4944,6 +4954,41 @@ class CsrfAuthenticationL:
         }
         send_ReturnValue = requests.post(api, headers=headers, params=data).json()
         return send_ReturnValue
+
+    def room_v1_Room_update(self, title:str):
+        """
+        更新直播标题
+        @return:
+        """
+        headers = self.headers
+        csrf = self.csrf
+        api = "https://api.live.bilibili.com/room/v1/Room/update"
+        data = {
+            'room_id': master(self.cookie).getRoomHighlightState(),
+            'title': title,
+            'csrf_token': csrf,
+            'csrf': csrf
+        }
+        room_v1_Room_update_ReturnValue = requests.post(api, headers=headers, data=data).json()
+        return room_v1_Room_update_ReturnValue
+
+    def updateRoomNews(self, content: str):
+        """
+        更新直播公告
+        @return:
+        """
+        headers = self.headers
+        csrf = self.csrf
+        api = "https://api.live.bilibili.com/xlive/app-blink/v1/index/updateRoomNews"
+        data = {
+            'room_id': master(self.cookie).getRoomHighlightState(),
+            'uid': self.cookies["DedeUserID"],
+            'content': content,
+            'csrf_token': csrf,
+            'csrf': csrf
+        }
+        updateRoomNews_ReturnValue = requests.post(api, headers=headers, data=data).json()
+        return updateRoomNews_ReturnValue
 
 
 # end
@@ -5277,12 +5322,14 @@ def script_defaults(settings):
     global scripts_data_dirpath, scripts_config_filepath, scripts_roomid_filepath
     global Default_roomStatus, DefaultArea, DefaultliveStatus, \
         allAreaList, \
-        uid_list_dict_elements, uid_list_enabled, \
+        uid_list_dict_elements, login_button_enabled, \
         login_status_text_value, login_status_text_type, \
         Default_uname, \
         room_status_text_type, \
         live_group_enabled, \
         start_live_button_visible, stop_live_button_visible, \
+        live_title_text_visible, change_live_title_button_visible, \
+        live_news_text_visible, change_live_news_button_visible, \
         rtmp_copy_button_visible, stream_copy_button_visible, stream_updata_button_visible, \
         area1_true_button_visible, area2_true_button_visible, \
         area1_list_visible, area2_list_visible, \
@@ -5290,35 +5337,36 @@ def script_defaults(settings):
         SentRoom_list_enabled, emoji_face_list_visible, \
         emoji_face_list_dict_elements, \
         send_button_enabled, show_danmu_button_enabled
-
+    # 路径变量
     scripts_data_dirpath = f"{script_path()}bilibili-live"
     scripts_config_filepath = Path(scripts_data_dirpath) / "config.json"
     scripts_roomid_filepath = Path(scripts_data_dirpath) / "roomid_set_data.json"
-    # 创建插件日志文件夹
+    # 创建 插件数据 文件夹
     try:
         os.makedirs(scripts_data_dirpath, exist_ok=True)
     except:
         obs.script_log(obs.LOG_WARNING, "权限不足！")
-    # 获取'默认账户'cookie
+    # 获取 '默认账户' cookie
     Default_cookies = config_B(uid=0, dirname=scripts_data_dirpath).check()
-    # 获取'默认账户'登录信息
+    # 获取 '默认账户' 登录信息
     interface_nav_Default = master(dict2cookieformat(Default_cookies)).interface_nav()
-    # 检测'默认账户'可用性
+    # 检测 '默认账户' 可用性
     Default_islogin = interface_nav_Default["isLogin"]
+
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    # 设置只读文本框[登录状态]的内容
+    # 设置 只读文本框[登录状态] 内容
     if Default_islogin:
         login_status_text_value = f'{interface_nav_Default["uname"]} 已登录'
     else:
         login_status_text_value = "未登录，\n请登录后点击⟳重新载入插件\n重新选择登录用户"
     obs.obs_data_set_string(settings, 'login_status_text', login_status_text_value)
-    # 设置只读文本框[登录状态]的类型
+    # 设置 只读文本框[登录状态] 类型
     if Default_islogin:
         login_status_text_type = obs.OBS_TEXT_INFO_NORMAL
     else:
         login_status_text_type = obs.OBS_TEXT_INFO_WARNING
 
-    # 设置"全部账户"给组合框[用户]
+    # 为 组合框[用户] 添加选项
     uid_list_dict_elements = {}
     if os.path.exists(scripts_config_filepath):
         with open(scripts_config_filepath, "r", encoding="utf-8") as j:
@@ -5333,17 +5381,16 @@ def script_defaults(settings):
                     if islogin:
                         uid_list_dict_elements[uid] = interface_nav["uname"]
     uid_list_dict_elements = uid_list_dict_elements
-    # 设置'默认账户'昵称为 组合框[用户] 的内容
+    # 设置 组合框[用户] 内容
     if Default_islogin:
         Default_uname = interface_nav_Default["uname"]
-    # 根据弹幕输出状态更改 组合框【用户】的可用性
+
+    # 根据{弹幕输出状态}更改 按钮[登录] 可用状态
     try:
-        if DanMu.danmu_working_is:
-            uid_list_enabled = False
-        else:
-            uid_list_enabled = True
+        DanMu_danmu_working_is = DanMu.danmu_working_is
     except:
-        uid_list_enabled = True
+        DanMu_danmu_working_is = False
+    login_button_enabled = not DanMu_danmu_working_is
 
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # 获取'默认账户'直播间基础信息
@@ -5380,18 +5427,19 @@ def script_defaults(settings):
 
     # 获取'默认账号'直播间分区
     DefaultArea = {}
+    RoomBaseInfo = {}
     if Default_roomStatus == 1:
-        RoomBaseInfo = getRoomBaseInfo(Defaultroomid)["by_room_ids"][str(Defaultroomid)]
+        RoomBaseInfo = getRoomBaseInfo(Defaultroomid)
         DefaultArea = {
-            "id": RoomBaseInfo["parent_area_id"],
-            "name": RoomBaseInfo["parent_area_name"],
+            "id": RoomBaseInfo["by_room_ids"][str(Defaultroomid)]["parent_area_id"],
+            "name": RoomBaseInfo["by_room_ids"][str(Defaultroomid)]["parent_area_name"],
             "data": {
-                "id": RoomBaseInfo["area_id"],
-                "name": RoomBaseInfo["area_name"],
+                "id": RoomBaseInfo["by_room_ids"][str(Defaultroomid)]["area_id"],
+                "name": RoomBaseInfo["by_room_ids"][str(Defaultroomid)]["area_name"],
             }
         }
     DefaultArea = DefaultArea
-    # 设置 组合框[一级分区] 的内容
+    # 设置 组合框[一级分区] 内容
     if DefaultArea:
         obs.obs_data_set_string(settings, 'area1_list', str(DefaultArea["id"]))
     # 根据直播间存在更改 组合框[一级分区] 可见状态
@@ -5441,11 +5489,32 @@ def script_defaults(settings):
     else:
         stream_updata_button_visible = False
 
-    # 根据直播状态更改 按钮[停播] 可见状态
+    # 根据直播状态更改 按钮[结束直播] 可见状态
     if Default_roomStatus == 1:
         stop_live_button_visible = not start_live_button_visible
     else:
         stop_live_button_visible = False
+
+    # 设置 普通文本框[直播标题] 的内容
+    if Default_roomStatus == 1:
+        obs.obs_data_set_string(settings, 'live_title_text',
+                                RoomBaseInfo["by_room_ids"][str(Defaultroomid)]["title"]
+                                )
+    # 根据直播间存在更改 普通文本框[直播标题] 可见状态
+    live_title_text_visible = area1_list_visible
+
+    # 根据直播间存在更改 按钮[更改直播标题] 可见状态
+    change_live_title_button_visible = area1_list_visible
+
+    # 设置 普通文本框[直播公告] 的内容
+    if Default_roomStatus == 1:
+        obs.obs_data_set_string(settings, 'live_news_text', master(dict2cookieformat(Default_cookies)).getRoomNews())
+    # 根据直播间存在更改 普通文本框[直播公告] 可见状态
+    live_news_text_visible = area1_list_visible
+
+    # 根据直播间存在更改 按钮[更改直播公告] 可见状态
+    change_live_news_button_visible = area1_list_visible
+
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # 为组合框[发出弹幕的用户]添加选项
     SentUid_list_dict_elements = uid_list_dict_elements
@@ -5461,7 +5530,7 @@ def script_defaults(settings):
         obs.obs_data_set_string(settings, 'SentRoom_list', list(SentRoom_list_set_elements)[0])
 
     # 根据弹幕输出状态更改 组合框【弹幕发送到】的可用性
-    SentRoom_list_enabled = uid_list_enabled
+    SentRoom_list_enabled = login_button_enabled
 
     # 为组合框[emoji表情]添加选项
     emoji_face_list_dict_elements = {}
@@ -5486,7 +5555,8 @@ def script_defaults(settings):
     else:
         send_button_enabled = False
 
-    # 设置[显示弹幕]按钮可用状态
+    # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # 设置 [显示弹幕]按钮 可用状态
     if Default_islogin and len(SentRoom_list_set_elements):
         show_danmu_button_enabled = True
     else:
@@ -5614,14 +5684,15 @@ def script_properties():
         send_danmu_group, \
         show_danmu_group
     global login_status_text, \
-        uid_list
+        uid_list, login_button
     global room_status_text, \
         area1_list, \
         area1_true_button, \
         area2_list, \
         area2_true_button, \
         start_live_button, rtmp_address_copy_button, rtmp_stream_code_copy_button, rtmp_stream_code_updata_button, \
-        stop_live_button
+        stop_live_button, \
+        live_title_text, change_live_title_button, live_news_text, change_live_news_button
     global SentUid_list, \
         SentRoom_list, \
         emoji_face_list, \
@@ -5647,11 +5718,11 @@ def script_properties():
     # 设置 只读文本框[登录状态] 类型
     obs.obs_property_text_set_info_type(login_status_text, login_status_text_type)
 
-    # 添加 组合框[选择账号]
+    # 添加 组合框[用户]
     uid_list = obs.obs_properties_add_list(
         setting_props, 'uid_list', '用户：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING
     )
-    # 为 组合框[选择账号] 添加选项
+    # 为 组合框[用户] 添加选项
     for i in uid_list_dict_elements:
         try:
             if uid_list_dict_elements[i] == Default_uname:
@@ -5660,11 +5731,14 @@ def script_properties():
                 obs.obs_property_list_add_string(uid_list, uid_list_dict_elements[i], i)
         except:
             obs.obs_property_list_add_string(uid_list, uid_list_dict_elements[i], i)
-    # 为 组合框[选择账号] 添加 登录新账号 选项
+    # 为 组合框[用户] 添加 添加新的账号 选项
     obs.obs_property_list_add_string(uid_list, '添加新的账号', "-1")
 
     # 添加 按钮[登录]
-    obs.obs_properties_add_button(setting_props, "login", "登录", login)
+    login_button = obs.obs_properties_add_button(setting_props, "login_button", "登录", login)
+    # 设置 按钮[登录] 可用状态
+    obs.obs_property_set_enabled(login_button, login_button_enabled)
+
     # ————————————————————————————————————————————————————————————————
     # 添加 分组框【直播】
     obs.obs_properties_add_group(props, 'live_group', '直播', obs.OBS_GROUP_NORMAL, live_props)
@@ -5747,22 +5821,30 @@ def script_properties():
     # 设置 按钮[更新推流码] 可见状态
     obs.obs_property_set_visible(rtmp_stream_code_updata_button, stream_updata_button_visible)
 
-    # 添加 按钮[停播]
+    # 添加 按钮[结束直播]
     stop_live_button = obs.obs_properties_add_button(live_props, "stop_live_button", "结束直播", stop_live)
-    # 设置 按钮[停播] 可见状态
+    # 设置 按钮[结束直播] 可见状态
     obs.obs_property_set_visible(stop_live_button, stop_live_button_visible)
 
     # 添加 普通文本框[直播标题]
     live_title_text = obs.obs_properties_add_text(live_props, "live_title_text", "直播标题", obs.OBS_TEXT_DEFAULT)
+    # 设置 普通文本框[直播标题] 可见状态
+    obs.obs_property_set_visible(live_title_text, live_title_text_visible)
 
     # 添加 按钮[更改直播标题]
     change_live_title_button = obs.obs_properties_add_button(live_props, "change_live_title_button", "更改直播标题", change_live_title)
+    # 设置 按钮[更改直播标题] 可见状态
+    obs.obs_property_set_visible(change_live_title_button, change_live_title_button_visible)
 
     # 添加 普通文本框[直播公告]
     live_news_text = obs.obs_properties_add_text(live_props, "live_news_text", "直播公告", obs.OBS_TEXT_DEFAULT)
+    # 设置 普通文本框[直播公告] 可见状态
+    obs.obs_property_set_visible(live_news_text, live_news_text_visible)
 
     # 添加 按钮[更改直播公告]
     change_live_news_button = obs.obs_properties_add_button(live_props, "change_live_news_button", "更改直播公告", change_live_news)
+    # 设置 按钮[更改直播公告] 可见状态
+    obs.obs_property_set_visible(change_live_news_button, change_live_news_button_visible)
 
     # ————————————————————————————————————————————————————————————————————————————————
     # 添加 分组框【发送弹幕】
@@ -5816,12 +5898,12 @@ def script_properties():
                                                              lambda ps, p: correct_mask_word())
 
     # ————————————————————————————————————————————————————————————————————————————————
-    # 添加 分组框【输出弹幕】，包含用于弹幕的子控件
+    # 添加 分组框【输出弹幕】
     obs.obs_properties_add_group(props, 'show_danmu_group', '输出弹幕', obs.OBS_GROUP_NORMAL, show_danmu_group)
 
-    # 添加按钮[显示弹幕]
+    # 添加 按钮[显示弹幕]
     show_danmu_button = obs.obs_properties_add_button(show_danmu_group, 'show_danmu_button', '显示弹幕', show_danmu)
-    # 设置按钮[显示弹幕]的可用状态
+    # 设置 按钮[显示弹幕] 可用状态
     obs.obs_property_set_enabled(show_danmu_button, show_danmu_button_enabled)
 
     return props
@@ -5856,8 +5938,11 @@ def login(props, prop):
                 obs.obs_property_list_add_string(uid_list, uid_list_dict_elements[i], i)
         except:
             obs.obs_property_list_add_string(uid_list, uid_list_dict_elements[i], i)
-    # 为组合框[选择账号]添加一个登录新账号的选项
+    # 为 组合框[用户] 添加 添加新的账号 选项
     obs.obs_property_list_add_string(uid_list, '添加新的账号', "-1")
+
+    # 设置 按钮[登录] 可用状态
+    obs.obs_property_set_enabled(login_button, login_button_enabled)
 
     ######################################################################
     # 设置只读文本框[直播间状态]的类型
@@ -5916,6 +6001,18 @@ def login(props, prop):
 
     # 根据直播状态更改 按钮[停播] 可见状态
     obs.obs_property_set_visible(stop_live_button, stop_live_button_visible)
+
+    # 设置 普通文本框[直播标题] 可见状态
+    obs.obs_property_set_visible(live_title_text, live_title_text_visible)
+
+    # 设置 按钮[更改直播标题] 可见状态
+    obs.obs_property_set_visible(change_live_title_button, change_live_title_button_visible)
+
+    # 设置 普通文本框[直播公告] 可见状态
+    obs.obs_property_set_visible(live_news_text, live_news_text_visible)
+
+    # 设置 按钮[更改直播公告] 可见状态
+    obs.obs_property_set_visible(change_live_news_button, change_live_news_button_visible)
 
     ###########################################################################
     # 清空组合框[发出弹幕的用户]
@@ -6093,7 +6190,7 @@ def send(props, prop):
                         j.write(str(roomid_set_data))
                 obs.script_log(obs.LOG_INFO, "添加直播间")
                 obs.obs_data_set_string(current_settings, 'danmu_msg_text', "")
-                # 设置组合框[用户]为'默认用户'
+                # 设置 组合框[用户] 内容为'默认用户'
                 obs.obs_data_set_string(current_settings, 'uid_list', cookies["DedeUserID"])
                 login(props, prop)
 
@@ -6247,22 +6344,32 @@ def correct_mask_word():
 
 
 def change_live_title(props, prop):
+    live_title_text_value = obs.obs_data_get_string(current_settings, 'live_title_text')
+    # 获取 '默认账户'cookie
+    cookies = config_B(uid=0, dirname=scripts_data_dirpath).check()
+    turn_title_return = CsrfAuthenticationL(dict2cookieformat(cookies)).room_v1_Room_update(live_title_text_value)
+    print(turn_title_return)
     pass
 
 
 def change_live_news(props, prop):
+    live_news_text_value = obs.obs_data_get_string(current_settings, 'live_news_text')
+    # 获取 '默认账户'cookie
+    cookies = config_B(uid=0, dirname=scripts_data_dirpath).check()
+    turn_news_return = CsrfAuthenticationL(dict2cookieformat(cookies)).updateRoomNews(live_news_text_value)
+    print(turn_news_return)
     pass
 
 
 def show_danmu(props, prop):
     global DanMu
-    # 获取'默认账户'cookie
+    # 获取 '默认账户'cookie
     cookies = config_B(uid=0, dirname=scripts_data_dirpath).check()
-    # # 获得组合框[发出弹幕的用户]的内容
+    # # 获得 组合框[发出弹幕的用户]的内容
     # SentUid_list_value = obs.obs_data_get_string(current_settings, 'SentUid_list')
-    # # 获取[发出弹幕的用户]账户cookies
+    # # 获取 [发出弹幕的用户]账户cookies
     # cookies = config_B(uid=int(SentUid_list_value), dirname=scripts_data_dirpath).check()
-    # 获得组合框【弹幕发送到】 的内容
+    # 获得 组合框【弹幕发送到】 的内容
     SentRoom = obs.obs_data_get_string(current_settings, 'SentRoom_list')
 
     def danmu_s():
