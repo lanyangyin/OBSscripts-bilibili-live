@@ -315,35 +315,35 @@ def getRoomBaseInfo(room_id: int):
     @param room_id:
     @return:
     "data": {
-    "by_uids": {
+        "by_uids": {
 
-    },
-    "by_room_ids": {
-        "25322725": {
-            "room_id": 25322725,
-            "uid": 143474500,
-            "area_id": 192,
-            "live_status": 0,
-            "live_url": "https://live.bilibili.com/25322725",
-            "parent_area_id": 5,
-            "title": "obsのlua插件2测试",
-            "parent_area_name": "电台",
-            "area_name": "聊天电台",
-            "live_time": "0000-00-00 00:00:00",
-            "description": "个人简介测试",
-            "tags": "我的个人标签测试",
-            "attention": 35,
-            "online": 0,
-            "short_id": 0,
-            "uname": "兰阳音",
-            "cover": "http://i0.hdslb.com/bfs/live/new_room_cover/c17af2dbbbdfce33888e834bdb720edbf9515f95.jpg",
-            "background": "",
-            "join_slide": 1,
-            "live_id": 0,
-            "live_id_str": "0"
+        },
+        "by_room_ids": {
+            "25322725": {
+                "room_id": 25322725,
+                "uid": 143474500,
+                "area_id": 192,
+                "live_status": 0,
+                "live_url": "https://live.bilibili.com/25322725",
+                "parent_area_id": 5,
+                "title": "obsのlua插件2测试",
+                "parent_area_name": "电台",
+                "area_name": "聊天电台",
+                "live_time": "0000-00-00 00:00:00",
+                "description": "个人简介测试",
+                "tags": "我的个人标签测试",
+                "attention": 35,
+                "online": 0,
+                "short_id": 0,
+                "uname": "兰阳音",
+                "cover": "http://i0.hdslb.com/bfs/live/new_room_cover/c17af2dbbbdfce33888e834bdb720edbf9515f95.jpg",
+                "background": "",
+                "join_slide": 1,
+                "live_id": 0,
+                "live_id_str": "0"
+            }
         }
     }
-  }
     """
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\
@@ -356,6 +356,48 @@ def getRoomBaseInfo(room_id: int):
     }
     RoomBaseInfo = requests.get(api, headers=headers, params=data).json()
     return RoomBaseInfo["data"]
+
+
+def live_user_v1_Master_info(uid:int):
+    """
+    <h2 id="获取主播信息" tabindex="-1"><a class="header-anchor" href="#获取主播信息" aria-hidden="true">#</a> 获取主播信息</h2>
+    <blockquote><p>https://api.live.bilibili.com/live_user/v1/Master/info</p></blockquote>
+    <p><em>请求方式：GET</em></p>
+    <p><strong>url参数：</strong></p>
+    <table><thead><tr><th>参数名</th><th>类型</th><th>内容</th><th>必要性</th><th>备注</th></tr></thead><tbody><tr><td>uid</td><td>num</td><td>目标用户mid</td><td>必要</td><td></td></tr></tbody></table>
+    <p><strong>json回复：</strong></p>
+    <p>根对象：</p>
+    <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>code</td><td>num</td><td>返回值</td><td>0：成功<br>1：参数错误</td></tr><tr><td>msg</td><td>str</td><td>错误信息</td><td>默认为空</td></tr><tr><td>message</td><td>str</td><td>错误信息</td><td>默认为空</td></tr><tr><td>data</td><td>obj</td><td>信息本体</td><td></td></tr></tbody></table>
+    <p><code>data</code>对象：</p>
+    <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>info</td><td>obj</td><td>主播信息</td><td></td></tr><tr><td>exp</td><td>obj</td><td>经验等级</td><td></td></tr><tr><td>follower_num</td><td>num</td><td>主播粉丝数</td><td></td></tr><tr><td>room_id</td><td>num</td><td>直播间id（短号）</td><td></td></tr><tr><td>medal_name</td><td>str</td><td>粉丝勋章名</td><td></td></tr><tr><td>glory_count</td><td>num</td><td>主播荣誉数</td><td></td></tr><tr><td>pendant</td><td>str</td><td>直播间头像框url</td><td></td></tr><tr><td>link_group_num</td><td>num</td><td>0</td><td><strong>作用尚不明确</strong></td></tr><tr><td>room_news</td><td>obj</td><td>主播公告</td><td></td></tr></tbody></table>
+    <p><code>info</code>对象：</p>
+    <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>uid</td><td>num</td><td>主播mid</td><td></td></tr><tr><td>uname</td><td>str</td><td>主播用户名</td><td></td></tr><tr><td>face</td><td>str</td><td>主播头像url</td><td></td></tr><tr><td>official_verify</td><td>obj</td><td>认证信息</td><td></td></tr><tr><td>gender</td><td>num</td><td>主播性别</td><td>-1：保密<br>0：女<br>1：男</td></tr></tbody></table>
+    <p><code>info</code>中的<code>official_verify</code>对象：</p>
+    <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>type</td><td>num</td><td>主播认证类型</td><td>-1：无<br>0：个人认证<br>1：机构认证</td></tr><tr><td>desc</td><td>str</td><td>主播认证信息</td><td></td></tr></tbody></table>
+    <p><code>exp</code>对象：</p>
+    <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>master_level</td><td>obj</td><td>主播等级</td><td></td></tr></tbody></table>
+    <p><code>exp</code>中的<code>master_level</code>对象：</p>
+    <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>level</td><td>num</td><td>当前等级</td><td></td></tr><tr><td>color</td><td>num</td><td>等级框颜色</td><td></td></tr><tr><td>current</td><td>array</td><td>当前等级信息</td><td></td></tr><tr><td>next</td><td>array</td><td>下一等级信息</td><td></td></tr></tbody></table>
+    <p><code>master_level</code>中的<code>current</code>数组：</p>
+    <table><thead><tr><th>项</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>0</td><td>num</td><td>升级积分</td><td></td></tr><tr><td>1</td><td>num</td><td>总积分</td><td></td></tr></tbody></table>
+    <p><code>master_level</code>中的<code>next</code>数组：</p>
+    <table><thead><tr><th>项</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>0</td><td>num</td><td>升级积分</td><td></td></tr><tr><td>1</td><td>num</td><td>总积分</td><td></td></tr></tbody></table>
+    <p><code>room_news</code>对象：</p>
+    <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>content</td><td>str</td><td>公告内容</td><td></td></tr><tr><td>ctime</td><td>str</td><td>公告时间</td><td></td></tr><tr><td>ctime_text</td><td>str</td><td>公告日期</td><td></td></tr></tbody></table>
+    @param uid:目标用户mid
+    @return:
+    """
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\
+        (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0",
+    }
+    api = "https://api.live.bilibili.com/live_user/v1/Master/info"
+    data = {
+        "uid": uid
+    }
+    live_user_v1_Master_info = requests.get(api, headers=headers, params=data).json()
+    return live_user_v1_Master_info
+
 
 
 def Area_getList():
@@ -5586,30 +5628,30 @@ def script_properties():
         send_button, \
         show_danmu_button
 
-    # 为【配置】分组框建立属性集
+    # 为 分组框【配置】 建立属性集
     setting_props = obs.obs_properties_create()
-    # 为【直播】分组框建立属性集
+    # 为 分组框【直播】 建立属性集
     live_props = obs.obs_properties_create()
-    # 为【发送弹幕】分组框建立属性集
+    # 为 分组框【发送弹幕】 建立属性集
     send_danmu_group = obs.obs_properties_create()
-    # 为【输出弹幕】分组框建立属性集
+    # 为 分组框【输出弹幕】 建立属性集
     show_danmu_group = obs.obs_properties_create()
     # —————————————————————————————————————————————————————————————————————————————————————————————————————
-    # 添加分组框【配置】，包含用于登录的子控件
+    # 添加 分组框【配置】
     obs.obs_properties_add_group(props, 'setting_group', '配置', obs.OBS_GROUP_NORMAL, setting_props)
 
-    # 添加只读文本框[登录状态]
+    # 添加 只读文本框[登录状态]
     login_status_text = obs.obs_properties_add_text(
         setting_props, 'login_status_text', "登录状态：", obs.OBS_TEXT_INFO
     )
-    # 设置只读文本框[登录状态]的类型
+    # 设置 只读文本框[登录状态] 类型
     obs.obs_property_text_set_info_type(login_status_text, login_status_text_type)
 
-    # 添加组合框[选择账号]
+    # 添加 组合框[选择账号]
     uid_list = obs.obs_properties_add_list(
         setting_props, 'uid_list', '用户：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING
     )
-    # 为组合框[选择账号]添加选项
+    # 为 组合框[选择账号] 添加选项
     for i in uid_list_dict_elements:
         try:
             if uid_list_dict_elements[i] == Default_uname:
@@ -5618,27 +5660,27 @@ def script_properties():
                 obs.obs_property_list_add_string(uid_list, uid_list_dict_elements[i], i)
         except:
             obs.obs_property_list_add_string(uid_list, uid_list_dict_elements[i], i)
-    # 为组合框[选择账号]添加一个登录新账号的选项
+    # 为 组合框[选择账号] 添加 登录新账号 选项
     obs.obs_property_list_add_string(uid_list, '添加新的账号', "-1")
 
-    # 添加一个[登录]的按钮用于确认
+    # 添加 按钮[登录]
     obs.obs_properties_add_button(setting_props, "login", "登录", login)
     # ————————————————————————————————————————————————————————————————
-    # 添加分组框【直播】，包含用于直播的子控件
+    # 添加 分组框【直播】
     obs.obs_properties_add_group(props, 'live_group', '直播', obs.OBS_GROUP_NORMAL, live_props)
 
-    # 添加只读文本框[直播间状态]
+    # 添加 只读文本框[直播间状态]
     room_status_text = obs.obs_properties_add_text(
         live_props, 'room_status_text', f'直播间：', obs.OBS_TEXT_INFO
     )
-    # 设置只读文本框[直播间状态]的类型
+    # 设置 只读文本框[直播间状态] 类型
     obs.obs_property_text_set_info_type(room_status_text, room_status_text_type)
 
-    # 添加组合框[一级分区]
+    # 添加 组合框[一级分区]
     area1_list = obs.obs_properties_add_list(
         live_props, 'area1_list', '一级分区：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING
     )
-    # 为组合框[一级分区]添加选项
+    # 为 组合框[一级分区] 添加选项
     for area in allAreaList:
         try:
             if area["name"] == DefaultArea["name"]:
@@ -5647,21 +5689,21 @@ def script_properties():
                 obs.obs_property_list_add_string(area1_list, area["name"], str(area["id"]))
         except:
             obs.obs_property_list_add_string(area1_list, area["name"], str(area["id"]))
-    # 根据直播状态更改 组合框[一级分区] 可见状态
+    # 设置 组合框[一级分区] 可见状态
     obs.obs_property_set_visible(area1_list, area1_list_visible)
 
-    # 添加按钮[确认一级分区]
+    # 添加 按钮[确认一级分区]
     area1_true_button = obs.obs_properties_add_button(live_props, "area1_true_button", "确认一级分区", start_area1)
-    # 根据直播间存在更改 按钮[确认一级分区] 可见状态
+    # 设置 按钮[确认一级分区] 可见状态
     obs.obs_property_set_visible(area1_true_button, area1_true_button_visible)
 
-    # 添加组合框[二级分区]
+    # 添加 组合框[二级分区]
     area2_list = obs.obs_properties_add_list(
         live_props, 'area2_list', '二级分区：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING
     )
-    # 从组合框[一级分区]获取一级分组id
+    # 获取 组合框[一级分区] 内容
     area1_id = obs.obs_data_get_string(current_settings, 'area1_list')
-    # 为组合框[二级分区]添加选项
+    # 为 组合框[二级分区] 添加选项
     for area in allAreaList:
         if area1_id == str(area["id"]):
             for area2 in area["list"]:
@@ -5673,96 +5715,106 @@ def script_properties():
                 except:
                     obs.obs_property_list_add_string(area2_list, area2["name"], str(area2["id"]))
             break
-    # 根据直播状态更改 组合框[二级分区] 可见状态
+    # 设置 组合框[二级分区] 可见状态
     obs.obs_property_set_visible(area2_list, area2_list_visible)
 
-    # 添加一个[{确认分区}]的按钮
+    # 添加 按钮[{确认分区}]
     area2_true_button = obs.obs_properties_add_button(live_props, "area2_true_button", "{确认分区}",
                                                       lambda ps, p: start_area())
-    # 根据直播间存在更改 按钮[{确认分区}] 可见状态
+    # 设置 按钮[{确认分区}] 可见状态
     obs.obs_property_set_visible(area2_true_button, area2_true_button_visible)
 
-    # 添加一个按钮[开播]
+    # 添加 按钮[开播]
     start_live_button = obs.obs_properties_add_button(live_props, "start_live_button", "开始直播", start_live)
-    # 根据直播状态更改 按钮[开播] 可见状态
+    # 设置 按钮[开播] 可见状态
     obs.obs_property_set_visible(start_live_button, start_live_button_visible)
 
-    # 添加一个按钮[直播服务器]
+    # 添加 按钮[直播服务器]
     rtmp_address_copy_button = obs.obs_properties_add_button(live_props, "rtmp_address_copy_button", "rtmp直播服务器",
                                                              rtmp_address_copy)
-    # 根据直播状态更改 按钮[直播服务器] 可见状态
+    # 设置 按钮[直播服务器] 可见状态
     obs.obs_property_set_visible(rtmp_address_copy_button, rtmp_copy_button_visible)
 
-    # 添加一个按钮[直播推流码]
+    # 添加 按钮[直播推流码]
     rtmp_stream_code_copy_button = obs.obs_properties_add_button(live_props, "rtmp_stream_code_copy_button",
                                                                  "rtmp直播推流码", rtmp_stream_code_copy)
-    # 根据直播状态更改 按钮[直播推流码] 可见状态
+    # 设置 按钮[直播推流码] 可见状态
     obs.obs_property_set_visible(rtmp_stream_code_copy_button, stream_copy_button_visible)
 
-    # 添加一个按钮[更新推流码]
+    # 添加 按钮[更新推流码]
     rtmp_stream_code_updata_button = obs.obs_properties_add_button(live_props, "rtmp_stream_code_updata_button",
                                                                    "更新rtmp直播推流码", rtmp_stream_code_updata)
-    # 根据直播状态更改 按钮[更新推流码] 可见状态
+    # 设置 按钮[更新推流码] 可见状态
     obs.obs_property_set_visible(rtmp_stream_code_updata_button, stream_updata_button_visible)
 
-    # 添加一个按钮[停播]
+    # 添加 按钮[停播]
     stop_live_button = obs.obs_properties_add_button(live_props, "stop_live_button", "结束直播", stop_live)
-    # 根据直播状态更改 按钮[停播] 可见状态
+    # 设置 按钮[停播] 可见状态
     obs.obs_property_set_visible(stop_live_button, stop_live_button_visible)
 
-    # 添加普通文本框[直播标题]
-    # 添加普通文本框[直播公告]
-    # 添加普通文本框[直播简介]
+    # 添加 普通文本框[直播标题]
+    live_title_text = obs.obs_properties_add_text(live_props, "live_title_text", "直播标题", obs.OBS_TEXT_DEFAULT)
+
+    # 添加 按钮[更改直播标题]
+    change_live_title_button = obs.obs_properties_add_button(live_props, "change_live_title_button", "更改直播标题", change_live_title)
+
+    # 添加 普通文本框[直播公告]
+    live_news_text = obs.obs_properties_add_text(live_props, "live_news_text", "直播公告", obs.OBS_TEXT_DEFAULT)
+
+    # 添加 按钮[更改直播公告]
+    change_live_news_button = obs.obs_properties_add_button(live_props, "change_live_news_button", "更改直播公告", change_live_news)
+
     # ————————————————————————————————————————————————————————————————————————————————
-    # 添加 分组框【发送弹幕】，包含用于弹幕的子控件
+    # 添加 分组框【发送弹幕】
     obs.obs_properties_add_group(props, 'send_danmu_group', '发送弹幕', obs.OBS_GROUP_NORMAL, send_danmu_group)
 
-    # 添加组合框[发出弹幕的用户]
+    # 添加 组合框[发出弹幕的用户]
     SentUid_list = obs.obs_properties_add_list(
         send_danmu_group, 'SentUid_list', '发出弹幕的用户：'
         , obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING
     )
-    # 为组合框[发出弹幕的用户]添加选项
+    # 为 组合框[发出弹幕的用户] 添加选项
     for SentUid in SentUid_list_dict_elements:
         obs.obs_property_list_add_string(SentUid_list, SentUid_list_dict_elements[SentUid], SentUid)
 
-    # 添加组合框[弹幕发送到]
+    # 添加 组合框[弹幕发送到]
     SentRoom_list = obs.obs_properties_add_list(
         send_danmu_group, 'SentRoom_list', '弹幕发送到：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING
     )
-    # 为组合框[弹幕发送到]添加选项
+    # 为 组合框[弹幕发送到] 添加选项
     for SentRoomid in SentRoom_list_set_elements:
         # 获得 保存到直播间 的 信息
         RoomBaseInfo = getRoomBaseInfo(int(SentRoomid))
         obs.obs_property_list_add_string(
             SentRoom_list, RoomBaseInfo["by_room_ids"][str(SentRoomid)]["uname"] + "_的直播间", str(SentRoomid)
         )
-    # 设置按钮[弹幕发送到]的可用状态
+    # 设置 按钮[弹幕发送到] 可用状态
     obs.obs_property_set_enabled(SentRoom_list, SentRoom_list_enabled)
 
-    # 添加组合框[emoji表情]
+    # 添加 组合框[emoji表情]
     emoji_face_list = obs.obs_properties_add_list(
         send_danmu_group, 'emoji_face_list', 'emoji表情：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING
     )
-    # 为组合框[emoji表情]添加选项
+    # 为 组合框[emoji表情] 添加选项
     for emoji_face in emoji_face_list_dict_elements:
         obs.obs_property_list_add_string(
             emoji_face_list, emoji_face_list_dict_elements[emoji_face], emoji_face
         )
-    # 根据直播状态更改 组合框[emoji表情] 可见状态
+    # 设置 组合框[emoji表情] 可见状态
     obs.obs_property_set_visible(emoji_face_list, emoji_face_list_visible)
 
-    # 添加一个[弹幕内容]的文本框
+    # 添加 换行文本框[弹幕内容]
     obs.obs_properties_add_text(send_danmu_group, 'danmu_msg_text', '弹幕内容：', obs.OBS_TEXT_MULTILINE)
 
-    # 添加按钮[发送弹幕]
+    # 添加 按钮[发送弹幕]
     send_button = obs.obs_properties_add_button(send_danmu_group, 'send_button', '发送弹幕', send)
-    # 设置按钮[发送弹幕]的可用状态
+    # 设置 按钮[发送弹幕] 可用状态
     obs.obs_property_set_enabled(send_button, send_button_enabled)
 
-    # 添加按钮[更改屏蔽词]
+    # 添加 按钮[更改屏蔽词]
     correct_mask_word_button = obs.obs_properties_add_button(send_danmu_group, 'correct_mask_word_button', '更改屏蔽词',
                                                              lambda ps, p: correct_mask_word())
+
     # ————————————————————————————————————————————————————————————————————————————————
     # 添加 分组框【输出弹幕】，包含用于弹幕的子控件
     obs.obs_properties_add_group(props, 'show_danmu_group', '输出弹幕', obs.OBS_GROUP_NORMAL, show_danmu_group)
@@ -6022,9 +6074,15 @@ def send(props, prop):
                     j.write(str(roomid_set_data))
                 obs.script_log(obs.LOG_INFO, "删除直播间")
             obs.obs_data_set_string(current_settings, 'danmu_msg_text', "")
+            # 设置组合框[用户]为'默认用户'
+            obs.obs_data_set_string(current_settings, 'uid_list', cookies["DedeUserID"])
+            login(props, prop)
         else:
-            danmu_room_add = danmu_room_add_or_delet
             try:
+                danmu_room_add = int(danmu_room_add_or_delet)
+            except:
+                obs.obs_data_set_string(current_settings, 'danmu_msg_text', "请输入正常直播间号")
+            else:
                 RoomBaseInfo = getRoomBaseInfo(int(danmu_room_add))
                 for long_roomid in RoomBaseInfo["by_room_ids"]:
                     if os.path.exists(scripts_roomid_filepath):
@@ -6035,24 +6093,12 @@ def send(props, prop):
                         j.write(str(roomid_set_data))
                 obs.script_log(obs.LOG_INFO, "添加直播间")
                 obs.obs_data_set_string(current_settings, 'danmu_msg_text', "")
-            except:
-                obs.obs_data_set_string(current_settings, 'danmu_msg_text', "请输入正常直播间号")
-        # 刷新[弹幕发送到]列表
-        obs.obs_property_list_clear(SentRoom_list)
-        if os.path.exists(scripts_roomid_filepath):
-            with open(scripts_roomid_filepath, "r", encoding="utf-8") as j:
-                roomid_set_data = eval(j.read())
-            for roomid in roomid_set_data:
-                RoomBaseInfo = getRoomBaseInfo(int(roomid))
-                obs.obs_property_list_add_string(
-                    SentRoom_list, RoomBaseInfo["by_room_ids"][str(roomid)]["uname"] + "_的直播间", str(roomid)
-                )
-        # 设置组合框[用户]为'默认用户'
-        obs.obs_data_set_string(current_settings, 'uid_list', cookies["DedeUserID"])
-        login(props, prop)
+                # 设置组合框[用户]为'默认用户'
+                obs.obs_data_set_string(current_settings, 'uid_list', cookies["DedeUserID"])
+                login(props, prop)
 
     # 将弹幕发送到直播间
-    if not str(danmu_msg).startswith("\n"):
+    if not str(danmu_msg).startswith("\n") and obs.obs_property_list_item_count(SentRoom_list):
         global danmu_msg_list_num, send_danmu_msg_list_clock, \
             send_danmu_msg_split_list_dict, send_danmu_msg_word_num
         if not DanMu.danmu_working_is:
@@ -6181,10 +6227,14 @@ def send(props, prop):
                 send_danmu_msg_word_num = 40
                 obs.remove_current_callback()
 
+        # 当 输出弹幕计时器 未开启， 发送弹幕
         if not send_danmu_msg_list_clock:
             obs.timer_add(send_danmu_msg_list, 1000)
             # 清空 文本框【弹幕内容】 的内容
             obs.obs_data_set_string(current_settings, 'danmu_msg_text', "")
+
+    if not obs.obs_property_list_item_count(SentRoom_list):
+        obs.obs_data_set_string(current_settings, 'danmu_msg_text', "组合框【弹幕发送到】 无选项")
 
     return True
 
@@ -6193,6 +6243,14 @@ def correct_mask_word():
     correct_word = str(pypinyin.pinyin(cb.paste(), style=pypinyin.Style.TONE2))
     # obs.script_log(obs.LOG_INFO, correct_word)
     cb.copy(correct_word.replace("[", "").replace("]", "").replace(", ", "_").replace("'", ""))
+    pass
+
+
+def change_live_title(props, prop):
+    pass
+
+
+def change_live_news(props, prop):
     pass
 
 
