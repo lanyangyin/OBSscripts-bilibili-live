@@ -6348,7 +6348,7 @@ def change_live_title(props, prop):
     # 获取 '默认账户'cookie
     cookies = config_B(uid=0, dirname=scripts_data_dirpath).check()
     turn_title_return = CsrfAuthenticationL(dict2cookieformat(cookies)).room_v1_Room_update(live_title_text_value)
-    print(turn_title_return)
+    # print(turn_title_return)
     pass
 
 
@@ -6357,7 +6357,7 @@ def change_live_news(props, prop):
     # 获取 '默认账户'cookie
     cookies = config_B(uid=0, dirname=scripts_data_dirpath).check()
     turn_news_return = CsrfAuthenticationL(dict2cookieformat(cookies)).updateRoomNews(live_news_text_value)
-    print(turn_news_return)
+    # print(turn_news_return)
     pass
 
 
@@ -6380,15 +6380,22 @@ def show_danmu(props, prop):
     try:
         if DanMu.danmu_working_is:
             DanMu.danmu_start_is = False
+            # 设置 按钮[登录] 可用状态
+            obs.obs_property_set_enabled(login_button, True)
+            # 更改 组合框【弹幕发送到】的可用性
             obs.obs_property_set_enabled(SentRoom_list, True)
         else:
             # 更改 组合框【弹幕发送到】的可用性
             obs.obs_property_set_enabled(SentRoom_list, False)
+            # 设置 按钮[登录] 可用状态
+            obs.obs_property_set_enabled(login_button, False)
             t1 = threading.Thread(target=danmu_s)
             t1.start()
     except:
         # 更改 组合框【弹幕发送到】的可用性
         obs.obs_property_set_enabled(SentRoom_list, False)
+        # 设置 按钮[登录] 可用状态
+        obs.obs_property_set_enabled(login_button, False)
         t1 = threading.Thread(target=danmu_s)
         t1.start()
 
