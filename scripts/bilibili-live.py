@@ -5562,6 +5562,9 @@ def script_defaults(settings):
     else:
         show_danmu_button_enabled = False
 
+    # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+
 # --- 一个名为script_description的函数返回显示给的描述
 def script_description():
     """
@@ -5593,19 +5596,13 @@ def script_description():
    其它系统请联系开发者<br>\
 </pre></body></html>')
     t = ('<html lang="zh-CN"><body><pre>\
-本插件基于python3<br>\
-    如果未安装python3，请前往<br>\
-        <a href="https://www.python.org/">python官网</a><br>\
-        或者<br>\
-        <a href="https://python.p2hp.com/">python中文网 官网</a>下载安装<br>\
-        不同操作系统请查看<br>\
-            菜鸟教程<a href="https://www.runoob.com/python3/python3-install.html">Python3 环境搭建</a><br>\
+本插件基于<font color="#ee4343" size=5>python3.10</font><br>\
 <font color=yellow>!脚本路径中尽量不要有中文</font><br>\
-<font color=green size=4>请在认为完成操作后点击<font color="white" size=5>⟳</font>重新载入插件</font><br>\
+<font color="white" size=5>⟳</font><font color=green size=4>为重新载入插件按钮</font><br>\
 如果报错：<br>\
-   请关闭梯子和加速器<br>\
-   Windows请尝试使用<font color="#ee4343">管理员</font>权限运行obs<br>\
-   其它问题请联系开发者<br>\
+   关闭梯子或加速器<br>\
+   Windows请尝试使用<font color="#ee4343">管理员权限</font>运行obs<br>\
+   其它问题请前往<a href="https://github.com/lanyangyin/OBSscripts-bilibili-live/issues">Github</a>提问<br>\
 </pre></body></html>')
     return t
 
@@ -5906,6 +5903,12 @@ def script_properties():
     # 设置 按钮[显示弹幕] 可用状态
     obs.obs_property_set_enabled(show_danmu_button, show_danmu_button_enabled)
 
+    # ————————————————————————————————————————————————————————————————————————————————
+    # 添加 按钮[直播间后台网页]
+    Blive_web_button = obs.obs_properties_add_button(props, 'Blive_web_button', f'直播间后台网页', Blive_web)
+    obs.obs_property_button_set_type(Blive_web_button, obs.OBS_BUTTON_URL)
+    obs.obs_property_button_set_url(Blive_web_button, "https://link.bilibili.com/p/center/index#/my-room/start-live")
+
     return props
 
 
@@ -6049,6 +6052,7 @@ def login(props, prop):
     ###########################################################################
     # 设置按钮[显示弹幕]的可用状态
     obs.obs_property_set_enabled(show_danmu_button, show_danmu_button_enabled)
+
     return True
 
 
@@ -6400,6 +6404,10 @@ def show_danmu(props, prop):
         t1.start()
 
     return True
+
+
+def Blive_web(props, prop):
+    pass
 
 
 def script_unload():
