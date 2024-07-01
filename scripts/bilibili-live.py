@@ -6299,7 +6299,11 @@ def send(props, prop):
                 # 检测弹幕是否发送成功
                 send_success = danmu_send_info['data']['mode_info']['user']['title']
                 if send_success:
-                    if not DanMu.danmu_working_is:
+                    try:
+                        DanMu_danmu_working_is = DanMu.danmu_working_is
+                    except:
+                        DanMu_danmu_working_is = False
+                    if not DanMu_danmu_working_is:
                         obs.script_log(obs.LOG_INFO,
                                        f"弹幕发送成功：{send_danmu_msg_split_list_dict[send_danmu_msg_word_num][danmu_msg_list_num]}"
                                        )
