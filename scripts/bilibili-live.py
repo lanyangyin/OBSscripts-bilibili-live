@@ -713,6 +713,7 @@ def poll(qrcode_key: str) -> dict[str, dict[str, str] | int]:
 
 # 登陆后才能用的函数
 class master:
+    """登陆后才能用的函数"""
     def __init__(self, cookie: str):
         """
         完善 浏览器headers
@@ -4847,6 +4848,7 @@ class master:
 
 
 class CsrfAuthenticationL:
+    """Csrf鉴权"""
     def __init__(self, cookie: str):
         """
         需要Csrf
