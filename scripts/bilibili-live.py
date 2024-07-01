@@ -6202,7 +6202,11 @@ def send(props, prop):
     if not str(danmu_msg).startswith("\n") and obs.obs_property_list_item_count(SentRoom_list):
         global danmu_msg_list_num, send_danmu_msg_list_clock, \
             send_danmu_msg_split_list_dict, send_danmu_msg_word_num
-        if not DanMu.danmu_working_is:
+        try:
+            DanMu_danmu_working_is = DanMu.danmu_working_is
+        except:
+            DanMu_danmu_working_is = False
+        if not DanMu_danmu_working_is:
             obs.script_log(obs.LOG_INFO, "发送弹幕")
         # 弹幕切分
         if not send_danmu_msg_list_clock:
