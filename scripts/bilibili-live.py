@@ -24,6 +24,7 @@ import websockets
 def script_path():
     pass
 
+
 # 工具类函数
 class config_B:
     """
