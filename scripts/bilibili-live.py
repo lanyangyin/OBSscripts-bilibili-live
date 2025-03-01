@@ -4896,7 +4896,7 @@ class CsrfAuthenticationL:
         headers = self.headers
         csrf = self.csrf
         data = {
-            "platform": "pc",
+            "platform": "web_link",
             "room_id": master(self.cookie).getRoomHighlightState(),
             "area_v2": area_id,
             "backup_stream": 0,
