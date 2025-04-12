@@ -6172,6 +6172,10 @@ def send(props, prop):
     SentRoom = obs.obs_data_get_string(current_settings, 'SentRoom_list')
     # 获得 文本框【弹幕内容】 的内容
     danmu_msg = obs.obs_data_get_string(current_settings, 'danmu_msg_text')
+    # 如果字符串为空，则不发送弹幕
+    if danmu_msg.strip() == "":
+        obs.script_log(obs.LOG_INFO, "弹幕内容为空，不发送弹幕")
+
     # # 清空 文本框【弹幕内容】 的内容
     # obs.obs_data_set_string(current_settings, 'danmu_msg_text', "")
     # 当以 \n 开头 执行 添加或者减少发送的直播间
@@ -6179,7 +6183,7 @@ def send(props, prop):
         DanMu_danmu_working_is = DanMu.danmu_working_is
     except:
         DanMu_danmu_working_is = False
-    if str(danmu_msg).startswith("\n") and not DanMu_danmu_working_is:
+    if str(danmu_msg).startswith("\n") and not DanMu_danmu_working_is:  # 添加直播间或删除直播间
         roomid_set_data = set()
         danmu_room_add_or_delet = str(danmu_msg).strip()
         if danmu_room_add_or_delet in ["-", "－"]:
