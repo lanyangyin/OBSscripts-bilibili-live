@@ -374,7 +374,7 @@ def getRoomBaseInfo(room_id: int):
     return RoomBaseInfo["data"]
 
 
-def live_user_v1_Master_info(uid:int):
+def live_user_v1_Master_info(uid: int):
     """
     <h2 id="获取主播信息" tabindex="-1"><a class="header-anchor" href="#获取主播信息" aria-hidden="true">#</a> 获取主播信息</h2>
     <blockquote><p>https://api.live.bilibili.com/live_user/v1/Master/info</p></blockquote>
@@ -413,7 +413,6 @@ def live_user_v1_Master_info(uid:int):
     }
     live_user_v1_Master_info = requests.get(api, headers=headers, params=data).json()
     return live_user_v1_Master_info
-
 
 
 def Area_getList():
@@ -730,6 +729,7 @@ def poll(qrcode_key: str) -> dict[str, dict[str, str] | int]:
 # 登陆后才能用的函数
 class master:
     """登陆后才能用的函数"""
+
     def __init__(self, cookie: str):
         """
         完善 浏览器headers
@@ -4865,12 +4865,11 @@ class master:
 
 class CsrfAuthenticationL:
     """Csrf鉴权"""
+
     def __init__(self, cookie: str):
         """
         需要Csrf
         :param cookie:
-        :param UA:
-        :type UA: str
         """
         UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
               "Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0")
@@ -4973,7 +4972,7 @@ class CsrfAuthenticationL:
         send_ReturnValue = requests.post(api, headers=headers, params=data).json()
         return send_ReturnValue
 
-    def room_v1_Room_update(self, title:str):
+    def room_v1_Room_update(self, title: str):
         """
         更新直播标题
         @return:
@@ -5095,10 +5094,34 @@ def start_login(uid: int = 0, dirname: str = "Biliconfig"):
 class Danmu:
 
     def __init__(self, cookie: str):
+        """
+        初始化 B 站直播间弹幕客户端。
+
+        Args:
+            cookie (str): 用户登录 Cookie，需包含 `buvid3` 等关键字段用于身份验证。
+        """
         self.cookie = cookie
 
-    def _get_websocket_client(self, roomid: int):
-        danmu_info = master(self.cookie).getDanmuInfo(roomid)
+    def _get_websocket_client(self, room_id: int):
+        """
+        获取动态弹幕服务器的 WebSocket 连接地址和认证参数。
+
+        Args:
+            room_id (int): 直播间真实房间号（非短ID），例如 21452505。
+
+        Returns:
+            tuple[str, dict]: 包含两个元素的元组：
+                - wss_url (str): WebSocket 服务器地址（如 `wss://broadcastlv.chat.bilibili.com:443/sub`）。
+                - auth_body (dict): 认证参数字典，包含 `uid`、`token`、`buvid` 等字段。
+
+        Raises:
+            APIError: 当获取弹幕服务器信息或用户信息失败时抛出。
+
+        Notes:
+            - `auth_body` 中的 `key` 字段（Token）有效期通常为 30 分钟，超时需重新获取。
+            - `wss_url` 是动态分配的，每次调用可能不同。
+        """
+        danmu_info = master(self.cookie).getDanmuInfo(room_id)
         token = danmu_info['data']['token']
         host = danmu_info['data']['host_list'][-1]
         wss_url = f"wss://{host['host']}:{host['wss_port']}/sub"
@@ -5107,7 +5130,7 @@ class Danmu:
         cookie = cookie2dict(self.cookie)
         auth_body = {
             "uid": user_info["uid"],
-            "roomid": roomid,
+            "roomid": room_id,
             "protover": 2,
             "buvid": cookie['buvid3'],
             "platform": "web",
@@ -5116,10 +5139,22 @@ class Danmu:
         }
         return wss_url, auth_body
 
-    def connect_room(self, roomid: int):
+    def connect_room(self, room_id: int):
+        """
+        连接指定房间号的直播间并返回 WebSocket 客户端实例。
+
+        Args:
+            room_id (int): 直播间真实房间号。
+
+        Returns:
+            _WebSocketClient: 初始化后的 WebSocket 客户端实例，用于接收实时弹幕。
+
+        Notes:
+            - 会通过 OBS 日志输出连接状态（如主播用户名）。
+        """
         obs.script_log(obs.LOG_INFO,
-                       f"尝试连接【{getRoomBaseInfo(roomid)['by_room_ids'][str(roomid)]['uname']}】的直播间")
-        wss_url, auth_body = self._get_websocket_client(roomid)
+                       f"尝试连接【{getRoomBaseInfo(room_id)['by_room_ids'][str(room_id)]['uname']}】的直播间")
+        wss_url, auth_body = self._get_websocket_client(room_id)
         return self._WebSocketClient(wss_url, auth_body)
 
     class _WebSocketClient:
@@ -5130,12 +5165,29 @@ class Danmu:
         VERSION_ZIP = 2
 
         def __init__(self, url: str, auth_body: dict):
+            """
+            初始化 WebSocket 客户端连接。
+
+            Args:
+                url (str): WebSocket 服务器地址（由 `_get_websocket_client` 返回）。
+                auth_body (dict): 认证参数字典（包含 `uid`、`key` 等字段）。
+            """
             self.url = url
             self.auth_body = auth_body
-            # pprint.pprint(auth_body)
-            # self.saved_danmudata = set()
 
         async def connect(self):
+            """
+            异步建立 WebSocket 连接并开始监听消息。
+
+            流程：
+                1. 连接服务器并触发 `on_open` 回调。
+                2. 循环接收消息并调用 `on_message` 处理。
+                3. 当 `danmu_start_is` 为 False 时停止连接。
+
+            Notes:
+                - 依赖 `asyncio` 事件循环运行。
+                - 自动发送心跳包维持连接。
+            """
             async with websockets.connect(self.url) as ws:
                 await self.on_open(ws)
                 while self.danmu_start_is:
@@ -5145,20 +5197,64 @@ class Danmu:
                 self.danmu_working_is = False
 
         async def on_open(self, ws):
+            """
+            WebSocket 连接成功时的回调函数。
+
+            功能：
+                - 发送身份认证数据包（操作码 7）。
+                - 启动心跳包发送任务。
+
+            Args:
+                ws (websockets.WebSocketClientProtocol): 已连接的 WebSocket 客户端对象。
+            """
             print("Connected to server...")
             await ws.send(self.pack(self.auth_body, 7))
             asyncio.create_task(self.send_heartbeat(ws))  # 这里不能加await
 
         async def send_heartbeat(self, ws):
+            """
+            每隔固定时间发送心跳包（操作码 2）维持连接。
+
+            Args:
+                ws (websockets.WebSocketClientProtocol): 已连接的 WebSocket 客户端对象。
+
+            Notes:
+                - 心跳间隔由 `HEARTBEAT_INTERVAL` 控制（默认 30 秒）。
+                - 心跳包内容为空，仅包含协议头。
+            """
             while True:
                 await ws.send(self.pack(None, 2))
                 await asyncio.sleep(self.HEARTBEAT_INTERVAL)
 
         async def on_message(self, message):
+            """
+            处理接收到的 WebSocket 消息。
+
+            Args:
+                message (bytes | str): 原始消息数据（二进制或文本）。
+
+            Notes:
+                - 仅处理二进制消息，调用 `unpack` 方法解析协议。
+                - 文本消息直接忽略（B 站弹幕协议使用二进制格式）。
+            """
             if isinstance(message, bytes):
                 self.unpack(message)
 
-        def pack(self, content: dict|None, code: int) -> bytes:
+        def pack(self, content: dict | None, code: int) -> bytes:
+            """
+            将数据和操作码打包为 B 站弹幕协议格式的二进制流。
+
+            Args:
+                content (dict | None): 消息内容字典，为空时表示心跳包或控制指令。
+                code (int): 操作码（如 7 表示认证，2 表示心跳）。
+
+            Returns:
+                bytes: 符合协议的二进制数据包，结构为 `头部(16字节) + 内容体`。
+
+            Notes:
+                - 头部字段包含总长度、协议版本、操作码等（大端序编码）。
+                - 内容体为 JSON 序列化后的 UTF-8 字节流。
+            """
             content_bytes = json.dumps(content).encode('utf-8') if content else b''
             header = (len(content_bytes) + 16).to_bytes(4, 'big') + \
                      (16).to_bytes(2, 'big') + \
@@ -5168,6 +5264,22 @@ class Danmu:
             return header + content_bytes
 
         def unpack(self, byte_buffer: bytes):
+            """
+            解析从服务器接收的二进制数据包。
+
+            Args:
+                byte_buffer (bytes): 原始二进制数据。
+
+            处理逻辑：
+                1. 解析协议头（包长度、协议版本、操作码等）。
+                2. 若协议版本为压缩格式（2），使用 zlib 解压后递归解析。
+                3. 根据操作码分发处理不同类型的消息（如弹幕、礼物、用户进入等）。
+                4. 通过 OBS 日志输出结构化信息。
+
+            Notes:
+                - 支持分包解析（自动处理粘包问题）。
+                - 弹幕内容 (`DANMU_MSG`) 会提取用户昵称、粉丝牌、消息文本等信息。
+            """
             package_len = int.from_bytes(byte_buffer[0:4], 'big')
             head_length = int.from_bytes(byte_buffer[4:6], 'big')
             prot_ver = int.from_bytes(byte_buffer[6:8], 'big')
@@ -5319,6 +5431,13 @@ class Danmu:
                 self.unpack(byte_buffer[package_len:])
 
         def start(self):
+            """
+            启动 WebSocket 客户端事件循环。
+
+            Notes:
+                - 调用 `asyncio.run` 运行 `connect` 方法。
+                - 此方法是同步阻塞的，需在合适线程或进程中调用。
+            """
             asyncio.run(self.connect())
 
 
@@ -5679,6 +5798,7 @@ def script_update(settings):
                     global DanMu
                     DanMu = Danmu(dict2cookieformat(cookies)).connect_room(int(SentRoom))
                     DanMu.start()
+
                 t1 = threading.Thread(target=danmu_s)
                 t1.start()
         except:
@@ -5847,7 +5967,8 @@ def script_properties():
     obs.obs_property_set_visible(live_title_text, live_title_text_visible)
 
     # 添加 按钮[更改直播标题]
-    change_live_title_button = obs.obs_properties_add_button(live_props, "change_live_title_button", "更改直播标题", change_live_title)
+    change_live_title_button = obs.obs_properties_add_button(live_props, "change_live_title_button", "更改直播标题",
+                                                             change_live_title)
     # 设置 按钮[更改直播标题] 可见状态
     obs.obs_property_set_visible(change_live_title_button, change_live_title_button_visible)
 
@@ -5857,7 +5978,8 @@ def script_properties():
     obs.obs_property_set_visible(live_news_text, live_news_text_visible)
 
     # 添加 按钮[更改直播公告]
-    change_live_news_button = obs.obs_properties_add_button(live_props, "change_live_news_button", "更改直播公告", change_live_news)
+    change_live_news_button = obs.obs_properties_add_button(live_props, "change_live_news_button", "更改直播公告",
+                                                            change_live_news)
     # 设置 按钮[更改直播公告] 可见状态
     obs.obs_property_set_visible(change_live_news_button, change_live_news_button_visible)
 
@@ -6397,42 +6519,41 @@ def change_live_news(props, prop):
 
 def show_danmu(props, prop):
     global DanMu
-    # 获取 '默认账户'cookie
+    # 获取 '默认账户' cookie
     cookies = config_B(uid=0, dirname=scripts_data_dirpath).check()
-    # # 获得 组合框[发出弹幕的用户]的内容
-    # SentUid_list_value = obs.obs_data_get_string(current_settings, 'SentUid_list')
-    # # 获取 [发出弹幕的用户]账户cookies
-    # cookies = config_B(uid=int(SentUid_list_value), dirname=scripts_data_dirpath).check()
     # 获得 组合框【弹幕发送到】 的内容
-    SentRoom = obs.obs_data_get_string(current_settings, 'SentRoom_list')
+    sent_room = obs.obs_data_get_string(current_settings, 'SentRoom_list')
 
-    def danmu_s():
-        global DanMu
-        DanMu = Danmu(dict2cookieformat(cookies)).connect_room(int(SentRoom))
-        print(DanMu.danmu_start_is)
-        DanMu.start()
+    def toggle_controls(enabled: bool):
+        """
+        统一设置控件可用状态
+        :param enabled: 按钮[登录]和组合框【弹幕发送到】控件可用状态
+        """
+        # 设置 按钮[登录] 可用状态
+        obs.obs_property_set_enabled(login_button, enabled)
+        # 更改 组合框【弹幕发送到】的可用性
+        obs.obs_property_set_enabled(SentRoom_list, enabled)
+
+    def start_danmu_thread():
+        """启动弹幕监视线程"""
+        nonlocal DanMu
+        DanMu = Danmu(dict2cookieformat(cookies)).connect_room(int(sent_room))
+        threading.Thread(target=DanMu.start).start()
     try:
         if DanMu.danmu_working_is:
+            # 停止弹幕监听
             DanMu.danmu_start_is = False
-            # 设置 按钮[登录] 可用状态
-            obs.obs_property_set_enabled(login_button, True)
-            # 更改 组合框【弹幕发送到】的可用性
-            obs.obs_property_set_enabled(SentRoom_list, True)
+            toggle_controls(True)
         else:
-            # 更改 组合框【弹幕发送到】的可用性
-            obs.obs_property_set_enabled(SentRoom_list, False)
-            # 设置 按钮[登录] 可用状态
-            obs.obs_property_set_enabled(login_button, False)
-            t1 = threading.Thread(target=danmu_s)
-            t1.start()
-    except:
-        # 更改 组合框【弹幕发送到】的可用性
-        obs.obs_property_set_enabled(SentRoom_list, False)
-        # 设置 按钮[登录] 可用状态
-        obs.obs_property_set_enabled(login_button, False)
-        t1 = threading.Thread(target=danmu_s)
-        t1.start()
-
+            # 开始弹幕监听
+            toggle_controls(False)
+            start_danmu_thread()
+    except Exception as e:
+        # 异常处理
+        # 开始弹幕监听
+        obs.script_log(obs.LOG_INFO, "弹幕监听异常")
+        toggle_controls(False)
+        start_danmu_thread()
     return True
 
 
