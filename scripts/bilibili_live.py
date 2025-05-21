@@ -14,29 +14,89 @@
 #         You should have received a copy of the GNU General Public License
 #         along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #         2436725966@qq.com
-import asyncio
+# import asyncio
 import base64
 import io
 import json
 import os
-import pprint
+# import pprint
 import sys
-import threading
+# import threading
 import time
 import urllib
-import zlib
+# import zlib
 from urllib.parse import quote
 from pathlib import Path
 
 import obspython as obs
-import pypinyin
+# import pypinyin
 import qrcode
 import requests
 import pyperclip as cb
-import websockets
+
+# import websockets
+
+# 全局变量
+# #记录obs插件中控件的数据
+current_settings = None
+
+# #分组框控件
+# ##【配置】分组框的实例
+setting_props = None
+# ##【直播】分组框的实例
+live_props = None
+
+# #【配置】分组框中的控件
+# ##只读文本框[登录状态]的实例
+login_status_text = None
+# ##组合框[用户]的实例
+uid_list = None
+# ##按钮[登录]的实例
+login_button = None
+
+# #【直播】分组框中的控件
+# ##只读文本框[直播间状态]的实例
+room_status_text = None
+# ##组合框[一级分区]的实例
+area1_list = None
+# ##按钮[确认一级分区]的实例
+area1_true_button = None
+# ##组合框[二级分区]的实例
+area2_list = None
+# ##按钮[{确认分区}]的实例
+area2_true_button = None
+# ##按钮[开播]的实例
+start_live_button = None
+# ##按钮[直播服务器]的实例
+rtmp_address_copy_button = None
+# ##按钮[直播推流码]的实例
+rtmp_stream_code_copy_button = None
+# ##按钮[更新推流码]的实例
+rtmp_stream_code_update_button = None
+# ##按钮[结束直播]的实例
+stop_live_button = None
+# ##普通文本框[直播标题]的实例
+live_title_text = None
+# ##按钮[更改直播标题]的实例
+change_live_title_button = None
+# ##普通文本框[直播公告]的实例
+live_news_text = None
+# ##按钮[更改直播公告]的实例
+change_live_news_button = None
 
 
 def script_path():
+    """
+    用于获取脚本所在文件夹的路径，这其实是一个obs插件内置函数，
+    只在obs插件指定的函数内部使用有效,
+    这里构建这个函数是没必要的，写在这里只是为了避免IDE出现error提示
+    Example:
+        假如脚本路径在"/Applications/OBS.app/Contents/PlugIns/frontend-tools.plugin/Contents/Resources/scripts/bilibili_live.py"
+        >>> print(script_path())
+        /Applications/OBS.app/Contents/PlugIns/frontend-tools.plugin/Contents/Resources/scripts/
+        >>> print(Path(f'{script_path()}bilibili-live') / "config.json")
+        /Applications/OBS.app/Contents/PlugIns/frontend-tools.plugin/Contents/Resources/scripts/bilibili-live/config.json
+    """
     pass
 
 
@@ -374,7 +434,7 @@ def getRoomBaseInfo(room_id: int):
     return RoomBaseInfo["data"]
 
 
-def live_user_v1_Master_info(uid:int):
+def live_user_v1_Master_info(uid: int):
     """
     <h2 id="获取主播信息" tabindex="-1"><a class="header-anchor" href="#获取主播信息" aria-hidden="true">#</a> 获取主播信息</h2>
     <blockquote><p>https://api.live.bilibili.com/live_user/v1/Master/info</p></blockquote>
@@ -413,7 +473,6 @@ def live_user_v1_Master_info(uid:int):
     }
     live_user_v1_Master_info = requests.get(api, headers=headers, params=data).json()
     return live_user_v1_Master_info
-
 
 
 def Area_getList():
@@ -730,6 +789,7 @@ def poll(qrcode_key: str) -> dict[str, dict[str, str] | int]:
 # 登陆后才能用的函数
 class master:
     """登陆后才能用的函数"""
+
     def __init__(self, cookie: str):
         """
         完善 浏览器headers
@@ -4863,14 +4923,13 @@ class master:
         return getRoomNews_ReturnValue["data"]["content"]
 
 
-class CsrfAuthenticationL:
-    """Csrf鉴权"""
+class CsrfAuthentication:
+    """需要Csrf鉴权的"""
+
     def __init__(self, cookie: str):
         """
         需要Csrf
         :param cookie:
-        :param UA:
-        :type UA: str
         """
         UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
               "Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0")
@@ -4898,8 +4957,8 @@ class CsrfAuthenticationL:
             "csrf": csrf,
             "csrf_token": csrf,
         }
-        changeroomarea_ReturnValue = requests.post(api, headers=headers, params=data).json()
-        return changeroomarea_ReturnValue
+        ChangeRoomArea_ReturnValue = requests.post(api, headers=headers, params=data).json()
+        return ChangeRoomArea_ReturnValue
 
     def startLive(self, area_id: int):
         """
@@ -4973,7 +5032,7 @@ class CsrfAuthenticationL:
         send_ReturnValue = requests.post(api, headers=headers, params=data).json()
         return send_ReturnValue
 
-    def room_v1_Room_update(self, title:str):
+    def room_v1_Room_update(self, title: str):
         """
         更新直播标题
         @return:
@@ -5092,236 +5151,6 @@ def start_login(uid: int = 0, dirname: str = "Biliconfig"):
         # return {'uid': int(cookies['DedeUserID']), 'cookies': cookies, 'cookie': dict2cookieformat(cookies)}
 
 
-class Danmu:
-
-    def __init__(self, cookie: str):
-        self.cookie = cookie
-
-    def _get_websocket_client(self, roomid: int):
-        danmu_info = master(self.cookie).getDanmuInfo(roomid)
-        token = danmu_info['data']['token']
-        host = danmu_info['data']['host_list'][-1]
-        wss_url = f"wss://{host['host']}:{host['wss_port']}/sub"
-
-        user_info = master(self.cookie).get_user_info()
-        cookie = cookie2dict(self.cookie)
-        auth_body = {
-            "uid": user_info["uid"],
-            "roomid": roomid,
-            "protover": 2,
-            "buvid": cookie['buvid3'],
-            "platform": "web",
-            "type": 3,
-            "key": token
-        }
-        return wss_url, auth_body
-
-    def connect_room(self, roomid: int):
-        obs.script_log(obs.LOG_INFO,
-                       f"尝试连接【{getRoomBaseInfo(roomid)['by_room_ids'][str(roomid)]['uname']}】的直播间")
-        wss_url, auth_body = self._get_websocket_client(roomid)
-        return self._WebSocketClient(wss_url, auth_body)
-
-    class _WebSocketClient:
-        danmu_start_is = True
-        danmu_working_is = True
-        HEARTBEAT_INTERVAL = 30
-        VERSION_NORMAL = 0
-        VERSION_ZIP = 2
-
-        def __init__(self, url: str, auth_body: dict):
-            self.url = url
-            self.auth_body = auth_body
-            # pprint.pprint(auth_body)
-            # self.saved_danmudata = set()
-
-        async def connect(self):
-            async with websockets.connect(self.url) as ws:
-                await self.on_open(ws)
-                while self.danmu_start_is:
-                    self.danmu_working_is = True
-                    message = await ws.recv()
-                    await self.on_message(message)
-                self.danmu_working_is = False
-
-        async def on_open(self, ws):
-            print("Connected to server...")
-            await ws.send(self.pack(self.auth_body, 7))
-            asyncio.create_task(self.send_heartbeat(ws))  # 这里不能加await
-
-        async def send_heartbeat(self, ws):
-            while True:
-                await ws.send(self.pack(None, 2))
-                await asyncio.sleep(self.HEARTBEAT_INTERVAL)
-
-        async def on_message(self, message):
-            if isinstance(message, bytes):
-                self.unpack(message)
-
-        def pack(self, content: dict|None, code: int) -> bytes:
-            content_bytes = json.dumps(content).encode('utf-8') if content else b''
-            header = (len(content_bytes) + 16).to_bytes(4, 'big') + \
-                     (16).to_bytes(2, 'big') + \
-                     self.VERSION_NORMAL.to_bytes(2, 'big') + \
-                     code.to_bytes(4, 'big') + \
-                     (1).to_bytes(4, 'big')
-            return header + content_bytes
-
-        def unpack(self, byte_buffer: bytes):
-            package_len = int.from_bytes(byte_buffer[0:4], 'big')
-            head_length = int.from_bytes(byte_buffer[4:6], 'big')
-            prot_ver = int.from_bytes(byte_buffer[6:8], 'big')
-            opt_code = int.from_bytes(byte_buffer[8:12], 'big')
-
-            content_bytes = byte_buffer[16:package_len]
-            if prot_ver == self.VERSION_ZIP:
-                content_bytes = zlib.decompress(content_bytes)
-                self.unpack(content_bytes)
-                return
-
-            content = content_bytes.decode('utf-8')
-            if opt_code == 8:  # AUTH_REPLY
-                obs.script_log(obs.LOG_INFO, f"身份验证回复: {content}\n")
-            elif opt_code == 5:  # SEND_SMS_REPLY
-                # if content not in self.saved_danmudata:
-                #     self.saved_danmudata.add(content)
-                #     # print(f"Danmu message at {datetime.datetime.now()}: {content}")
-                if json.loads(content)['cmd'] == "DANMU_MSG":
-                    pass
-                    contentinfo = json.loads(content)['info']
-                    contentinfo[0][15]['extra'] = json.loads(contentinfo[0][15]['extra'])
-                    tfo = contentinfo[0][15]['extra']['content']
-                    afo = ""
-                    if contentinfo[0][15]['extra']['reply_uname']:
-                        afo = f" @{contentinfo[0][15]['extra']['reply_uname']} "
-                    ufo = contentinfo[0][15]['user']['base']['name']
-                    mfo = ''
-                    if contentinfo[0][15]['user']['medal']:
-                        fmedal = contentinfo[0][15]['user']['medal']
-                        mfo = f"【{fmedal['name']}|{fmedal['level']}】"
-                    wfo = ''
-                    if contentinfo[-2] != [0]:
-                        wfo = str(contentinfo[-2])
-                    obs.script_log(obs.LOG_INFO, f"{wfo}{mfo}{ufo}：{afo}{tfo}")
-                elif json.loads(content)['cmd'] == "WIDGET_BANNER":
-                    pass
-                elif json.loads(content)['cmd'] == "INTERACT_WORD":
-                    pass
-                    contentdata = json.loads(content)['data']
-                    # pprint.pprint(contentdata)
-                    tfo = "进入直播间或关注消息"
-                    if contentdata['msg_type'] == 1:
-                        tfo = "进入直播间"
-                    elif contentdata['msg_type'] == 2:
-                        tfo = "关注直播间"
-                    ufo = contentdata['uname']
-                    mfo = ""
-                    if contentdata['fans_medal']:
-                        fmedal = contentdata['fans_medal']
-                        mfo = f"【{fmedal['medal_name']}|{fmedal['medal_level']}】"
-                    wfo = ''
-                    try:
-                        if json.loads(content)['data']['uinfo']['wealth']['level']:
-                            wfo = f"[{json.loads(content)['data']['uinfo']['wealth']['level']}]"
-                    except:
-                        pass
-                    obs.script_log(obs.LOG_INFO, f"{tfo}：\t{wfo}{mfo}{ufo}")
-                elif json.loads(content)['cmd'] == "DM_INTERACTION":
-                    pass
-                    contentdata = json.loads(content)['data']
-                    contentdata['data'] = json.loads(contentdata['data'])
-                    tfo = "连续发送弹幕或点赞"
-                    if contentdata['type'] == 102:
-                        tfo = ""
-                        for contentdatacombo in contentdata['data']['combo'][:-1]:
-                            tfo += f"热词：\t{contentdatacombo['cnt']}\t人{contentdatacombo['guide']}{contentdatacombo['content']}\n"
-                        tfo += f"连续弹幕：\t{contentdata['data']['combo'][-1]['cnt']}\t人{contentdata['data']['combo'][-1]['guide']}{contentdata['data']['combo'][-1]['content']}"
-                    elif contentdata['type'] == 106:
-                        tfo = f"连续点赞：\t{contentdata['data']['cnt']}\t{contentdata['data']['suffix_text']}"
-                    obs.script_log(obs.LOG_INFO, f"{tfo}")
-                elif json.loads(content)['cmd'] == "GUARD_BUY":
-                    pass
-                    contentdata = json.loads(content)['data']
-                    tfo = f"上舰：\t{contentdata['username']}\t购买{contentdata['num']}个\t【{contentdata['gift_name']}】"
-                    obs.script_log(obs.LOG_INFO, f"{tfo}")
-                elif json.loads(content)['cmd'] == "LIKE_INFO_V3_CLICK":
-                    pass
-                    contentdata = json.loads(content)['data']
-                    tfo = contentdata['like_text']
-                    ufo = contentdata['uname']
-                    mfo = ""
-                    if contentdata['fans_medal']:
-                        fmedal = contentdata['fans_medal']
-                        mfo = f"【{fmedal['medal_name']}|{fmedal['guard_level']}】"
-                    wfo = ''
-                    try:
-                        if contentdata['uinfo']['wealth']['level']:
-                            wfo = f"[{contentdata['uinfo']['wealth']['level']}]"
-                    except:
-                        pass
-                    obs.script_log(obs.LOG_INFO, f"点赞：\t{wfo}{mfo}{ufo}\t{tfo}")
-                elif json.loads(content)['cmd'] == "LIKE_INFO_V3_UPDATE":
-                    pass
-                    contentdata = json.loads(content)['data']
-                    obs.script_log(obs.LOG_INFO, f"点赞数：\t{contentdata['click_count']}")
-                elif json.loads(content)['cmd'] == "ONLINE_RANK_COUNT":
-                    pass
-                    contentdata = json.loads(content)['data']
-                    obs.script_log(obs.LOG_INFO, f"高能用户数：\t{contentdata['count']}")
-                elif json.loads(content)['cmd'] == "WATCHED_CHANGE":
-                    pass
-                    contentdata = json.loads(content)['data']
-                    obs.script_log(obs.LOG_INFO,
-                                   f"直播间看过人数：\t{contentdata['num']}\t{contentdata['text_large']}")
-                elif json.loads(content)['cmd'] == "ONLINE_RANK_V2":
-                    pass
-                elif json.loads(content)['cmd'] == "STOP_LIVE_ROOM_LIST":
-                    pass
-                elif json.loads(content)['cmd'] == "PK_BATTLE_PRE_NEW":
-                    pass
-                elif json.loads(content)['cmd'] == "PK_BATTLE_PRE":
-                    pass
-                elif json.loads(content)['cmd'] == "PK_BATTLE_START":
-                    pass
-                elif json.loads(content)['cmd'] == "RECOMMEND_CARD":
-                    pass
-                elif json.loads(content)['cmd'] == "SEND_GIFT":
-                    pass
-                    contentdata = json.loads(content)['data']
-                    # pprint.pprint(contentdata)
-                    ufo = contentdata['uname']
-                    mfo = ""
-                    if contentdata['medal_info']['medal_name']:
-                        medali = contentdata['medal_info']
-                        mfo = f"【{medali['medal_name']}|{medali['medal_level']}】"
-                    wfo = ''
-                    if contentdata['wealth_level'] != 0:
-                        wfo = f"[{contentdata['wealth_level']}]"
-                    tfo = ''
-                    if contentdata['batch_combo_send']:
-                        tfo += contentdata['batch_combo_send']['action']
-                        if contentdata['batch_combo_send']['blind_gift']:
-                            contentdata_bcsb_g = contentdata['batch_combo_send']['blind_gift']
-                            tfo += f"\t【{contentdata_bcsb_g['original_gift_name']}】{contentdata_bcsb_g['gift_action']}"
-                            coin = f"{contentdata_bcsb_g['gift_tip_price'] / 1000}￥\t{(contentdata_bcsb_g['gift_tip_price'] - contentdata['total_coin']) / 1000}￥"
-                        else:
-                            coin = f"{contentdata['total_coin'] / 1000}￥"
-                        tfo += f"{contentdata['num']}个《{contentdata['batch_combo_send']['gift_name']}》\t{coin}"
-                    else:
-                        tfo += f"{contentdata['action']}{contentdata['num']}个《{contentdata['giftName']}》"
-                    obs.script_log(obs.LOG_INFO, f'礼物：\t{wfo}{mfo}{ufo}\t{tfo}')
-                elif json.loads(content)['cmd'] == "NOTICE_MSG":
-                    pass
-                else:
-                    pprint.pprint(json.loads(content)['cmd'])
-
-            if len(byte_buffer) > package_len:
-                self.unpack(byte_buffer[package_len:])
-
-        def start(self):
-            asyncio.run(self.connect())
-
-
 # end
 
 # ================================================================================================
@@ -5348,7 +5177,7 @@ def script_defaults(settings):
         start_live_button_visible, stop_live_button_visible, \
         live_title_text_visible, change_live_title_button_visible, \
         live_news_text_visible, change_live_news_button_visible, \
-        rtmp_copy_button_visible, stream_copy_button_visible, stream_updata_button_visible, \
+        rtmp_copy_button_visible, stream_copy_button_visible, stream_update_button_visible, \
         area1_true_button_visible, area2_true_button_visible, \
         area1_list_visible, area2_list_visible, \
         SentUid_list_dict_elements, SentRoom_list_set_elements, \
@@ -5357,6 +5186,7 @@ def script_defaults(settings):
         send_button_enabled, show_danmu_button_enabled
     # 路径变量
     scripts_data_dirpath = f"{script_path()}bilibili-live"
+    obs.script_log(obs.LOG_INFO, f'{scripts_data_dirpath}')
     scripts_config_filepath = Path(scripts_data_dirpath) / "config.json"
     scripts_roomid_filepath = Path(scripts_data_dirpath) / "roomid_set_data.json"
     # 创建 插件数据 文件夹
@@ -5403,12 +5233,8 @@ def script_defaults(settings):
     if Default_islogin:
         Default_uname = interface_nav_Default["uname"]
 
-    # 根据{弹幕输出状态}更改 按钮[登录] 可用状态
-    try:
-        DanMu_danmu_working_is = DanMu.danmu_working_is
-    except:
-        DanMu_danmu_working_is = False
-    login_button_enabled = not DanMu_danmu_working_is
+    # 按钮[登录] 可用状态
+    login_button_enabled = True
 
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # 获取'默认账户'直播间基础信息
@@ -5503,9 +5329,9 @@ def script_defaults(settings):
 
     # 根据直播状态更改 按钮[更新推流码] 可见状态
     if Default_roomStatus == 1:
-        stream_updata_button_visible = not start_live_button_visible
+        stream_update_button_visible = not start_live_button_visible
     else:
-        stream_updata_button_visible = False
+        stream_update_button_visible = False
 
     # 根据直播状态更改 按钮[结束直播] 可见状态
     if Default_roomStatus == 1:
@@ -5532,53 +5358,6 @@ def script_defaults(settings):
 
     # 根据直播间存在更改 按钮[更改直播公告] 可见状态
     change_live_news_button_visible = area1_list_visible
-
-    # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    # 为组合框[发出弹幕的用户]添加选项
-    SentUid_list_dict_elements = uid_list_dict_elements
-
-    # 为组合框[弹幕发送到]添加选项
-    SentRoom_list_set_elements = set()
-    if os.path.exists(scripts_roomid_filepath):
-        with open(scripts_roomid_filepath, "r", encoding="utf-8") as j:
-            SentRoom_list_set_elements = eval(j.read())
-    SentRoom_list_set_elements = SentRoom_list_set_elements
-    # 为组合框[弹幕发送到]设置内容
-    if SentRoom_list_set_elements:
-        obs.obs_data_set_string(settings, 'SentRoom_list', list(SentRoom_list_set_elements)[0])
-
-    # 根据弹幕输出状态更改 组合框【弹幕发送到】的可用性
-    SentRoom_list_enabled = login_button_enabled
-
-    # 为组合框[emoji表情]添加选项
-    emoji_face_list_dict_elements = {}
-    if Default_islogin and len(SentRoom_list_set_elements):
-        SentRoom_list_value = obs.obs_data_get_string(settings, 'SentRoom_list')
-        Emoticons = master(dict2cookieformat(Default_cookies)).GetEmoticons(int(SentRoom_list_value))
-        for emoji_face in Emoticons[0]['emoticons']:
-            emoji_face_list_dict_elements[emoji_face["emoji"]] = emoji_face["descript"]
-    emoji_face_list_dict_elements = emoji_face_list_dict_elements
-    # 根据直播状态更改 组合框[emoji表情] 可见状态
-    if Default_islogin and len(SentRoom_list_set_elements):
-        emoji_face_list_visible = True
-    else:
-        emoji_face_list_visible = False
-
-    # 清空文本框[弹幕内容]
-    obs.obs_data_set_string(settings, 'danmu_msg_text', "")
-
-    # 设置[发送弹幕]按钮可用状态
-    if SentUid_list_dict_elements:
-        send_button_enabled = True
-    else:
-        send_button_enabled = False
-
-    # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    # 设置 [显示弹幕]按钮 可用状态
-    if Default_islogin and len(SentRoom_list_set_elements):
-        show_danmu_button_enabled = True
-    else:
-        show_danmu_button_enabled = False
 
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -5626,102 +5405,61 @@ def script_description():
 
 
 # --- 一个名为script_load的函数将在启动时调用
-
 def script_load(settings):
     """
     在脚本启动时调用与脚本相关的特定设置。所提供的设置参数通常不用于由用户设置的设置;
     相反，该参数用于脚本中可能使用的任何额外的内部设置数据。
     :param settings:与脚本关联的设置。
     """
-    global current_settings, emoji_face_list_value, SentRoom_list_value
+    global current_settings
     # obs_data_t 类型的数据对象。这个数据对象可以用来存储和管理设置项，例如场景、源或过滤器的配置信息
     # settings = obs.obs_data_create()
     current_settings = settings
-    obs.script_log(obs.LOG_INFO, "已载入：bilibili-live")
-    # 获得 组合框【emoji表情】 的内容
-    emoji_face_list_value = obs.obs_data_get_string(current_settings, "emoji_face_list")
-    # 获得 组合框【弹幕发送到】 的内容
-    SentRoom_list_value = obs.obs_data_get_string(current_settings, "SentRoom_list")
+    obs.script_log(obs.LOG_INFO, "已载入：bilibili_live——")
 
 
 # 控件状态更新时调用
 def script_update(settings):
     """
     当用户更改了脚本的设置(如果有的话)时调用。
+    这里更改控件属性不会实时显示，
+    不要在这里控制控件的【可见】、【可用】、【值】和【名称】
     :param settings:与脚本关联的设置。
     """
-    global emoji_face_list_value, SentRoom_list_value, DanMu
-    # 当 组合框【emoji表情】 的内容 更改时 将 组合框【emoji表情】 的内容 载入剪贴板
-    if emoji_face_list_value != obs.obs_data_get_string(current_settings, "emoji_face_list"):
-        emoji_face_list_value = obs.obs_data_get_string(current_settings, "emoji_face_list")
-        cb.copy(emoji_face_list_value)
-    # 当 组合框【弹幕发送到】 的内容 更改时 将 刷新弹幕输出的直播间
-    if SentRoom_list_value != obs.obs_data_get_string(current_settings, "SentRoom_list"):
-        SentRoom_list_value = obs.obs_data_get_string(current_settings, "SentRoom_list")
-        # 获得组合框[选择账号]的内容
-        uid_list_value = obs.obs_data_get_string(current_settings, 'uid_list')
-        # 获取[选择账号]的内容对应的账户cookies
-        cookies = config_B(uid=int(uid_list_value), dirname=scripts_data_dirpath).check()
-        # # 获得组合框[发出弹幕的用户]的内容
-        # SentUid_list_value = obs.obs_data_get_string(current_settings, 'SentUid_list')
-        # # 获取[发出弹幕的用户]的内容对应的账户cookies
-        # cookies = config_B(uid=int(SentUid_list_value), dirname=scripts_data_dirpath).check()
-        # 获得组合框【弹幕发送到】 的内容
-        SentRoom = obs.obs_data_get_string(current_settings, 'SentRoom_list')
-        # 当  弹幕正在输出时 将 刷新弹幕输出的直播间
-        try:
-            if DanMu.danmu_working_is:
-                # 关闭当前正在输出的弹幕
-                DanMu.danmu_start_is = False
-
-                # 为 新的直播间 开启新输出的弹幕
-                def danmu_s():
-                    global DanMu
-                    DanMu = Danmu(dict2cookieformat(cookies)).connect_room(int(SentRoom))
-                    DanMu.start()
-                t1 = threading.Thread(target=danmu_s)
-                t1.start()
-        except:
-            pass
+    print("监测到控件数据变动")
+    pass
 
 
 # --- 一个名为script_properties的函数定义了用户可以使用的属性
 def script_properties():
     """
+    建立控件
     调用以定义与脚本关联的用户属性。这些属性用于定义如何向用户显示设置属性。
     :return:通过 obs_properties_create() 创建的 Obs_properties_t 对象
     """
     props = obs.obs_properties_create()  # 创建一个 OBS 属性集对象，他将包含所有控件对应的属性对象
     # obs_properties_t 类型的属性对象。这个属性对象通常用于枚举 libobs 对象的可用设置，
     # 通常用于自动生成用户界面小部件，也可以用来枚举特定设置的可用值或有效值。
+    # 分组框控件
     global setting_props, \
-        live_props, \
-        send_danmu_group, \
-        show_danmu_group
+        live_props
+    # 【配置】分组框中的控件
     global login_status_text, \
         uid_list, login_button
+    # 【直播】分组框中的控件
     global room_status_text, \
         area1_list, \
         area1_true_button, \
         area2_list, \
         area2_true_button, \
-        start_live_button, rtmp_address_copy_button, rtmp_stream_code_copy_button, rtmp_stream_code_updata_button, \
+        start_live_button, rtmp_address_copy_button, rtmp_stream_code_copy_button, rtmp_stream_code_update_button, \
         stop_live_button, \
         live_title_text, change_live_title_button, live_news_text, change_live_news_button
-    global SentUid_list, \
-        SentRoom_list, \
-        emoji_face_list, \
-        send_button, \
-        show_danmu_button
 
     # 为 分组框【配置】 建立属性集
     setting_props = obs.obs_properties_create()
     # 为 分组框【直播】 建立属性集
     live_props = obs.obs_properties_create()
-    # 为 分组框【发送弹幕】 建立属性集
-    send_danmu_group = obs.obs_properties_create()
-    # 为 分组框【输出弹幕】 建立属性集
-    show_danmu_group = obs.obs_properties_create()
     # —————————————————————————————————————————————————————————————————————————————————————————————————————
     # 添加 分组框【配置】
     obs.obs_properties_add_group(props, 'setting_group', '配置', obs.OBS_GROUP_NORMAL, setting_props)
@@ -5831,10 +5569,10 @@ def script_properties():
     obs.obs_property_set_visible(rtmp_stream_code_copy_button, stream_copy_button_visible)
 
     # 添加 按钮[更新推流码]
-    rtmp_stream_code_updata_button = obs.obs_properties_add_button(live_props, "rtmp_stream_code_updata_button",
-                                                                   "更新rtmp直播推流码", rtmp_stream_code_updata)
+    rtmp_stream_code_update_button = obs.obs_properties_add_button(live_props, "rtmp_stream_code_update_button",
+                                                                   "更新rtmp直播推流码", rtmp_stream_code_update)
     # 设置 按钮[更新推流码] 可见状态
-    obs.obs_property_set_visible(rtmp_stream_code_updata_button, stream_updata_button_visible)
+    obs.obs_property_set_visible(rtmp_stream_code_update_button, stream_update_button_visible)
 
     # 添加 按钮[结束直播]
     stop_live_button = obs.obs_properties_add_button(live_props, "stop_live_button", "结束直播", stop_live)
@@ -5847,7 +5585,8 @@ def script_properties():
     obs.obs_property_set_visible(live_title_text, live_title_text_visible)
 
     # 添加 按钮[更改直播标题]
-    change_live_title_button = obs.obs_properties_add_button(live_props, "change_live_title_button", "更改直播标题", change_live_title)
+    change_live_title_button = obs.obs_properties_add_button(live_props, "change_live_title_button", "更改直播标题",
+                                                             change_live_title)
     # 设置 按钮[更改直播标题] 可见状态
     obs.obs_property_set_visible(change_live_title_button, change_live_title_button_visible)
 
@@ -5857,69 +5596,10 @@ def script_properties():
     obs.obs_property_set_visible(live_news_text, live_news_text_visible)
 
     # 添加 按钮[更改直播公告]
-    change_live_news_button = obs.obs_properties_add_button(live_props, "change_live_news_button", "更改直播公告", change_live_news)
+    change_live_news_button = obs.obs_properties_add_button(live_props, "change_live_news_button", "更改直播公告",
+                                                            change_live_news)
     # 设置 按钮[更改直播公告] 可见状态
     obs.obs_property_set_visible(change_live_news_button, change_live_news_button_visible)
-
-    # ————————————————————————————————————————————————————————————————————————————————
-    # 添加 分组框【发送弹幕】
-    obs.obs_properties_add_group(props, 'send_danmu_group', '发送弹幕', obs.OBS_GROUP_NORMAL, send_danmu_group)
-
-    # 添加 组合框[发出弹幕的用户]
-    SentUid_list = obs.obs_properties_add_list(
-        send_danmu_group, 'SentUid_list', '发出弹幕的用户：'
-        , obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING
-    )
-    # 为 组合框[发出弹幕的用户] 添加选项
-    for SentUid in SentUid_list_dict_elements:
-        obs.obs_property_list_add_string(SentUid_list, SentUid_list_dict_elements[SentUid], SentUid)
-
-    # 添加 组合框[弹幕发送到]
-    SentRoom_list = obs.obs_properties_add_list(
-        send_danmu_group, 'SentRoom_list', '弹幕发送到：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING
-    )
-    # 为 组合框[弹幕发送到] 添加选项
-    for SentRoomid in SentRoom_list_set_elements:
-        # 获得 保存到直播间 的 信息
-        RoomBaseInfo = getRoomBaseInfo(int(SentRoomid))
-        obs.obs_property_list_add_string(
-            SentRoom_list, RoomBaseInfo["by_room_ids"][str(SentRoomid)]["uname"] + "_的直播间", str(SentRoomid)
-        )
-    # 设置 按钮[弹幕发送到] 可用状态
-    obs.obs_property_set_enabled(SentRoom_list, SentRoom_list_enabled)
-
-    # 添加 组合框[emoji表情]
-    emoji_face_list = obs.obs_properties_add_list(
-        send_danmu_group, 'emoji_face_list', 'emoji表情：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING
-    )
-    # 为 组合框[emoji表情] 添加选项
-    for emoji_face in emoji_face_list_dict_elements:
-        obs.obs_property_list_add_string(
-            emoji_face_list, emoji_face_list_dict_elements[emoji_face], emoji_face
-        )
-    # 设置 组合框[emoji表情] 可见状态
-    obs.obs_property_set_visible(emoji_face_list, emoji_face_list_visible)
-
-    # 添加 换行文本框[弹幕内容]
-    obs.obs_properties_add_text(send_danmu_group, 'danmu_msg_text', '弹幕内容：', obs.OBS_TEXT_MULTILINE)
-
-    # 添加 按钮[发送弹幕]
-    send_button = obs.obs_properties_add_button(send_danmu_group, 'send_button', '发送弹幕', send)
-    # 设置 按钮[发送弹幕] 可用状态
-    obs.obs_property_set_enabled(send_button, send_button_enabled)
-
-    # 添加 按钮[更改屏蔽词]
-    correct_mask_word_button = obs.obs_properties_add_button(send_danmu_group, 'correct_mask_word_button', '更改屏蔽词',
-                                                             lambda ps, p: correct_mask_word())
-
-    # ————————————————————————————————————————————————————————————————————————————————
-    # 添加 分组框【输出弹幕】
-    obs.obs_properties_add_group(props, 'show_danmu_group', '输出弹幕', obs.OBS_GROUP_NORMAL, show_danmu_group)
-
-    # 添加 按钮[显示弹幕]
-    show_danmu_button = obs.obs_properties_add_button(show_danmu_group, 'show_danmu_button', '显示弹幕', show_danmu)
-    # 设置 按钮[显示弹幕] 可用状态
-    obs.obs_property_set_enabled(show_danmu_button, show_danmu_button_enabled)
 
     # ————————————————————————————————————————————————————————————————————————————————
     # 添加 按钮[直播间后台网页]
@@ -6018,7 +5698,7 @@ def login(props, prop):
     obs.obs_property_set_visible(rtmp_stream_code_copy_button, stream_copy_button_visible)
 
     # 根据直播状态更改 按钮[更新推流码] 可见状态
-    obs.obs_property_set_visible(rtmp_stream_code_updata_button, stream_updata_button_visible)
+    obs.obs_property_set_visible(rtmp_stream_code_update_button, stream_update_button_visible)
 
     # 根据直播状态更改 按钮[停播] 可见状态
     obs.obs_property_set_visible(stop_live_button, stop_live_button_visible)
@@ -6034,42 +5714,6 @@ def login(props, prop):
 
     # 设置 按钮[更改直播公告] 可见状态
     obs.obs_property_set_visible(change_live_news_button, change_live_news_button_visible)
-
-    ###########################################################################
-    # 清空组合框[发出弹幕的用户]
-    obs.obs_property_list_clear(SentUid_list)
-    # 为组合框[发出弹幕的用户]添加选项
-    for SentUid in SentUid_list_dict_elements:
-        obs.obs_property_list_add_string(SentUid_list, SentUid_list_dict_elements[SentUid], SentUid)
-
-    # 清空组合框[emoji表情]
-    obs.obs_property_list_clear(emoji_face_list)
-    # 为组合框[emoji表情]添加选项
-    for emoji_face in emoji_face_list_dict_elements:
-        obs.obs_property_list_add_string(
-            emoji_face_list, emoji_face_list_dict_elements[emoji_face], emoji_face
-        )
-    # 根据直播状态更改 组合框[emoji表情] 可见状态
-    obs.obs_property_set_visible(emoji_face_list, emoji_face_list_visible)
-
-    # 清空组合框[弹幕发送到]
-    obs.obs_property_list_clear(SentRoom_list)
-    # 为组合框[弹幕发送到]添加选项
-    for roomid in SentRoom_list_set_elements:
-        # 获得 保存到直播间 的 信息
-        RoomBaseInfo = getRoomBaseInfo(int(roomid))
-        obs.obs_property_list_add_string(
-            SentRoom_list, RoomBaseInfo["by_room_ids"][str(roomid)]["uname"] + "_的直播间", str(roomid)
-        )
-    # 设置按钮[弹幕发送到]的可用状态
-    obs.obs_property_set_enabled(SentRoom_list, SentRoom_list_enabled)
-
-    # 设置按钮[发送弹幕]的可用状态
-    obs.obs_property_set_enabled(send_button, send_button_enabled)
-
-    ###########################################################################
-    # 设置按钮[显示弹幕]的可用状态
-    obs.obs_property_set_enabled(show_danmu_button, show_danmu_button_enabled)
 
     return True
 
@@ -6099,7 +5743,7 @@ def start_area():
     cookies = config_B(uid=0, dirname=scripts_data_dirpath).check()
     # 获取二级分区id
     area2_id = obs.obs_data_get_string(current_settings, 'area2_list')
-    CsrfAuthenticationL(dict2cookieformat(cookies)).AnchorChangeRoomArea(int(area2_id))
+    CsrfAuthentication(dict2cookieformat(cookies)).AnchorChangeRoomArea(int(area2_id))
     pass
 
 
@@ -6111,7 +5755,7 @@ def start_live(props, prop):
     if cookies:
         # 获取二级分区id
         area2_id = obs.obs_data_get_string(current_settings, 'area2_list')
-        startlive = CsrfAuthenticationL(dict2cookieformat(cookies)).startLive(int(area2_id))
+        startlive = CsrfAuthentication(dict2cookieformat(cookies)).startLive(int(area2_id))
         # 将 rtmp推流码 复制到剪贴板
         cb.copy(startlive["data"]["rtmp"]["code"])
     # 设置组合框[用户]为'默认用户'
@@ -6124,21 +5768,21 @@ def start_live(props, prop):
 def rtmp_address_copy(props, prop):
     # 获取默认账户
     cookies = config_B(uid=0, dirname=scripts_data_dirpath).check()
-    cb.copy(CsrfAuthenticationL(dict2cookieformat(cookies)).FetchWebUpStreamAddr()['data']['addr']['addr'])
+    cb.copy(CsrfAuthentication(dict2cookieformat(cookies)).FetchWebUpStreamAddr()['data']['addr']['addr'])
     pass
 
 
 def rtmp_stream_code_copy(props, prop):
     # 获取默认账户
     cookies = config_B(uid=0, dirname=scripts_data_dirpath).check()
-    cb.copy(CsrfAuthenticationL(dict2cookieformat(cookies)).FetchWebUpStreamAddr()['data']['addr']['code'])
+    cb.copy(CsrfAuthentication(dict2cookieformat(cookies)).FetchWebUpStreamAddr()['data']['addr']['code'])
     pass
 
 
-def rtmp_stream_code_updata(props, prop):
+def rtmp_stream_code_update(props, prop):
     # 获取默认账户
     cookies = config_B(uid=0, dirname=scripts_data_dirpath).check()
-    cb.copy(CsrfAuthenticationL(dict2cookieformat(cookies)).FetchWebUpStreamAddr(True)['data']['addr']['code'])
+    cb.copy(CsrfAuthentication(dict2cookieformat(cookies)).FetchWebUpStreamAddr(True)['data']['addr']['code'])
     pass
 
 
@@ -6148,292 +5792,28 @@ def stop_live(props, prop):
     cookies = config_B(uid=0, dirname=scripts_data_dirpath).check()
     # 停播
     if cookies:
-        CsrfAuthenticationL(dict2cookieformat(cookies)).stopLive()
+        CsrfAuthentication(dict2cookieformat(cookies)).stopLive()
     # 设置组合框[用户]为'默认用户'
     obs.obs_data_set_string(current_settings, 'uid_list', cookies["DedeUserID"])
     login(props, prop)
     return True
 
 
-# 设定 计时器 中的 弹幕消息切片 元素序号
-danmu_msg_list_num = 0
-# 弹幕字数等级
-send_danmu_msg_word_num = 40
-# 设定 计时器 的使用状态
-send_danmu_msg_list_clock = False
-
-
-def send(props, prop):
-    # 获得组合框[发出弹幕的用户]的内容
-    SentUid = obs.obs_data_get_string(current_settings, 'SentUid_list')
-    # 获取[发出弹幕的用户]账户cookies
-    cookies = config_B(uid=int(SentUid), dirname=scripts_data_dirpath).check()
-    # 获得组合框【弹幕发送到】 的内容
-    SentRoom = obs.obs_data_get_string(current_settings, 'SentRoom_list')
-    # 获得 文本框【弹幕内容】 的内容
-    danmu_msg = obs.obs_data_get_string(current_settings, 'danmu_msg_text')
-    # 如果字符串为空，则不发送弹幕
-    if danmu_msg.strip() == "":
-        obs.script_log(obs.LOG_INFO, "弹幕内容为空，不发送弹幕")
-
-    # # 清空 文本框【弹幕内容】 的内容
-    # obs.obs_data_set_string(current_settings, 'danmu_msg_text', "")
-    # 当以 \n 开头 执行 添加或者减少发送的直播间
-    try:
-        DanMu_danmu_working_is = DanMu.danmu_working_is
-    except:
-        DanMu_danmu_working_is = False
-    if str(danmu_msg).startswith("\n") and not DanMu_danmu_working_is:  # 添加直播间或删除直播间
-        roomid_set_data = set()
-        danmu_room_add_or_delet = str(danmu_msg).strip()
-        if danmu_room_add_or_delet in ["-", "－"]:
-            # 获得组合框【弹幕发送到】的内容
-            danmu_room_delet = SentRoom
-            if os.path.exists(scripts_roomid_filepath):
-                with open(scripts_roomid_filepath, "r", encoding="utf-8") as j:
-                    roomid_set_data = eval(j.read())
-                with open(scripts_roomid_filepath, "w", encoding="utf-8") as j:
-                    roomid_set_data.discard(danmu_room_delet)
-                    j.write(str(roomid_set_data))
-                obs.script_log(obs.LOG_INFO, "删除直播间")
-            obs.obs_data_set_string(current_settings, 'danmu_msg_text', "")
-            # 设置组合框[用户]为'默认用户'
-            obs.obs_data_set_string(current_settings, 'uid_list', cookies["DedeUserID"])
-            login(props, prop)
-        else:
-            try:
-                danmu_room_add = int(danmu_room_add_or_delet)
-            except:
-                obs.obs_data_set_string(current_settings, 'danmu_msg_text', "请输入正常直播间号")
-            else:
-                RoomBaseInfo = getRoomBaseInfo(int(danmu_room_add))
-                for long_roomid in RoomBaseInfo["by_room_ids"]:
-                    if os.path.exists(scripts_roomid_filepath):
-                        with open(scripts_roomid_filepath, "r", encoding="utf-8") as j:
-                            roomid_set_data = eval(j.read())
-                    with open(scripts_roomid_filepath, "w", encoding="utf-8") as j:
-                        roomid_set_data.add(long_roomid)
-                        j.write(str(roomid_set_data))
-                obs.script_log(obs.LOG_INFO, "添加直播间")
-                obs.obs_data_set_string(current_settings, 'danmu_msg_text', "")
-                # 设置 组合框[用户] 内容为'默认用户'
-                obs.obs_data_set_string(current_settings, 'uid_list', cookies["DedeUserID"])
-                login(props, prop)
-
-    # 将弹幕发送到直播间
-    if not str(danmu_msg).startswith("\n") and obs.obs_property_list_item_count(SentRoom_list):
-        global danmu_msg_list_num, send_danmu_msg_list_clock, \
-            send_danmu_msg_split_list_dict, send_danmu_msg_word_num
-        try:
-            DanMu_danmu_working_is = DanMu.danmu_working_is
-        except:
-            DanMu_danmu_working_is = False
-        if not DanMu_danmu_working_is:
-            obs.script_log(obs.LOG_INFO, "发送弹幕")
-        # 弹幕切分
-        if not send_danmu_msg_list_clock:
-            danmu_msg_list_split = split_of_list(danmu_msg, list(emoji_face_list_dict_elements.keys()))
-            # print(9, danmu_msg_list_split)
-            danmu_msg_word_num_max_lever_list = [40, 30, 20]
-            send_danmu_msg_split_list_dict = {}
-            for danmu_msg_word_num_max in danmu_msg_word_num_max_lever_list:
-                # 根据不同等级的弹幕字数，制造 弹幕内容切分 列表
-                danmu_msg_split_word_num = 0
-                send_danmu_msg_split_list = []
-                send_danmu_msg_split_t = ''
-                for danmu_msg_list_split_element in danmu_msg_list_split:
-                    # print(danmu_msg_list_split_element)
-                    # 使用表情切分弹幕内容，将文字和表情分开, 获得列表
-                    send_danmu_msg_split_t += danmu_msg_list_split_element
-                    if danmu_msg_list_split_element in emoji_face_list_dict_elements:
-                        # print(0)
-                        # 若是表情则 弹幕字数 +1
-                        danmu_msg_split_word_num += 1
-                        # 根据 弹幕字数，组合 发送弹幕切分列表
-                        if danmu_msg_split_word_num == danmu_msg_word_num_max:
-                            # 当 弹幕字数 为 可发送最大字数 时， 重置弹幕计数
-                            danmu_msg_split_word_num = 0
-                            # 添加入 发送弹幕切分列表
-                            send_danmu_msg_split_list.append(send_danmu_msg_split_t)
-                            # 重置 这次从 表情切分弹幕内容 获取的 弹幕内容
-                            send_danmu_msg_split_t = ''
-                    elif danmu_msg_list_split_element not in emoji_face_list_dict_elements:
-                        # print(1)
-                        # 若是普通弹幕则 弹幕字数 +普通弹幕字数
-                        danmu_msg_split_word_num += len(danmu_msg_list_split_element)
-                        # print("len", len(danmu_msg_list_split_element))
-                        # 根据 弹幕字数，组合发送弹幕切分列表
-                        if danmu_msg_split_word_num == danmu_msg_word_num_max:
-                            # 当 弹幕字数 为 可发送最大字数 时， 重置弹幕计数
-                            danmu_msg_split_word_num = 0
-                            # 添加入 发送弹幕切分列表
-                            send_danmu_msg_split_list.append(send_danmu_msg_split_t)
-                            # 重置 这次从 表情切分弹幕内容 获取的 弹幕内容
-                            send_danmu_msg_split_t = ''
-                        elif danmu_msg_split_word_num > danmu_msg_word_num_max:
-                            # 将在 开头的 可发送最大字数 添加入 发送弹幕切分列表，避免后续将 表情重定符 算入弹幕字数
-                            ll_danmu_msg_word_max_num = danmu_msg_word_num_max - danmu_msg_split_word_num
-                            # print(send_danmu_msg_split_t[:ll_danmu_msg_word_max_num], ll_danmu_msg_word_max_num)
-                            send_danmu_msg_split_list.append(send_danmu_msg_split_t[:ll_danmu_msg_word_max_num])
-                            # 重置弹幕计数
-                            danmu_msg_split_word_num = 0
-                            # 将 除了 开头的 可发送最大字数 的 弹幕内容
-                            send_danmu_msg_split_t = send_danmu_msg_split_t[ll_danmu_msg_word_max_num:]
-                            # print(send_danmu_msg_split_t)
-                            # 弹幕计数 除了 开头的 可发送最大字数 的 弹幕内容
-                            danmu_msg_split_word_num += len(send_danmu_msg_split_t)
-                            if danmu_msg_split_word_num == danmu_msg_word_num_max:
-                                # 当 弹幕字数 为 可发送最大字数 时， 重置弹幕计数
-                                danmu_msg_split_word_num = 0
-                                # 添加入 发送弹幕切分列表
-                                send_danmu_msg_split_list.append(send_danmu_msg_split_t)
-                                # 重置 这次从 表情切分弹幕内容 获取的 弹幕内容
-                                send_danmu_msg_split_t = ''
-                            elif danmu_msg_split_word_num > danmu_msg_word_num_max:
-                                send_danmu_msg_split_t_split = split_by_n(send_danmu_msg_split_t,
-                                                                          danmu_msg_word_num_max)
-                                # print(101, send_danmu_msg_split_t_split)
-                                for send_danmu_msg_split_t in send_danmu_msg_split_t_split[:-1]:
-                                    send_danmu_msg_split_list.append(send_danmu_msg_split_t)
-                                send_danmu_msg_split_t = send_danmu_msg_split_t_split[-1]
-                                # print(111, send_danmu_msg_split_t)
-                                danmu_msg_split_word_num = len(send_danmu_msg_split_t)
-                                if danmu_msg_split_word_num == danmu_msg_word_num_max:
-                                    danmu_msg_split_word_num = 0
-                                    send_danmu_msg_split_list.append(send_danmu_msg_split_t)
-                send_danmu_msg_split_list.append(send_danmu_msg_split_t)
-                send_danmu_msg_split_list_dict.update({danmu_msg_word_num_max: send_danmu_msg_split_list})
-
-        def send_danmu_msg_list():
-            """
-            发送弹幕
-            :return:
-            """
-            global danmu_msg_list_num, send_danmu_msg_list_clock, \
-                send_danmu_msg_split_list_dict, send_danmu_msg_word_num
-            # pprint.pprint(send_danmu_msg_split_list_dict)
-            if danmu_msg_list_num < len(send_danmu_msg_split_list_dict[send_danmu_msg_word_num]):
-                send_danmu_msg_list_clock = True
-                # 发送弹幕
-                danmu_send_info = CsrfAuthenticationL(dict2cookieformat(cookies)).send(
-                    int(SentRoom), send_danmu_msg_split_list_dict[send_danmu_msg_word_num][danmu_msg_list_num]
-                )
-                # 检测弹幕是否发送成功
-                send_success = danmu_send_info['data']['mode_info']['user']['title']
-                if send_success:
-                    try:
-                        DanMu_danmu_working_is = DanMu.danmu_working_is
-                    except:
-                        DanMu_danmu_working_is = False
-                    if not DanMu_danmu_working_is:
-                        obs.script_log(obs.LOG_INFO,
-                                       f"弹幕发送成功：{send_danmu_msg_split_list_dict[send_danmu_msg_word_num][danmu_msg_list_num]}"
-                                       )
-                else:
-                    obs.script_log(obs.LOG_INFO,
-                                   f"弹幕发送失败：{send_danmu_msg_split_list_dict[send_danmu_msg_word_num][danmu_msg_list_num]}，{danmu_send_info['message']}"
-                                   )
-                if danmu_send_info['message'] == "超出限制长度":
-                    if send_danmu_msg_word_num != 20:
-                        send_danmu_msg_word_num -= 10
-                        danmu_msg_list_num = 0
-                    else:
-                        danmu_msg_list_num += 1
-                elif danmu_send_info['message'] == "您发送弹幕的频率过快":
-                    pass
-                elif danmu_send_info['message'] == "f":
-                    erro_msg = send_danmu_msg_split_list_dict[send_danmu_msg_word_num][danmu_msg_list_num]
-                    danmu_msg_list_nume = danmu_msg_list_num
-                    danmu_msg_list_num = len(send_danmu_msg_split_list_dict[send_danmu_msg_word_num])
-                    while danmu_msg_list_nume < len(send_danmu_msg_split_list_dict[send_danmu_msg_word_num]):
-                        danmu_msg_list_nume += 1
-                        if danmu_msg_list_nume < len(send_danmu_msg_split_list_dict[send_danmu_msg_word_num]) - 1:
-                            erro_msg += send_danmu_msg_split_list_dict[send_danmu_msg_word_num][danmu_msg_list_nume]
-                    cb.copy(erro_msg)
-                else:
-                    danmu_msg_list_num += 1
-            else:
-                send_danmu_msg_list_clock = False
-                danmu_msg_list_num = 0
-                send_danmu_msg_word_num = 40
-                obs.remove_current_callback()
-
-        # 当 输出弹幕计时器 未开启， 发送弹幕
-        if not send_danmu_msg_list_clock:
-            obs.timer_add(send_danmu_msg_list, 1000)
-            # 清空 文本框【弹幕内容】 的内容
-            obs.obs_data_set_string(current_settings, 'danmu_msg_text', "")
-
-    if not obs.obs_property_list_item_count(SentRoom_list):
-        obs.obs_data_set_string(current_settings, 'danmu_msg_text', "组合框【弹幕发送到】 无选项")
-
-    return True
-
-
-def correct_mask_word():
-    correct_word = str(pypinyin.pinyin(cb.paste(), style=pypinyin.Style.TONE2))
-    # obs.script_log(obs.LOG_INFO, correct_word)
-    cb.copy(correct_word.replace("[", "").replace("]", "").replace(", ", "_").replace("'", ""))
-    pass
-
-
 def change_live_title(props, prop):
     live_title_text_value = obs.obs_data_get_string(current_settings, 'live_title_text')
     # 获取 '默认账户'cookie
     cookies = config_B(uid=0, dirname=scripts_data_dirpath).check()
-    turn_title_return = CsrfAuthenticationL(dict2cookieformat(cookies)).room_v1_Room_update(live_title_text_value)
+    turn_title_return = CsrfAuthentication(dict2cookieformat(cookies)).room_v1_Room_update(live_title_text_value)
     # print(turn_title_return)
     pass
 
 
 def change_live_news(props, prop):
     live_news_text_value = obs.obs_data_get_string(current_settings, 'live_news_text')
-    # 获取 '默认账户'cookie
     cookies = config_B(uid=0, dirname=scripts_data_dirpath).check()
-    turn_news_return = CsrfAuthenticationL(dict2cookieformat(cookies)).updateRoomNews(live_news_text_value)
-    # print(turn_news_return)
+    turn_news_return = CsrfAuthentication(dict2cookieformat(cookies)).updateRoomNews(live_news_text_value)
+    obs.script_log(obs.LOG_INFO, f'{turn_news_return}')
     pass
-
-
-def show_danmu(props, prop):
-    global DanMu
-    # 获取 '默认账户'cookie
-    cookies = config_B(uid=0, dirname=scripts_data_dirpath).check()
-    # # 获得 组合框[发出弹幕的用户]的内容
-    # SentUid_list_value = obs.obs_data_get_string(current_settings, 'SentUid_list')
-    # # 获取 [发出弹幕的用户]账户cookies
-    # cookies = config_B(uid=int(SentUid_list_value), dirname=scripts_data_dirpath).check()
-    # 获得 组合框【弹幕发送到】 的内容
-    SentRoom = obs.obs_data_get_string(current_settings, 'SentRoom_list')
-
-    def danmu_s():
-        global DanMu
-        DanMu = Danmu(dict2cookieformat(cookies)).connect_room(int(SentRoom))
-        print(DanMu.danmu_start_is)
-        DanMu.start()
-    try:
-        if DanMu.danmu_working_is:
-            DanMu.danmu_start_is = False
-            # 设置 按钮[登录] 可用状态
-            obs.obs_property_set_enabled(login_button, True)
-            # 更改 组合框【弹幕发送到】的可用性
-            obs.obs_property_set_enabled(SentRoom_list, True)
-        else:
-            # 更改 组合框【弹幕发送到】的可用性
-            obs.obs_property_set_enabled(SentRoom_list, False)
-            # 设置 按钮[登录] 可用状态
-            obs.obs_property_set_enabled(login_button, False)
-            t1 = threading.Thread(target=danmu_s)
-            t1.start()
-    except:
-        # 更改 组合框【弹幕发送到】的可用性
-        obs.obs_property_set_enabled(SentRoom_list, False)
-        # 设置 按钮[登录] 可用状态
-        obs.obs_property_set_enabled(login_button, False)
-        t1 = threading.Thread(target=danmu_s)
-        t1.start()
-
-    return True
 
 
 def Blive_web(props, prop):
