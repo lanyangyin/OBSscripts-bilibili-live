@@ -26,7 +26,7 @@ import tempfile
 # import threading
 import time
 import urllib
-from typing import Optional
+from typing import Optional, Dict
 # import zlib
 from urllib.parse import quote
 from pathlib import Path
@@ -46,93 +46,248 @@ class GlobalVariableOfTheControl:
     # #记录obs插件中控件的数据
     current_settings = None
 
-    # #分组框控件
-    # ##【配置】分组框的实例
+    # #分组框控件-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # ##【账号】分组框的实例
     setting_props = None
-    setting_props_visible = None  # ###【配置】分组框的实例的【可见】
-    setting_props_enabled = None  # ###【配置】分组框的实例的【可用】
+    setting_props_visible = None  # ###【账号】分组框的实例的【可见】
+    setting_props_enabled = None  # ###【账号】分组框的实例的【可用】
+
+    # ##【直播间】分组框的实例
+    liveRoom_props = None
+    liveRoom_props_visible = None  # ###【直播间】分组框的实例的【可见】
+    liveRoom_props__enabled = None  # ###【直播间】分组框的实例的【可用】
+
     # ##【直播】分组框的实例
     live_props = None
     live_props_visible = None  # ###【直播】分组框的实例的【可见】
     live_props__enabled = None  # ###【直播】分组框的实例的【可用】
-    # #【配置】分组框中的控件
-    # ##只读文本框[登录状态]的实例
-    login_status_text = None
-    login_status_text_visible = None  # ###只读文本框[登录状态]的实例的【可见】
-    login_status_text_enabled = None  # ###只读文本框[登录状态]的实例的【可用】
-    login_status_text_type = None  # ###只读文本框[登录状态]的实例的【类型】
+
+    # #【账号】分组框中的控件-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # ##只读文本框【登录状态】的实例
+    login_status_textBox = None
+    login_status_textBox_visible = None  # ###只读文本框【登录状态】的实例的【可见】
+    login_status_textBox_enabled = None  # ###只读文本框【登录状态】的实例的【可用】
+    login_status_textBox_type = None  # ###只读文本框【登录状态】的实例的【类型】
+    login_status_textBox_string = ""  # ###只读文本框【登录状态】的实例的【显示】
     """
     obs.OBS_TEXT_INFO_NORMAL
     obs.OBS_TEXT_INFO_WARNING
     """
-    # ##组合框[用户]的实例
-    uid_list = None
-    uid_list_visible = None
-    uid_list_enabled = None
-    # ##按钮[登录]的实例
-    login_button = None
-    login_button_visible = None  # ###按钮[登录]的实例的【可见】
-    login_button_enabled = None  # ###按钮[登录]的实例的【可用】
 
-    # #【直播】分组框中的控件
-    # ##只读文本框[直播间状态]的实例
-    room_status_text = None
-    room_status_text_visible = None
-    room_status_text_enabled = None
-    room_status_text_type = None
-    # ##组合框[一级分区]的实例
-    area1_list = None
-    area1_list_visible = None
-    area1_list_enabled = None
-    # ##按钮[确认一级分区]的实例
-    area1_true_button = None
-    area1_true_button_visible = None
-    area1_true_button_enabled = None
-    # ##组合框[二级分区]的实例
-    area2_list = None
-    area2_list_visible = None
-    area2_list_enabled = None
-    # ##按钮[{确认分区}]的实例
-    area2_true_button = None
-    area2_true_button_visible = None
-    area2_true_button_enabled = None
-    # ##按钮[开播]的实例
+    # ##组合框【用户】的实例
+    uid_comboBox = None
+    uid_comboBox_visible = None
+    uid_comboBox_enabled = None
+    default_uid_comboBox_string = ""
+    """
+    组合框【用户】的第0行显示的字符串
+    """
+    default_uid_comboBox_value = ""
+    """
+    组合框【用户】的第0行显示的字符串在组合框中对应值
+    """
+
+    # ##按钮【登录账号】的实例
+    login_button = None
+    login_button_visible = None  # ###按钮【登录账号】的实例的【可见】
+    login_button_enabled = None  # ###按钮【登录账号】的实例的【可用】
+
+    # ##按钮【二维码添加账户】的实例
+    qr_code_add_account_button = None
+    qr_code_add_account_button_visible = None
+    qr_code_add_account_button_enabled = None
+
+    # ##按钮【显示二维码图片】的实例
+    display_qr_code_picture_button = None
+    display_qr_code_picture_button_visible = None
+    display_qr_code_picture_button_enabled = None
+
+    # ##按钮【删除账户】的实例
+    delete_account_button = None
+    delete_account_button_visible = None
+    delete_account_button_enabled = None
+
+    # ##按钮【备份账户】的实例
+    backup_account_button = None
+    backup_account_button_visible = None
+    delete_backup_account_enabled = None
+
+    # ##按钮【恢复账户】的实例
+    restore_account_button = None
+    restore_account_button_visible = None
+    restore_account_button_enabled = None
+
+    # ##按钮【退出登录】的实例
+    logout_button = None
+    logout_button_visible = None
+    logout_button_enabled = None
+
+    # #【直播间】分组框中的控件-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # ##只读文本框【直播间状态】的实例
+    room_status_textBox = None
+    room_status_textBox_visible = None
+    room_status_textBox_enabled = None
+    room_status_textBox_type = None
+    room_status_textBox_string = ""
+
+    # ##文件对话框【直播间封面】的实例
+    room_cover_fileDialogBox = None
+    room_cover_fileDialogBox_visible = None
+    room_cover_fileDialogBox_enabled = None
+    room_cover_fileDialogBox_string = ""
+
+    # ##按钮【上传直播间封面】的实例
+    room_cover_update_button = None
+    room_cover_update_button_visible = None
+    room_cover_update_button_enabled = None
+
+    # ##url按钮【查看当前直播间封面】的实例
+    viewLiveCover_button = None
+    viewLiveCover_button_visible = None
+    viewLiveCover_button_enabled = None
+    viewLiveCover_button_url = ""
+
+    # ##普通文本框【直播间标题】的实例
+    liveRoom_title_textBox = None
+    liveRoom_title_textBox_visible = None
+    liveRoom_title_textBox_enabled = None
+    liveRoom_title_textBox_string = ""
+
+    # ##按钮【更改直播间标题】的实例
+    change_liveRoom_title_button = None
+    change_liveRoom_title_button_visible = None
+    change_liveRoom_title_button_enabled = None
+
+    # ##普通文本框【直播间公告】的实例
+    liveRoom_news_textBox = None
+    liveRoom_news_textBox_visible = None
+    liveRoom_news_textBox_enabled = None
+    liveRoom_news_textBox_string = ""
+
+    # ##按钮【更改直播间公告】的实例
+    change_liveRoom_news_button = None
+    change_liveRoom_news_button_visible = None  # ###按钮【更改直播间公告】的实例的【可见】
+    change_liveRoom_news_button_enabled = None  # ###按钮【更改直播间公告】的实例的【可用】
+
+    # ##组合框【一级分区】的实例
+    parentLiveArea_comboBox = None
+    parentLiveArea_comboBox_visible = None
+    parentLiveArea_comboBox_enabled = None
+    default_parentLiveArea_comboBox_string = ""
+    default_parentLiveArea_comboBox_value = ""
+
+    # ##按钮【确认一级分区】的实例
+    parentLiveArea_true_button = None
+    parentLiveArea_true_button_visible = None
+    parentLiveArea_true_button_enabled = None
+
+    # ##组合框【二级分区】的实例
+    subLiveArea_comboBox = None
+    subLiveArea_comboBox_visible = None
+    subLiveArea_comboBox_enabled = None
+    default_subLiveArea_comboBox_string = ""
+    default_subLiveArea_comboBox_value = ""
+
+    # ##按钮【{确认分区}】的实例
+    subLiveArea_true_button = None
+    subLiveArea_true_button_visible = None
+    subLiveArea_true_button_enabled = None
+
+    # ##url按钮【跳转直播间后台网页】
+    jump_blive_web_button = None
+    jump_blive_web_button_visible = None
+    jump_blive_web_button_enabled = None
+    jump_blive_web_button_url = ""
+
+    # #【直播】分组框中的控件-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # ##组合框【直播平台】的实例
+    live_streaming_platform_comboBox = None
+    live_streaming_platform_comboBox_visible = None
+    live_streaming_platform_comboBox_enabled = None
+    default_live_streaming_platform_comboBox_string = ""
+    default_live_streaming_platform_comboBox_value = ""
+
+    # ##按钮【开始直播并复制推流码】的实例
     start_live_button = None
-    start_live_button_visible = None  # ###按钮[开播]的实例的【可见】
-    start_live_button_enabled = None  # ###按钮[开播]的实例的【可用】
-    # ##按钮[复制直播服务器]的实例
+    start_live_button_visible = None  # ###按钮【开始直播并复制推流码】的实例的【可见】
+    start_live_button_enabled = None  # ###按钮【开始直播并复制推流码】的实例的【可用】
+
+    # ##按钮【复制直播服务器】的实例
     rtmp_address_copy_button = None
     rtmp_address_copy_button_visible = None
     rtmp_address_copy_button_enabled = None
-    # ##按钮[复制直播推流码]的实例
+
+    # ##按钮【复制直播推流码】的实例
     rtmp_stream_code_copy_button = None
     rtmp_stream_code_copy_button_visible = None
     rtmp_stream_code_copy_button_enabled = None
-    # ##按钮[更新推流码并复制]的实例
+
+    # ##按钮【更新推流码并复制】的实例
     rtmp_stream_code_update_button = None
     rtmp_stream_code_update_button_visible = None
     rtmp_stream_code_update_button_enabled = None
-    # ##按钮[结束直播]的实例
+
+    # ##按钮【结束直播】的实例
     stop_live_button = None
     stop_live_button_visible = None
     stop_live_button_enabled = None
-    # ##普通文本框[直播标题]的实例
-    live_title_text = None
-    live_title_text_visible = None
-    live_title_text_enabled = None
-    # ##按钮[更改直播标题]的实例
-    change_live_title_button = None
-    change_live_title_button_visible = None
-    change_live_title_button_enabled = None
-    # ##普通文本框[直播公告]的实例
-    live_news_text = None
-    live_news_text_visible = None
-    live_news_text_enabled = None
-    live_news_text_type = None
-    # ##按钮[更改直播公告]的实例
-    change_live_news_button = None
-    change_live_news_button_visible = None  # ###按钮[更改直播公告]的实例的【可见】
-    change_live_news_button_enabled = None  # ###按钮[更改直播公告]的实例的【可用】
+
+
+class globalVariableOfData:
+    # 文件配置类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # #脚本所在目录，末尾带/
+    scripts_data_dirpath = None
+
+    # #配置文件所在路径
+    scripts_config_filepath = None
+
+    # 用户类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # ##全部账户的数据字典
+    allUidByUname4Dict = {}
+    """
+    全部账户的数据
+    {uid: uname}
+    """
+
+    # ##默认用户的昵称
+    DefaultUserUname = None
+    """
+    默认用户config["DefaultUser"]的昵称
+    没有则为None
+    """
+
+    # 直播间类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # #默认直播间状态
+    DefaultRoomStatus = None
+    """
+    默认用户config["DefaultUser"]的直播间存在状态
+    """
+    # #直播状态
+    DefaultLiveStatus = None
+
+    # #默认直播分区
+    DefaultArea = {}
+    """
+    默认的直播分区
+    {"id": parent_area_id, "name": parent_area_name, "data":{"id": area_id, "name": area_name}}
+    """
+
+    DefaultRoomid = 0
+    """
+    默认用户config["DefaultUser"]
+    的直播间id
+    """
+
+    # ##全部直播分区的对象的列表
+    AreaObjList = []
+    """
+    所有分区的对象列表
+    """
+
+    subLiveAreaObjList = []
+    """
+    对应一级分区的二级分区对象列表
+    """
 
 
 def script_path():
@@ -153,160 +308,269 @@ def script_path():
 # 工具类函数
 class BilibiliUserLogsIn2ConfigFile:
     """
-    配置文件 config.json 的 增删改查
+    管理B站用户登录配置文件的增删改查操作
+    配置文件结构示例：
+    {
+        "DefaultUser": "12345",
+        "12345": {
+            "DedeUserID": "12345",
+            "SESSDATA": "xxxxx",
+            "bili_jct": "xxxxx",
+            ...
+        }
+    }
     """
+
     def __init__(self, configPath: pathlib.Path):
         """
-        @param configPath: 用户配置文件路径
-
+        初始化配置文件管理器
+        Args:
+            configPath: 配置文件路径对象
+        Raises:
+            IOError: 文件读写失败时抛出
+            json.JSONDecodeError: 配置文件内容格式错误时抛出
         """
-        # 配置文件 config.json 路径
         self.configPath = configPath
-        # 判断配置文件 config.json 是否存在，不存在则创建一个初始配置文件
-        if not configPath.exists():
-            if not self.configPath.parent.exists():
-                configPath.parent.mkdir(parents=True, exist_ok=True)
-            # 初始配置文件写入默认内容
-            with open(self.configPath, 'w', encoding='utf-8') as f:
-                json.dump({"DefaultUser": None}, f, ensure_ascii=False, indent=4)
-        else:
-            with open(self.configPath, 'r', encoding='utf-8') as f:
-                config = json.load(f)
-            if "DefaultUser" not in config:
-                config["DefaultUser"] = None
-                with open(self.configPath, 'w', encoding='utf-8') as f:
-                    json.dump(config, f, ensure_ascii=False, indent=4)
+        self._ensure_config_file()
 
-    def add(self, cookies: dict):
-        """
-        增
-        Args:
-            cookies:
-        Returns:
-        """
-        with open(self.configPath, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-        if "DedeUserID" or "DedeUserID__ckMd5" or "SESSDATA" or "bili_jct" or "buvid3" or "b_nut" not in cookies:
-            raise ValueError(f"添加失败，cookies错误")
-        uid = cookies["DedeUserID"]
-        if uid in config:
-            raise ValueError(f"添加失败，{uid}已存在")
-        config[str(uid)] = cookies
-        with open(self.configPath, 'w', encoding='utf-8') as f:
-            json.dump(config, f, ensure_ascii=False, indent=4)
+    def _ensure_config_file(self):
+        """确保配置文件存在且结构有效"""
+        if not self.configPath.exists():
+            obs.script_log(obs.LOG_DEBUG, f'脚本数据文件【{globalVariableOfData.scripts_data_dirpath}】不存在，尝试创建')
+            self.configPath.parent.mkdir(parents=True, exist_ok=True)
+            self._write_config({"DefaultUser": None})
+            obs.script_log(obs.LOG_DEBUG, f'success：脚本数据文件 创建成功')
 
-    def delete(self, uid: int):
-        """
-        删
-        Args:
-            uid:
-        Returns:
-        """
-        with open(self.configPath, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-        uid = str(uid)
-        if uid in config:
-            del config[uid]
-            if config["DefaultUser"] == uid:
-                config["DefaultUser"] = None
-        else:
-            raise ValueError(f"删除失败，{uid}不存在")
-        with open(self.configPath, 'w', encoding='utf-8') as f:
-            json.dump(config, f, ensure_ascii=False, indent=4)
-
-    def change(self, cookies: Optional[dict], setDefaultUserIs: bool = True):
-        """
-        改
-        Args:
-            setDefaultUserIs:
-            cookies:
-        Returns:
-        """
-        with open(self.configPath, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-        if cookies is None and setDefaultUserIs:
+        config = self._read_config()
+        if "DefaultUser" not in config:
+            obs.script_log(obs.LOG_DEBUG, f'脚本数据文件中不存在"DefaultUser"字段，尝试创建')
             config["DefaultUser"] = None
-        elif "DedeUserID" not in cookies or "SESSDATA" not in cookies or "bili_jct" not in cookies:
-            raise ValueError(f"更改失败，cookies错误")
-        else:
-            uid = str(cookies["DedeUserID"])
-            if uid in config:
-                config[uid] = cookies
-                if setDefaultUserIs:
-                    config["DefaultUser"] = uid
-            else:
-                raise ValueError(f"更改失败，{uid}不存在")
+            self._write_config(config)
+            obs.script_log(obs.LOG_DEBUG, f'success："DefaultUser"字段 创建成功')
+
+    def _read_config(self) -> Dict:
+        """读取配置文件内容"""
+        try:
+            with open(self.configPath, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            raise RuntimeError(f"配置文件损坏或格式错误: {str(e)}") from e
+
+    def _write_config(self, config: Dict):
+        """写入配置文件"""
+        try:
             with open(self.configPath, 'w', encoding='utf-8') as f:
                 json.dump(config, f, ensure_ascii=False, indent=4)
+        except IOError as e:
+            raise RuntimeError(f"配置文件写入失败: {str(e)}") from e
 
-    def check(self, uid: Optional[int]) -> Optional[dict]:
+    def addUser(self, cookies: dict) -> None:
         """
-        查询配置文件中保存的 uid 对应的 cookies
+        添加新用户配置
         Args:
-            uid:
-        Returns:uid 对应的 cookies
+            cookies: 包含完整cookie信息的字典，必须包含以下字段：
+                     DedeUserID, DedeUserID__ckMd5, SESSDATA,
+                     bili_jct, buvid3, b_nut
+        Raises:
+            ValueError: 缺少必要字段或用户已存在时抛出
         """
-        with open(self.configPath, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-        if uid is None:
-            uidListDict = {}
-            uidSequenceNumber = 0
-            uidListDict[0] = None
-            for key in config.keys():
-                if key != "0" or "DefaultUser":
-                    if key == config["DefaultUser"]:
-                        uidListDict[0] = key
-                    else:
-                        uidSequenceNumber += 1
-                        uidListDict[uidSequenceNumber] = key
-            return uidListDict
-        uid = str(uid)
-        cookies = None
+        required_keys = {
+            "DedeUserID", "DedeUserID__ckMd5", "SESSDATA",
+            "bili_jct", "buvid3", "b_nut"
+        }
+        if not required_keys.issubset(cookies.keys()):
+            missing = required_keys - cookies.keys()
+            raise ValueError(f"缺少必要字段: {', '.join(missing)}")
+
+        uid = str(cookies["DedeUserID"])
+        config = self._read_config()
+
         if uid in config:
-            with open(self.configPath, 'r', encoding='utf-8') as f:
-                cookies = json.load(f)[uid]
-        return cookies
+            raise ValueError(f"用户 {uid} 已存在")
+
+        config[uid] = cookies
+        self._write_config(config)
+
+    def deleteUser(self, uid: int) -> None:
+        """
+        删除用户配置
+        Args:
+            uid: 要删除的用户ID
+        Raises:
+            ValueError: 用户不存在时抛出
+        """
+        config = self._read_config()
+        uid_str = str(uid)
+
+        if uid_str not in config:
+            raise ValueError(f"用户 {uid} 不存在")
+
+        # 处理默认用户
+        if config["DefaultUser"] == uid_str:
+            config["DefaultUser"] = None
+
+        del config[uid_str]
+        self._write_config(config)
+
+    def updateUser(self, cookies: Optional[dict], setDefaultUserIs: bool = True) -> None:
+        """
+        更新用户配置或清空默认用户
+    
+        Args:
+            cookies: 包含完整cookie信息的字典，传 None 表示清空默认用户
+                - 示例: {"DedeUserID": "123", "SESSDATA": "xxx"...}
+                - 传 None 时需配合 set_default_user=True 使用
+            setDefaultUserIs: 是否设为默认用户
+                - 当 cookies=None 时必须为 True
+    
+        Raises:
+            ValueError: 以下情况时抛出
+                - cookies 不完整或用户不存在
+                - cookies=None 但 set_default_user=False
+        """
+        config = self._read_config()
+    
+        # 处理清空默认用户场景
+        if cookies is None:
+            if not setDefaultUserIs:
+                raise ValueError("cookies=None 时必须设置 set_default_user=True")
+            config["DefaultUser"] = None
+            self._write_config(config)
+            return
+    
+        # 原始验证逻辑
+        required_keys = {"DedeUserID", "SESSDATA", "bili_jct"}
+        if not required_keys.issubset(cookies.keys()):
+            missing = required_keys - cookies.keys()
+            raise ValueError(f"缺少必要字段: {', '.join(missing)}")
+    
+        uid = str(cookies["DedeUserID"])
+        if uid not in config:
+            raise ValueError(f"用户 {uid} 不存在")
+    
+        # 更新用户数据
+        config[uid].update(cookies)
+        
+        # 设置默认用户
+        if setDefaultUserIs:
+            config["DefaultUser"] = uid
+    
+        self._write_config(config)
+
+    def getCookies(self, uid: Optional[int] = None) -> Optional[dict]:
+        """
+        获取指定用户的cookie信息
+        Args:
+            uid: 用户ID，None表示获取默认用户
+        Returns:
+            用户cookie字典，未找到返回None
+        """
+        config = self._read_config()
+        # 如果uid是None表示获取默认用户
+        if uid is None:
+            uid = config.get("DefaultUser")
+        # 如果默认用户是None输出None
+        if uid is None:
+            return None
+
+        uid_str = str(uid)
+        return config.get(uid_str)
+
+    def getUsers(self) -> Dict[int, Optional[str]]:
+        """
+        获取所有用户列表（包含默认用户占位）
+
+        Returns:
+            字典格式 {序号: 用户ID}，其中：
+            - 键 0: 默认用户ID（若未设置则为 None）
+            - 键 1~N: 其他用户ID（按插入顺序编号）
+        """
+        config = self._read_config()
+        # 获取所有用户ID（排除系统字段）
+        user_ids = [
+            uid for uid in config.keys()
+            if uid not in {"DefaultUser", "0"}  # 过滤系统保留字段
+            and uid.isdigit()  # 确保是数字型用户ID
+        ]
+        # 构建字典（强制包含 0: None）
+        users = {
+            0: config.get("DefaultUser")  # 允许 None
+        }
+        # 添加其他用户（过滤掉默认用户避免重复）
+        default_uid = config.get("DefaultUser")
+        if default_uid and default_uid in user_ids:
+            user_ids.remove(default_uid)  # 避免重复
+        for idx, uid in enumerate(user_ids, start=1):
+            users[idx] = uid
+        return users
 
 
-def dict2cookie(jsondict: dict) -> str:
+def dict2cookie(jsondict: Dict[str, str]) -> str:
     """
-    将 dict 转换为 cookie格式
-    @param jsondict: 字典
-    @return: cookie格式的字典
+    将字典转换为符合HTTP标准的Cookie字符串格式
+    Args:
+        jsondict: 包含Cookie键值对的字典
+            - 示例: {"name": "value", "age": "20"}
+            - 键和值将自动进行URL编码处理
+    Returns:
+        str: 符合Cookie规范的字符串
+            - 示例: "name=value; age=20"
+    Raises:
+        TypeError: 当输入不是字典时抛出
     """
-    cookie = ''
-    for json_dictK in jsondict:
-        json_dictki = json_dictK
-        json_dictVi = jsondict[json_dictki]
-        cookie += url_decoded(str(json_dictki)) + '=' + url_decoded(str(json_dictVi)) + '; '
-    cookie = cookie.strip()
-    if cookie.endswith(";"):
-        cookie = cookie[:-1]
-    return cookie
+    if not isinstance(jsondict, dict):
+        raise TypeError("输入必须是字典类型")
+    cookie_parts = [
+        f"{url_decoded(key)}={url_decoded(value)}"
+        for key, value in jsondict.items()
+        if value is not None  # 过滤空值
+    ]
+    return "; ".join(cookie_parts)
 
 
-def cookie2dict(cookie: str) -> dict:
+def cookie2dict(cookie: str) -> Dict[str, str]:
     """
-    将cookie字典化
-    @param cookie:
-    @return:
+    将符合HTTP标准的Cookie字符串转换为字典
+    Args:
+        cookie: Cookie字符串
+            示例: "name=value; age=20; token=abc%20123"
+    Returns:
+        解析后的字典，键值均为字符串类型
+        示例: {'name': 'value', 'age': '20', 'token': 'abc 123'}
+    Raises:
+        ValueError: 当输入不是字符串时抛出
+    Features:
+        - 自动处理URL解码
+        - 兼容不同分隔符（; 或 ; ）
+        - 过滤空值和无效条目
+        - 保留重复键的最后出现值（符合HTTP规范）
     """
-    # 用分号分隔输入字符串
-    key_value_pairs = cookie.split('; ')
-    # 初始化空字典
-    result_dict = {}
-    # 遍历每个键值对
-    for pair in key_value_pairs:
-        # 将pair拆分为key和value
-        key, value = pair.split('=')
-        # 删除任何前导或尾随空格
+    if not isinstance(cookie, str):
+        raise TypeError("输入必须是字符串类型")
+    cookie_dict = {}
+    # 处理空字符串和去除首尾空格
+    cookie_str = cookie.strip()
+    if not cookie_str:
+        return cookie_dict
+    # 兼容不同分隔符格式（支持 ; 和 ; ）
+    for pair in cookie_str.split(';'):
+        pair = pair.strip()
+        if not pair:
+            continue
+        # 处理键值对（仅分割第一个等号）
+        try:
+            key, value = pair.split('=', 1)
+        except ValueError:
+            continue  # 跳过无效条目
         key = key.strip()
         value = value.strip()
-        # 解码值中任何url编码的字符
-        value = urllib.parse.unquote(value)
-        # 将键值对添加到字典中
-        result_dict[key] = value
-    return result_dict
+        # 执行URL解码（仅值部分）
+        try:
+            decoded_value = urllib.parse.unquote(value)
+        except Exception:
+            decoded_value = value  # 解码失败保留原始值
+        cookie_dict[key] = decoded_value
+    return cookie_dict
 
 
 def url_decoded(url_string: str) -> str:
@@ -320,7 +584,7 @@ def url_decoded(url_string: str) -> str:
     return utf8_encoded
 
 
-def qr2str_b64_qrcodeImg4dict(qr_str: str, border: int = 2, invert: bool = False):
+def qr2str_b64_PilImg4dict(qr_str: str, border: int = 2, invert: bool = False):
     """
     字符串转二维码（返回包含 PIL 图像对象的字典）
     Args:
@@ -360,7 +624,15 @@ def qr2str_b64_qrcodeImg4dict(qr_str: str, border: int = 2, invert: bool = False
     # 重定向输出到变量中
     output_str = output.getvalue()
     sys.stdout = saveStdout  # 恢复 sys.stdout
-    return {"str": output_str, "base64": b64, "img": img}
+    # 将登录图片保存到临时文件
+    with tempfile.NamedTemporaryFile(suffix=".png") as tmp:
+        # 1. 将 PyPNGImage 对象保存到临时文件
+        img.save(tmp.name)
+        qrPilImg = Image.open(tmp.name)  # 将临时文件打开为PIL.Image.Image 对象
+        """
+        qr的PIL.Image.Image 对象
+        """
+    return {"str": output_str, "base64": b64, "img": qrPilImg}
 
 
 # end
@@ -548,7 +820,7 @@ def live_user_v1_Master_info(uid: int):
     return live_user_v1_Master_info
 
 
-def Area_getList():
+def getAreaObjList():
     """
     获取直播分区
     @return:
@@ -4515,7 +4787,7 @@ class master:
         response = requests.get(url, headers=headers).json()
         return response['data']
 
-    def interface_nav(self):
+    def interface_nav(self) -> dict:
         """
         获取登录后导航栏用户信息
         @return:
@@ -5033,24 +5305,26 @@ class CsrfAuthentication:
         ChangeRoomArea_ReturnValue = requests.post(api, headers=headers, params=data).json()
         return ChangeRoomArea_ReturnValue
 
-    def startLive(self, area_id: int):
+    def startLive(self, area_id: int,  platform: str = "web_link"):
         """
         开始直播
-        @param area_id: 二级分区id
-        @return:
+        Args:
+            area_id: 二级分区id
+            platform: 直播平台
+        Returns:
         """
         api = "https://api.live.bilibili.com/room/v1/Room/startLive"
         headers = self.headers
         csrf = self.csrf
-        data = {
-            "platform": "web_link",
+        startLivedata = {
+            "platform": platform,  # 直播姬（pc）：pc_link、web在线直播：web_link、bililink：android_link
             "room_id": master(self.cookie).getRoomHighlightState(),
             "area_v2": area_id,
             "backup_stream": 0,
             "csrf": csrf,
             "csrf_token": csrf,
         }
-        startLive_ReturnValue = requests.post(api, headers=headers, params=data).json()
+        startLive_ReturnValue = requests.post(api, headers=headers, params=startLivedata).json()
         return startLive_ReturnValue
 
     def stopLive(self):
@@ -5139,20 +5413,38 @@ class CsrfAuthentication:
         }
         updateRoomNews_ReturnValue = requests.post(api, headers=headers, data=data).json()
         return updateRoomNews_ReturnValue
+
+
 # end
 
 
 # 整合类函数
-def logIn(configPath: Path, uid: Optional[int]):
-    BUCF = BilibiliUserLogsIn2ConfigFile(configPath=configPath)
-    UserListDict = BUCF.check(None)
-    uid = str(uid)
-    if uid in UserListDict.values():
-        cookies = BUCF.check(int(uid))
-        # 尝试使用存录的cookies登录
+def logInTry(configPath: Path, uid: Optional[int]):
+    try:
+        BUCF = BilibiliUserLogsIn2ConfigFile(configPath=configPath)
+        uid = str(uid)
+        obs.script_log(obs.LOG_INFO, f"尝试登录用户: {uid}")
+        # 验证cookies完整性
+        cookies = BUCF.getCookies(int(uid))
+        if cookies is None:
+            raise ValueError(f"缺少该用户: {uid}")
+        required_keys = {"DedeUserID", "SESSDATA", "bili_jct"}
+        missing = required_keys - cookies.keys()
+        if missing:
+            raise ValueError(f"cookies缺少必要字段: {', '.join(missing)}")
         isLogin = master(dict2cookie(cookies)).interface_nav()["isLogin"]
-        if isLogin:
-            BUCF.change(BUCF.check(int(uid)))
+        if not isLogin:
+            obs.script_log(obs.LOG_ERROR, f"用户 {uid} 的cookies已过期")
+            return False
+        BUCF.updateUser(cookies)
+        obs.script_log(obs.LOG_INFO, f"用户 {uid} 登录成功")
+        return True
+    except ValueError as e:
+        obs.script_log(obs.LOG_ERROR, f"参数错误: {str(e)}")
+        raise
+    except Exception as e:
+        obs.script_log(obs.LOG_WARNING, f"登录过程异常: {str(e)}")
+        raise RuntimeError("登录服务暂时不可用") from e
 
 
 def qrAddUser(configPath: Path):
@@ -5162,22 +5454,14 @@ def qrAddUser(configPath: Path):
     """
     # 获取uid对应的cookies
     BUCF = BilibiliUserLogsIn2ConfigFile(configPath=configPath)
-    UserListDict = BUCF.check(None)
+    UserListDict = BUCF.getUsers()
     # 申请登录二维码
     url8qrcode_key = generate()
     url = url8qrcode_key['url']
     # 获取二维码
-    qr = qr2str_b64_qrcodeImg4dict(url)
+    qr = qr2str_b64_PilImg4dict(url)
     # 输出二维码图形字符串
     obs.script_log(obs.LOG_WARNING, qr["str"])
-    # 将登录图片保存到临时文件
-    with tempfile.NamedTemporaryFile(suffix=".png") as tmp:
-        # 1. 将 PyPNGImage 对象保存到临时文件
-        qr["img"].save(tmp.name)
-        qrPilImg = Image.open(tmp.name)
-        """
-        qr的PIL.Image.Image 对象
-        """
     # 获取二维码key
     qrcode_key = url8qrcode_key['qrcode_key']
     # 获取二维码扫描登陆状态
@@ -5210,12 +5494,14 @@ def qrAddUser(configPath: Path):
             if cookies:
                 # 获取登陆账号cookies中携带的uid
                 uid = int(cookies['DedeUserID'])
-                if uid in UserListDict.values():
+                if str(uid) in UserListDict.values():
                     obs.script_log(obs.LOG_INFO, "已有该用户，正在更新用户登录信息")
-                    BUCF.change(cookies, False)
+                    BUCF.updateUser(cookies, False)
                 else:
-                    BUCF.add(cookies)
+                    BUCF.addUser(cookies)
+            # 结束计时器
             obs.remove_current_callback()
+    # 开始计时器
     obs.timer_add(check_poll, 1000)
 
 
@@ -5229,195 +5515,190 @@ def qrAddUser(configPath: Path):
 # -----------------------------------------------------------
 
 # --- 设置默认值
-def script_defaults(settings):
+def script_defaults(settings):  # 设置其默认值
     """
     调用以设置与脚本关联的默认设置(如果有的话)。为了设置其默认值，您通常会调用默认值函数。
     :param settings:与脚本关联的设置。
     """
-    global scripts_data_dirpath, scripts_config_filepath
-    global Default_roomStatus, DefaultArea, DefaultliveStatus, \
-        allAreaList, \
-        uid_list_dict_elements, \
-        login_status_text_value, \
-        Default_uname
     # 路径变量
-    scripts_data_dirpath = f"{script_path()}bilibili-live"
-    obs.script_log(obs.LOG_INFO, f'{scripts_data_dirpath}')
-    scripts_config_filepath = Path(scripts_data_dirpath) / "config.json"
-    # 创建 插件数据 文件夹
-    try:
-        os.makedirs(scripts_data_dirpath, exist_ok=True)
-    except:
-        obs.script_log(obs.LOG_WARNING, "权限不足！")
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=scripts_config_filepath)
-    # 获取 '默认账户' cookie
-    Default_cookies = BULC.check(BULC.check(None)[0])
-    # 获取 '默认账户' 登录信息
-    interface_nav_Default = master(dict2cookie(Default_cookies)).interface_nav()
-    # 检测 '默认账户' 可用性
-    Default_islogin = interface_nav_Default["isLogin"]
+    globalVariableOfData.scripts_data_dirpath = f"{script_path()}bilibili-live"
+    obs.script_log(obs.LOG_INFO, f'script_defaults[info: 插件数据保存在【{globalVariableOfData.scripts_data_dirpath}】]')
+    globalVariableOfData.scripts_config_filepath = Path(globalVariableOfData.scripts_data_dirpath) / "config.json"
+    obs.script_log(obs.LOG_INFO, f'script_defaults[info: 账号数据保存在【{globalVariableOfData.scripts_config_filepath}】]')
+    # 创建用户配置文件实例 并 验证 用户账号可用性
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+    globalVariableOfData.allUidByUname4Dict = {}
+    for uid in BULC.getUsers().values():
+        if uid:
+            userInterface_nav = master(dict2cookie(BULC.getCookies(int(uid)))).interface_nav()
+            userIsLogin = userInterface_nav["isLogin"]
+            if userIsLogin:
+                obs.script_log(obs.LOG_INFO, f"script_defaults[info: 载入用户【{uid}】成功]")
+                globalVariableOfData.allUidByUname4Dict[uid] = userInterface_nav["uname"]
+            else:
+                obs.script_log(obs.LOG_WARNING, f"script_defaults[warning: 载入用户【{uid}】失败]")
+                BULC.deleteUser(int(uid))
+                obs.script_log(obs.LOG_DEBUG, f"script_defaults[debug: 用户【{uid}】已删除]")
+    # 创建用户配置文件实例
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+    # 获取 '默认账户' cookies
+    DefaultUserCookies = BULC.getCookies(BULC.getUsers()[0])
+    """
+    如果'默认账户'为None，默认cookies会为None
+    """
+    obs.script_log(obs.LOG_INFO, f"script_defaults[info: 尝试登录用户【{BULC.getUsers()[0]}】]")
+    if DefaultUserCookies:
+        DefaultUserCookie = dict2cookie(DefaultUserCookies)  # 转换 '默认账户' 的 Cookies 成 cookie
+        DefaultUserInterfaceNav = master(DefaultUserCookie).interface_nav()  # 获取 '默认账户' 导航栏用户信息
+        globalVariableOfData.DefaultUserUname = DefaultUserInterfaceNav["uname"]  # 获取默认账号的昵称
+        obs.script_log(obs.LOG_INFO, f"script_defaults[info: 登录用户昵称为【{globalVariableOfData.DefaultUserUname}】]")
+    else:
+        obs.script_log(obs.LOG_WARNING, f'script_defaults[warning: 当前未登录账号]')  # 如果 '默认账户' 为 None 提示没有登录
+        globalVariableOfData.DefaultUserUname = None  # 如果 '默认账户' 为 None 那么 默认昵称为 None
 
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    # 设置 只读文本框[登录状态] 内容
-    if Default_islogin:
-        login_status_text_value = f'{interface_nav_Default["uname"]} 已登录'
-    else:
-        login_status_text_value = "未登录，\n请登录后点击⟳重新载入插件\n重新选择登录用户"
-    obs.obs_data_set_string(settings, 'GlobalVariableOfTheControl.login_status_text', login_status_text_value)
-    # 设置 只读文本框[登录状态] 类型
-    if Default_islogin:
-        GlobalVariableOfTheControl.login_status_text_type = obs.OBS_TEXT_INFO_NORMAL
-    else:
-        GlobalVariableOfTheControl.login_status_text_type = obs.OBS_TEXT_INFO_WARNING
+    # 设置 只读文本框【登录状态】 类型
+    GlobalVariableOfTheControl.login_status_textBox_type = obs.OBS_TEXT_INFO_NORMAL if DefaultUserCookies else obs.OBS_TEXT_INFO_WARNING
+    # 设置 只读文本框【登录状态】 内容
+    GlobalVariableOfTheControl.login_status_textBox_string = f'{globalVariableOfData.DefaultUserUname} 已登录' if DefaultUserCookies else '未登录，\n请登录后点击⟳重新载入插件\n重新选择登录用户'
 
-    # 为 组合框[用户] 添加选项
-    uid_list_dict_elements = {}
-    if os.path.exists(scripts_config_filepath):
-        with open(scripts_config_filepath, "r", encoding="utf-8") as j:
-            config = json.load(j)
-            obs.script_log(obs.LOG_INFO, str(config))
-            obs.script_log(obs.LOG_INFO, str("DefaultUser" in config))
-            # 从 "所有账户"配置 中 删除 '默认用户'配置，获得"全部账户"
-            if "DefaultUser" in config:
-                del config["0"]
-                del config["DefaultUser"]
-                for uid in config:
-                    interface_nav = master(dict2cookie(BULC.check(uid))).interface_nav()
-                    isLogin = interface_nav["isLogin"]
-                    if isLogin:
-                        uid_list_dict_elements[uid] = interface_nav["uname"]
-    uid_list_dict_elements = uid_list_dict_elements
-    obs.script_log(obs.LOG_INFO, str(uid_list_dict_elements))
-    # 设置 组合框[用户] 内容
-    if Default_islogin:
-        Default_uname = interface_nav_Default["uname"]
+    # 设置 组合框【用户】 默认显示内容
+    GlobalVariableOfTheControl.default_uid_comboBox_string = globalVariableOfData.DefaultUserUname if DefaultUserCookies else '添加或选择一个账号登录'
+    # 设置 组合框【用户】 默认显示内容 的 列表值
+    GlobalVariableOfTheControl.default_uid_comboBox_value = BULC.getUsers()[0] if DefaultUserCookies else '-1'
 
-    # 按钮[登录] 可用状态
+    # 按钮【登录账号】 可用状态
     GlobalVariableOfTheControl.login_button_enabled = True
+    # 按钮【登录账号】 可见状态
+    GlobalVariableOfTheControl.login_button_visible = True
+
+    # 按钮【二维码添加账户】 可用状态
+    GlobalVariableOfTheControl.qr_code_add_account_button_enabled = True
+    # 按钮【二维码添加账户】 可见状态
+    GlobalVariableOfTheControl.qr_code_add_account_button_visible = True
+
+    # 按钮[显示二维码图片] 可用状态
+    GlobalVariableOfTheControl.display_qr_code_picture_button_enabled = True
+    # 按钮[显示二维码图片] 可见状态
+    GlobalVariableOfTheControl.display_qr_code_picture_button_visible = True
+
+    # 按钮[删除账户] 可用状态
+    GlobalVariableOfTheControl.delete_account_button_enabled = True
+    # 按钮[删除账户] 可见状态
+    GlobalVariableOfTheControl.delete_account_button_visible = True
+
+    # 按钮[备份账户] 可用状态
+    GlobalVariableOfTheControl.backup_account_button_enabled = True
+    # 按钮[备份账户] 可见状态
+    GlobalVariableOfTheControl.backup_account_button_visible = True
+
+    # 按钮[恢复账户] 可用状态
+    GlobalVariableOfTheControl.restore_account_button_enabled = True
+    # 按钮[恢复账户] 可见状态
+    GlobalVariableOfTheControl.restore_account_button_visible = True
+
+    # 按钮[登出账号] 可用状态
+    GlobalVariableOfTheControl.logout_button_enabled = True
+    # 按钮[登出账号] 可见状态
+    GlobalVariableOfTheControl.logout_button_visible = True
 
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    # 获取'默认账户'直播间基础信息
-    Default_roomStatus = "_"
-    RoomInfoOld = {}
-    if Default_islogin:
-        RoomInfoOld = getRoomInfoOld(Default_cookies['DedeUserID'])
-        Default_roomStatus = RoomInfoOld["roomStatus"]
-
-    # 设置 只读文本框[直播间状态] 的内容
-    Defaultroomid = 0
-    if Default_roomStatus == 0:
-        room_status_text_value = "无"
-    elif Default_roomStatus == 1:
-        Defaultroomid = RoomInfoOld["roomid"]
-        DefaultliveStatus = RoomInfoOld["liveStatus"]
-        room_status_text_value = str(Defaultroomid)
-        if DefaultliveStatus:
-            live_Status = "直播中"
-        else:
-            live_Status = "未开播"
-        room_status_text_value += f"【{live_Status}】"
-    else:
-        room_status_text_value = f"未登录"
-    obs.obs_data_set_string(settings, 'GlobalVariableOfTheControl.room_status_text', room_status_text_value)
-    # 设置 只读文本框[直播间状态] 的类型
-    if Default_roomStatus == 0:
-        GlobalVariableOfTheControl.room_status_text_type = obs.OBS_TEXT_INFO_WARNING
-    elif Default_roomStatus == 1:
-        GlobalVariableOfTheControl.room_status_text_type = obs.OBS_TEXT_INFO_NORMAL
-    else:
-        GlobalVariableOfTheControl.room_status_text_type = obs.OBS_TEXT_INFO_ERROR
-    GlobalVariableOfTheControl.room_status_text_type = GlobalVariableOfTheControl.room_status_text_type
-
-    # 获取'默认账号'直播间分区
-    DefaultArea = {}
-    RoomBaseInfo = {}
-    if Default_roomStatus == 1:
-        RoomBaseInfo = getRoomBaseInfo(Defaultroomid)
-        DefaultArea = {
-            "id": RoomBaseInfo["by_room_ids"][str(Defaultroomid)]["parent_area_id"],
-            "name": RoomBaseInfo["by_room_ids"][str(Defaultroomid)]["parent_area_name"],
-            "data": {
-                "id": RoomBaseInfo["by_room_ids"][str(Defaultroomid)]["area_id"],
-                "name": RoomBaseInfo["by_room_ids"][str(Defaultroomid)]["area_name"],
-            }
-        }
-    DefaultArea = DefaultArea
-    # 设置 组合框[一级分区] 内容
-    if DefaultArea:
-        obs.obs_data_set_string(settings, 'GlobalVariableOfTheControl.area1_list', str(DefaultArea["id"]))
-    # 根据直播间存在更改 组合框[一级分区] 可见状态
-    if Default_roomStatus == 1:
-        GlobalVariableOfTheControl.area1_list_visible = True
-    else:
-        GlobalVariableOfTheControl.area1_list_visible = False
-
-    # 根据直播间存在更改 按钮[确认一级分区] 可见状态
-    GlobalVariableOfTheControl.area1_true_button_visible = GlobalVariableOfTheControl.area1_list_visible
-
+    # 获取'默认账户'直播间旧的基础信息
+    RoomInfoOld = getRoomInfoOld(DefaultUserCookies['DedeUserID']) if DefaultUserCookies else {}
+    # 获取 默认用户 的 直播间状态
+    globalVariableOfData.DefaultRoomStatus = RoomInfoOld["roomStatus"] if DefaultUserCookies else None
+    # 获取默认用户的 直播间id
+    globalVariableOfData.DefaultRoomid = RoomInfoOld["roomid"] if bool(DefaultUserCookies and globalVariableOfData.DefaultRoomStatus) else 0
+    # 获取默认用户的 直播状态
+    globalVariableOfData.DefaultLiveStatus = RoomInfoOld["liveStatus"] if bool(DefaultUserCookies and globalVariableOfData.DefaultRoomStatus) else None
     # 获取完整直播分区
-    allAreaList = Area_getList()
-    # 设置 组合框[二级分区] 的内容
-    if DefaultArea:
-        obs.obs_data_set_string(settings, 'GlobalVariableOfTheControl.area2_list', str(DefaultArea["data"]["id"]))
-    # 根据直播间存在更改 组合框[二级分区] 可见状态
-    GlobalVariableOfTheControl.area2_list_visible = GlobalVariableOfTheControl.area1_list_visible
+    globalVariableOfData.AreaObjList = getAreaObjList()
+    # 获取'默认账户'直播间的基础信息
+    RoomBaseInfo = getRoomBaseInfo(globalVariableOfData.DefaultRoomid) if globalVariableOfData.DefaultRoomStatus else {}
+    # 获取'默认账户'直播间的分区
+    globalVariableOfData.DefaultArea = {
+            "id": RoomBaseInfo["by_room_ids"][str(globalVariableOfData.DefaultRoomid)]["parent_area_id"],
+            "name": RoomBaseInfo["by_room_ids"][str(globalVariableOfData.DefaultRoomid)]["parent_area_name"],
+            "data": {
+                "id": RoomBaseInfo["by_room_ids"][str(globalVariableOfData.DefaultRoomid)]["area_id"],
+                "name": RoomBaseInfo["by_room_ids"][str(globalVariableOfData.DefaultRoomid)]["area_name"],
+            }
+        } if globalVariableOfData.DefaultRoomStatus else {}
 
-    # 根据直播间存在更改 按钮[{确认分区}] 可见状态
-    GlobalVariableOfTheControl.area2_true_button_visible = GlobalVariableOfTheControl.area1_list_visible
+    # 设置 只读文本框【直播间状态】 的类型
+    GlobalVariableOfTheControl.room_status_textBox_type = (obs.OBS_TEXT_INFO_NORMAL if bool(globalVariableOfData.DefaultRoomStatus and DefaultUserCookies) else obs.OBS_TEXT_INFO_WARNING) if DefaultUserCookies else obs.OBS_TEXT_INFO_ERROR
+    # 设置 只读文本框【直播间状态】 的内容
+    GlobalVariableOfTheControl.room_status_textBox_string = (f"{str(globalVariableOfData.DefaultRoomid)}{'直播中' if globalVariableOfData.DefaultLiveStatus else '未开播'}" if globalVariableOfData.DefaultRoomStatus else "无直播间") if DefaultUserCookies else "未登录"
 
-    # 根据直播状态更改 按钮[开播] 可见状态
-    if Default_roomStatus == 1:
-        if DefaultliveStatus:
-            GlobalVariableOfTheControl.start_live_button_visible = False
-        else:
-            GlobalVariableOfTheControl.start_live_button_visible = True
-    else:
-        GlobalVariableOfTheControl.start_live_button_visible = False
+    # 设置 url按钮【查看直播间封面】 可见状态
+    GlobalVariableOfTheControl.viewLiveCover_button_visible = bool(globalVariableOfData.DefaultRoomStatus)
+    # 设置 url按钮【查看直播间封面】 链接
+    GlobalVariableOfTheControl.viewLiveCover_button_url = RoomBaseInfo["by_room_ids"][str(globalVariableOfData.DefaultRoomid)]["cover"] if bool(GlobalVariableOfTheControl.viewLiveCover_button_visible) else ""
 
-    # 根据直播状态更改 按钮[复制直播服务器] 可见状态
-    if Default_roomStatus == 1:
-        GlobalVariableOfTheControl.rtmp_address_copy_button_visible = not GlobalVariableOfTheControl.start_live_button_visible
-    else:
-        GlobalVariableOfTheControl.rtmp_address_copy_button_visible = False
+    # 设置 文件对话框【直播间封面】 可见状态
+    GlobalVariableOfTheControl.room_cover_fileDialogBox_visible = bool(globalVariableOfData.DefaultRoomStatus)
+    # 设置 文件对话框【直播间封面】 内容
+    GlobalVariableOfTheControl.room_cover_fileDialogBox_string = ""
 
-    # 根据直播状态更改 按钮[复制直播推流码] 可见状态
-    if Default_roomStatus == 1:
-        GlobalVariableOfTheControl.rtmp_stream_code_copy_button_visible = not GlobalVariableOfTheControl.start_live_button_visible
-    else:
-        GlobalVariableOfTheControl.rtmp_stream_code_copy_button_visible = False
+    # 设置 按钮【上传直播间封面】 可见状态
+    GlobalVariableOfTheControl.room_cover_update_button_visible = bool(globalVariableOfData.DefaultRoomStatus)
 
-    # 根据直播状态更改 按钮[更新推流码并复制] 可见状态
-    if Default_roomStatus == 1:
-        GlobalVariableOfTheControl.rtmp_stream_code_update_button_visible = not GlobalVariableOfTheControl.start_live_button_visible
-    else:
-        GlobalVariableOfTheControl.rtmp_stream_code_update_button_visible = False
+    # 设置 普通文本框【直播间标题】 可见状态
+    GlobalVariableOfTheControl.liveRoom_title_textBox_visible = bool(globalVariableOfData.DefaultRoomStatus)
+    # 设置 普通文本框【直播间标题】 内容
+    GlobalVariableOfTheControl.liveRoom_title_textBox_string = RoomBaseInfo["by_room_ids"][str(globalVariableOfData.DefaultRoomid)]["title"] if bool(GlobalVariableOfTheControl.liveRoom_title_textBox_visible) else ""
 
-    # 根据直播状态更改 按钮[结束直播] 可见状态
-    if Default_roomStatus == 1:
-        GlobalVariableOfTheControl.stop_live_button_visible = not GlobalVariableOfTheControl.start_live_button_visible
-    else:
-        GlobalVariableOfTheControl.stop_live_button_visible = False
+    # 设置 按钮【更改直播间标题】 可见状态
+    GlobalVariableOfTheControl.change_liveRoom_title_button_visible = bool(globalVariableOfData.DefaultRoomStatus)
 
-    # 设置 普通文本框[直播标题] 的内容
-    if Default_roomStatus == 1:
-        obs.obs_data_set_string(settings, 'GlobalVariableOfTheControl.live_title_text',
-                                RoomBaseInfo["by_room_ids"][str(Defaultroomid)]["title"]
-                                )
-    # 根据直播间存在更改 普通文本框[直播标题] 可见状态
-    GlobalVariableOfTheControl.live_title_text_visible = GlobalVariableOfTheControl.area1_list_visible
+    # 设置 普通文本框【直播间公告】 可见状态
+    GlobalVariableOfTheControl.liveRoom_news_textBox_visible = bool(globalVariableOfData.DefaultRoomStatus)
+    # 设置 普通文本框【直播间公告】 内容
+    GlobalVariableOfTheControl.liveRoom_news_textBox_string = master(dict2cookie(DefaultUserCookies)).getRoomNews() if bool(GlobalVariableOfTheControl.liveRoom_news_textBox_visible) else ""
 
-    # 根据直播间存在更改 按钮[更改直播标题] 可见状态
-    GlobalVariableOfTheControl.change_live_title_button_visible = GlobalVariableOfTheControl.area1_list_visible
+    # 设置 按钮【更改直播间公告】 可见状态
+    GlobalVariableOfTheControl.change_liveRoom_news_button_visible = bool(globalVariableOfData.DefaultRoomStatus)
 
-    # 设置 普通文本框[直播公告] 的内容
-    if Default_roomStatus == 1:
-        obs.obs_data_set_string(settings, 'GlobalVariableOfTheControl.live_news_text',
-                                master(dict2cookie(Default_cookies)).getRoomNews())
-    # 根据直播间存在更改 普通文本框[直播公告] 可见状态
-    GlobalVariableOfTheControl.live_news_text_visible = GlobalVariableOfTheControl.area1_list_visible
+    # 设置 组合框【一级分区】 可见状态
+    GlobalVariableOfTheControl.parentLiveArea_comboBox_visible = bool(globalVariableOfData.DefaultRoomStatus)
+    # 设置 组合框【一级分区】 内容
+    GlobalVariableOfTheControl.default_parentLiveArea_comboBox_string = str(globalVariableOfData.DefaultArea["name"]) if bool(GlobalVariableOfTheControl.parentLiveArea_comboBox_visible and globalVariableOfData.DefaultArea) else "请选择一级分区"
+    # 设置 组合框【一级分区】 内容 的 列表值
+    GlobalVariableOfTheControl.default_parentLiveArea_comboBox_value = str(globalVariableOfData.DefaultArea["id"]) if bool(GlobalVariableOfTheControl.parentLiveArea_comboBox_visible and globalVariableOfData.DefaultArea) else "-1"
 
-    # 根据直播间存在更改 按钮[更改直播公告] 可见状态
-    GlobalVariableOfTheControl.change_live_news_button_visible = GlobalVariableOfTheControl.area1_list_visible
+    # 设置 按钮【确认一级分区】 可见状态
+    GlobalVariableOfTheControl.parentLiveArea_true_button_visible = bool(globalVariableOfData.DefaultRoomStatus)
+
+    # 设置 组合框【二级分区】 可见状态
+    GlobalVariableOfTheControl.subLiveArea_comboBox_visible = bool(globalVariableOfData.DefaultRoomStatus)
+    # 设置 组合框【二级分区】 的内容
+    GlobalVariableOfTheControl.default_subLiveArea_comboBox_string = str(globalVariableOfData.DefaultArea["data"]["name"]) if bool(GlobalVariableOfTheControl.subLiveArea_comboBox_visible and globalVariableOfData.DefaultArea) else "请确认一级分区"
+    # 设置 组合框【二级分区】 的内容 的 列表值
+    GlobalVariableOfTheControl.default_subLiveArea_comboBox_value = str(globalVariableOfData.DefaultArea["data"]["id"]) if bool(GlobalVariableOfTheControl.subLiveArea_comboBox_visible and globalVariableOfData.DefaultArea) else ""
+
+    # 设置 按钮【{确认分区}】 可见状态
+    GlobalVariableOfTheControl.subLiveArea_true_button_visible = bool(globalVariableOfData.DefaultRoomStatus)
+
+    # 设置 url按钮【跳转直播间后台网页】 可见状态
+    GlobalVariableOfTheControl.jump_blive_web_button_visible = True
+    # 设置 url按钮【跳转直播间后台网页】 链接
+    GlobalVariableOfTheControl.jump_blive_web_button_url = "https://link.bilibili.com/p/center/index#/my-room/start-live"
+
+    # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # 设置 按钮【开始直播并复制推流码】 可见状态
+    GlobalVariableOfTheControl.start_live_button_visible = True if ((not globalVariableOfData.DefaultLiveStatus) and globalVariableOfData.DefaultRoomStatus) else False
+
+    # 设置 按钮【复制直播服务器】 可见状态
+    GlobalVariableOfTheControl.rtmp_address_copy_button_visible = bool(not GlobalVariableOfTheControl.start_live_button_visible) if globalVariableOfData.DefaultRoomStatus else False
+
+    # 设置 按钮【复制直播推流码】 可见状态
+    GlobalVariableOfTheControl.rtmp_stream_code_copy_button_visible = bool(not GlobalVariableOfTheControl.start_live_button_visible) if globalVariableOfData.DefaultRoomStatus else False
+
+    # 设置 按钮【更新推流码并复制】 可见状态
+    GlobalVariableOfTheControl.rtmp_stream_code_update_button_visible = bool(not GlobalVariableOfTheControl.start_live_button_visible) if globalVariableOfData.DefaultRoomStatus else False
+
+    # 设置 按钮【结束直播】 可见状态
+    GlobalVariableOfTheControl.stop_live_button_visible = bool(not GlobalVariableOfTheControl.start_live_button_visible) if globalVariableOfData.DefaultRoomStatus else False
 
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -5474,7 +5755,7 @@ def script_load(settings):
     # obs_data_t 类型的数据对象。这个数据对象可以用来存储和管理设置项，例如场景、源或过滤器的配置信息
     # settings = obs.obs_data_create()
     GlobalVariableOfTheControl.current_settings = settings
-    obs.script_log(obs.LOG_INFO, "已载入：bilibili_live——")
+    obs.script_log(obs.LOG_INFO, "已载入：bilibili_live")
 
 
 # 控件状态更新时调用
@@ -5485,379 +5766,493 @@ def script_update(settings):
     不要在这里控制控件的【可见】、【可用】、【值】和【名称】
     :param settings:与脚本关联的设置。
     """
+    GlobalVariableOfTheControl.current_settings = settings
     obs.script_log(obs.LOG_INFO, "监测到控件数据变动")
     pass
 
 
 # --- 一个名为script_properties的函数定义了用户可以使用的属性
-def script_properties():
+def script_properties():  # 建立控件
     """
     建立控件
     调用以定义与脚本关联的用户属性。这些属性用于定义如何向用户显示设置属性。
-    :return:通过 obs_properties_create() 创建的 Obs_properties_t 对象
+    通常用于自动生成用户界面小部件，也可以用来枚举特定设置的可用值或有效值。
+    Returns:通过 obs_properties_create() 创建的 Obs_properties_t 对象
+    obs_properties_t 类型的属性对象。这个属性对象通常用于枚举 libobs 对象的可用设置，
     """
     props = obs.obs_properties_create()  # 创建一个 OBS 属性集对象，他将包含所有控件对应的属性对象
-    # obs_properties_t 类型的属性对象。这个属性对象通常用于枚举 libobs 对象的可用设置，
-    # 通常用于自动生成用户界面小部件，也可以用来枚举特定设置的可用值或有效值。
     # 为 分组框【配置】 建立属性集
     GlobalVariableOfTheControl.setting_props = obs.obs_properties_create()
+    # 为 分组框【直播间】 建立属性集
+    GlobalVariableOfTheControl.liveRoom_props = obs.obs_properties_create()
     # 为 分组框【直播】 建立属性集
     GlobalVariableOfTheControl.live_props = obs.obs_properties_create()
+
     # —————————————————————————————————————————————————————————————————————————————————————————————————————
     # 添加 分组框【配置】
-    obs.obs_properties_add_group(props, 'setting_group', '配置', obs.OBS_GROUP_NORMAL,
-                                 GlobalVariableOfTheControl.setting_props)
+    obs.obs_properties_add_group(props, 'setting_group', "【账号】", obs.OBS_GROUP_NORMAL, GlobalVariableOfTheControl.setting_props)
 
-    # 添加 只读文本框[登录状态]
-    GlobalVariableOfTheControl.login_status_text = obs.obs_properties_add_text(
-        GlobalVariableOfTheControl.setting_props, 'GlobalVariableOfTheControl.login_status_text', "登录状态：",
-        obs.OBS_TEXT_INFO
-    )
-    # 设置 只读文本框[登录状态] 类型
-    obs.obs_property_text_set_info_type(GlobalVariableOfTheControl.login_status_text,
-                                        GlobalVariableOfTheControl.login_status_text_type)
+    # 添加 只读文本框【登录状态】
+    GlobalVariableOfTheControl.login_status_textBox = obs.obs_properties_add_text(GlobalVariableOfTheControl.setting_props, 'login_status_textBox', "登录状态：", obs.OBS_TEXT_INFO)
 
-    # 添加 组合框[用户]
-    GlobalVariableOfTheControl.uid_list = obs.obs_properties_add_list(
-        GlobalVariableOfTheControl.setting_props, 'GlobalVariableOfTheControl.uid_list', '用户：',
-        obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING
-    )
-    # 为 组合框[用户] 添加选项
-    for i in uid_list_dict_elements:
-        try:
-            if uid_list_dict_elements[i] == Default_uname:
-                obs.obs_property_list_insert_string(GlobalVariableOfTheControl.uid_list, 0, uid_list_dict_elements[i],
-                                                    i)
-            else:
-                obs.obs_property_list_add_string(GlobalVariableOfTheControl.uid_list, uid_list_dict_elements[i], i)
-        except:
-            obs.obs_property_list_add_string(GlobalVariableOfTheControl.uid_list, uid_list_dict_elements[i], i)
-    # 为 组合框[用户] 添加 添加新的账号 选项
-    obs.obs_property_list_add_string(GlobalVariableOfTheControl.uid_list, '添加新的账号', "-1")
+    # 添加 组合框【用户】
+    GlobalVariableOfTheControl.uid_comboBox = obs.obs_properties_add_list(GlobalVariableOfTheControl.setting_props, 'uid_comboBox', '用户：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING)
 
-    # 添加 按钮[登录]
-    GlobalVariableOfTheControl.login_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props,
-                                                                            "GlobalVariableOfTheControl.login_button",
-                                                                            "登录", login)
-    # 设置 按钮[登录] 可用状态
-    obs.obs_property_set_enabled(GlobalVariableOfTheControl.login_button,
-                                 GlobalVariableOfTheControl.login_button_enabled)
+    # 添加 按钮【登录账号】
+    GlobalVariableOfTheControl.login_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "login_button", "登录账号", login_buttonC)
+
+    # 添加 按钮【二维码添加账户】
+    GlobalVariableOfTheControl.qr_code_add_account_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "qr_code_add_account_button", "二维码添加账户", qrCodeAddAccount_buttonC)
+
+    # 添加 按钮【显示二维码图片】
+    GlobalVariableOfTheControl.display_qr_code_picture_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "display_qr_code_picture_button", "显示二维码图片", show_qr_code_picture_buttonC)
+
+    # 添加 按钮【删除账户】
+    GlobalVariableOfTheControl.delete_account_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "delete_account_button", "删除账户", del_user_buttonC)
+
+    # 添加 按钮【备份账户】
+    GlobalVariableOfTheControl.backup_account_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "backup_account_button", "备份账户", backupUsers_buttonC)
+
+    # 添加 按钮【恢复账户】
+    GlobalVariableOfTheControl.restore_account_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "restore_account_button", "恢复账户", restoreUser_buttonC)
+
+    # 添加 按钮[登出账号]
+    GlobalVariableOfTheControl.logout_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "logout_button", "登出账号", logOut_buttonC)
+
+    # ————————————————————————————————————————————————————————————————
+    # 添加 分组框【直播间】
+    obs.obs_properties_add_group(props, 'liveRoom_group', '【直播间】', obs.OBS_GROUP_NORMAL, GlobalVariableOfTheControl.liveRoom_props)
+
+    # 添加 只读文本框【直播间状态】
+    GlobalVariableOfTheControl.room_status_textBox = obs.obs_properties_add_text(GlobalVariableOfTheControl.liveRoom_props, 'room_status_textBox', f'直播间状态', obs.OBS_TEXT_INFO)
+
+    # 添加 url按钮【查看直播间封面】
+    GlobalVariableOfTheControl.viewLiveCover_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, 'viewLiveCover_button', f'查看直播间封面', check_roomCover_buttonC)
+
+    # 添加 文件对话框【直播间封面】
+    GlobalVariableOfTheControl.room_cover_fileDialogBox = obs.obs_properties_add_path(GlobalVariableOfTheControl.liveRoom_props, 'room_cover_fileDialogBox', f'直播间封面', obs.OBS_PATH_FILE, '*jpg *jpeg *.png', None)
+
+    # 添加 按钮【上传直播间封面】
+    GlobalVariableOfTheControl.room_cover_update_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, "room_cover_update_button", "上传直播间封面", update_roomCover_buttonC)
+
+    # 添加 普通文本框【直播间标题】
+    GlobalVariableOfTheControl.liveRoom_title_textBox = obs.obs_properties_add_text(GlobalVariableOfTheControl.liveRoom_props, "liveRoom_title_textBox", "直播间标题", obs.OBS_TEXT_DEFAULT)
+
+    # 添加 按钮【更改直播间标题】
+    GlobalVariableOfTheControl.change_liveRoom_title_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, "change_liveRoom_title_button", "更改直播间标题", change_liveRoom_title_buttonC)
+
+    # 添加 普通文本框【直播间公告】
+    GlobalVariableOfTheControl.liveRoom_news_textBox = obs.obs_properties_add_text(GlobalVariableOfTheControl.liveRoom_props, "liveRoom_news_textBox", "直播间公告", obs.OBS_TEXT_DEFAULT)
+
+    # 添加 按钮【更改直播间公告】
+    GlobalVariableOfTheControl.change_liveRoom_news_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, "change_liveRoom_news_button", "更改直播间公告", change_liveRoom_news_buttonC)
+
+    # 添加 组合框【一级分区】
+    GlobalVariableOfTheControl.parentLiveArea_comboBox = obs.obs_properties_add_list(GlobalVariableOfTheControl.liveRoom_props, 'parentLiveArea_comboBox', '一级分区：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING)
+    # 添加 组合框【一级分区】变动后事件
+    obs.obs_property_set_modified_callback(GlobalVariableOfTheControl.parentLiveArea_comboBox, start_area1_buttonC)
+
+    # 添加 按钮【确认一级分区】
+    GlobalVariableOfTheControl.parentLiveArea_true_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, "parentLiveArea_true_button", "确认一级分区", start_area1_buttonC)
+
+    # 添加 组合框【二级分区】
+    GlobalVariableOfTheControl.subLiveArea_comboBox = obs.obs_properties_add_list(GlobalVariableOfTheControl.liveRoom_props, 'subLiveArea_comboBox', '二级分区：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING)
+
+    # 添加 按钮【{确认分区}】
+    GlobalVariableOfTheControl.subLiveArea_true_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, "subLiveArea_true_button", "{确认分区}", lambda ps, p: start_area_buttonC())
+
+    # 添加 url按钮【跳转直播间后台网页】
+    GlobalVariableOfTheControl.jump_blive_web_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, 'jump_blive_web_button', f'跳转直播间后台网页', jump_Blive_web_buttonC)
 
     # ————————————————————————————————————————————————————————————————
     # 添加 分组框【直播】
-    obs.obs_properties_add_group(props, 'live_group', '直播', obs.OBS_GROUP_NORMAL,
-                                 GlobalVariableOfTheControl.live_props)
+    obs.obs_properties_add_group(props, 'live_group', '【直播】', obs.OBS_GROUP_NORMAL, GlobalVariableOfTheControl.live_props)
 
-    # 添加 只读文本框[直播间状态]
-    GlobalVariableOfTheControl.room_status_text = obs.obs_properties_add_text(
-        GlobalVariableOfTheControl.live_props, 'GlobalVariableOfTheControl.room_status_text', f'直播间：',
-        obs.OBS_TEXT_INFO
-    )
-    # 设置 只读文本框[直播间状态] 类型
-    obs.obs_property_text_set_info_type(GlobalVariableOfTheControl.room_status_text,
-                                        GlobalVariableOfTheControl.room_status_text_type)
+    # 添加 按钮【开始直播并复制推流码】
+    GlobalVariableOfTheControl.start_live_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.live_props, "start_live_button", "开始直播并复制推流码", start_live_buttonC)
 
-    # 添加 组合框[一级分区]
-    GlobalVariableOfTheControl.area1_list = obs.obs_properties_add_list(
-        GlobalVariableOfTheControl.live_props, 'GlobalVariableOfTheControl.area1_list', '一级分区：',
-        obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING
-    )
-    # 为 组合框[一级分区] 添加选项
-    for area in allAreaList:
-        try:
-            if area["name"] == DefaultArea["name"]:
-                obs.obs_property_list_insert_string(GlobalVariableOfTheControl.area1_list, 0, area["name"],
-                                                    str(area["id"]))
-            else:
-                obs.obs_property_list_add_string(GlobalVariableOfTheControl.area1_list, area["name"], str(area["id"]))
-        except:
-            obs.obs_property_list_add_string(GlobalVariableOfTheControl.area1_list, area["name"], str(area["id"]))
-    # 设置 组合框[一级分区] 可见状态
-    obs.obs_property_set_visible(GlobalVariableOfTheControl.area1_list, GlobalVariableOfTheControl.area1_list_visible)
+    # 添加 按钮【复制直播服务器】
+    GlobalVariableOfTheControl.rtmp_address_copy_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.live_props, "rtmp_address_copy_button", "复制直播服务器", rtmp_address_copy_buttonC)
 
-    # 添加 按钮[确认一级分区]
-    GlobalVariableOfTheControl.area1_true_button = obs.obs_properties_add_button(
-        GlobalVariableOfTheControl.live_props,
-        "GlobalVariableOfTheControl.area1_true_button",
-        "确认一级分区",
-        start_area1)
-    # 设置 按钮[确认一级分区] 可见状态
-    obs.obs_property_set_visible(GlobalVariableOfTheControl.area1_true_button,
-                                 GlobalVariableOfTheControl.area1_true_button_visible)
+    # 添加 按钮【复制直播推流码】
+    GlobalVariableOfTheControl.rtmp_stream_code_copy_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.live_props, "rtmp_stream_code_copy_button", "复制直播推流码", rtmp_stream_code_copy_buttonC)
 
-    # 添加 组合框[二级分区]
-    GlobalVariableOfTheControl.area2_list = obs.obs_properties_add_list(
-        GlobalVariableOfTheControl.live_props, 'GlobalVariableOfTheControl.area2_list', '二级分区：',
-        obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING
-    )
-    # 获取 组合框[一级分区] 内容
-    area1_id = obs.obs_data_get_string(GlobalVariableOfTheControl.current_settings,
-                                       'GlobalVariableOfTheControl.area1_list')
-    # 为 组合框[二级分区] 添加选项
-    for area in allAreaList:
-        if area1_id == str(area["id"]):
-            for area2 in area["list"]:
-                try:
-                    if area2["name"] == DefaultArea["data"]["name"]:
-                        obs.obs_property_list_insert_string(GlobalVariableOfTheControl.area2_list, 0, area2["name"],
-                                                            str(area2["id"]))
-                    else:
-                        obs.obs_property_list_add_string(GlobalVariableOfTheControl.area2_list, area2["name"],
-                                                         str(area2["id"]))
-                except:
-                    obs.obs_property_list_add_string(GlobalVariableOfTheControl.area2_list, area2["name"],
-                                                     str(area2["id"]))
-            break
-    # 设置 组合框[二级分区] 可见状态
-    obs.obs_property_set_visible(GlobalVariableOfTheControl.area2_list, GlobalVariableOfTheControl.area2_list_visible)
+    # 添加 按钮【更新推流码并复制】
+    GlobalVariableOfTheControl.rtmp_stream_code_update_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.live_props, "rtmp_stream_code_update_button", "更新推流码并复制", rtmp_stream_code_update_buttonC)
 
-    # 添加 按钮[{确认分区}]
-    GlobalVariableOfTheControl.area2_true_button = obs.obs_properties_add_button(
-        GlobalVariableOfTheControl.live_props,
-        "GlobalVariableOfTheControl.area2_true_button",
-        "{确认分区}",
-        lambda ps, p: start_area())
-    # 设置 按钮[{确认分区}] 可见状态
-    obs.obs_property_set_visible(
-        GlobalVariableOfTheControl.area2_true_button,
-        GlobalVariableOfTheControl.area2_true_button_visible)
-
-    # 添加 按钮[开播]
-    GlobalVariableOfTheControl.start_live_button = obs.obs_properties_add_button(
-        GlobalVariableOfTheControl.live_props,
-        "GlobalVariableOfTheControl.start_live_button",
-        "开始直播", start_live)
-    # 设置 按钮[开播] 可见状态
-    obs.obs_property_set_visible(
-        GlobalVariableOfTheControl.start_live_button,
-        GlobalVariableOfTheControl.start_live_button_visible)
-
-    # 添加 按钮[复制直播服务器]
-    GlobalVariableOfTheControl.rtmp_address_copy_button = obs.obs_properties_add_button(
-        GlobalVariableOfTheControl.live_props,
-        "GlobalVariableOfTheControl.rtmp_address_copy_button",
-        "复制直播服务器",
-        rtmp_address_copy)
-    # 设置 按钮[复制直播服务器] 可见状态
-    obs.obs_property_set_visible(
-        GlobalVariableOfTheControl.rtmp_address_copy_button,
-        GlobalVariableOfTheControl.rtmp_address_copy_button_visible)
-
-    # 添加 按钮[复制直播推流码]
-    GlobalVariableOfTheControl.rtmp_stream_code_copy_button = obs.obs_properties_add_button(
-        GlobalVariableOfTheControl.live_props, "GlobalVariableOfTheControl.rtmp_stream_code_copy_button",
-        "复制直播推流码", rtmp_stream_code_copy)
-    # 设置 按钮[复制直播推流码] 可见状态
-    obs.obs_property_set_visible(GlobalVariableOfTheControl.rtmp_stream_code_copy_button,
-                                 GlobalVariableOfTheControl.rtmp_stream_code_copy_button_visible)
-
-    # 添加 按钮[更新推流码并复制]
-    GlobalVariableOfTheControl.rtmp_stream_code_update_button = obs.obs_properties_add_button(
-        GlobalVariableOfTheControl.live_props,
-        "GlobalVariableOfTheControl.rtmp_stream_code_update_button",
-        "更新推流码并复制", rtmp_stream_code_update)
-    # 设置 按钮[更新推流码并复制] 可见状态
-    obs.obs_property_set_visible(
-        GlobalVariableOfTheControl.rtmp_stream_code_update_button,
-        GlobalVariableOfTheControl.rtmp_stream_code_update_button_visible)
-
-    # 添加 按钮[结束直播]
-    GlobalVariableOfTheControl.stop_live_button = obs.obs_properties_add_button(
-        GlobalVariableOfTheControl.live_props,
-        "GlobalVariableOfTheControl.stop_live_button",
-        "结束直播", stop_live)
-    # 设置 按钮[结束直播] 可见状态
-    obs.obs_property_set_visible(GlobalVariableOfTheControl.stop_live_button,
-                                 GlobalVariableOfTheControl.stop_live_button_visible)
-
-    # 添加 普通文本框[直播标题]
-    GlobalVariableOfTheControl.live_title_text = obs.obs_properties_add_text(
-        GlobalVariableOfTheControl.live_props,
-        "GlobalVariableOfTheControl.live_title_text",
-        "直播标题", obs.OBS_TEXT_DEFAULT)
-    # 设置 普通文本框[直播标题] 可见状态
-    obs.obs_property_set_visible(GlobalVariableOfTheControl.live_title_text,
-                                 GlobalVariableOfTheControl.live_title_text_visible)
-
-    # 添加 按钮[更改直播标题]
-    GlobalVariableOfTheControl.change_live_title_button = obs.obs_properties_add_button(
-        GlobalVariableOfTheControl.live_props,
-        "GlobalVariableOfTheControl.change_live_title_button",
-        "更改直播标题",
-        change_live_title)
-    # 设置 按钮[更改直播标题] 可见状态
-    obs.obs_property_set_visible(GlobalVariableOfTheControl.change_live_title_button,
-                                 GlobalVariableOfTheControl.change_live_title_button_visible)
-
-    # 添加 普通文本框[直播公告]
-    GlobalVariableOfTheControl.live_news_text = obs.obs_properties_add_text(
-        GlobalVariableOfTheControl.live_props,
-        "GlobalVariableOfTheControl.live_news_text",
-        "直播公告", obs.OBS_TEXT_DEFAULT)
-    # 设置 普通文本框[直播公告] 可见状态
-    obs.obs_property_set_visible(GlobalVariableOfTheControl.live_news_text,
-                                 GlobalVariableOfTheControl.live_news_text_visible)
-
-    # 添加 按钮[更改直播公告]
-    GlobalVariableOfTheControl.change_live_news_button = obs.obs_properties_add_button(
-        GlobalVariableOfTheControl.live_props,
-        "GlobalVariableOfTheControl.change_live_news_button",
-        "更改直播公告",
-        change_live_news)
-    # 设置 按钮[更改直播公告] 可见状态
-    obs.obs_property_set_visible(GlobalVariableOfTheControl.change_live_news_button,
-                                 GlobalVariableOfTheControl.change_live_news_button_visible)
+    # 添加 按钮【结束直播】
+    GlobalVariableOfTheControl.stop_live_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.live_props, "stop_live_button", "结束直播", stop_live_buttonC)
 
     # ————————————————————————————————————————————————————————————————————————————————
-    # 添加 按钮[直播间后台网页]
-    Blive_web_button = obs.obs_properties_add_button(props, 'Blive_web_button', f'直播间后台网页', Blive_web)
-    obs.obs_property_button_set_type(Blive_web_button, obs.OBS_BUTTON_URL)
-    obs.obs_property_button_set_url(Blive_web_button, "https://link.bilibili.com/p/center/index#/my-room/start-live")
-
+    # 更新UI界面数据#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
+    updateTheUIInterfaceData()
     return props
 
 
-def login(props, prop):
+def updateTheUIInterfaceData():
+    """
+    更新UI界面数据
+    Returns:
+
+    """
+    # 设置 只读文本框【登录状态】 类型
+    obs.obs_property_text_set_info_type(GlobalVariableOfTheControl.login_status_textBox, GlobalVariableOfTheControl.login_status_textBox_type)
+    # 使 只读文本框【登录状态】 显示
+    obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, 'login_status_textBox', f'{GlobalVariableOfTheControl.login_status_textBox_string}')
+    # 更新 只读文本框【登录状态】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.login_status_textBox, GlobalVariableOfTheControl.current_settings)
+
+    # 清空组合框【用户】
+    obs.obs_property_list_clear(GlobalVariableOfTheControl.uid_comboBox)
+    # 为 组合框【用户】 添加选项
+    for uid in globalVariableOfData.allUidByUname4Dict:
+        obs.obs_property_list_add_string(GlobalVariableOfTheControl.uid_comboBox, globalVariableOfData.allUidByUname4Dict[uid], uid) if uid != GlobalVariableOfTheControl.default_uid_comboBox_value else None
+    # 为 组合框【用户】 添加默认选项
+    obs.obs_property_list_insert_string(GlobalVariableOfTheControl.uid_comboBox, 0, GlobalVariableOfTheControl.default_uid_comboBox_string, GlobalVariableOfTheControl.default_uid_comboBox_value)
+    # 使 组合框【用户】 显示默认选项
+    obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, 'uid_comboBox', GlobalVariableOfTheControl.default_uid_comboBox_value)
+    # 更新 组合框【用户】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.uid_comboBox, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 按钮【登录账号】 可用状态
+    obs.obs_property_set_enabled(GlobalVariableOfTheControl.login_button, GlobalVariableOfTheControl.login_button_enabled)
+    # 更新 按钮【登录账号】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.login_button, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 按钮【二维码添加账户】 可用状态
+    obs.obs_property_set_enabled(GlobalVariableOfTheControl.qr_code_add_account_button, GlobalVariableOfTheControl.qr_code_add_account_button_enabled)
+    # 更新 按钮【二维码添加账户】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.qr_code_add_account_button, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 按钮[显示二维码图片] 可用状态
+    obs.obs_property_set_enabled(GlobalVariableOfTheControl.display_qr_code_picture_button, GlobalVariableOfTheControl.display_qr_code_picture_button_enabled)
+    # 更新 按钮[显示二维码图片】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.display_qr_code_picture_button, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 按钮[删除账户] 可用状态
+    obs.obs_property_set_enabled(GlobalVariableOfTheControl.delete_account_button, GlobalVariableOfTheControl.delete_account_button_enabled)
+    # 更新 按钮[删除账户】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.delete_account_button, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 按钮[备份账户] 可用状态
+    obs.obs_property_set_enabled(GlobalVariableOfTheControl.backup_account_button, GlobalVariableOfTheControl.backup_account_button_enabled)
+    # 更新 按钮[备份账户】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.backup_account_button, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 按钮[恢复账户] 可用状态
+    obs.obs_property_set_enabled(GlobalVariableOfTheControl.restore_account_button, GlobalVariableOfTheControl.restore_account_button_enabled)
+    # 更新 按钮[恢复账户】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.restore_account_button, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 按钮[登出账号] 可用状态
+    obs.obs_property_set_enabled(GlobalVariableOfTheControl.logout_button, GlobalVariableOfTheControl.logout_button_enabled)
+    # 更新 按钮[登出账号】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.logout_button, GlobalVariableOfTheControl.current_settings)
+
+    # ————————————————————————————————————————————————————————————————
+    # 设置 只读文本框【直播间状态】 类型
+    obs.obs_property_text_set_info_type(GlobalVariableOfTheControl.room_status_textBox, GlobalVariableOfTheControl.room_status_textBox_type)
+    # 使 只读文本框【直播间状态】 显示
+    obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, "room_status_textBox", GlobalVariableOfTheControl.room_status_textBox_string)
+    # 更新 只读文本框【直播间状态】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.room_status_textBox, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 url按钮【查看直播间封面】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.viewLiveCover_button, GlobalVariableOfTheControl.viewLiveCover_button_visible)
+    # 设置 url按钮【查看直播间封面】 类型
+    obs.obs_property_button_set_type(GlobalVariableOfTheControl.viewLiveCover_button, obs.OBS_BUTTON_URL)
+    # 设置 url按钮【查看直播间封面】 链接
+    obs.obs_property_button_set_url(GlobalVariableOfTheControl.viewLiveCover_button, GlobalVariableOfTheControl.viewLiveCover_button_url)
+    # 更新 url按钮【查看直播间封面】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.viewLiveCover_button, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 文件对话框【直播间封面】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.room_cover_fileDialogBox, GlobalVariableOfTheControl.room_cover_fileDialogBox_visible)
+    # 使 文件对话框【直播间封面】 显示
+    obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, "room_cover_fileDialogBox", GlobalVariableOfTheControl.room_cover_fileDialogBox_string)
+    # 更新 文件对话框【直播间封面】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.room_cover_fileDialogBox, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 按钮【上传直播间封面】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.room_cover_update_button, GlobalVariableOfTheControl.room_cover_update_button_visible)
+    # 更新 按钮【上传直播间封面】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.room_cover_update_button, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 普通文本框【直播间标题】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.liveRoom_title_textBox, GlobalVariableOfTheControl.liveRoom_title_textBox_visible)
+    # 使 普通文本框【直播间标题】 显示
+    obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, "liveRoom_title_textBox", GlobalVariableOfTheControl.liveRoom_title_textBox_string)
+    # 更新 普通文本框【直播间标题】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.liveRoom_title_textBox, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 按钮【更改直播间标题】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.change_liveRoom_title_button, GlobalVariableOfTheControl.change_liveRoom_title_button_visible)
+    # 更新 按钮【更改直播间标题】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.change_liveRoom_title_button, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 普通文本框【直播间公告】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.liveRoom_news_textBox, GlobalVariableOfTheControl.liveRoom_news_textBox_visible)
+    # 使 普通文本框【直播间公告】 显示
+    obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, "liveRoom_news_textBox", GlobalVariableOfTheControl.liveRoom_news_textBox_string)
+    # 更新 普通文本框【直播间公告】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.liveRoom_news_textBox, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 按钮【更改直播间公告】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.change_liveRoom_news_button, GlobalVariableOfTheControl.change_liveRoom_news_button_visible)
+    # 更新 按钮【更改直播间公告】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.change_liveRoom_news_button, GlobalVariableOfTheControl.current_settings)
+
+    # 清空组合框【一级分区】
+    obs.obs_property_list_clear(GlobalVariableOfTheControl.parentLiveArea_comboBox)
+    # 设置 组合框【一级分区】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.parentLiveArea_comboBox, GlobalVariableOfTheControl.parentLiveArea_comboBox_visible)
+    # 为 组合框【一级分区】 添加选项
+    for AreaObj in globalVariableOfData.AreaObjList:
+        obs.obs_property_list_add_string(GlobalVariableOfTheControl.parentLiveArea_comboBox, AreaObj["name"], str(AreaObj["id"])) if AreaObj["id"] != GlobalVariableOfTheControl.default_parentLiveArea_comboBox_value else None
+    # 为 组合框【一级分区】 添加默认选项
+    obs.obs_property_list_insert_string(GlobalVariableOfTheControl.parentLiveArea_comboBox, 0, GlobalVariableOfTheControl.default_parentLiveArea_comboBox_string, GlobalVariableOfTheControl.default_parentLiveArea_comboBox_value)
+    # 使 组合框【一级分区】 显示默认选项
+    obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, "parentLiveArea_comboBox", GlobalVariableOfTheControl.default_parentLiveArea_comboBox_value)
+    # 更新 组合框【一级分区】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.parentLiveArea_comboBox, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 按钮【确认一级分区】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.parentLiveArea_true_button, GlobalVariableOfTheControl.parentLiveArea_true_button_visible)
+    # 更新 按钮【确认一级分区】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.parentLiveArea_true_button, GlobalVariableOfTheControl.current_settings)
+
+    # 清空组合框【二级分区】
+    obs.obs_property_list_clear(GlobalVariableOfTheControl.subLiveArea_comboBox)
+    # 设置 组合框【二级分区】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.subLiveArea_comboBox, GlobalVariableOfTheControl.subLiveArea_comboBox_visible)
+    # #获取 组合框【一级分区】 当前选项的值
+    CurrentlyParentLiveArea = obs.obs_data_get_string(GlobalVariableOfTheControl.current_settings, 'parentLiveArea_comboBox')
+    # #获取 组合框【一级分区】 当前选项的值所对应的 组合框【二级分区】列表数据
+    for AreaObj in globalVariableOfData.AreaObjList:
+        if CurrentlyParentLiveArea == str(AreaObj["id"]):
+            globalVariableOfData.subLiveAreaObjList = AreaObj["list"]
+            break
+    # 为 组合框【二级分区】 添加选项
+    for subLiveAreaObj in globalVariableOfData.subLiveAreaObjList:
+        obs.obs_property_list_add_string(GlobalVariableOfTheControl.subLiveArea_comboBox, subLiveAreaObj["name"], str(subLiveAreaObj["id"])) if subLiveAreaObj["id"] != GlobalVariableOfTheControl.default_subLiveArea_comboBox_value else None
+    # 为 组合框【二级分区】 添加默认选项
+    obs.obs_property_list_insert_string(GlobalVariableOfTheControl.subLiveArea_comboBox, 0, GlobalVariableOfTheControl.default_subLiveArea_comboBox_string, GlobalVariableOfTheControl.default_subLiveArea_comboBox_value)
+    # 使 组合框【二级分区】 显示默认选项
+    obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, "subLiveArea_comboBox", GlobalVariableOfTheControl.default_subLiveArea_comboBox_value)
+    # 更新 组合框【二级分区】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.subLiveArea_comboBox, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 按钮【{确认分区}】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.subLiveArea_true_button, GlobalVariableOfTheControl.subLiveArea_true_button_visible)
+    # 更新 按钮【{确认分区}】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.subLiveArea_true_button, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 url按钮【跳转直播间后台网页】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.jump_blive_web_button, GlobalVariableOfTheControl.jump_blive_web_button_visible)
+    # 设置 url按钮【跳转直播间后台网页】 类型
+    obs.obs_property_button_set_type(GlobalVariableOfTheControl.jump_blive_web_button, obs.OBS_BUTTON_URL)
+    # 设置 url按钮【跳转直播间后台网页】 链接
+    obs.obs_property_button_set_url(GlobalVariableOfTheControl.jump_blive_web_button, GlobalVariableOfTheControl.jump_blive_web_button_url)
+    # 更新 url按钮【跳转直播间后台网页】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.jump_blive_web_button, GlobalVariableOfTheControl.current_settings)
+
+    # ————————————————————————————————————————————————————————————————
+    # 设置 按钮【开始直播并复制推流码】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.start_live_button, GlobalVariableOfTheControl.start_live_button_visible)
+    # 更新 按钮【开始直播并复制推流码】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.start_live_button, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 按钮【复制直播服务器】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.rtmp_address_copy_button, GlobalVariableOfTheControl.rtmp_address_copy_button_visible)
+    # 更新 按钮【复制直播服务器】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.rtmp_address_copy_button, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 按钮【复制直播推流码】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.rtmp_stream_code_copy_button, GlobalVariableOfTheControl.rtmp_stream_code_copy_button_visible)
+    # 更新 按钮【复制直播推流码】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.rtmp_stream_code_copy_button, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 按钮【更新推流码并复制】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.rtmp_stream_code_update_button, GlobalVariableOfTheControl.rtmp_stream_code_update_button_visible)
+    # 更新 按钮【更新推流码并复制】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.rtmp_stream_code_update_button, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 按钮【结束直播】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.stop_live_button, GlobalVariableOfTheControl.stop_live_button_visible)
+    # 更新 按钮【结束直播】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.stop_live_button, GlobalVariableOfTheControl.current_settings)
+
+
+def login_buttonC(props, prop):
+    """
+    登录并刷新控件状态
+    Args:
+        props:
+        prop:
+    Returns:
+    """
     # ＝＝＝＝＝＝＝＝＝
     # 　　　登录　　　＝
     # ＝＝＝＝＝＝＝＝＝
-    uid = obs.obs_data_get_string(GlobalVariableOfTheControl.current_settings, 'GlobalVariableOfTheControl.uid_list')
-    if uid == "-1":
-        # 如果添加账户 移除默认账户
-        BULC = BilibiliUserLogsIn2ConfigFile(configPath=scripts_config_filepath)
-        BULC.change(None)
-    logIn(scripts_config_filepath, int(uid))
-    # 更新OBS配置信息
+    uid = obs.obs_data_get_string(GlobalVariableOfTheControl.current_settings, 'uid_comboBox')
+    logInTry(globalVariableOfData.scripts_config_filepath, int(uid))
+    # ＝＝＝＝＝＝＝＝＝＝＝＝
+    # 　　　　更新     　　＝
+    # ＝＝＝＝＝＝＝＝＝＝＝＝
+    # 调用script_defaults更新默认配置信息
     script_defaults(GlobalVariableOfTheControl.current_settings)
-    # ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-    # 　　　　更新脚本用户小部件　　　　　＝
-    # ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-    #####################################################################
-    # 设置只读文本框[登录状态]的类型
-    obs.obs_property_text_set_info_type(GlobalVariableOfTheControl.login_status_text,
-                                        GlobalVariableOfTheControl.login_status_text_type)
-
-    # 清空组合框[选择账号]
-    obs.obs_property_list_clear(GlobalVariableOfTheControl.uid_list)
-    # 为组合框[选择账号]添加选项
-    for i in uid_list_dict_elements:
-        try:
-            if uid_list_dict_elements[i] == Default_uname:
-                obs.obs_property_list_insert_string(GlobalVariableOfTheControl.uid_list, 0, uid_list_dict_elements[i],
-                                                    i)
-            else:
-                obs.obs_property_list_add_string(GlobalVariableOfTheControl.uid_list, uid_list_dict_elements[i], i)
-        except:
-            obs.obs_property_list_add_string(GlobalVariableOfTheControl.uid_list, uid_list_dict_elements[i], i)
-    # 为 组合框[用户] 添加 添加新的账号 选项
-    obs.obs_property_list_add_string(GlobalVariableOfTheControl.uid_list, '添加新的账号', "-1")
-
-    # 设置 按钮[登录] 可用状态
-    obs.obs_property_set_enabled(GlobalVariableOfTheControl.login_button,
-                                 GlobalVariableOfTheControl.login_button_enabled)
-
-    ######################################################################
-    # 设置只读文本框[直播间状态]的类型
-    obs.obs_property_text_set_info_type(GlobalVariableOfTheControl.room_status_text,
-                                        GlobalVariableOfTheControl.room_status_text_type)
-
-    # 清空组合框[一级分区]
-    obs.obs_property_list_clear(GlobalVariableOfTheControl.area1_list)
-    # 为组合框[一级分区]添加选项
-    for area in allAreaList:
-        try:
-            if area["name"] == DefaultArea["name"]:
-                obs.obs_property_list_insert_string(GlobalVariableOfTheControl.area1_list, 0, area["name"],
-                                                    str(area["id"]))
-            else:
-                obs.obs_property_list_add_string(GlobalVariableOfTheControl.area1_list, area["name"], str(area["id"]))
-        except:
-            obs.obs_property_list_add_string(GlobalVariableOfTheControl.area1_list, area["name"], str(area["id"]))
-    # 根据直播状态更改 组合框[一级分区] 可见状态
-    obs.obs_property_set_visible(GlobalVariableOfTheControl.area1_list, GlobalVariableOfTheControl.area1_list_visible)
-
-    # 根据直播间存在更改 按钮[确认一级分区] 可见状态
-    obs.obs_property_set_visible(GlobalVariableOfTheControl.area1_true_button,
-                                 GlobalVariableOfTheControl.area1_true_button_visible)
-
-    # 清空组合框[二级分区]
-    obs.obs_property_list_clear(GlobalVariableOfTheControl.area2_list)
-    # 从组合框[一级分区]获取一级分组id
-    area1_id = obs.obs_data_get_string(GlobalVariableOfTheControl.current_settings,
-                                       'GlobalVariableOfTheControl.area1_list')
-    # 为组合框[二级分区]添加选项
-    for area in allAreaList:
-        if area1_id == str(area["id"]):
-            for area2 in area["list"]:
-                try:
-                    if area2["name"] == DefaultArea["data"]["name"]:
-                        obs.obs_property_list_insert_string(GlobalVariableOfTheControl.area2_list, 0, area2["name"],
-                                                            str(area2["id"]))
-                    else:
-                        obs.obs_property_list_add_string(GlobalVariableOfTheControl.area2_list, area2["name"],
-                                                         str(area2["id"]))
-                except:
-                    obs.obs_property_list_add_string(GlobalVariableOfTheControl.area2_list, area2["name"],
-                                                     str(area2["id"]))
-            break
-    # 根据直播状态更改 组合框[二级分区] 可见状态
-    obs.obs_property_set_visible(GlobalVariableOfTheControl.area2_list, GlobalVariableOfTheControl.area2_list_visible)
-
-    # 根据直播间存在更改 按钮[{确认分区}] 可见状态
-    obs.obs_property_set_visible(GlobalVariableOfTheControl.area2_true_button,
-                                 GlobalVariableOfTheControl.area2_true_button_visible)
-
-    # 根据直播状态更改 按钮[开播] 可见状态
-    obs.obs_property_set_visible(GlobalVariableOfTheControl.start_live_button,
-                                 GlobalVariableOfTheControl.start_live_button_visible)
-
-    # 根据直播状态更改 按钮[复制直播服务器] 可见状态
-    obs.obs_property_set_visible(GlobalVariableOfTheControl.rtmp_address_copy_button,
-                                 GlobalVariableOfTheControl.rtmp_address_copy_button_visible)
-
-    # 根据直播状态更改 按钮[复制直播推流码] 可见状态
-    obs.obs_property_set_visible(GlobalVariableOfTheControl.rtmp_stream_code_copy_button,
-                                 GlobalVariableOfTheControl.rtmp_stream_code_copy_button_visible)
-
-    # 根据直播状态更改 按钮[更新推流码并复制] 可见状态
-    obs.obs_property_set_visible(GlobalVariableOfTheControl.rtmp_stream_code_update_button,
-                                 GlobalVariableOfTheControl.rtmp_stream_code_update_button_visible)
-
-    # 根据直播状态更改 按钮[停播] 可见状态
-    obs.obs_property_set_visible(GlobalVariableOfTheControl.stop_live_button,
-                                 GlobalVariableOfTheControl.stop_live_button_visible)
-
-    # 设置 普通文本框[直播标题] 可见状态
-    obs.obs_property_set_visible(GlobalVariableOfTheControl.live_title_text,
-                                 GlobalVariableOfTheControl.live_title_text_visible)
-
-    # 设置 按钮[更改直播标题] 可见状态
-    obs.obs_property_set_visible(GlobalVariableOfTheControl.change_live_title_button,
-                                 GlobalVariableOfTheControl.change_live_title_button_visible)
-
-    # 设置 普通文本框[直播公告] 可见状态
-    obs.obs_property_set_visible(GlobalVariableOfTheControl.live_news_text,
-                                 GlobalVariableOfTheControl.live_news_text_visible)
-
-    # 设置 按钮[更改直播公告] 可见状态
-    obs.obs_property_set_visible(GlobalVariableOfTheControl.change_live_news_button,
-                                 GlobalVariableOfTheControl.change_live_news_button_visible)
-
+    # 更新脚本用户小部件
+    updateTheUIInterfaceData()
     return True
 
 
-def start_area1(props, prop):
-    area2_list = obs.obs_properties_get(GlobalVariableOfTheControl.live_props, "GlobalVariableOfTheControl.area2_list")
+def qrCodeAddAccount_buttonC(props, prop):
+    """
+    二维码添加账号
+    Args:
+        props:
+        prop:
+    Returns:
+    """
+    qrAddUser(globalVariableOfData.scripts_config_filepath)
+    pass
+
+
+def show_qr_code_picture_buttonC(props, prop):
+    """
+    显示二维码图片
+    Args:
+        props:
+        prop:
+    Returns:
+    """
+    pass
+
+
+def del_user_buttonC(props, prop):
+    """
+    删除用户
+    Args:
+        props:
+        prop:
+
+    Returns:
+    """
+    pass
+
+
+def backupUsers_buttonC(props, prop):
+    """
+    备份用户
+    Args:
+        props:
+        prop:
+    Returns:
+    """
+    pass
+
+
+def restoreUser_buttonC(props, prop):
+    """
+    恢复用户
+    Args:
+        props:
+        prop:
+    Returns:
+    """
+    pass
+
+
+def logOut_buttonC(props, prop):
+    """
+    登出
+    Args:
+        props:
+        prop:
+    Returns:
+    """
+    # ＝＝＝＝＝＝＝＝＝＝＝＝
+    # 　　　　登出        ＝
+    # ＝＝＝＝＝＝＝＝＝＝＝＝
+    # 如果添加账户 移除默认账户
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+    BULC.updateUser(None)
+    # ＝＝＝＝＝＝＝＝＝＝＝＝
+    # 　　　　更新     　　＝
+    # ＝＝＝＝＝＝＝＝＝＝＝＝
+    # 调用script_defaults更新默认配置信息
+    script_defaults(GlobalVariableOfTheControl.current_settings)
+    # 更新脚本用户小部件
+    updateTheUIInterfaceData()
+    return True
+
+
+def update_roomCover_buttonC(props, prop):
+    """
+    上传直播间封面
+    Args:
+        props:
+        prop:
+    Returns:
+    """
+    pass
+
+
+def check_roomCover_buttonC(props, prop):
+    """
+    查看直播间封面
+    Args:
+        props:
+        prop:
+    Returns:
+    """
+    pass
+
+
+def change_liveRoom_title_buttonC(props, prop):
+    """
+    更改直播间标题
+    Args:
+        props:
+        prop:
+    Returns:
+    """
+    live_title_text_value = obs.obs_data_get_string(GlobalVariableOfTheControl.current_settings, 'liveRoom_title_textBox')
+    # 获取 '默认账户' cookie
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+    cookies = BULC.getCookies(BULC.getUsers()[0])
+    turn_title_return = CsrfAuthentication(dict2cookie(cookies)).room_v1_Room_update(live_title_text_value)
+    obs.script_log(obs.LOG_INFO, turn_title_return)
+    pass
+
+
+def change_liveRoom_news_buttonC(props, prop):
+    """
+    更改直播间公告
+    Args:
+        props:
+        prop:
+    Returns:
+    """
+    live_news_text_value = obs.obs_data_get_string(GlobalVariableOfTheControl.current_settings, 'liveRoom_news_textBox')
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+    cookies = BULC.getCookies(BULC.getUsers()[0])
+    turn_news_return = CsrfAuthentication(dict2cookie(cookies)).updateRoomNews(live_news_text_value)
+    obs.script_log(obs.LOG_INFO, f'{turn_news_return}')
+    pass
+
+
+def start_area1_buttonC(props, prop, settings=GlobalVariableOfTheControl.current_settings):
+    area2_list = obs.obs_properties_get(GlobalVariableOfTheControl.liveRoom_props, 'subLiveArea_comboBox')
     obs.obs_property_list_clear(area2_list)
     # 获取一级分组id
-    area1_id = obs.obs_data_get_string(GlobalVariableOfTheControl.current_settings,
-                                       'GlobalVariableOfTheControl.area1_list')
+    CurrentlyParentLiveArea = obs.obs_data_get_string(GlobalVariableOfTheControl.current_settings, 'parentLiveArea_comboBox')
     # 更新【二级分区】的组合框
-    for area in allAreaList:
-        if area1_id == str(area["id"]):
+    for area in globalVariableOfData.AreaObjList:
+        if CurrentlyParentLiveArea == str(area["id"]):
             for area2 in area["list"]:
                 try:
-                    if str(area2["id"]) == str(DefaultArea["data"]["id"]):
+                    if str(area2["id"]) == str(globalVariableOfData.DefaultArea["data"]["id"]):
                         obs.obs_property_list_insert_string(area2_list, 0, area2["name"], str(area2["id"]))
                     else:
                         obs.obs_property_list_add_string(area2_list, area2["name"], str(area2["id"]))
@@ -5867,100 +6262,121 @@ def start_area1(props, prop):
     return True
 
 
-def start_area():
+def start_area_buttonC():
     # 获取默认账户
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=scripts_config_filepath)
-    cookies = BULC.check(BULC.check(None)[0])
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+    cookies = BULC.getCookies(BULC.getUsers()[0])
     # 获取二级分区id
-    area2_id = obs.obs_data_get_string(GlobalVariableOfTheControl.current_settings,
-                                       'GlobalVariableOfTheControl.area2_list')
+    area2_id = obs.obs_data_get_string(GlobalVariableOfTheControl.current_settings, 'subLiveArea_comboBox')
     CsrfAuthentication(dict2cookie(cookies)).AnchorChangeRoomArea(int(area2_id))
     pass
 
 
-def start_live(props, prop):
+def jump_Blive_web_buttonC(props, prop):
+    """
+    跳转直播间后台网页
+    Args:
+        props:
+        prop:
+    Returns:
+    """
+    obs.script_log(obs.LOG_INFO, f"即将跳转到网页{GlobalVariableOfTheControl.jump_blive_web_button_url}")
+    pass
+
+
+# ____________________-------------------____________________---------------------_____________
+def start_live_buttonC(props, prop):
+    """
+    开始直播
+    Args:
+        props:
+        prop:
+    Returns:
+    """
     obs.script_log(obs.LOG_INFO, 'start_live')
     # 获取默认账户
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=scripts_config_filepath)
-    cookies = BULC.check(BULC.check(None)[0])
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+    cookies = BULC.getCookies(BULC.getUsers()[0])
     # 开播
     if cookies:
         # 获取二级分区id
-        area2_id = obs.obs_data_get_string(GlobalVariableOfTheControl.current_settings,
-                                           'GlobalVariableOfTheControl.area2_list')
-        startlive = CsrfAuthentication(dict2cookie(cookies)).startLive(int(area2_id))
+        area2_id = obs.obs_data_get_string(GlobalVariableOfTheControl.current_settings, 'subLiveArea_comboBox')
+        startLive = CsrfAuthentication(dict2cookie(cookies)).startLive(int(area2_id))
+        obs.script_log(obs.LOG_INFO, f"开播消息代码【{startLive['code']}】。消息内容：【{startLive['message']}】。")
         # 将 rtmp推流码 复制到剪贴板
-        cb.copy(startlive["data"]["rtmp"]["code"])
-    # 设置组合框[用户]为'默认用户'
-    obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, 'GlobalVariableOfTheControl.uid_list',
-                            cookies["DedeUserID"])
+        cb.copy(startLive["data"]["rtmp"]["code"])
+    # 设置组合框【用户】为'默认用户'
+    obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, 'uid_comboBox', cookies["DedeUserID"])
 
-    login(props, prop)
+    login_buttonC(props, prop)
     return True
 
 
-def rtmp_address_copy(props, prop):
+def rtmp_address_copy_buttonC(props, prop):
+    """
+    复制直播服务器
+    Args:
+        props:
+        prop:
+    Returns:
+    """
     # 获取默认账户
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=scripts_config_filepath)
-    cookies = BULC.check(BULC.check(None)[0])
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+    cookies = BULC.getCookies(BULC.getUsers()[0])
     cb.copy(CsrfAuthentication(dict2cookie(cookies)).FetchWebUpStreamAddr()['data']['addr']['addr'])
     pass
 
 
-def rtmp_stream_code_copy(props, prop):
+def rtmp_stream_code_copy_buttonC(props, prop):
+    """
+    复制直播推流码
+    Args:
+        props:
+        prop:
+    Returns:
+    """
     # 获取默认账户
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=scripts_config_filepath)
-    cookies = BULC.check(BULC.check(None)[0])
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+    cookies = BULC.getCookies(BULC.getUsers()[0])
     cb.copy(CsrfAuthentication(dict2cookie(cookies)).FetchWebUpStreamAddr()['data']['addr']['code'])
     pass
 
 
-def rtmp_stream_code_update(props, prop):
+def rtmp_stream_code_update_buttonC(props, prop):
+    """
+    更新推流码并复制
+    Args:
+        props:
+        prop:
+    Returns:
+    """
     # 获取默认账户
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=scripts_config_filepath)
-    cookies = BULC.check(BULC.check(None)[0])
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+    cookies = BULC.getCookies(BULC.getUsers()[0])
     cb.copy(CsrfAuthentication(dict2cookie(cookies)).FetchWebUpStreamAddr(True)['data']['addr']['code'])
     pass
 
 
-def stop_live(props, prop):
+def stop_live_buttonC(props, prop):
+    """
+    结束直播
+    Args:
+        props:
+        prop:
+    Returns:
+    """
     obs.script_log(obs.LOG_INFO, 'stop_live')
     # 获取默认账户
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=scripts_config_filepath)
-    cookies = BULC.check(BULC.check(None)[0])
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+    cookies = BULC.getCookies(BULC.getUsers()[0])
     # 停播
     if cookies:
-        CsrfAuthentication(dict2cookie(cookies)).stopLive()
-    # 设置组合框[用户]为'默认用户'
-    obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, 'GlobalVariableOfTheControl.uid_list',
-                            cookies["DedeUserID"])
-    login(props, prop)
+        stopLive = CsrfAuthentication(dict2cookie(cookies)).stopLive()
+        obs.script_log(obs.LOG_INFO, f"下播消息代码【{stopLive['code']}】。消息内容：【{stopLive['message']}】。")
+    # 设置组合框【用户】为'默认用户'
+    obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, 'uid_comboBox', cookies["DedeUserID"])
+    login_buttonC(props, prop)
     return True
-
-
-def change_live_title(props, prop):
-    live_title_text_value = obs.obs_data_get_string(GlobalVariableOfTheControl.current_settings,
-                                                    'GlobalVariableOfTheControl.live_title_text')
-    # 获取 '默认账户'cookie
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=scripts_config_filepath)
-    cookies = BULC.check(BULC.check(None)[0])
-    turn_title_return = CsrfAuthentication(dict2cookie(cookies)).room_v1_Room_update(live_title_text_value)
-    obs.script_log(obs.LOG_INFO, turn_title_return)
-    pass
-
-
-def change_live_news(props, prop):
-    live_news_text_value = obs.obs_data_get_string(GlobalVariableOfTheControl.current_settings,
-                                                   'GlobalVariableOfTheControl.live_news_text')
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=scripts_config_filepath)
-    cookies = BULC.check(BULC.check(None)[0])
-    turn_news_return = CsrfAuthentication(dict2cookie(cookies)).updateRoomNews(live_news_text_value)
-    obs.script_log(obs.LOG_INFO, f'{turn_news_return}')
-    pass
-
-
-def Blive_web(props, prop):
-    pass
 
 
 def script_unload():
