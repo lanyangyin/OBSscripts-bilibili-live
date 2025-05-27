@@ -20,13 +20,16 @@ import io
 import json
 import os
 import pathlib
+import random
+import string
 # import pprint
 import sys
 import tempfile
 # import threading
 import time
 import urllib
-from typing import Optional, Dict
+from datetime import datetime
+from typing import Optional, Dict, Literal
 # import zlib
 from urllib.parse import quote
 from pathlib import Path
@@ -110,7 +113,7 @@ class GlobalVariableOfTheControl:
     # ##按钮【备份账户】的实例
     backup_account_button = None
     backup_account_button_visible = None
-    delete_backup_account_enabled = None
+    backup_account_button_enabled = None
 
     # ##按钮【恢复账户】的实例
     restore_account_button = None
@@ -130,6 +133,11 @@ class GlobalVariableOfTheControl:
     room_status_textBox_type = None
     room_status_textBox_string = ""
 
+    # ##按钮【查看当前直播间封面】的实例
+    viewLiveCover_button = None
+    viewLiveCover_button_visible = None
+    viewLiveCover_button_enabled = None
+
     # ##文件对话框【直播间封面】的实例
     room_cover_fileDialogBox = None
     room_cover_fileDialogBox_visible = None
@@ -140,12 +148,6 @@ class GlobalVariableOfTheControl:
     room_cover_update_button = None
     room_cover_update_button_visible = None
     room_cover_update_button_enabled = None
-
-    # ##url按钮【查看当前直播间封面】的实例
-    viewLiveCover_button = None
-    viewLiveCover_button_visible = None
-    viewLiveCover_button_enabled = None
-    viewLiveCover_button_url = ""
 
     # ##普通文本框【直播间标题】的实例
     liveRoom_title_textBox = None
@@ -193,6 +195,17 @@ class GlobalVariableOfTheControl:
     subLiveArea_true_button_visible = None
     subLiveArea_true_button_enabled = None
 
+    # ##普通文本框【直播间标签】的实例
+    liveRoom_Tags_textBox = None
+    liveRoom_Tags_textBox_visible = None
+    liveRoom_Tags_textBox_enabled = None
+    liveRoom_Tags_textBox_string = ""
+
+    # ##按钮【更改直播间标签】的实例
+    change_liveRoom_Tags_button = None
+    change_liveRoom_Tags_button_visible = None
+    change_liveRoom_Tags_button_enabled = None
+
     # ##url按钮【跳转直播间后台网页】
     jump_blive_web_button = None
     jump_blive_web_button_visible = None
@@ -234,6 +247,9 @@ class GlobalVariableOfTheControl:
 
 
 class globalVariableOfData:
+    # #日志记录
+    logRecording = ""
+
     # 文件配置类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # #脚本所在目录，末尾带/
     scripts_data_dirpath = None
@@ -256,6 +272,12 @@ class globalVariableOfData:
     {ComboBoxValue: ComboBoxString}
     """
 
+    # ##登录二维码的pillow img实例
+    LoginQRCodePillowImg = None
+    """
+    登录二维码的pillow img实例
+    """
+
     # ##默认用户的昵称
     DefaultUserUname = None
     """
@@ -264,13 +286,24 @@ class globalVariableOfData:
     """
 
     # 直播间类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # #直播平台字典
+    LivePlatformsDict = {"pc_link": "直播姬（pc）", "web_link": "web在线直播", "android_link": "bililink"}
+    """
+    {"pc_link": "直播姬（pc）", "web_link": "web在线直播", "android_link": "bililink"}
+    """
     # #默认直播间状态
     DefaultRoomStatus = None
     """
-    默认用户config["DefaultUser"]的直播间存在状态
+    默认用户config["DefaultUser"]
+    的直播间存在状态
     """
     # #直播状态
     DefaultLiveStatus = None
+
+    LiveRoomCover_url = ""
+    """
+    直播间封面URL
+    """
 
     # #默认直播分区
     DefaultArea = {}
@@ -312,6 +345,27 @@ def script_path():
     pass
 
 
+def logSave(logLevel: Literal[0, 1, 2, 3], logStr: str) -> None:
+    """
+    输出并保存日志
+    Args:
+        logLevel:
+        logStr:
+    Returns:
+    """
+    logType = {
+        0: obs.LOG_INFO,
+        1: obs.LOG_DEBUG,
+        2: obs.LOG_WARNING,
+        3: obs.LOG_ERROR,
+    }
+    now = datetime.now()
+    formatted = now.strftime("%Y/%m/%d %H:%M:%S")
+    log_text = f"【{formatted}】【{logLevel}】{logStr}"
+    obs.script_log(logType[logLevel], log_text)
+    globalVariableOfData.logRecording += log_text + "\n"
+
+
 # 工具类函数
 class BilibiliUserLogsIn2ConfigFile:
     """
@@ -343,17 +397,17 @@ class BilibiliUserLogsIn2ConfigFile:
     def _ensure_config_file(self):
         """确保配置文件存在且结构有效"""
         if not self.configPath.exists():
-            obs.script_log(obs.LOG_DEBUG, f'脚本数据文件【{globalVariableOfData.scripts_data_dirpath}】不存在，尝试创建')
+            logSave(1, f'脚本数据文件【{globalVariableOfData.scripts_data_dirpath}】不存在，尝试创建')
             self.configPath.parent.mkdir(parents=True, exist_ok=True)
             self._write_config({"DefaultUser": None})
-            obs.script_log(obs.LOG_DEBUG, f'success：脚本数据文件 创建成功')
+            logSave(1, f'success：脚本数据文件 创建成功')
 
         config = self._read_config()
         if "DefaultUser" not in config:
-            obs.script_log(obs.LOG_DEBUG, f'脚本数据文件中不存在"DefaultUser"字段，尝试创建')
+            logSave(1, f'脚本数据文件中不存在"DefaultUser"字段，尝试创建')
             config["DefaultUser"] = None
             self._write_config(config)
-            obs.script_log(obs.LOG_DEBUG, f'success："DefaultUser"字段 创建成功')
+            logSave(1, f'success："DefaultUser"字段 创建成功')
 
     def _read_config(self) -> Dict:
         """读取配置文件内容"""
@@ -512,6 +566,32 @@ class BilibiliUserLogsIn2ConfigFile:
         return users
 
 
+def url2pillowImage(url) -> Image.Image:
+    """
+    将url图片转换为pillow_image实例
+    Args:
+        url:
+    Returns:pillow_image实例
+    """
+    try:
+        # 添加请求头模拟浏览器访问，避免被拒绝
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+        }
+        # 发送 GET 请求
+        response = requests.get(url, headers=headers, stream=True)
+        response.raise_for_status()  # 检查 HTTP 错误
+        # 将响应内容转为字节流
+        image_data = io.BytesIO(response.content)
+        # 用 Pillow 打开图像
+        img = Image.open(image_data)
+        return img
+    except requests.exceptions.RequestException as e:
+        print(f"网络请求失败: {e}")
+    except Exception as e:
+        print(f"处理图像时出错: {e}")
+
+
 def dict2cookie(jsondict: Dict[str, str]) -> str:
     """
     将字典转换为符合HTTP标准的Cookie字符串格式
@@ -640,6 +720,199 @@ def qr2str_b64_PilImg4dict(qr_str: str, border: int = 2, invert: bool = False):
         qr的PIL.Image.Image 对象
         """
     return {"str": output_str, "base64": b64, "img": qrPilImg}
+
+
+def PIL_Image2CentralProportionCutting(
+        PIL_Image: Image.Image,
+        target_WidthToHeightRatio: float
+) -> Optional[Image.Image]:
+    """
+    对图像进行中心比例裁切，保持目标宽高比
+
+    Args:
+        PIL_Image: 要处理的 PIL 图像对象
+        target_WidthToHeightRatio: 目标宽高比（宽度/高度的比值）
+            示例：
+            - 16:9 → 16/9 ≈ 1.778
+            - 1:1 → 1.0
+            - 4:3 → 1.333
+
+    Returns:
+        Image.Image: 裁切后的新图像对象，如果裁切失败返回 None
+
+    Raises:
+        TypeError: 输入不是有效的 PIL 图像对象
+        ValueError: 目标比例不是正数或裁切尺寸无效
+    """
+    # 参数验证
+    if not isinstance(PIL_Image, Image.Image):
+        raise TypeError("输入必须是有效的 PIL.Image.Image 对象")
+
+    if target_WidthToHeightRatio <= 0:
+        raise ValueError("目标比例必须是正数")
+
+    # 获取原始尺寸
+    original_width, original_height = PIL_Image.size
+    original_ratio = original_width / original_height
+
+    try:
+        # 计算裁切区域
+        if original_ratio > target_WidthToHeightRatio:
+            # 过宽：固定高度，计算宽度
+            crop_height = original_height
+            crop_width = int(round(crop_height * target_WidthToHeightRatio))
+        else:
+            # 过高：固定宽度，计算高度
+            crop_width = original_width
+            crop_height = int(round(crop_width / target_WidthToHeightRatio))
+
+        # 验证裁切尺寸
+        if crop_width <= 0 or crop_height <= 0:
+            raise ValueError("计算出的裁切尺寸无效")
+        if crop_width > original_width or crop_height > original_height:
+            raise ValueError("原始图片尺寸不足以完成裁切")
+
+        # 计算裁切坐标
+        left = (original_width - crop_width) // 2
+        top = (original_height - crop_height) // 2
+        right = left + crop_width
+        bottom = top + crop_height
+
+        return PIL_Image.crop((left, top, right, bottom))
+
+    except ValueError as e:
+        raise ValueError(f"裁切失败: {str(e)}")
+    except Exception as e:
+        raise ValueError(f"未知错误: {str(e)}")
+
+
+def PIL_Image2Zooming(
+        PIL_Image: Image.Image,
+        ZoomingQuality: Literal[1, 2, 3, 4],
+        target_width: Optional[int] = None,  # Optional[int] 可以简写为 int | None
+        scale_factor: Optional[int] = None  # Optional[int] 可以简写为 int | None
+) -> Image.Image:
+    """
+    对 PIL 图像进行缩放操作，支持指定目标宽度或缩小倍数
+
+    Args:
+        PIL_Image: 要缩放的 PIL 图像对象
+        ZoomingQuality: 缩放质量等级 (1-4)
+            1 = 最近邻 (速度快质量低)
+            2 = 双线性 (平衡模式)
+            3 = 双三次 (高质量放大)
+            4 = Lanczos (最高质量)
+        target_width: 目标宽度（与 scale_factor 二选一）
+        scale_factor: 缩小倍数（与 target_width 二选一）
+
+    Returns:
+        dict: 包含两种缩放结果的字典
+            widthZoomingPIL_Image: 按宽度缩放的结果图像（如参数有效）
+            timesZoomingPIL_Image: 按比例缩放的结果图像（如参数有效）
+
+    Raises:
+        ValueError: 参数不符合要求时抛出
+        TypeError: 输入图像类型错误时抛出
+    """
+    # 参数验证
+    if not isinstance(PIL_Image, Image.Image):
+        raise TypeError("输入必须是 PIL.Image.Image 对象")
+    if ZoomingQuality not in (1, 2, 3, 4):
+        raise ValueError("缩放质量等级必须是 1-4 的整数")
+    if not (False if bool(target_width) == bool(scale_factor) else True):
+        raise ValueError("正确使用参数 target_width 或 scale_factor")
+    # 选择重采样滤波器
+    resampling_filter4ZoomingQuality = {
+        1: Image.NEAREST,
+        2: Image.BILINEAR,
+        3: Image.BICUBIC,
+        4: Image.LANCZOS,
+    }
+    resampling_filter = resampling_filter4ZoomingQuality[ZoomingQuality]
+    # """
+    # 滤波器名称	    质量	速度	适用场景
+    # Image.NEAREST	低	最快	像素艺术/保留原始像素值
+    # Image.BILINEAR	中	较快	通用缩放（默认选项）
+    # Image.BICUBIC	高	较慢	高质量放大
+    # Image.LANCZOS	最高	最慢	超高精度缩放（推荐选项）
+    # """
+    original_width, original_height = PIL_Image.size
+    widthHeightRatio = original_width / original_height
+    new_width = None
+    if target_width:
+        if target_width > original_width:
+            raise ValueError("目标宽度必须小于原宽度")
+        new_width = target_width
+    elif scale_factor:
+        if scale_factor < original_height:
+            raise ValueError("比例因子必须小于原高度")
+        if 1 < scale_factor:
+            raise ValueError("比例因子必须大于1")
+        new_width = original_width / scale_factor
+    new_height = new_width / widthHeightRatio
+    ZoomingPIL_Image = PIL_Image.resize((round(new_width), round(new_height)), resampling_filter)
+    return ZoomingPIL_Image
+
+
+def PIL_Image2Binary(
+        PIL_Image: Image.Image,
+        ImgFormat: Literal["PNG", "JPEG"],
+        compress_level: Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+) -> bytes:
+    """
+    将 PIL 图像对象转换为指定格式的二进制数据
+
+    Args:
+        PIL_Image: PIL 图像对象
+        ImgFormat: 输出图像格式
+            "PNG" - 使用无损压缩
+            "JPEG" - 使用有损压缩
+        compress_level: 压缩等级 (不同格式有不同表现)
+            对于 PNG: 压缩级别 0-9 (0=无压缩，9=最大压缩)
+            对于 JPEG: 质量等级 5-95 (自动映射压缩级别到质量参数)
+
+    Returns:
+        bytes: 图像二进制数据
+
+    Raises:
+        ValueError: 参数不合法时抛出
+        OSError: 图像保存失败时抛出
+    """
+    # 参数验证
+    if not isinstance(PIL_Image, Image.Image):
+        raise ValueError("输入必须是有效的 PIL.Image.Image 对象")
+    if ImgFormat not in ("PNG", "JPEG"):
+        raise ValueError(f"不支持的图像格式: {ImgFormat}，只支持 PNG/JPEG")
+    if compress_level not in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9):
+        raise ValueError(f"不支持的压缩级别: {compress_level}，只支持 0～9")
+    # 准备保存参数
+    save_kwargs = {}
+
+    match ImgFormat:
+        case "PNG":
+            save_kwargs = {
+                "format": "PNG",
+                "compress_level": compress_level  # 将压缩级别映射到质量参数 (0=最高压缩，9=最高质量)
+            }
+        case "JPEG":
+            quality = 95 - (compress_level * 10)
+            quality = max(5, min(95, quality))  # 确保在有效范围内
+            # 转换图像模式为 RGB
+            if PIL_Image.mode != "RGB":
+                PIL_Image = PIL_Image.convert("RGB")
+            save_kwargs = {
+                "format": "JPEG",
+                "quality": quality,
+                "subsampling": 0 if quality >= 90 else 1  # 高质量使用全采样
+            }
+    # 执行转换
+    buffer = io.BytesIO()
+    try:
+        PIL_Image.save(buffer, **save_kwargs)
+    except Exception as e:
+        raise OSError(f"图像保存失败: {str(e)}") from e
+    image_bytes = buffer.getvalue()  # 转换为字节流
+    return image_bytes
 
 
 # end
@@ -5302,14 +5575,14 @@ class CsrfAuthentication:
         api = "https://api.live.bilibili.com/xlive/app-blink/v2/room/AnchorChangeRoomArea"
         headers = self.headers
         csrf = self.csrf
-        data = {
+        AnchorChangeRoomArea_data = {
             "platform": "pc",
             "room_id": master(self.cookie).getRoomHighlightState(),
             "area_id": area_id,
             "csrf": csrf,
             "csrf_token": csrf,
         }
-        ChangeRoomArea_ReturnValue = requests.post(api, headers=headers, params=data).json()
+        ChangeRoomArea_ReturnValue = requests.post(api, headers=headers, params=AnchorChangeRoomArea_data).json()
         return ChangeRoomArea_ReturnValue
 
     def startLive(self, area_id: int,  platform: str = "web_link"):
@@ -5342,39 +5615,39 @@ class CsrfAuthentication:
         api = "https://api.live.bilibili.com/room/v1/Room/stopLive"
         headers = self.headers
         csrf = self.csrf
-        data = {
+        stopLive_data = {
             "platform": "pc",
             "room_id": master(self.cookie).getRoomHighlightState(),
             "csrf": csrf,
             "csrf_token": csrf,
         }
-        stopLive_ReturnValue = requests.post(api, headers=headers, params=data).json()
+        stopLive_ReturnValue = requests.post(api, headers=headers, params=stopLive_data).json()
         return stopLive_ReturnValue
 
     def FetchWebUpStreamAddr(self, reset_key: bool = False):
         """
-        推流信息
+        推流码信息
         @param reset_key: 布尔值，是否更新
         @return:
         """
         api = "https://api.live.bilibili.com/xlive/app-blink/v1/live/FetchWebUpStreamAddr"
         headers = self.headers
         csrf = self.csrf
-        data = {
+        FetchWebUpStreamAddr_data = {
             "platform": "pc",
             "backup_stream": 0,
             "reset_key": reset_key,
             "csrf": csrf,
             "csrf_token": csrf,
         }
-        FetchWebUpStreamAddre_ReturnValue = requests.post(api, headers=headers, params=data).json()
+        FetchWebUpStreamAddre_ReturnValue = requests.post(api, headers=headers, params=FetchWebUpStreamAddr_data).json()
         return FetchWebUpStreamAddre_ReturnValue
 
     def send(self, roomid: int, msg: str):
         api = "https://api.live.bilibili.com/msg/send"
         headers = self.headers
         csrf = self.csrf
-        data = {
+        send_data = {
             'msg': msg,
             'color': 16777215,
             'fontsize': 25,
@@ -5383,7 +5656,7 @@ class CsrfAuthentication:
             'csrf': csrf,
             'csrf_token': csrf
         }
-        send_ReturnValue = requests.post(api, headers=headers, params=data).json()
+        send_ReturnValue = requests.post(api, headers=headers, params=send_data).json()
         return send_ReturnValue
 
     def room_v1_Room_update(self, title: str):
@@ -5394,13 +5667,13 @@ class CsrfAuthentication:
         headers = self.headers
         csrf = self.csrf
         api = "https://api.live.bilibili.com/room/v1/Room/update"
-        data = {
+        room_v1_Room_update_data = {
             'room_id': master(self.cookie).getRoomHighlightState(),
             'title': title,
             'csrf_token': csrf,
             'csrf': csrf
         }
-        room_v1_Room_update_ReturnValue = requests.post(api, headers=headers, data=data).json()
+        room_v1_Room_update_ReturnValue = requests.post(api, headers=headers, data=room_v1_Room_update_data).json()
         return room_v1_Room_update_ReturnValue
 
     def updateRoomNews(self, content: str):
@@ -5411,15 +5684,88 @@ class CsrfAuthentication:
         headers = self.headers
         csrf = self.csrf
         api = "https://api.live.bilibili.com/xlive/app-blink/v1/index/updateRoomNews"
-        data = {
+        updateRoomNews_data = {
             'room_id': master(self.cookie).getRoomHighlightState(),
             'uid': self.cookies["DedeUserID"],
             'content': content,
             'csrf_token': csrf,
             'csrf': csrf
         }
-        updateRoomNews_ReturnValue = requests.post(api, headers=headers, data=data).json()
+        updateRoomNews_ReturnValue = requests.post(api, headers=headers, data=updateRoomNews_data).json()
         return updateRoomNews_ReturnValue
+
+    def upload_cover(self, image_binary: bytes):
+        """
+        上传直播间封面到B站(符合官方请求格式)
+        :param image_binary: png/jpeg图像的二进制格式数据
+        """
+        UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/"
+              "537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
+        # 构建请求参数
+        api_url = "https://api.bilibili.com/x/upload/web/image"
+        # 准备multipart/form-data数据
+        boundary = '----WebKitFormBoundary' + ''.join(random.choices(string.ascii_letters + string.digits, k=16))
+        headers = {
+            "User-Agent": UA,
+            "Cookie": self.cookie,
+            "Content-Type": f"multipart/form-data; boundary={boundary}"
+        }
+        # 构建multipart body
+        data_parts = []
+        # 添加普通字段
+        fields = {
+            "bucket": "live",
+            "dir": "new_room_cover",
+            "csrf": self.cookies["bili_jct"]
+        }
+        for name, value in fields.items():
+            data_parts.append(
+                f'--{boundary}\r\n'
+                f'Content-Disposition: form-data; name="{name}"\r\n\r\n'
+                f'{value}\r\n'
+            )
+        data_parts.append(
+            f'--{boundary}\r\n'
+            f'Content-Disposition: form-data; name="file"; filename="blob"\r\n'
+            f'Content-Type: image/jpeg\r\n\r\n'
+        )
+        data_parts.append(image_binary)
+        data_parts.append(f'\r\n--{boundary}--\r\n')
+        # 构建最终body
+        body = b''
+        for part in data_parts:
+            if isinstance(part, str):
+                body += part.encode('utf-8')
+            else:
+                body += part
+        # 发送请求
+        response = requests.post(url=api_url, headers=headers, data=body).json()
+        # 处理响应
+        result = response
+        logSave(0, f'"[上传结果]", {result}')
+        return result
+
+    def update_cover(self, CoverUrl: str):
+        UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/"
+              "537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
+        headers = {
+            "User-Agent": UA,
+            "cookie": self.cookie,
+        }
+        # 构建请求参数
+        api_url = "https://api.live.bilibili.com/xlive/app-blink/v1/preLive/UpdatePreLiveInfo"
+        update_cover_data = {
+            "platform": "web",
+            "mobi_app": "web",
+            "build": 1,
+            "cover": CoverUrl,
+            "coverVertical": "",
+            "liveDirectionType": 1,
+            "csrf_token": self.cookies["bili_jct"],
+            "csrf": self.cookies["bili_jct"],
+        }
+        update_cover_ReturnValue = requests.post(api_url, headers=headers, params=update_cover_data).json()
+        logSave(0, update_cover_ReturnValue)
 
 
 # end
@@ -5430,7 +5776,7 @@ def logInTry(configPath: Path, uid: Optional[int]):
     try:
         BUCF = BilibiliUserLogsIn2ConfigFile(configPath=configPath)
         uid = str(uid)
-        obs.script_log(obs.LOG_INFO, f"尝试登录用户: {uid}")
+        logSave(0, f"尝试登录用户: {uid}")
         # 验证cookies完整性
         cookies = BUCF.getCookies(int(uid))
         if cookies is None:
@@ -5441,16 +5787,16 @@ def logInTry(configPath: Path, uid: Optional[int]):
             raise ValueError(f"cookies缺少必要字段: {', '.join(missing)}")
         isLogin = master(dict2cookie(cookies)).interface_nav()["isLogin"]
         if not isLogin:
-            obs.script_log(obs.LOG_ERROR, f"用户 {uid} 的cookies已过期")
+            logSave(3, f"用户 {uid} 的cookies已过期")
             return False
         BUCF.updateUser(cookies)
-        obs.script_log(obs.LOG_INFO, f"用户 {uid} 登录成功")
+        logSave(0, f"用户 {uid} 登录成功")
         return True
     except ValueError as e:
-        obs.script_log(obs.LOG_ERROR, f"参数错误: {str(e)}")
+        logSave(3, f"参数错误: {str(e)}")
         raise
     except Exception as e:
-        obs.script_log(obs.LOG_WARNING, f"登录过程异常: {str(e)}")
+        logSave(2, f"登录过程异常: {str(e)}")
         raise RuntimeError("登录服务暂时不可用") from e
 
 
@@ -5467,8 +5813,10 @@ def qrAddUser(configPath: Path):
     url = url8qrcode_key['url']
     # 获取二维码
     qr = qr2str_b64_PilImg4dict(url)
+    # 获取登录二维码的pillow img实例
+    globalVariableOfData.LoginQRCodePillowImg = qr["img"]
     # 输出二维码图形字符串
-    obs.script_log(obs.LOG_WARNING, qr["str"])
+    logSave(1, qr["str"])
     # 获取二维码key
     qrcode_key = url8qrcode_key['qrcode_key']
     # 获取二维码扫描登陆状态
@@ -5479,7 +5827,7 @@ def qrAddUser(configPath: Path):
         86090: "二维码已扫码未确认",
         86038: "二维码已失效",
     }
-    obs.script_log(obs.LOG_WARNING, str(logIn2QRCode2ReturnInformation4code[code]))
+    logSave(1, str(logIn2QRCode2ReturnInformation4code[code]))
 
     # 轮询二维码扫描登录状态
     def check_poll():
@@ -5492,17 +5840,17 @@ def qrAddUser(configPath: Path):
         code_ = code
         poll_ = poll(qrcode_key)
         code = poll_['code']
-        if code_ != code:
-            # 二维码扫描登陆状态改变时，输出改变后状态
-            obs.script_log(obs.LOG_WARNING, str(logIn2QRCode2ReturnInformation4code[code]))
+        # 二维码扫描登陆状态改变时，输出改变后状态
+        logSave(1, str(logIn2QRCode2ReturnInformation4code[code])) if code_ != code else None
         if code == 0 or code == 86038:
+            globalVariableOfData.LoginQRCodePillowImg = None
             # 二维码扫描登陆状态为成功或者超时时获取cookies结束[轮询二维码扫描登陆状态]
             cookies = poll_['cookies']
             if cookies:
                 # 获取登陆账号cookies中携带的uid
                 uid = int(cookies['DedeUserID'])
                 if str(uid) in UserListDict.values():
-                    obs.script_log(obs.LOG_INFO, "已有该用户，正在更新用户登录信息")
+                    logSave(1, "已有该用户，正在更新用户登录信息")
                     BUCF.updateUser(cookies, False)
                 else:
                     BUCF.addUser(cookies)
@@ -5528,10 +5876,11 @@ def script_defaults(settings):  # 设置其默认值
     :param settings:与脚本关联的设置。
     """
     # 路径变量
+    # #脚本数据保存目录
     globalVariableOfData.scripts_data_dirpath = f"{script_path()}bilibili-live"
-    obs.script_log(obs.LOG_INFO, f'script_defaults[info: 插件数据保存在【{globalVariableOfData.scripts_data_dirpath}】]')
+    # #脚本用户数据路径
     globalVariableOfData.scripts_config_filepath = Path(globalVariableOfData.scripts_data_dirpath) / "config.json"
-    obs.script_log(obs.LOG_INFO, f'script_defaults[info: 账号数据保存在【{globalVariableOfData.scripts_config_filepath}】]')
+    logSave(0, f"脚本用户数据路径：{globalVariableOfData.scripts_data_dirpath}")
     # 创建用户配置文件实例 并 验证 用户账号可用性
     BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
     globalVariableOfData.AllUnameByUid4Dict = {}
@@ -5540,12 +5889,9 @@ def script_defaults(settings):  # 设置其默认值
             userInterface_nav = master(dict2cookie(BULC.getCookies(int(uid)))).interface_nav()
             userIsLogin = userInterface_nav["isLogin"]
             if userIsLogin:
-                obs.script_log(obs.LOG_INFO, f"script_defaults[info: 载入用户【{uid}】成功]")
                 globalVariableOfData.AllUnameByUid4Dict[uid] = userInterface_nav["uname"]
             else:
-                obs.script_log(obs.LOG_WARNING, f"script_defaults[warning: 载入用户【{uid}】失败]")
                 BULC.deleteUser(int(uid))
-                obs.script_log(obs.LOG_DEBUG, f"script_defaults[debug: 用户【{uid}】已删除]")
     # 创建用户配置文件实例
     BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
     # 获取 '默认账户' cookies
@@ -5553,14 +5899,11 @@ def script_defaults(settings):  # 设置其默认值
     """
     如果'默认账户'为None，默认cookies会为None
     """
-    obs.script_log(obs.LOG_INFO, f"script_defaults[info: 尝试登录用户【{BULC.getUsers()[0]}】]")
     if DefaultUserCookies:
         DefaultUserCookie = dict2cookie(DefaultUserCookies)  # 转换 '默认账户' 的 Cookies 成 cookie
         DefaultUserInterfaceNav = master(DefaultUserCookie).interface_nav()  # 获取 '默认账户' 导航栏用户信息
         globalVariableOfData.DefaultUserUname = DefaultUserInterfaceNav["uname"]  # 获取默认账号的昵称
-        obs.script_log(obs.LOG_INFO, f"script_defaults[info: 登录用户昵称为【{globalVariableOfData.DefaultUserUname}】]")
     else:
-        obs.script_log(obs.LOG_WARNING, f'script_defaults[warning: 当前未登录账号]')  # 如果 '默认账户' 为 None 提示没有登录
         globalVariableOfData.DefaultUserUname = None  # 如果 '默认账户' 为 None 那么 默认昵称为 None
 
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -5578,9 +5921,9 @@ def script_defaults(settings):  # 设置其默认值
     GlobalVariableOfTheControl.default_uid_comboBox_value = BULC.getUsers()[0] if DefaultUserCookies else '-1'
 
     # 按钮【登录账号】 可用状态
-    GlobalVariableOfTheControl.login_button_enabled = True
+    GlobalVariableOfTheControl.login_button_enabled = True if globalVariableOfData.AllUnameByUid4Dict else False
     # 按钮【登录账号】 可见状态
-    GlobalVariableOfTheControl.login_button_visible = True
+    GlobalVariableOfTheControl.login_button_visible = True if globalVariableOfData.AllUnameByUid4Dict else False
 
     # 按钮【二维码添加账户】 可用状态
     GlobalVariableOfTheControl.qr_code_add_account_button_enabled = True
@@ -5593,24 +5936,24 @@ def script_defaults(settings):  # 设置其默认值
     GlobalVariableOfTheControl.display_qr_code_picture_button_visible = True
 
     # 按钮[删除账户] 可用状态
-    GlobalVariableOfTheControl.delete_account_button_enabled = True
+    GlobalVariableOfTheControl.delete_account_button_enabled = True if globalVariableOfData.AllUnameByUid4Dict else False
     # 按钮[删除账户] 可见状态
-    GlobalVariableOfTheControl.delete_account_button_visible = True
+    GlobalVariableOfTheControl.delete_account_button_visible = True if globalVariableOfData.AllUnameByUid4Dict else False
 
     # 按钮[备份账户] 可用状态
-    GlobalVariableOfTheControl.backup_account_button_enabled = True
+    GlobalVariableOfTheControl.backup_account_button_enabled = False
     # 按钮[备份账户] 可见状态
-    GlobalVariableOfTheControl.backup_account_button_visible = True
+    GlobalVariableOfTheControl.backup_account_button_visible = False
 
     # 按钮[恢复账户] 可用状态
-    GlobalVariableOfTheControl.restore_account_button_enabled = True
+    GlobalVariableOfTheControl.restore_account_button_enabled = False
     # 按钮[恢复账户] 可见状态
-    GlobalVariableOfTheControl.restore_account_button_visible = True
+    GlobalVariableOfTheControl.restore_account_button_visible = False
 
     # 按钮[登出账号] 可用状态
-    GlobalVariableOfTheControl.logout_button_enabled = True
+    GlobalVariableOfTheControl.logout_button_enabled = True if globalVariableOfData.AllUnameByUid4Dict and BULC.getCookies() else False
     # 按钮[登出账号] 可见状态
-    GlobalVariableOfTheControl.logout_button_visible = True
+    GlobalVariableOfTheControl.logout_button_visible = True if globalVariableOfData.AllUnameByUid4Dict and BULC.getCookies() else False
 
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # 获取'默认账户'直播间旧的基础信息
@@ -5634,16 +5977,16 @@ def script_defaults(settings):  # 设置其默认值
                 "name": RoomBaseInfo["by_room_ids"][str(globalVariableOfData.DefaultRoomid)]["area_name"],
             }
         } if globalVariableOfData.DefaultRoomStatus else {}
+    # 获取直播间封面的链接
+    globalVariableOfData.LiveRoomCover_url = RoomBaseInfo["by_room_ids"][str(globalVariableOfData.DefaultRoomid)]["cover"] if bool(globalVariableOfData.DefaultRoomStatus) else ""
 
     # 设置 只读文本框【直播间状态】 的类型
-    GlobalVariableOfTheControl.room_status_textBox_type = (obs.OBS_TEXT_INFO_NORMAL if bool(globalVariableOfData.DefaultRoomStatus and DefaultUserCookies) else obs.OBS_TEXT_INFO_WARNING) if DefaultUserCookies else obs.OBS_TEXT_INFO_ERROR
+    GlobalVariableOfTheControl.room_status_textBox_type = (obs.OBS_TEXT_INFO_NORMAL if bool(globalVariableOfData.DefaultRoomStatus) else obs.OBS_TEXT_INFO_WARNING) if DefaultUserCookies else obs.OBS_TEXT_INFO_ERROR
     # 设置 只读文本框【直播间状态】 的内容
     GlobalVariableOfTheControl.room_status_textBox_string = (f"{str(globalVariableOfData.DefaultRoomid)}{'直播中' if globalVariableOfData.DefaultLiveStatus else '未开播'}" if globalVariableOfData.DefaultRoomStatus else "无直播间") if DefaultUserCookies else "未登录"
 
-    # 设置 url按钮【查看直播间封面】 可见状态
+    # 设置 按钮【查看直播间封面】 可见状态
     GlobalVariableOfTheControl.viewLiveCover_button_visible = bool(globalVariableOfData.DefaultRoomStatus)
-    # 设置 url按钮【查看直播间封面】 链接
-    GlobalVariableOfTheControl.viewLiveCover_button_url = RoomBaseInfo["by_room_ids"][str(globalVariableOfData.DefaultRoomid)]["cover"] if bool(GlobalVariableOfTheControl.viewLiveCover_button_visible) else ""
 
     # 设置 文件对话框【直播间封面】 可见状态
     GlobalVariableOfTheControl.room_cover_fileDialogBox_visible = bool(globalVariableOfData.DefaultRoomStatus)
@@ -5690,11 +6033,18 @@ def script_defaults(settings):  # 设置其默认值
     GlobalVariableOfTheControl.subLiveArea_true_button_visible = bool(globalVariableOfData.DefaultRoomStatus)
 
     # 设置 url按钮【跳转直播间后台网页】 可见状态
-    GlobalVariableOfTheControl.jump_blive_web_button_visible = True
+    GlobalVariableOfTheControl.jump_blive_web_button_visible = False
     # 设置 url按钮【跳转直播间后台网页】 链接
     GlobalVariableOfTheControl.jump_blive_web_button_url = "https://link.bilibili.com/p/center/index#/my-room/start-live"
 
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # 设置 组合框【直播平台】 可见状态
+    GlobalVariableOfTheControl.live_streaming_platform_comboBox_visible = True if ((not globalVariableOfData.DefaultLiveStatus) and globalVariableOfData.DefaultRoomStatus) else False
+    # 设置 组合框【直播平台】 的内容
+    GlobalVariableOfTheControl.default_live_streaming_platform_comboBox_string = ""
+    # 设置 组合框【直播平台】 的内容 的 列表值
+    GlobalVariableOfTheControl.default_live_streaming_platform_comboBox_value = ""
+
     # 设置 按钮【开始直播并复制推流码】 可见状态
     GlobalVariableOfTheControl.start_live_button_visible = True if ((not globalVariableOfData.DefaultLiveStatus) and globalVariableOfData.DefaultRoomStatus) else False
 
@@ -5765,7 +6115,7 @@ def script_load(settings):
     # obs_data_t 类型的数据对象。这个数据对象可以用来存储和管理设置项，例如场景、源或过滤器的配置信息
     # settings = obs.obs_data_create()
     GlobalVariableOfTheControl.current_settings = settings
-    obs.script_log(obs.LOG_INFO, "已载入：bilibili_live")
+    logSave(0, "已载入：bilibili_live")
 
 
 # 控件状态更新时调用
@@ -5777,7 +6127,7 @@ def script_update(settings):
     :param settings:与脚本关联的设置。
     """
     GlobalVariableOfTheControl.current_settings = settings
-    obs.script_log(obs.LOG_INFO, "监测到控件数据变动")
+    logSave(0, "监测到控件数据变动")
     pass
 
 
@@ -5807,8 +6157,8 @@ def script_properties():  # 建立控件
 
     # 添加 组合框【用户】
     GlobalVariableOfTheControl.uid_comboBox = obs.obs_properties_add_list(GlobalVariableOfTheControl.setting_props, 'uid_comboBox', '用户：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING)
-    # 添加 组合框【用户】变动后事件
-    obs.obs_property_set_modified_callback(GlobalVariableOfTheControl.uid_comboBox, login_buttonC)
+    # # 添加 组合框【用户】变动后事件
+    # obs.obs_property_set_modified_callback(GlobalVariableOfTheControl.uid_comboBox, login_buttonC)
 
     # 添加 按钮【登录账号】
     GlobalVariableOfTheControl.login_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "login_button", "登录账号", login_buttonC)
@@ -5838,7 +6188,7 @@ def script_properties():  # 建立控件
     # 添加 只读文本框【直播间状态】
     GlobalVariableOfTheControl.room_status_textBox = obs.obs_properties_add_text(GlobalVariableOfTheControl.liveRoom_props, 'room_status_textBox', f'直播间状态', obs.OBS_TEXT_INFO)
 
-    # 添加 url按钮【查看直播间封面】
+    # 添加 按钮【查看直播间封面】
     GlobalVariableOfTheControl.viewLiveCover_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, 'viewLiveCover_button', f'查看直播间封面', check_roomCover_buttonC)
 
     # 添加 文件对话框【直播间封面】
@@ -5861,8 +6211,8 @@ def script_properties():  # 建立控件
 
     # 添加 组合框【一级分区】
     GlobalVariableOfTheControl.parentLiveArea_comboBox = obs.obs_properties_add_list(GlobalVariableOfTheControl.liveRoom_props, 'parentLiveArea_comboBox', '一级分区：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING)
-    # 添加 组合框【一级分区】变动后事件
-    obs.obs_property_set_modified_callback(GlobalVariableOfTheControl.parentLiveArea_comboBox, start_area1_buttonC)
+    # # 添加 组合框【一级分区】变动后事件
+    # obs.obs_property_set_modified_callback(GlobalVariableOfTheControl.parentLiveArea_comboBox, start_area1_buttonC)
 
     # 添加 按钮【确认一级分区】
     GlobalVariableOfTheControl.parentLiveArea_true_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, "parentLiveArea_true_button", "确认一级分区", start_area1_buttonC)
@@ -5879,6 +6229,9 @@ def script_properties():  # 建立控件
     # ————————————————————————————————————————————————————————————————
     # 添加 分组框【直播】
     obs.obs_properties_add_group(props, 'live_group', '【直播】', obs.OBS_GROUP_NORMAL, GlobalVariableOfTheControl.live_props)
+
+    # 添加 组合框【直播平台】
+    GlobalVariableOfTheControl.live_streaming_platform_comboBox = obs.obs_properties_add_list(GlobalVariableOfTheControl.live_props, 'live_streaming_platform_comboBox', '直播平台：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING)
 
     # 添加 按钮【开始直播并复制推流码】
     GlobalVariableOfTheControl.start_live_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.live_props, "start_live_button", "开始直播并复制推流码", start_live_buttonC)
@@ -5914,54 +6267,62 @@ def updateTheUIInterfaceData():
     # 更新 只读文本框【登录状态】 显示
     obs.obs_property_modified(GlobalVariableOfTheControl.login_status_textBox, GlobalVariableOfTheControl.current_settings)
 
-    # 获得 组合框【用户】 的数据字典
-    for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.uid_comboBox)):
-        globalVariableOfData.UidComboBoxStringByValue4Dict[obs.obs_property_list_item_string(GlobalVariableOfTheControl.uid_comboBox, idx)] = obs.obs_property_list_item_name(GlobalVariableOfTheControl.uid_comboBox, idx)
-    # 创建用户配置文件实例
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
-    if str(globalVariableOfData.AllUnameByUid4Dict | ({'-1': '添加或选择一个账号登录'} if BULC.getUsers()[0] is None else {})) != str(globalVariableOfData.UidComboBoxStringByValue4Dict):
-        # 清空组合框【用户】
-        obs.obs_property_list_clear(GlobalVariableOfTheControl.uid_comboBox)
-        # 为 组合框【用户】 添加选项
-        for uid in globalVariableOfData.AllUnameByUid4Dict:
-            obs.obs_property_list_add_string(GlobalVariableOfTheControl.uid_comboBox, globalVariableOfData.AllUnameByUid4Dict[uid], uid) if uid != GlobalVariableOfTheControl.default_uid_comboBox_value else None
-        # 为 组合框【用户】 添加默认选项
-        obs.obs_property_list_insert_string(GlobalVariableOfTheControl.uid_comboBox, 0, GlobalVariableOfTheControl.default_uid_comboBox_string, GlobalVariableOfTheControl.default_uid_comboBox_value)
-        # 使 组合框【用户】 显示默认选项
-        obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, 'uid_comboBox', GlobalVariableOfTheControl.default_uid_comboBox_value)
-        # 更新 组合框【用户】 显示
-        obs.obs_property_modified(GlobalVariableOfTheControl.uid_comboBox, GlobalVariableOfTheControl.current_settings)
+    # 清空组合框【用户】
+    obs.obs_property_list_clear(GlobalVariableOfTheControl.uid_comboBox)
+    # 为 组合框【用户】 添加选项
+    for uid in globalVariableOfData.AllUnameByUid4Dict:
+        obs.obs_property_list_add_string(GlobalVariableOfTheControl.uid_comboBox, globalVariableOfData.AllUnameByUid4Dict[uid], uid) if uid != GlobalVariableOfTheControl.default_uid_comboBox_value else None
+    # 为 组合框【用户】 添加默认选项
+    obs.obs_property_list_insert_string(GlobalVariableOfTheControl.uid_comboBox, 0, GlobalVariableOfTheControl.default_uid_comboBox_string, GlobalVariableOfTheControl.default_uid_comboBox_value)
+    # 使 组合框【用户】 显示默认选项
+    obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, 'uid_comboBox', GlobalVariableOfTheControl.default_uid_comboBox_value)
+    # 更新 组合框【用户】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.uid_comboBox, GlobalVariableOfTheControl.current_settings)
 
+    # 设置 按钮[登录账号] 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.login_button, GlobalVariableOfTheControl.login_button_visible)
     # 设置 按钮【登录账号】 可用状态
     obs.obs_property_set_enabled(GlobalVariableOfTheControl.login_button, GlobalVariableOfTheControl.login_button_enabled)
     # 更新 按钮【登录账号】 显示
     obs.obs_property_modified(GlobalVariableOfTheControl.login_button, GlobalVariableOfTheControl.current_settings)
 
+    # 设置 按钮【二维码添加账户】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.qr_code_add_account_button, GlobalVariableOfTheControl.qr_code_add_account_button_visible)
     # 设置 按钮【二维码添加账户】 可用状态
     obs.obs_property_set_enabled(GlobalVariableOfTheControl.qr_code_add_account_button, GlobalVariableOfTheControl.qr_code_add_account_button_enabled)
     # 更新 按钮【二维码添加账户】 显示
     obs.obs_property_modified(GlobalVariableOfTheControl.qr_code_add_account_button, GlobalVariableOfTheControl.current_settings)
 
+    # 设置 按钮[显示二维码图片] 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.display_qr_code_picture_button, GlobalVariableOfTheControl.display_qr_code_picture_button_visible)
     # 设置 按钮[显示二维码图片] 可用状态
     obs.obs_property_set_enabled(GlobalVariableOfTheControl.display_qr_code_picture_button, GlobalVariableOfTheControl.display_qr_code_picture_button_enabled)
     # 更新 按钮[显示二维码图片】 显示
     obs.obs_property_modified(GlobalVariableOfTheControl.display_qr_code_picture_button, GlobalVariableOfTheControl.current_settings)
 
+    # 设置 按钮[删除账户] 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.delete_account_button, GlobalVariableOfTheControl.delete_account_button_visible)
     # 设置 按钮[删除账户] 可用状态
     obs.obs_property_set_enabled(GlobalVariableOfTheControl.delete_account_button, GlobalVariableOfTheControl.delete_account_button_enabled)
     # 更新 按钮[删除账户】 显示
     obs.obs_property_modified(GlobalVariableOfTheControl.delete_account_button, GlobalVariableOfTheControl.current_settings)
 
+    # 设置 按钮[备份账户] 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.backup_account_button, GlobalVariableOfTheControl.backup_account_button_visible)
     # 设置 按钮[备份账户] 可用状态
     obs.obs_property_set_enabled(GlobalVariableOfTheControl.backup_account_button, GlobalVariableOfTheControl.backup_account_button_enabled)
     # 更新 按钮[备份账户】 显示
     obs.obs_property_modified(GlobalVariableOfTheControl.backup_account_button, GlobalVariableOfTheControl.current_settings)
 
+    # 设置 按钮[恢复账户] 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.restore_account_button, GlobalVariableOfTheControl.restore_account_button_visible)
     # 设置 按钮[恢复账户] 可用状态
     obs.obs_property_set_enabled(GlobalVariableOfTheControl.restore_account_button, GlobalVariableOfTheControl.restore_account_button_enabled)
     # 更新 按钮[恢复账户】 显示
     obs.obs_property_modified(GlobalVariableOfTheControl.restore_account_button, GlobalVariableOfTheControl.current_settings)
 
+    # 设置 按钮[登出账号] 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.logout_button, GlobalVariableOfTheControl.logout_button_visible)
     # 设置 按钮[登出账号] 可用状态
     obs.obs_property_set_enabled(GlobalVariableOfTheControl.logout_button, GlobalVariableOfTheControl.logout_button_enabled)
     # 更新 按钮[登出账号】 显示
@@ -5975,13 +6336,9 @@ def updateTheUIInterfaceData():
     # 更新 只读文本框【直播间状态】 显示
     obs.obs_property_modified(GlobalVariableOfTheControl.room_status_textBox, GlobalVariableOfTheControl.current_settings)
 
-    # 设置 url按钮【查看直播间封面】 可见状态
+    # 设置 按钮【查看直播间封面】 可见状态
     obs.obs_property_set_visible(GlobalVariableOfTheControl.viewLiveCover_button, GlobalVariableOfTheControl.viewLiveCover_button_visible)
-    # 设置 url按钮【查看直播间封面】 类型
-    obs.obs_property_button_set_type(GlobalVariableOfTheControl.viewLiveCover_button, obs.OBS_BUTTON_URL)
-    # 设置 url按钮【查看直播间封面】 链接
-    obs.obs_property_button_set_url(GlobalVariableOfTheControl.viewLiveCover_button, GlobalVariableOfTheControl.viewLiveCover_button_url)
-    # 更新 url按钮【查看直播间封面】 显示
+    # 更新 按钮【查看直播间封面】 显示
     obs.obs_property_modified(GlobalVariableOfTheControl.viewLiveCover_button, GlobalVariableOfTheControl.current_settings)
 
     # 设置 文件对话框【直播间封面】 可见状态
@@ -6075,6 +6432,16 @@ def updateTheUIInterfaceData():
     obs.obs_property_modified(GlobalVariableOfTheControl.jump_blive_web_button, GlobalVariableOfTheControl.current_settings)
 
     # ————————————————————————————————————————————————————————————————
+    # 清空组合框【直播平台】
+    obs.obs_property_list_clear(GlobalVariableOfTheControl.live_streaming_platform_comboBox)
+    # 设置 组合框【直播平台】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.live_streaming_platform_comboBox, GlobalVariableOfTheControl.live_streaming_platform_comboBox_visible)
+    # 为 组合框【直播平台】 添加选项
+    for LivePlatforms in globalVariableOfData.LivePlatformsDict:
+        obs.obs_property_list_add_string(GlobalVariableOfTheControl.live_streaming_platform_comboBox, globalVariableOfData.LivePlatformsDict[LivePlatforms], LivePlatforms)
+    # 更新 组合框【直播平台】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.live_streaming_platform_comboBox, GlobalVariableOfTheControl.current_settings)
+
     # 设置 按钮【开始直播并复制推流码】 可见状态
     obs.obs_property_set_visible(GlobalVariableOfTheControl.start_live_button, GlobalVariableOfTheControl.start_live_button_visible)
     # 更新 按钮【开始直播并复制推流码】 显示
@@ -6116,7 +6483,7 @@ def login_buttonC(props, prop, settings=GlobalVariableOfTheControl.current_setti
     if uid not in ["-1"]:
         logInTry(globalVariableOfData.scripts_config_filepath, int(uid))
     else:
-        obs.script_log(obs.LOG_DEBUG, "请添加或选择一个账号登录")
+        logSave(1, "请添加或选择一个账号登录")
         return None
     # ＝＝＝＝＝＝＝＝＝＝＝＝
     # 　　　　更新     　　＝
@@ -6148,6 +6515,8 @@ def show_qr_code_picture_buttonC(props, prop):
         prop:
     Returns:
     """
+    if globalVariableOfData.LoginQRCodePillowImg:
+        globalVariableOfData.LoginQRCodePillowImg.show()
     pass
 
 
@@ -6157,10 +6526,20 @@ def del_user_buttonC(props, prop):
     Args:
         props:
         prop:
-
     Returns:
     """
-    pass
+    uid = obs.obs_data_get_string(GlobalVariableOfTheControl.current_settings, 'uid_comboBox')
+    if uid not in ["-1"]:
+        BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+        BULC.deleteUser(uid)
+    else:
+        logSave(1, "请选择一个账号")
+        return None
+    # 调用script_defaults更新默认配置信息
+    script_defaults(GlobalVariableOfTheControl.current_settings)
+    # 更新脚本用户小部件
+    updateTheUIInterfaceData()
+    return True
 
 
 def backupUsers_buttonC(props, prop):
@@ -6217,6 +6596,29 @@ def update_roomCover_buttonC(props, prop):
         prop:
     Returns:
     """
+    # 获取文件对话框内容
+    GlobalVariableOfTheControl.room_cover_fileDialogBox_string = obs.obs_data_get_string(GlobalVariableOfTheControl.current_settings, 'room_cover_fileDialogBox')
+    if GlobalVariableOfTheControl.room_cover_fileDialogBox_string:
+        PIL_Image = Image.open(GlobalVariableOfTheControl.room_cover_fileDialogBox_string)
+        PIL_Image1609 = PIL_Image2CentralProportionCutting(PIL_Image, 16 / 9)
+        PIL_Image1609_w, PIL_Image1609_h = PIL_Image1609.size
+        PIL_Image1609ZoomingWidth1020 = PIL_Image1609
+        if PIL_Image1609_w > 1020:
+            PIL_Image1609ZoomingWidth1020 = PIL_Image2Zooming(PIL_Image1609, 4, target_width=1020)
+        PIL_Image1609 = PIL_Image2CentralProportionCutting(PIL_Image1609ZoomingWidth1020, 16 / 9)
+        PIL_Image0403 = PIL_Image2CentralProportionCutting(PIL_Image1609ZoomingWidth1020, 4 / 3)
+        PIL_Image0403.show()
+        PIL_Image1609.show()
+        PIL_Image1609ZoomingWidth1020Binary = PIL_Image2Binary(PIL_Image1609ZoomingWidth1020, ImgFormat="JPEG", compress_level=0)
+        # 创建用户配置文件实例
+        BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+        # 获取 '默认账户' cookies
+        DefaultUserCookies = BULC.getCookies(BULC.getUsers()[0])
+        coverUrl = CsrfAuthentication(dict2cookie(DefaultUserCookies)).upload_cover(PIL_Image1609ZoomingWidth1020Binary)['data']['location']
+        CsrfAuthentication(dict2cookie(DefaultUserCookies)).update_cover(coverUrl)
+    else:
+        logSave(1, "未获取到图片")
+
     pass
 
 
@@ -6228,6 +6630,18 @@ def check_roomCover_buttonC(props, prop):
         prop:
     Returns:
     """
+    # 获取'默认账户'直播间的基础信息
+    RoomBaseInfo = getRoomBaseInfo(globalVariableOfData.DefaultRoomid) if globalVariableOfData.DefaultRoomStatus else {}
+    # 获取直播间封面的链接
+    globalVariableOfData.LiveRoomCover_url = RoomBaseInfo["by_room_ids"][str(globalVariableOfData.DefaultRoomid)]["cover"] if bool(globalVariableOfData.DefaultRoomStatus) else ""
+    # # 获取'默认账户'直播间的基础信息
+    roomCover_pillowImg = url2pillowImage(globalVariableOfData.LiveRoomCover_url)
+    logSave(0, f"现在的直播间封面URL：{globalVariableOfData.LiveRoomCover_url}")
+    if roomCover_pillowImg:
+        logSave(0, f"封面已显示")
+        logSave(0, f"格式: {roomCover_pillowImg.format}")
+        logSave(0, f"尺寸: {roomCover_pillowImg.size}")
+        roomCover_pillowImg.show()  # 显示图像（可选）
     pass
 
 
@@ -6244,7 +6658,7 @@ def change_liveRoom_title_buttonC(props, prop):
     BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
     cookies = BULC.getCookies(BULC.getUsers()[0])
     turn_title_return = CsrfAuthentication(dict2cookie(cookies)).room_v1_Room_update(live_title_text_value)
-    obs.script_log(obs.LOG_INFO, turn_title_return)
+    logSave(0, turn_title_return)
     pass
 
 
@@ -6260,7 +6674,7 @@ def change_liveRoom_news_buttonC(props, prop):
     BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
     cookies = BULC.getCookies(BULC.getUsers()[0])
     turn_news_return = CsrfAuthentication(dict2cookie(cookies)).updateRoomNews(live_news_text_value)
-    obs.script_log(obs.LOG_INFO, f'{turn_news_return}')
+    logSave(0, f'{turn_news_return}')
     pass
 
 
@@ -6304,7 +6718,7 @@ def jump_Blive_web_buttonC(props, prop):
         prop:
     Returns:
     """
-    obs.script_log(obs.LOG_INFO, f"即将跳转到网页{GlobalVariableOfTheControl.jump_blive_web_button_url}")
+    logSave(0, f"即将跳转到网页{GlobalVariableOfTheControl.jump_blive_web_button_url}")
     pass
 
 
@@ -6317,18 +6731,22 @@ def start_live_buttonC(props, prop):
         prop:
     Returns:
     """
-    obs.script_log(obs.LOG_INFO, 'start_live')
+    logSave(0, 'start_live')
     # 获取默认账户
     BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
     cookies = BULC.getCookies(BULC.getUsers()[0])
     # 开播
     if cookies:
         # 获取二级分区id
-        area2_id = obs.obs_data_get_string(GlobalVariableOfTheControl.current_settings, 'subLiveArea_comboBox')
-        startLive = CsrfAuthentication(dict2cookie(cookies)).startLive(int(area2_id))
-        obs.script_log(obs.LOG_INFO, f"开播消息代码【{startLive['code']}】。消息内容：【{startLive['message']}】。")
+        subLiveArea_id = obs.obs_data_get_string(GlobalVariableOfTheControl.current_settings, 'subLiveArea_comboBox')
+        live_streaming_platform = obs.obs_data_get_string(GlobalVariableOfTheControl.current_settings, 'live_streaming_platform_comboBox')
+        logSave(0, f"使用【{live_streaming_platform}】开播")
+        startLive = CsrfAuthentication(dict2cookie(cookies)).startLive(int(subLiveArea_id), live_streaming_platform)
+        logSave(0, f"开播消息代码【{startLive['code']}】。消息内容：【{startLive['message']}】。")
         # 将 rtmp推流码 复制到剪贴板
-        cb.copy(startLive["data"]["rtmp"]["code"])
+        rtmpPushCode = startLive["data"]["rtmp"]["code"]
+        logSave(0, f"将rtmp推流码复制到剪贴板，rtmp推流码长度{len(rtmpPushCode)}")
+        cb.copy(rtmpPushCode)
     # 设置组合框【用户】为'默认用户'
     obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, 'uid_comboBox', cookies["DedeUserID"])
 
@@ -6389,14 +6807,14 @@ def stop_live_buttonC(props, prop):
         prop:
     Returns:
     """
-    obs.script_log(obs.LOG_INFO, 'stop_live')
+    logSave(0, 'stop_live')
     # 获取默认账户
     BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
     cookies = BULC.getCookies(BULC.getUsers()[0])
     # 停播
     if cookies:
         stopLive = CsrfAuthentication(dict2cookie(cookies)).stopLive()
-        obs.script_log(obs.LOG_INFO, f"下播消息代码【{stopLive['code']}】。消息内容：【{stopLive['message']}】。")
+        logSave(0, f"下播消息代码【{stopLive['code']}】。消息内容：【{stopLive['message']}】。")
     # 设置组合框【用户】为'默认用户'
     obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, 'uid_comboBox', cookies["DedeUserID"])
     login_buttonC(props, prop)
@@ -6407,4 +6825,7 @@ def script_unload():
     """
     在脚本被卸载时调用。
     """
-    obs.script_log(obs.LOG_INFO, "已卸载：bilibili-live")
+    logSave(0, "已卸载：bilibili-live")
+    with open(Path(globalVariableOfData.scripts_data_dirpath) / f"{datetime.now().strftime("%Y%m%d_%H%M%S")}.log", "w", encoding="utf-8") as f:
+        f.write(globalVariableOfData.logRecording)
+
