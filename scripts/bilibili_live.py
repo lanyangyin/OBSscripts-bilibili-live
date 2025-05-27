@@ -243,10 +243,17 @@ class globalVariableOfData:
 
     # 用户类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # ##全部账户的数据字典
-    allUidByUname4Dict = {}
+    AllUnameByUid4Dict = {}
     """
     全部账户的数据
     {uid: uname}
+    """
+
+    # ##控件 组合框【用户】 的数据字典
+    UidComboBoxStringByValue4Dict = {}
+    """
+    控件 组合框【用户】 的数据字典
+    {ComboBoxValue: ComboBoxString}
     """
 
     # ##默认用户的昵称
@@ -5527,14 +5534,14 @@ def script_defaults(settings):  # 设置其默认值
     obs.script_log(obs.LOG_INFO, f'script_defaults[info: 账号数据保存在【{globalVariableOfData.scripts_config_filepath}】]')
     # 创建用户配置文件实例 并 验证 用户账号可用性
     BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
-    globalVariableOfData.allUidByUname4Dict = {}
+    globalVariableOfData.AllUnameByUid4Dict = {}
     for uid in BULC.getUsers().values():
         if uid:
             userInterface_nav = master(dict2cookie(BULC.getCookies(int(uid)))).interface_nav()
             userIsLogin = userInterface_nav["isLogin"]
             if userIsLogin:
                 obs.script_log(obs.LOG_INFO, f"script_defaults[info: 载入用户【{uid}】成功]")
-                globalVariableOfData.allUidByUname4Dict[uid] = userInterface_nav["uname"]
+                globalVariableOfData.AllUnameByUid4Dict[uid] = userInterface_nav["uname"]
             else:
                 obs.script_log(obs.LOG_WARNING, f"script_defaults[warning: 载入用户【{uid}】失败]")
                 BULC.deleteUser(int(uid))
@@ -5557,6 +5564,9 @@ def script_defaults(settings):  # 设置其默认值
         globalVariableOfData.DefaultUserUname = None  # 如果 '默认账户' 为 None 那么 默认昵称为 None
 
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # 初始化 控件 组合框【用户】 的数据字典
+    globalVariableOfData.UidComboBoxStringByValue4Dict = {}
+
     # 设置 只读文本框【登录状态】 类型
     GlobalVariableOfTheControl.login_status_textBox_type = obs.OBS_TEXT_INFO_NORMAL if DefaultUserCookies else obs.OBS_TEXT_INFO_WARNING
     # 设置 只读文本框【登录状态】 内容
@@ -5674,7 +5684,7 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 组合框【二级分区】 的内容
     GlobalVariableOfTheControl.default_subLiveArea_comboBox_string = str(globalVariableOfData.DefaultArea["data"]["name"]) if bool(GlobalVariableOfTheControl.subLiveArea_comboBox_visible and globalVariableOfData.DefaultArea) else "请确认一级分区"
     # 设置 组合框【二级分区】 的内容 的 列表值
-    GlobalVariableOfTheControl.default_subLiveArea_comboBox_value = str(globalVariableOfData.DefaultArea["data"]["id"]) if bool(GlobalVariableOfTheControl.subLiveArea_comboBox_visible and globalVariableOfData.DefaultArea) else ""
+    GlobalVariableOfTheControl.default_subLiveArea_comboBox_value = str(globalVariableOfData.DefaultArea["data"]["id"]) if bool(GlobalVariableOfTheControl.subLiveArea_comboBox_visible and globalVariableOfData.DefaultArea) else "-1"
 
     # 设置 按钮【{确认分区}】 可见状态
     GlobalVariableOfTheControl.subLiveArea_true_button_visible = bool(globalVariableOfData.DefaultRoomStatus)
@@ -5797,6 +5807,8 @@ def script_properties():  # 建立控件
 
     # 添加 组合框【用户】
     GlobalVariableOfTheControl.uid_comboBox = obs.obs_properties_add_list(GlobalVariableOfTheControl.setting_props, 'uid_comboBox', '用户：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING)
+    # 添加 组合框【用户】变动后事件
+    obs.obs_property_set_modified_callback(GlobalVariableOfTheControl.uid_comboBox, login_buttonC)
 
     # 添加 按钮【登录账号】
     GlobalVariableOfTheControl.login_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "login_button", "登录账号", login_buttonC)
@@ -5902,17 +5914,23 @@ def updateTheUIInterfaceData():
     # 更新 只读文本框【登录状态】 显示
     obs.obs_property_modified(GlobalVariableOfTheControl.login_status_textBox, GlobalVariableOfTheControl.current_settings)
 
-    # 清空组合框【用户】
-    obs.obs_property_list_clear(GlobalVariableOfTheControl.uid_comboBox)
-    # 为 组合框【用户】 添加选项
-    for uid in globalVariableOfData.allUidByUname4Dict:
-        obs.obs_property_list_add_string(GlobalVariableOfTheControl.uid_comboBox, globalVariableOfData.allUidByUname4Dict[uid], uid) if uid != GlobalVariableOfTheControl.default_uid_comboBox_value else None
-    # 为 组合框【用户】 添加默认选项
-    obs.obs_property_list_insert_string(GlobalVariableOfTheControl.uid_comboBox, 0, GlobalVariableOfTheControl.default_uid_comboBox_string, GlobalVariableOfTheControl.default_uid_comboBox_value)
-    # 使 组合框【用户】 显示默认选项
-    obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, 'uid_comboBox', GlobalVariableOfTheControl.default_uid_comboBox_value)
-    # 更新 组合框【用户】 显示
-    obs.obs_property_modified(GlobalVariableOfTheControl.uid_comboBox, GlobalVariableOfTheControl.current_settings)
+    # 获得 组合框【用户】 的数据字典
+    for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.uid_comboBox)):
+        globalVariableOfData.UidComboBoxStringByValue4Dict[obs.obs_property_list_item_string(GlobalVariableOfTheControl.uid_comboBox, idx)] = obs.obs_property_list_item_name(GlobalVariableOfTheControl.uid_comboBox, idx)
+    # 创建用户配置文件实例
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+    if str(globalVariableOfData.AllUnameByUid4Dict | ({'-1': '添加或选择一个账号登录'} if BULC.getUsers()[0] is None else {})) != str(globalVariableOfData.UidComboBoxStringByValue4Dict):
+        # 清空组合框【用户】
+        obs.obs_property_list_clear(GlobalVariableOfTheControl.uid_comboBox)
+        # 为 组合框【用户】 添加选项
+        for uid in globalVariableOfData.AllUnameByUid4Dict:
+            obs.obs_property_list_add_string(GlobalVariableOfTheControl.uid_comboBox, globalVariableOfData.AllUnameByUid4Dict[uid], uid) if uid != GlobalVariableOfTheControl.default_uid_comboBox_value else None
+        # 为 组合框【用户】 添加默认选项
+        obs.obs_property_list_insert_string(GlobalVariableOfTheControl.uid_comboBox, 0, GlobalVariableOfTheControl.default_uid_comboBox_string, GlobalVariableOfTheControl.default_uid_comboBox_value)
+        # 使 组合框【用户】 显示默认选项
+        obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, 'uid_comboBox', GlobalVariableOfTheControl.default_uid_comboBox_value)
+        # 更新 组合框【用户】 显示
+        obs.obs_property_modified(GlobalVariableOfTheControl.uid_comboBox, GlobalVariableOfTheControl.current_settings)
 
     # 设置 按钮【登录账号】 可用状态
     obs.obs_property_set_enabled(GlobalVariableOfTheControl.login_button, GlobalVariableOfTheControl.login_button_enabled)
@@ -6083,7 +6101,7 @@ def updateTheUIInterfaceData():
     obs.obs_property_modified(GlobalVariableOfTheControl.stop_live_button, GlobalVariableOfTheControl.current_settings)
 
 
-def login_buttonC(props, prop):
+def login_buttonC(props, prop, settings=GlobalVariableOfTheControl.current_settings):
     """
     登录并刷新控件状态
     Args:
@@ -6095,7 +6113,11 @@ def login_buttonC(props, prop):
     # 　　　登录　　　＝
     # ＝＝＝＝＝＝＝＝＝
     uid = obs.obs_data_get_string(GlobalVariableOfTheControl.current_settings, 'uid_comboBox')
-    logInTry(globalVariableOfData.scripts_config_filepath, int(uid))
+    if uid not in ["-1"]:
+        logInTry(globalVariableOfData.scripts_config_filepath, int(uid))
+    else:
+        obs.script_log(obs.LOG_DEBUG, "请添加或选择一个账号登录")
+        return None
     # ＝＝＝＝＝＝＝＝＝＝＝＝
     # 　　　　更新     　　＝
     # ＝＝＝＝＝＝＝＝＝＝＝＝
@@ -6243,22 +6265,24 @@ def change_liveRoom_news_buttonC(props, prop):
 
 
 def start_area1_buttonC(props, prop, settings=GlobalVariableOfTheControl.current_settings):
-    area2_list = obs.obs_properties_get(GlobalVariableOfTheControl.liveRoom_props, 'subLiveArea_comboBox')
-    obs.obs_property_list_clear(area2_list)
-    # 获取一级分组id
+    # 清空组合框【二级分区】
+    obs.obs_property_list_clear(GlobalVariableOfTheControl.subLiveArea_comboBox)
+    # 设置 组合框【二级分区】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.subLiveArea_comboBox, GlobalVariableOfTheControl.subLiveArea_comboBox_visible)
+    # #获取 组合框【一级分区】 当前选项的值
     CurrentlyParentLiveArea = obs.obs_data_get_string(GlobalVariableOfTheControl.current_settings, 'parentLiveArea_comboBox')
-    # 更新【二级分区】的组合框
-    for area in globalVariableOfData.AreaObjList:
-        if CurrentlyParentLiveArea == str(area["id"]):
-            for area2 in area["list"]:
-                try:
-                    if str(area2["id"]) == str(globalVariableOfData.DefaultArea["data"]["id"]):
-                        obs.obs_property_list_insert_string(area2_list, 0, area2["name"], str(area2["id"]))
-                    else:
-                        obs.obs_property_list_add_string(area2_list, area2["name"], str(area2["id"]))
-                except:
-                    obs.obs_property_list_add_string(area2_list, area2["name"], str(area2["id"]))
+    # #获取 组合框【一级分区】 当前选项的值所对应的 组合框【二级分区】列表数据
+    for AreaObj in globalVariableOfData.AreaObjList:
+        if CurrentlyParentLiveArea == str(AreaObj["id"]):
+            globalVariableOfData.subLiveAreaObjList = AreaObj["list"]
             break
+    # 为 组合框【二级分区】 添加选项
+    for subLiveAreaObj in globalVariableOfData.subLiveAreaObjList:
+        obs.obs_property_list_add_string(GlobalVariableOfTheControl.subLiveArea_comboBox, subLiveAreaObj["name"], str(subLiveAreaObj["id"])) if subLiveAreaObj["id"] != GlobalVariableOfTheControl.default_subLiveArea_comboBox_value else None
+        # 为 组合框【二级分区】 添加默认选项
+        obs.obs_property_list_insert_string(GlobalVariableOfTheControl.subLiveArea_comboBox, 0, GlobalVariableOfTheControl.default_subLiveArea_comboBox_string, GlobalVariableOfTheControl.default_subLiveArea_comboBox_value) if subLiveAreaObj["id"] == GlobalVariableOfTheControl.default_subLiveArea_comboBox_value else None
+    # 使 组合框【二级分区】 显示默认选项
+    obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, "subLiveArea_comboBox", GlobalVariableOfTheControl.default_subLiveArea_comboBox_value)
     return True
 
 
