@@ -95,12 +95,17 @@ class GlobalVariableOfTheControl:
     login_button_visible = None  # ###按钮【登录账号】的实例的【可见】
     login_button_enabled = None  # ###按钮【登录账号】的实例的【可用】
 
+    # ##按钮【更新账号列表】的实例
+    update_account_list_button = None
+    update_account_list_button_visible = None  # ###按钮【更新账号列表】的实例的【可见】
+    update_account_list_button_enabled = None  # ###按钮【更新账号列表】的实例的【可用】
+
     # ##按钮【二维码添加账户】的实例
     qr_code_add_account_button = None
     qr_code_add_account_button_visible = None
     qr_code_add_account_button_enabled = None
 
-    # ##按钮【显示二维码图片】的实例
+    # ##按钮【显示登录二维码图片】的实例
     display_qr_code_picture_button = None
     display_qr_code_picture_button_visible = None
     display_qr_code_picture_button_enabled = None
@@ -264,6 +269,10 @@ class globalVariableOfData:
     全部账户的数据
     {uid: uname}
     """
+
+    loginQrCode_key = None
+
+    loginQrCode_returnValue = None
 
     # ##控件 组合框【用户】 的数据字典
     UidComboBoxStringByValue4Dict = {}
@@ -5800,14 +5809,50 @@ def logInTry(configPath: Path, uid: Optional[int]):
         raise RuntimeError("登录服务暂时不可用") from e
 
 
-def qrAddUser(configPath: Path):
+def check_poll():
     """
-    扫码登陆记录用户cookies
-    :param configPath: 用户配置文件路径
+    二维码扫描登录状态检测
+    @return: cookies，超时为{}
     """
     # 获取uid对应的cookies
-    BUCF = BilibiliUserLogsIn2ConfigFile(configPath=configPath)
+    BUCF = BilibiliUserLogsIn2ConfigFile(globalVariableOfData.scripts_config_filepath)
     UserListDict = BUCF.getUsers()
+    code_ = globalVariableOfData.loginQrCode_returnValue
+    poll_ = poll(globalVariableOfData.loginQrCode_key)
+    globalVariableOfData.loginQrCode_returnValue = poll_['code']
+    logIn2QRCode2ReturnInformation4code = {
+        0: "登录成功",
+        86101: "未扫码",
+        86090: "二维码已扫码未确认",
+        86038: "二维码已失效",
+    }
+    # 二维码扫描登陆状态改变时，输出改变后状态
+    logSave(1, str(logIn2QRCode2ReturnInformation4code[globalVariableOfData.loginQrCode_returnValue])) if code_ != globalVariableOfData.loginQrCode_returnValue else None
+    if globalVariableOfData.loginQrCode_returnValue == 0 or globalVariableOfData.loginQrCode_returnValue == 86038:
+        globalVariableOfData.LoginQRCodePillowImg = None
+        # 二维码扫描登陆状态为成功或者超时时获取cookies结束[轮询二维码扫描登陆状态]
+        cookies = poll_['cookies']
+        if cookies:
+            # 获取登陆账号cookies中携带的uid
+            uid = int(cookies['DedeUserID'])
+            if str(uid) in UserListDict.values():
+                logSave(1, "已有该用户，正在更新用户登录信息")
+                BUCF.updateUser(cookies, False)
+            else:
+                BUCF.addUser(cookies)
+                logSave(0, "添加用户成功")
+                # 启动帧计时器，更新用户列表
+                logSave(0, "启动帧计时器，更新用户列表")
+        else:
+            logSave(0, "添加用户失败")
+        # 结束计时器
+        obs.remove_current_callback()
+
+
+def qrAddUser():
+    """
+    扫码登陆记录用户cookies
+    """
     # 申请登录二维码
     url8qrcode_key = generate()
     url = url8qrcode_key['url']
@@ -5818,44 +5863,18 @@ def qrAddUser(configPath: Path):
     # 输出二维码图形字符串
     logSave(1, qr["str"])
     # 获取二维码key
-    qrcode_key = url8qrcode_key['qrcode_key']
+    globalVariableOfData.loginQrCode_key = url8qrcode_key['qrcode_key']
     # 获取二维码扫描登陆状态
-    code = poll(qrcode_key)['code']
+    globalVariableOfData.loginQrCode_returnValue = poll(globalVariableOfData.loginQrCode_key)['code']
     logIn2QRCode2ReturnInformation4code = {
         0: "登录成功",
         86101: "未扫码",
         86090: "二维码已扫码未确认",
         86038: "二维码已失效",
     }
-    logSave(1, str(logIn2QRCode2ReturnInformation4code[code]))
+    logSave(1, str(logIn2QRCode2ReturnInformation4code[globalVariableOfData.loginQrCode_returnValue]))
 
     # 轮询二维码扫描登录状态
-    def check_poll():
-        nonlocal code
-        """
-        二维码扫描登录状态检测
-        @param code: 一个初始的状态，用于启动轮询
-        @return: cookies，超时为{}
-        """
-        code_ = code
-        poll_ = poll(qrcode_key)
-        code = poll_['code']
-        # 二维码扫描登陆状态改变时，输出改变后状态
-        logSave(1, str(logIn2QRCode2ReturnInformation4code[code])) if code_ != code else None
-        if code == 0 or code == 86038:
-            globalVariableOfData.LoginQRCodePillowImg = None
-            # 二维码扫描登陆状态为成功或者超时时获取cookies结束[轮询二维码扫描登陆状态]
-            cookies = poll_['cookies']
-            if cookies:
-                # 获取登陆账号cookies中携带的uid
-                uid = int(cookies['DedeUserID'])
-                if str(uid) in UserListDict.values():
-                    logSave(1, "已有该用户，正在更新用户登录信息")
-                    BUCF.updateUser(cookies, False)
-                else:
-                    BUCF.addUser(cookies)
-            # 结束计时器
-            obs.remove_current_callback()
     # 开始计时器
     obs.timer_add(check_poll, 1000)
 
@@ -5924,6 +5943,11 @@ def script_defaults(settings):  # 设置其默认值
     GlobalVariableOfTheControl.login_button_enabled = True if globalVariableOfData.AllUnameByUid4Dict else False
     # 按钮【登录账号】 可见状态
     GlobalVariableOfTheControl.login_button_visible = True if globalVariableOfData.AllUnameByUid4Dict else False
+
+    # 按钮【更新账号列表】 可用状态
+    GlobalVariableOfTheControl.update_account_list_button_enabled = True
+    # 按钮【更新账号列表】 可见状态
+    GlobalVariableOfTheControl.update_account_list_button_visible = True
 
     # 按钮【二维码添加账户】 可用状态
     GlobalVariableOfTheControl.qr_code_add_account_button_enabled = True
@@ -6163,11 +6187,14 @@ def script_properties():  # 建立控件
     # 添加 按钮【登录账号】
     GlobalVariableOfTheControl.login_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "login_button", "登录账号", login_buttonC)
 
+    # 添加 按钮【更新账号列表】
+    GlobalVariableOfTheControl.update_account_list_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "update_account_list_button", "更新账号列表", updateAccountList_buttonC)
+
     # 添加 按钮【二维码添加账户】
     GlobalVariableOfTheControl.qr_code_add_account_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "qr_code_add_account_button", "二维码添加账户", qrCodeAddAccount_buttonC)
 
-    # 添加 按钮【显示二维码图片】
-    GlobalVariableOfTheControl.display_qr_code_picture_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "display_qr_code_picture_button", "显示二维码图片", show_qr_code_picture_buttonC)
+    # 添加 按钮【显示登录二维码图片】
+    GlobalVariableOfTheControl.display_qr_code_picture_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "display_qr_code_picture_button", "显示登录二维码图片", show_qr_code_picture_buttonC)
 
     # 添加 按钮【删除账户】
     GlobalVariableOfTheControl.delete_account_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "delete_account_button", "删除账户", del_user_buttonC)
@@ -6495,6 +6522,50 @@ def login_buttonC(props, prop, settings=GlobalVariableOfTheControl.current_setti
     return True
 
 
+def updateAccountList_buttonC(props=None, prop=None):
+    """
+    更新账号列表
+    Args:
+        props:
+        prop:
+
+    Returns:
+    """
+    # 创建用户配置文件实例 并 验证 用户账号可用性
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+    globalVariableOfData.AllUnameByUid4Dict = {}
+    for uid in BULC.getUsers().values():
+        if uid:
+            userInterface_nav = master(dict2cookie(BULC.getCookies(int(uid)))).interface_nav()
+            userIsLogin = userInterface_nav["isLogin"]
+            if userIsLogin:
+                globalVariableOfData.AllUnameByUid4Dict[uid] = userInterface_nav["uname"]
+            else:
+                BULC.deleteUser(int(uid))
+    # 创建用户配置文件实例
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+    # 获取 '默认账户' cookies
+    DefaultUserCookies = BULC.getCookies(BULC.getUsers()[0])
+    if DefaultUserCookies:
+        DefaultUserCookie = dict2cookie(DefaultUserCookies)  # 转换 '默认账户' 的 Cookies 成 cookie
+        DefaultUserInterfaceNav = master(DefaultUserCookie).interface_nav()  # 获取 '默认账户' 导航栏用户信息
+        globalVariableOfData.DefaultUserUname = DefaultUserInterfaceNav["uname"]  # 获取默认账号的昵称
+    else:
+        globalVariableOfData.DefaultUserUname = None  # 如果 '默认账户' 为 None 那么 默认昵称为 None
+    # 清空组合框【用户】
+    obs.obs_property_list_clear(GlobalVariableOfTheControl.uid_comboBox)
+    # 为 组合框【用户】 添加选项
+    for uid in globalVariableOfData.AllUnameByUid4Dict:
+        obs.obs_property_list_add_string(GlobalVariableOfTheControl.uid_comboBox, globalVariableOfData.AllUnameByUid4Dict[uid], uid) if uid != GlobalVariableOfTheControl.default_uid_comboBox_value else None
+    # 为 组合框【用户】 添加默认选项
+    obs.obs_property_list_insert_string(GlobalVariableOfTheControl.uid_comboBox, 0, GlobalVariableOfTheControl.default_uid_comboBox_string, GlobalVariableOfTheControl.default_uid_comboBox_value)
+    # 使 组合框【用户】 显示默认选项
+    obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, 'uid_comboBox', GlobalVariableOfTheControl.default_uid_comboBox_value)
+    # 更新 组合框【用户】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.uid_comboBox, GlobalVariableOfTheControl.current_settings)
+    return True
+
+
 def qrCodeAddAccount_buttonC(props, prop):
     """
     二维码添加账号
@@ -6503,8 +6574,9 @@ def qrCodeAddAccount_buttonC(props, prop):
         prop:
     Returns:
     """
-    qrAddUser(globalVariableOfData.scripts_config_filepath)
-    pass
+    qrAddUser()
+
+    return True
 
 
 def show_qr_code_picture_buttonC(props, prop):
@@ -6828,4 +6900,5 @@ def script_unload():
     logSave(0, "已卸载：bilibili-live")
     with open(Path(globalVariableOfData.scripts_data_dirpath) / f"{datetime.now().strftime("%Y%m%d_%H%M%S")}.log", "w", encoding="utf-8") as f:
         f.write(globalVariableOfData.logRecording)
+
 
