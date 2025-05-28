@@ -45,6 +45,11 @@ from PIL import Image
 # import websockets
 
 # 全局变量
+textBox_type_name4textBox_type = {
+    obs.OBS_TEXT_INFO_NORMAL:'正常信息',
+    obs.OBS_TEXT_INFO_WARNING:'警告信息',
+    obs.OBS_TEXT_INFO_ERROR:'错误信息'
+}
 class GlobalVariableOfTheControl:
     # #记录obs插件中控件的数据
     current_settings = None
@@ -88,6 +93,10 @@ class GlobalVariableOfTheControl:
     default_uid_comboBox_value = ""
     """
     组合框【用户】的第0行显示的字符串在组合框中对应值
+    """
+    default_uid_comboBox_dict = {}
+    """
+    组合框【用户】的实例的【字典】
     """
 
     # ##按钮【登录账号】的实例
@@ -274,13 +283,6 @@ class globalVariableOfData:
 
     loginQrCode_returnValue = None
 
-    # ##控件 组合框【用户】 的数据字典
-    UidComboBoxStringByValue4Dict = {}
-    """
-    控件 组合框【用户】 的数据字典
-    {ComboBoxValue: ComboBoxString}
-    """
-
     # ##登录二维码的pillow img实例
     LoginQRCodePillowImg = None
     """
@@ -288,7 +290,7 @@ class globalVariableOfData:
     """
 
     # ##默认用户的昵称
-    DefaultUserUname = None
+    DefaultUname = None
     """
     默认用户config["DefaultUser"]的昵称
     没有则为None
@@ -358,9 +360,9 @@ def logSave(logLevel: Literal[0, 1, 2, 3], logStr: str) -> None:
     """
     输出并保存日志
     Args:
-        logLevel:
-        logStr:
-    Returns:
+        logLevel: 日志等级
+        logStr: 日志内容
+    Returns: None
     """
     logType = {
         0: obs.LOG_INFO,
@@ -5897,47 +5899,45 @@ def script_defaults(settings):  # 设置其默认值
     # 路径变量
     # #脚本数据保存目录
     globalVariableOfData.scripts_data_dirpath = f"{script_path()}bilibili-live"
+    logSave(0, f"脚本用户数据文件夹路径：{globalVariableOfData.scripts_data_dirpath}")
     # #脚本用户数据路径
     globalVariableOfData.scripts_config_filepath = Path(globalVariableOfData.scripts_data_dirpath) / "config.json"
-    logSave(0, f"脚本用户数据路径：{globalVariableOfData.scripts_data_dirpath}")
+    logSave(0, f"脚本用户数据路径：{globalVariableOfData.scripts_config_filepath}")
     # 创建用户配置文件实例 并 验证 用户账号可用性
     BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
-    globalVariableOfData.AllUnameByUid4Dict = {}
-    for uid in BULC.getUsers().values():
-        if uid:
-            userInterface_nav = master(dict2cookie(BULC.getCookies(int(uid)))).interface_nav()
-            userIsLogin = userInterface_nav["isLogin"]
-            if userIsLogin:
-                globalVariableOfData.AllUnameByUid4Dict[uid] = userInterface_nav["uname"]
-            else:
-                BULC.deleteUser(int(uid))
+    userInterface_navByUid4Dict = {uid: master(dict2cookie(BULC.getCookies(int(uid)))).interface_nav() for uid in [x for x in BULC.getUsers().values() if x]}
+    userIsLoginByUid4Dict = {uid: userInterface_navByUid4Dict[uid]["isLogin"] for uid in userInterface_navByUid4Dict}
+    globalVariableOfData.AllUnameByUid4Dict = {uid: userInterface_navByUid4Dict[uid]["uname"] for uid in userIsLoginByUid4Dict if userIsLoginByUid4Dict[uid]}
+    [logSave(1, f"账号：{uid} {'不可用，已删除' if not userIsLoginByUid4Dict[uid] else '可用'}") for uid in userIsLoginByUid4Dict]
+    logSave(1, f"可用账号：{str(globalVariableOfData.AllUnameByUid4Dict)}")
     # 创建用户配置文件实例
     BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+    # 获取 '默认账户' id
+    DefaultUserId = BULC.getUsers()[0]
     # 获取 '默认账户' cookies
     DefaultUserCookies = BULC.getCookies(BULC.getUsers()[0])
     """
-    如果'默认账户'为None，默认cookies会为None
+    如果 '默认账户' id 为 None，
+    默认 '默认账户' cookies 会为 None
     """
-    if DefaultUserCookies:
-        DefaultUserCookie = dict2cookie(DefaultUserCookies)  # 转换 '默认账户' 的 Cookies 成 cookie
-        DefaultUserInterfaceNav = master(DefaultUserCookie).interface_nav()  # 获取 '默认账户' 导航栏用户信息
-        globalVariableOfData.DefaultUserUname = DefaultUserInterfaceNav["uname"]  # 获取默认账号的昵称
-    else:
-        globalVariableOfData.DefaultUserUname = None  # 如果 '默认账户' 为 None 那么 默认昵称为 None
-
+    DefaultUserCookie = dict2cookie(DefaultUserCookies) if DefaultUserId else None  # 转换 '默认账户' 的 Cookies 成 cookie
+    DefaultUserInterfaceNav = master(DefaultUserCookie).interface_nav() if DefaultUserId else None  # 获取 '默认账户' 导航栏用户信息
+    globalVariableOfData.DefaultUname = DefaultUserInterfaceNav["uname"] if DefaultUserId else None  # 获取默认账号的昵称
+    logSave(0, f"用户{globalVariableOfData.DefaultUname}已登录" if DefaultUserId else f"未登录账号")
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    # 初始化 控件 组合框【用户】 的数据字典
-    globalVariableOfData.UidComboBoxStringByValue4Dict = {}
-
     # 设置 只读文本框【登录状态】 类型
-    GlobalVariableOfTheControl.login_status_textBox_type = obs.OBS_TEXT_INFO_NORMAL if DefaultUserCookies else obs.OBS_TEXT_INFO_WARNING
+    GlobalVariableOfTheControl.login_status_textBox_type = obs.OBS_TEXT_INFO_NORMAL if DefaultUserId else obs.OBS_TEXT_INFO_WARNING
+    logSave(0, f"设置 只读文本框【登录状态】 类型：{textBox_type_name4textBox_type[GlobalVariableOfTheControl.login_status_textBox_type]}")
     # 设置 只读文本框【登录状态】 内容
-    GlobalVariableOfTheControl.login_status_textBox_string = f'{globalVariableOfData.DefaultUserUname} 已登录' if DefaultUserCookies else '未登录，\n请登录后点击⟳重新载入插件\n重新选择登录用户'
+    GlobalVariableOfTheControl.login_status_textBox_string = f'{globalVariableOfData.DefaultUname} 已登录' if DefaultUserId else '未登录，\n请登录后点击⟳重新载入插件\n重新选择登录用户'
+    logSave(0, f"设置 只读文本框【登录状态】 内容：{GlobalVariableOfTheControl.login_status_textBox_string}")
 
     # 设置 组合框【用户】 默认显示内容
-    GlobalVariableOfTheControl.default_uid_comboBox_string = globalVariableOfData.DefaultUserUname if DefaultUserCookies else '添加或选择一个账号登录'
+    GlobalVariableOfTheControl.default_uid_comboBox_string = globalVariableOfData.DefaultUname if DefaultUserId else '添加或选择一个账号登录'
     # 设置 组合框【用户】 默认显示内容 的 列表值
-    GlobalVariableOfTheControl.default_uid_comboBox_value = BULC.getUsers()[0] if DefaultUserCookies else '-1'
+    GlobalVariableOfTheControl.default_uid_comboBox_value = BULC.getUsers()[0] if DefaultUserId else '-1'
+    # 设置 组合框【用户】 的数据字典
+    GlobalVariableOfTheControl.default_uid_comboBox_dict = {uid or '-1': globalVariableOfData.AllUnameByUid4Dict.get(uid, '添加或选择一个账号登录') for uid in BULC.getUsers().values()}
 
     # 按钮【登录账号】 可用状态
     GlobalVariableOfTheControl.login_button_enabled = True if globalVariableOfData.AllUnameByUid4Dict else False
@@ -6297,12 +6297,10 @@ def updateTheUIInterfaceData():
     # 清空组合框【用户】
     obs.obs_property_list_clear(GlobalVariableOfTheControl.uid_comboBox)
     # 为 组合框【用户】 添加选项
-    for uid in globalVariableOfData.AllUnameByUid4Dict:
+    for uid in GlobalVariableOfTheControl.default_uid_comboBox_dict:
         obs.obs_property_list_add_string(GlobalVariableOfTheControl.uid_comboBox, globalVariableOfData.AllUnameByUid4Dict[uid], uid) if uid != GlobalVariableOfTheControl.default_uid_comboBox_value else None
     # 为 组合框【用户】 添加默认选项
-    obs.obs_property_list_insert_string(GlobalVariableOfTheControl.uid_comboBox, 0, GlobalVariableOfTheControl.default_uid_comboBox_string, GlobalVariableOfTheControl.default_uid_comboBox_value)
-    # 使 组合框【用户】 显示默认选项
-    obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, 'uid_comboBox', GlobalVariableOfTheControl.default_uid_comboBox_value)
+    (obs.obs_property_list_insert_string(GlobalVariableOfTheControl.uid_comboBox, 0, GlobalVariableOfTheControl.default_uid_comboBox_string, GlobalVariableOfTheControl.default_uid_comboBox_value) or obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, 'uid_comboBox', GlobalVariableOfTheControl.default_uid_comboBox_value)) if GlobalVariableOfTheControl.default_uid_comboBox_value in GlobalVariableOfTheControl.default_uid_comboBox_dict else None
     # 更新 组合框【用户】 显示
     obs.obs_property_modified(GlobalVariableOfTheControl.uid_comboBox, GlobalVariableOfTheControl.current_settings)
 
@@ -6549,9 +6547,9 @@ def updateAccountList_buttonC(props=None, prop=None):
     if DefaultUserCookies:
         DefaultUserCookie = dict2cookie(DefaultUserCookies)  # 转换 '默认账户' 的 Cookies 成 cookie
         DefaultUserInterfaceNav = master(DefaultUserCookie).interface_nav()  # 获取 '默认账户' 导航栏用户信息
-        globalVariableOfData.DefaultUserUname = DefaultUserInterfaceNav["uname"]  # 获取默认账号的昵称
+        globalVariableOfData.DefaultUname = DefaultUserInterfaceNav["uname"]  # 获取默认账号的昵称
     else:
-        globalVariableOfData.DefaultUserUname = None  # 如果 '默认账户' 为 None 那么 默认昵称为 None
+        globalVariableOfData.DefaultUname = None  # 如果 '默认账户' 为 None 那么 默认昵称为 None
     # 清空组合框【用户】
     obs.obs_property_list_clear(GlobalVariableOfTheControl.uid_comboBox)
     # 为 组合框【用户】 添加选项
