@@ -1,6 +1,6 @@
-<h1 style="text-align: center">
+<center><h1>
 OBSscripts<br>bilibili-live
-</h1>
+</h1></center>
 
 obs用于B站直播的插件
 ## 配置依赖
