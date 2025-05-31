@@ -6247,10 +6247,10 @@ def script_defaults(settings):  # 设置其默认值
     logSave(0, f"根据 直播间存在：{str(bool(DefaultRoomStatus))}，设置 按钮【确认分区】 可见状态：{str(bool(GlobalVariableOfTheControl.subLiveArea_true_button_enabled))}")
 
     # 设置 url按钮【跳转直播间后台网页】 可见状态
-    GlobalVariableOfTheControl.jump_blive_web_button_visible = False
+    GlobalVariableOfTheControl.jump_blive_web_button_visible = True
     logSave(0, f"设置 url按钮【跳转直播间后台网页】 可见状态：{str(bool(GlobalVariableOfTheControl.jump_blive_web_button_visible))}")
     # 设置 url按钮【跳转直播间后台网页】 可用状态
-    GlobalVariableOfTheControl.jump_blive_web_button_enabled = False
+    GlobalVariableOfTheControl.jump_blive_web_button_enabled = True
     logSave(0, f"设置 url按钮【跳转直播间后台网页】 可用状态：{str(bool(GlobalVariableOfTheControl.jump_blive_web_button_enabled))}")
     # 设置 url按钮【跳转直播间后台网页】 链接
     GlobalVariableOfTheControl.jump_blive_web_button_url = "https://link.bilibili.com/p/center/index#/my-room/start-live"
