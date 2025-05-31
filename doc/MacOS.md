@@ -9,9 +9,14 @@
 - 在脚本窗口中的`python设置`中配置python安装路径
 - 使用以下代码获得python安装路径
 ```bash
-python3 PYTHONPATH
+python3.10
 ```
-- 例如
+```python
+import sys
+print(sys.prefix)
+exit()
+```
+- python路径示例
 ```
 /opt/homebrew/Cellar/python@3.10/3.10.14/Frameworks
 ```
@@ -85,3 +90,10 @@ python3 PYTHONPATH
 ```
 - 可尝试用 `ln -s `将***3.10***与***Current***软连接
 - 在脚本窗口中的`脚本`中添加脚本`bilibili-live.py`
+
+```bash
+cd /opt/homebrew/Cellar/python@3.10/3.10.14/Frameworks/Python.framework/Versions
+```
+```bash
+ln -s 3.10 Current
+```
