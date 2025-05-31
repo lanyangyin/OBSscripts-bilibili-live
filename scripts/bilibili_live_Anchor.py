@@ -18,7 +18,7 @@
 import base64
 import io
 import json
-import os
+# import os
 import pathlib
 import random
 import string
@@ -33,6 +33,9 @@ from typing import Optional, Dict, Literal
 # import zlib
 from urllib.parse import quote
 from pathlib import Path
+import socket
+import urllib.request
+from urllib.error import URLError
 
 import obspython as obs
 # import pypinyin
@@ -271,7 +274,8 @@ class globalVariableOfData:
     accountAvailabilityDetectionSwitch = True
     # #日志记录
     logRecording = ""
-
+    # #网络连接状态
+    networkConnectionStatus = None
     # 文件配置类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # #脚本所在目录，末尾带/
     scripts_data_dirpath = None
@@ -325,6 +329,79 @@ def logSave(logLevel: Literal[0, 1, 2, 3], logStr: str) -> None:
     log_text = f"【{formatted}】【{logLevel}】{logStr}"
     obs.script_log(logType[logLevel], log_text)
     globalVariableOfData.logRecording += log_text + "\n"
+
+
+def check_network_connection():
+    """检查网络连接，通过多个服务提供者的链接验证"""
+    logSave(0, "\n======= 开始网络连接检查 =======")
+
+    # 1. 首先尝试快速DNS连接检查
+    logSave(0, "[步骤1] 尝试通过DNS连接检查网络 (8.8.8.8:53)...")
+    try:
+        start_time = time.time()
+        socket.create_connection(("8.8.8.8", 53), timeout=2)
+        elapsed = (time.time() - start_time) * 1000
+        logSave(0, f"✅ DNS连接成功! 耗时: {elapsed:.2f}ms")
+        return True
+    except OSError as e:
+        logSave(1, f"⚠️ DNS连接失败: {str(e)}")
+
+    # 2. 尝试多个服务提供者的链接
+    logSave(0, "\n[步骤2] 开始尝试多个服务提供者的连接...")
+
+    # 定义测试URL及其提供商
+    test_services = [
+        {"url": "http://www.gstatic.com/generate_204", "provider": "Google"},
+        {"url": "http://www.google-analytics.com/generate_204", "provider": "Google"},
+        {"url": "http://connectivitycheck.gstatic.com/generate_204", "provider": "Google"},
+        {"url": "http://captive.apple.com", "provider": "Apple"},
+        {"url": "http://www.msftconnecttest.com/connecttest.txt", "provider": "Microsoft"},
+        {"url": "http://cp.cloudflare.com/", "provider": "Cloudflare"},
+        {"url": "http://detectportal.firefox.com/success.txt", "provider": "Firefox"},
+        {"url": "http://www.v2ex.com/generate_204", "provider": "V2ex"},
+        {"url": "http://connect.rom.miui.com/generate_204", "provider": "小米"},
+        {"url": "http://connectivitycheck.platform.hicloud.com/generate_204", "provider": "华为"},
+        {"url": "http://wifi.vivo.com.cn/generate_204", "provider": "Vivo"}
+    ]
+
+    for service in test_services:
+        url = service["url"]
+        provider = service["provider"]
+        logSave(0, f"\n- 尝试 {provider} 服务: {url}")
+
+        try:
+            # 发送HEAD请求减少数据传输量
+            start_time = time.time()
+            req = urllib.request.Request(url, method="HEAD")
+            with urllib.request.urlopen(req, timeout=3) as response:
+                elapsed = (time.time() - start_time) * 1000
+
+                # 检查响应状态
+                if response.status < 500:  # 排除服务器错误
+                    logSave(0, f"  ✅ 连接成功! 状态码: {response.status} | 耗时: {elapsed:.2f}ms")
+                    return True
+                else:
+                    logSave(1, f"  ⚠️ 服务器错误: 状态码 {response.status}")
+        except TimeoutError:
+            logSave(1, "  ⏱️ 连接超时 (3秒)")
+        except ConnectionError:
+            logSave(1, "  🔌 连接错误 (网络问题)")
+        except URLError as e:
+            logSave(1, f"  ❌ URL错误: {str(e.reason)}")
+        except Exception as e:
+            logSave(1, f"  ⚠️ 未知错误: {str(e)}")
+
+    # 3. 最后尝试基本HTTP连接
+    logSave(1, "\n[步骤3] 尝试基本HTTP连接检查 (http://example.com)...")
+    try:
+        start_time = time.time()
+        urllib.request.urlopen("http://example.com", timeout=3)
+        elapsed = (time.time() - start_time) * 1000
+        logSave(0, f"✅ HTTP连接成功! 耗时: {elapsed:.2f}ms")
+        return True
+    except URLError as e:
+        logSave(3, f"❌ 所有连接尝试失败: {str(e)}")
+        return False
 
 
 # 工具类函数
@@ -451,7 +528,7 @@ class BilibiliUserLogsIn2ConfigFile:
                 - cookies=None 但 set_default_user=False
         """
         config = self._read_config()
-    
+
         # 处理清空默认用户场景
         if cookies is None:
             if not setDefaultUserIs:
@@ -459,24 +536,24 @@ class BilibiliUserLogsIn2ConfigFile:
             config["DefaultUser"] = None
             self._write_config(config)
             return
-    
+
         # 原始验证逻辑
         required_keys = {"DedeUserID", "SESSDATA", "bili_jct"}
         if not required_keys.issubset(cookies.keys()):
             missing = required_keys - cookies.keys()
             raise ValueError(f"缺少必要字段: {', '.join(missing)}")
-    
+
         uid = str(cookies["DedeUserID"])
         if uid not in config:
             raise ValueError(f"用户 {uid} 不存在")
-    
+
         # 更新用户数据
         config[uid].update(cookies)
-        
+
         # 设置默认用户
         if setDefaultUserIs:
             config["DefaultUser"] = uid
-    
+
         self._write_config(config)
 
     def getCookies(self, uid: Optional[int] = None) -> Optional[dict]:
@@ -5871,16 +5948,20 @@ def script_defaults(settings):  # 设置其默认值
     调用以设置与脚本关联的默认设置(如果有的话)。为了设置其默认值，您通常会调用默认值函数。
     :param settings:与脚本关联的设置。
     """
+    # 路径变量
+    # #脚本数据保存目录
+    globalVariableOfData.scripts_data_dirpath = f"{script_path()}bilibili-live"
+    logSave(0, f"脚本用户数据文件夹路径：{globalVariableOfData.scripts_data_dirpath}")
+    # #脚本用户数据路径
+    globalVariableOfData.scripts_config_filepath = Path(globalVariableOfData.scripts_data_dirpath) / "config.json"
+    logSave(0, f"脚本用户数据路径：{globalVariableOfData.scripts_config_filepath}")
+
+    globalVariableOfData.networkConnectionStatus = check_network_connection()
+    if not globalVariableOfData.networkConnectionStatus:
+        logSave(1, f"\n======= 最终结果: 网络{'可用' if globalVariableOfData.networkConnectionStatus else '不可用'} =======\n")
+        return None
     if globalVariableOfData.accountAvailabilityDetectionSwitch:
         logSave(1, f"执行账号可用性检测")
-        # 路径变量
-        # #脚本数据保存目录
-        globalVariableOfData.scripts_data_dirpath = f"{script_path()}bilibili-live"
-        logSave(0, f"脚本用户数据文件夹路径：{globalVariableOfData.scripts_data_dirpath}")
-        # #脚本用户数据路径
-        globalVariableOfData.scripts_config_filepath = Path(globalVariableOfData.scripts_data_dirpath) / "config.json"
-        logSave(0, f"脚本用户数据路径：{globalVariableOfData.scripts_config_filepath}")
-        
         # 创建用户配置文件实例
         BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
         # 获取 用户配置文件 中 每一个用户 导航栏用户信息 排除空值
@@ -6235,6 +6316,9 @@ def script_description():
     """
     调用以检索要在“脚本”窗口中显示给用户的描述字符串。
     """
+    if not globalVariableOfData.networkConnectionStatus:
+        return "<font color=yellow>网络不可用</font>"
+
     t = ('<html lang="zh-CN"><body><pre>\
 本插件基于python3<br>\
     如果未安装python3，请前往<br>\
@@ -6307,6 +6391,8 @@ def script_properties():  # 建立控件
     Returns:通过 obs_properties_create() 创建的 Obs_properties_t 对象
     obs_properties_t 类型的属性对象。这个属性对象通常用于枚举 libobs 对象的可用设置，
     """
+    if not globalVariableOfData.networkConnectionStatus:
+        return None
     props = obs.obs_properties_create()  # 创建一个 OBS 属性集对象，他将包含所有控件对应的属性对象
     # 为 分组框【配置】 建立属性集
     GlobalVariableOfTheControl.setting_props = obs.obs_properties_create()
@@ -7151,6 +7237,6 @@ def script_unload():
     """
     logSave(0, "已卸载：bilibili-live")
     with open(Path(globalVariableOfData.scripts_data_dirpath) / f"{datetime.now().strftime("%Y%m%d_%H%M%S")}.log", "w", encoding="utf-8") as f:
-        f.write(globalVariableOfData.logRecording)
+        f.write(str(globalVariableOfData.logRecording))
 
 
