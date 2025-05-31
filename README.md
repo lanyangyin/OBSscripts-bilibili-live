@@ -7,16 +7,16 @@ obs用于B站直播的插件，这里是对主播方进行了特化的版本，�
 > 使用本插件从事违法行为后果请自行承担
 
 ## 配置依赖
+### pip换源
 ```bash
-echo 'pip换源'
 pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 ```
+### 更新pip
 ```bash
-echo '更新pip'
 pip install -U pip
 ```
+### 安装依赖包
 ```bash
-echo '安装依赖包'
 pip install -r requirements.txt
 ```
 ## obs载入python及脚本

@@ -7208,7 +7208,7 @@ def script_unload():
     在脚本被卸载时调用。
     """
     logSave(0, "已卸载：bilibili-live")
-    with open(Path(globalVariableOfData.scripts_data_dirpath) / f"{datetime.now().strftime("%Y%m%d_%H%M%S")}.log", "w", encoding="utf-8") as f:
+    with open(Path(globalVariableOfData.scripts_data_dirpath) / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.log", "w", encoding="utf-8") as f:
         f.write(str(globalVariableOfData.logRecording))
 
 

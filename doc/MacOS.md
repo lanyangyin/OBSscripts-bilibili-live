@@ -15,6 +15,7 @@ python3.10
 import sys
 print(sys.prefix)
 exit()
+
 ```
 - python路径示例
 ```
