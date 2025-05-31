@@ -5849,10 +5849,10 @@ def qrAddUser():
         86090: "二维码已扫码未确认",
         86038: "二维码已失效",
     }
+    logSave(0, f"开始轮询登录状态")
     # 轮询登录状态
     logSave(2, str(logIn2QRCode2ReturnInformation4code[globalVariableOfData.loginQrCode_returnValue]))
     # 开始计时器
-    logSave(0, f"开始轮询登录状态")
     obs.timer_add(check_poll, 1000)
 
 
@@ -6438,7 +6438,7 @@ def updateTheUIInterfaceData():
     obs.obs_property_modified(GlobalVariableOfTheControl.login_status_textBox, GlobalVariableOfTheControl.current_settings)
 
     # 判断组合框【用户】字典数据 和 当前数据是否有变化
-    if GlobalVariableOfTheControl.uid_comboBox_dict != {obs.obs_property_list_item_string(GlobalVariableOfTheControl.uid_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.uid_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.uid_comboBox))}:
+    if GlobalVariableOfTheControl.uid_comboBox_dict != {obs.obs_property_list_item_string(GlobalVariableOfTheControl.uid_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.uid_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.uid_comboBox))} or obs.obs_property_visible(GlobalVariableOfTheControl.uid_comboBox) != GlobalVariableOfTheControl.uid_comboBox_visible:
         logSave(0, f"数据发生变动，组合框【用户】数据：{str({obs.obs_property_list_item_string(GlobalVariableOfTheControl.uid_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.uid_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.uid_comboBox))})}，新的字典数据：{GlobalVariableOfTheControl.uid_comboBox_dict}")
         # 设置 组合框【用户】 可见状态
         obs.obs_property_set_visible(GlobalVariableOfTheControl.uid_comboBox, GlobalVariableOfTheControl.uid_comboBox_visible)
@@ -6553,7 +6553,7 @@ def updateTheUIInterfaceData():
     obs.obs_property_modified(GlobalVariableOfTheControl.change_liveRoom_news_button, GlobalVariableOfTheControl.current_settings)
 
     # 判断组合框【一级分区】字典数据 和 当前数据是否有变化
-    if GlobalVariableOfTheControl.parentLiveArea_comboBox_dict != {obs.obs_property_list_item_string(GlobalVariableOfTheControl.parentLiveArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.parentLiveArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.parentLiveArea_comboBox))}:
+    if GlobalVariableOfTheControl.parentLiveArea_comboBox_dict != {obs.obs_property_list_item_string(GlobalVariableOfTheControl.parentLiveArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.parentLiveArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.parentLiveArea_comboBox))} or obs.obs_property_visible(GlobalVariableOfTheControl.parentLiveArea_comboBox) != GlobalVariableOfTheControl.parentLiveArea_comboBox_visible:
         logSave(0, f"数据发生变动，组合框【一级分区】数据：{str({obs.obs_property_list_item_string(GlobalVariableOfTheControl.parentLiveArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.parentLiveArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.parentLiveArea_comboBox))})}，新的字典数据：{GlobalVariableOfTheControl.parentLiveArea_comboBox_dict}")
         # 设置 组合框【一级分区】 可见状态
         obs.obs_property_set_visible(GlobalVariableOfTheControl.parentLiveArea_comboBox, GlobalVariableOfTheControl.parentLiveArea_comboBox_visible)
@@ -6563,7 +6563,7 @@ def updateTheUIInterfaceData():
         for parentLiveAreaId in GlobalVariableOfTheControl.parentLiveArea_comboBox_dict:
             obs.obs_property_list_add_string(GlobalVariableOfTheControl.parentLiveArea_comboBox, GlobalVariableOfTheControl.parentLiveArea_comboBox_dict[parentLiveAreaId], parentLiveAreaId) if parentLiveAreaId != GlobalVariableOfTheControl.parentLiveArea_comboBox_value else None
         # 为 组合框【一级分区】 添加默认选项
-        (obs.obs_property_list_insert_string(GlobalVariableOfTheControl.parentLiveArea_comboBox, 0, GlobalVariableOfTheControl.parentLiveArea_comboBox_string, GlobalVariableOfTheControl.parentLiveArea_comboBox_value) or obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, "parentLiveArea_comboBox", GlobalVariableOfTheControl.parentLiveArea_comboBox_value))  if GlobalVariableOfTheControl.parentLiveArea_comboBox_value in GlobalVariableOfTheControl.parentLiveArea_comboBox_dict else None
+        (obs.obs_property_list_insert_string(GlobalVariableOfTheControl.parentLiveArea_comboBox, 0, GlobalVariableOfTheControl.parentLiveArea_comboBox_string, GlobalVariableOfTheControl.parentLiveArea_comboBox_value) or obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, "parentLiveArea_comboBox", GlobalVariableOfTheControl.parentLiveArea_comboBox_value)) if GlobalVariableOfTheControl.parentLiveArea_comboBox_value in GlobalVariableOfTheControl.parentLiveArea_comboBox_dict else None
         # 更新 组合框【一级分区】 显示
         obs.obs_property_modified(GlobalVariableOfTheControl.parentLiveArea_comboBox, GlobalVariableOfTheControl.current_settings)
     else:
@@ -6575,7 +6575,7 @@ def updateTheUIInterfaceData():
     obs.obs_property_modified(GlobalVariableOfTheControl.parentLiveArea_true_button, GlobalVariableOfTheControl.current_settings)
 
     # 判断字典数据 和 组合框 当前数据是否有变化
-    if GlobalVariableOfTheControl.subLiveArea_comboBox_dict != {obs.obs_property_list_item_string(GlobalVariableOfTheControl.subLiveArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.subLiveArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.subLiveArea_comboBox))}:
+    if GlobalVariableOfTheControl.subLiveArea_comboBox_dict != {obs.obs_property_list_item_string(GlobalVariableOfTheControl.subLiveArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.subLiveArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.subLiveArea_comboBox))} or obs.obs_property_visible(GlobalVariableOfTheControl.subLiveArea_comboBox) != GlobalVariableOfTheControl.subLiveArea_comboBox_visible:
         logSave(0, f"数据发生变动，组合框【二级分区】数据：{str({obs.obs_property_list_item_string(GlobalVariableOfTheControl.subLiveArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.subLiveArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.subLiveArea_comboBox))})}，新的字典数据：{GlobalVariableOfTheControl.subLiveArea_comboBox_dict}")
         # 设置 组合框【二级分区】 可见状态
         obs.obs_property_set_visible(GlobalVariableOfTheControl.subLiveArea_comboBox, GlobalVariableOfTheControl.subLiveArea_comboBox_visible)
@@ -6607,7 +6607,7 @@ def updateTheUIInterfaceData():
 
     # ————————————————————————————————————————————————————————————————
     # 判断组合框【直播平台】字典数据 和 当前数据是否有变化
-    if GlobalVariableOfTheControl.live_streaming_platform_comboBox_dict != {obs.obs_property_list_item_string(GlobalVariableOfTheControl.live_streaming_platform_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.live_streaming_platform_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.live_streaming_platform_comboBox))}:
+    if GlobalVariableOfTheControl.live_streaming_platform_comboBox_dict != {obs.obs_property_list_item_string(GlobalVariableOfTheControl.live_streaming_platform_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.live_streaming_platform_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.live_streaming_platform_comboBox))} or obs.obs_property_visible(GlobalVariableOfTheControl.live_streaming_platform_comboBox) != GlobalVariableOfTheControl.live_streaming_platform_comboBox_visible:
         logSave(0, f"数据发生变动，组合框【直播平台】数据：{str({obs.obs_property_list_item_string(GlobalVariableOfTheControl.live_streaming_platform_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.live_streaming_platform_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.live_streaming_platform_comboBox))})}，新的字典数据：{GlobalVariableOfTheControl.live_streaming_platform_comboBox_dict}")
         # 设置 组合框【直播平台】 可见状态
         obs.obs_property_set_visible(GlobalVariableOfTheControl.live_streaming_platform_comboBox, GlobalVariableOfTheControl.live_streaming_platform_comboBox_visible)
@@ -6721,7 +6721,7 @@ def updateAccountList_buttonC(props=None, prop=None, settings=GlobalVariableOfTh
     logSave(0, f"根据是否有账号登录：{bool(BULC.getCookies())} 设置 组合框【用户】 列表值：{GlobalVariableOfTheControl.uid_comboBox_value}")
 
     # 判断字典数据 和 组合框 当前数据是否有变化
-    if GlobalVariableOfTheControl.uid_comboBox_dict != {obs.obs_property_list_item_string(GlobalVariableOfTheControl.uid_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.uid_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.uid_comboBox))}:
+    if GlobalVariableOfTheControl.uid_comboBox_dict != {obs.obs_property_list_item_string(GlobalVariableOfTheControl.uid_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.uid_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.uid_comboBox))} or obs.obs_property_visible(GlobalVariableOfTheControl.uid_comboBox) != GlobalVariableOfTheControl.uid_comboBox_visible:
         logSave(0, f"数据发生变动，组合框【用户】数据：{str({obs.obs_property_list_item_string(GlobalVariableOfTheControl.uid_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.uid_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.uid_comboBox))})}，新的字典数据：{GlobalVariableOfTheControl.uid_comboBox_dict}")
         # 设置 组合框【用户】 可见状态
         obs.obs_property_set_visible(GlobalVariableOfTheControl.uid_comboBox, GlobalVariableOfTheControl.uid_comboBox_visible)
@@ -6978,7 +6978,7 @@ def start_area1_buttonC(props, prop, settings=GlobalVariableOfTheControl.current
         return None
 
     # 判断字典数据 和 组合框 当前数据是否有变化
-    if GlobalVariableOfTheControl.subLiveArea_comboBox_dict != {obs.obs_property_list_item_string(GlobalVariableOfTheControl.subLiveArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.subLiveArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.subLiveArea_comboBox))}:
+    if GlobalVariableOfTheControl.subLiveArea_comboBox_dict != {obs.obs_property_list_item_string(GlobalVariableOfTheControl.subLiveArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.subLiveArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.subLiveArea_comboBox))} or obs.obs_property_visible(GlobalVariableOfTheControl.subLiveArea_comboBox) != GlobalVariableOfTheControl.subLiveArea_comboBox_visible:
         logSave(0, f"数据发生变动，组合框【二级分区】数据：{str({obs.obs_property_list_item_string(GlobalVariableOfTheControl.subLiveArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.subLiveArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.subLiveArea_comboBox))})}，新的字典数据：{GlobalVariableOfTheControl.subLiveArea_comboBox_dict}")
         # 设置 组合框【二级分区】 可见状态
         obs.obs_property_set_visible(GlobalVariableOfTheControl.subLiveArea_comboBox, GlobalVariableOfTheControl.subLiveArea_comboBox_visible)
