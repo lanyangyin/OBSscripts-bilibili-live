@@ -1,5 +1,5 @@
 <center><h1>
-OBSscripts<br>bilibili-live
+OBSscripts_bilibili-live
 </h1></center>
 
 obs用于B站直播的插件
