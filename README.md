@@ -40,6 +40,7 @@ ing...
 5. [ ] 恢复账号
 6. [x] 展示二维码图片
 7. [x] 登出账号
+
 ### 更改直播间设置
 1. [ ] 开通直播间
 2. [x] 查看直播间封面
@@ -50,6 +51,13 @@ ing...
 7. [x] 更改直播间分区
 8. [ ] 发布直播预告
 9. [x] 跳转直播管理网页
+
+### ~~直播管理~~
+1. [ ] 禁言用户
+2. [ ] 房管
+3. [ ] 黑名单
+4. [ ] 直播间屏蔽词
+
 ### 直播
 1. [x] 选择直播平台
 2. [x] 开播
@@ -57,13 +65,7 @@ ing...
 4. [x] 复制推流码
 5. [x] 更新推流码
 6. [x] 下播
-### ~~发送弹幕~~
-1. [ ] 保存多个账户
-2. [ ] 保存多个直播间
-3. [ ] 自动字数切分
-4. [ ] 自动检测弹幕是否发出
-5. [ ] 自动更改违规弹幕
-6. [ ] 发送表情
+
 ### ~~输出弹幕~~
 1. [ ] 自动切换直播间
 2. [ ] 调整输出内容
@@ -73,3 +75,30 @@ ing...
 6. [ ] 输出进房弹幕
 7. [ ] 输出点赞消息
 8. [ ] 输出关注消息
+
+### ~~弹幕UI~~
+1. [ ] 消息背景自定义
+2. [ ] 消息动画自定义
+
+### ~~弹幕互动~~
+1. [ ] 加班机
+2. [ ] 抽奖
+3. [ ] 五子棋
+
+### ~~发送弹幕~~
+1. [ ] 保存多个账户
+2. [ ] 保存多个直播间
+3. [ ] 自动字数切分
+4. [ ] 自动检测弹幕是否发出
+5. [ ] 自动更改违规弹幕
+6. [ ] 发送表情
+
+
+# 引用
+- 哔哩哔哩的api收集：[SocialSisterYi / bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect?tab=readme-ov-file)
+- 发出调用api的网络请求python包：[Requests](https://github.com/psf/requests)
+- 调用剪贴板的python包：[pyperclip](https://github.com/asweigart/pyperclip)
+- 创建二维码的python包：[qrcode](https://github.com/nayuki/QR-Code-generator)
+- 操作图片的python包：[pillow](https://github.com/python-pillow/Pillow)
+- 中文转拼音的python包：[pypinyin](https://github.com/mozillazg/python-pinyin)
+- 网络长连接用于连接弹幕的python包：[websockets](https://github.com/python-websockets/websockets)
