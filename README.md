@@ -1,4 +1,7 @@
-# OBSscripts-bilibili-live
+<h1 style="text-align: center">
+OBSscripts<br>bilibili-live
+</h1>
+
 obs用于B站直播的插件
 ## 配置依赖
 ```bash
