@@ -18584,7 +18584,3 @@ def timer_add(check_poll, param):
 
 def obs_properties_add_button(live_props, param, param1, rtmp_stream_code_copy):
     return None
-
-
-def obs_property_set_modified_callback(parentLiveArea_comboBox, start_area1_buttonC):
-    return None
