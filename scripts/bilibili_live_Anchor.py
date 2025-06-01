@@ -5889,8 +5889,8 @@ def check_poll():
             else:
                 BUCF.addUser(cookies)
                 logSave(0, "添加用户成功")
-                # 启动帧计时器，更新用户列表
-                logSave(0, "启动帧计时器，更新用户列表")
+                # 请点击按钮【更新账号列表】，更新用户列表
+                logSave(0, "请点击按钮【更新账号列表】，更新用户列表")
         else:
             logSave(0, "添加用户失败")
         # 结束计时器
