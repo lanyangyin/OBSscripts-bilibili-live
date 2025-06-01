@@ -6759,6 +6759,19 @@ def updateAccountList_buttonC(props=None, prop=None, settings=GlobalVariableOfTh
     """
     logSave(0, f"用户：{DefaultUname} 已登录" if BULC.getCookies() else f"未登录账号")
 
+    # 设置 只读文本框【登录状态】 可见状态
+    GlobalVariableOfTheControl.login_status_textBox_visible = True
+    logSave(0, f"设置 只读文本框【登录状态】 可见状态：{str(GlobalVariableOfTheControl.login_status_textBox_visible)}")
+    # 设置 只读文本框【登录状态】 可用状态
+    GlobalVariableOfTheControl.login_status_textBox_enabled = True
+    logSave(0, f"设置 只读文本框【登录状态】 可用状态：{str(GlobalVariableOfTheControl.login_status_textBox_enabled)}")
+    # 设置 只读文本框【登录状态】 类型
+    GlobalVariableOfTheControl.login_status_textBox_type = obs.OBS_TEXT_INFO_NORMAL if BULC.getCookies() else obs.OBS_TEXT_INFO_WARNING
+    logSave(0, f"根据是否有账号登录：{bool(BULC.getCookies())} 设置 只读文本框【登录状态】 类型：{textBox_type_name4textBox_type[GlobalVariableOfTheControl.login_status_textBox_type]}")
+    # 设置 只读文本框【登录状态】 内容
+    GlobalVariableOfTheControl.login_status_textBox_string = f'{DefaultUname} 已登录' if BULC.getCookies() else '未登录，请登录后点击【更新账号列表】'
+    logSave(0, f"根据是否有账号登录：{bool(BULC.getCookies())} 设置 只读文本框【登录状态】 内容：{GlobalVariableOfTheControl.login_status_textBox_string}")
+
     # 设置 组合框【用户】 可见状态
     GlobalVariableOfTheControl.uid_comboBox_visible = True
     logSave(0, f"设置 组合框【用户】 可见状态：{str(GlobalVariableOfTheControl.uid_comboBox_visible)}")
@@ -6775,7 +6788,71 @@ def updateAccountList_buttonC(props=None, prop=None, settings=GlobalVariableOfTh
     GlobalVariableOfTheControl.uid_comboBox_value = BULC.getUsers()[0] if BULC.getCookies() else '-1'
     logSave(0, f"根据是否有账号登录：{bool(BULC.getCookies())} 设置 组合框【用户】 列表值：{GlobalVariableOfTheControl.uid_comboBox_value}")
 
-    # 判断字典数据 和 组合框 当前数据是否有变化
+    # 设置 按钮【登录账号】 可见状态
+    GlobalVariableOfTheControl.login_button_visible = True if AllUnameByUid4Dict else False
+    logSave(0, f"根据 是否有账户：{str(bool(AllUnameByUid4Dict))}，设置 按钮【登录账号】 可见状态：{str(GlobalVariableOfTheControl.login_button_visible)}")
+    # 设置 按钮【登录账号】 可用状态
+    GlobalVariableOfTheControl.login_button_enabled = True if AllUnameByUid4Dict else False
+    logSave(0, f"根据 是否有账户：{str(bool(AllUnameByUid4Dict))}，设置 按钮【登录账号】 可用状态：{str(GlobalVariableOfTheControl.login_button_enabled)}")
+
+    # 设置 按钮【更新账号列表】 可见状态
+    GlobalVariableOfTheControl.update_account_list_button_visible = True
+    logSave(0, f"设置 按钮【更新账号列表】 可见状态：{str(GlobalVariableOfTheControl.update_account_list_button_visible)}")
+    # 设置 按钮【更新账号列表】 可用状态
+    GlobalVariableOfTheControl.update_account_list_button_enabled = True
+    logSave(0, f"设置 按钮【更新账号列表】 可用状态：{str(GlobalVariableOfTheControl.update_account_list_button_enabled)}")
+
+    # 设置 按钮【二维码添加账户】 可见状态
+    GlobalVariableOfTheControl.qr_code_add_account_button_visible = True
+    logSave(0, f"设置 按钮【二维码添加账户】 可见状态：{str(GlobalVariableOfTheControl.qr_code_add_account_button_visible)}")
+    # 设置 按钮【二维码添加账户】 可用状态
+    GlobalVariableOfTheControl.qr_code_add_account_button_enabled = True
+    logSave(0, f"设置 按钮【二维码添加账户】 可用状态：{str(GlobalVariableOfTheControl.qr_code_add_account_button_enabled)}")
+
+    # 设置 按钮【显示二维码图片】 可见状态
+    GlobalVariableOfTheControl.display_qr_code_picture_button_visible = True
+    logSave(0, f"设置 按钮【显示二维码图片】 可见状态：{str(GlobalVariableOfTheControl.display_qr_code_picture_button_visible)}")
+    # 设置 按钮【显示二维码图片】 可用状态
+    GlobalVariableOfTheControl.display_qr_code_picture_button_enabled = True
+    logSave(0, f"设置 按钮【显示二维码图片】 可用状态：{str(GlobalVariableOfTheControl.display_qr_code_picture_button_enabled)}")
+
+    # 设置 按钮【删除账户】 可见状态
+    GlobalVariableOfTheControl.delete_account_button_visible = True if AllUnameByUid4Dict else False
+    logSave(0, f"根据 是否有账户：{str(bool(AllUnameByUid4Dict))}，设置 按钮【删除账户】 可见状态：{str(GlobalVariableOfTheControl.delete_account_button_visible)}")
+    # 设置 按钮【删除账户】 可用状态
+    GlobalVariableOfTheControl.delete_account_button_enabled = True if AllUnameByUid4Dict else False
+    logSave(0, f"根据 是否有账户：{str(bool(AllUnameByUid4Dict))}，设置 按钮【删除账户】 可用状态：{str(GlobalVariableOfTheControl.delete_account_button_enabled)}")
+
+    # 设置 按钮【备份账户】 可见状态
+    GlobalVariableOfTheControl.backup_account_button_visible = False
+    logSave(0, f"设置 按钮【备份账户】 可见状态：{str(GlobalVariableOfTheControl.backup_account_button_visible)}")
+    # 设置 按钮【备份账户】 可用状态
+    GlobalVariableOfTheControl.backup_account_button_enabled = False
+    logSave(0, f"设置 按钮【备份账户】 可用状态：{str(GlobalVariableOfTheControl.backup_account_button_enabled)}")
+
+    # 设置 按钮【恢复账户】 可见状态
+    GlobalVariableOfTheControl.restore_account_button_visible = False
+    logSave(0, f"设置 按钮【恢复账户】 可见状态：{str(GlobalVariableOfTheControl.restore_account_button_visible)}")
+    # 设置 按钮【恢复账户】 可用状态
+    GlobalVariableOfTheControl.restore_account_button_enabled = False
+    logSave(0, f"设置 按钮【恢复账户】 可用状态：{str(GlobalVariableOfTheControl.restore_account_button_enabled)}")
+
+    # 设置 按钮【登出账号】 可见状态
+    GlobalVariableOfTheControl.logout_button_visible = True if AllUnameByUid4Dict and BULC.getCookies() else False
+    logSave(0, f"根据 是否有账户：{str(bool(AllUnameByUid4Dict))}，是否登录：{str(bool(BULC.getCookies()))}，设置 按钮【登出账号】 可见状态：{str(GlobalVariableOfTheControl.logout_button_visible)}")
+    # 设置 按钮【登出账号】 可用状态
+    GlobalVariableOfTheControl.logout_button_enabled = True if AllUnameByUid4Dict and BULC.getCookies() else False
+    logSave(0, f"根据 是否有账户：{str(bool(AllUnameByUid4Dict))}，是否登录：{str(bool(BULC.getCookies()))}，设置 按钮【登出账号】 可用状态：{str(GlobalVariableOfTheControl.logout_button_enabled)}")
+
+    # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # 设置 只读文本框【登录状态】 类型
+    obs.obs_property_text_set_info_type(GlobalVariableOfTheControl.login_status_textBox, GlobalVariableOfTheControl.login_status_textBox_type)
+    # 使 只读文本框【登录状态】 显示
+    obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, 'login_status_textBox', f'{GlobalVariableOfTheControl.login_status_textBox_string}')
+    # 更新 只读文本框【登录状态】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.login_status_textBox, GlobalVariableOfTheControl.current_settings)
+
+    # 判断组合框【用户】字典数据 和 当前数据是否有变化
     if GlobalVariableOfTheControl.uid_comboBox_dict != {obs.obs_property_list_item_string(GlobalVariableOfTheControl.uid_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.uid_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.uid_comboBox))} or obs.obs_property_visible(GlobalVariableOfTheControl.uid_comboBox) != GlobalVariableOfTheControl.uid_comboBox_visible:
         logSave(0, f"数据发生变动，组合框【用户】数据：{str({obs.obs_property_list_item_string(GlobalVariableOfTheControl.uid_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.uid_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.uid_comboBox))})}，新的字典数据：{GlobalVariableOfTheControl.uid_comboBox_dict}")
         # 设置 组合框【用户】 可见状态
@@ -6791,6 +6868,56 @@ def updateAccountList_buttonC(props=None, prop=None, settings=GlobalVariableOfTh
         obs.obs_property_modified(GlobalVariableOfTheControl.uid_comboBox, GlobalVariableOfTheControl.current_settings)
     else:
         logSave(0, f"数据未发生变动，组合框【用户】数据：{str({obs.obs_property_list_item_string(GlobalVariableOfTheControl.uid_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.uid_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.uid_comboBox))})}，新的字典数据：{GlobalVariableOfTheControl.uid_comboBox_dict}")
+
+    # 设置 按钮[登录账号] 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.login_button, GlobalVariableOfTheControl.login_button_visible)
+    # 设置 按钮【登录账号】 可用状态
+    obs.obs_property_set_enabled(GlobalVariableOfTheControl.login_button, GlobalVariableOfTheControl.login_button_enabled)
+    # 更新 按钮【登录账号】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.login_button, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 按钮【二维码添加账户】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.qr_code_add_account_button, GlobalVariableOfTheControl.qr_code_add_account_button_visible)
+    # 设置 按钮【二维码添加账户】 可用状态
+    obs.obs_property_set_enabled(GlobalVariableOfTheControl.qr_code_add_account_button, GlobalVariableOfTheControl.qr_code_add_account_button_enabled)
+    # 更新 按钮【二维码添加账户】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.qr_code_add_account_button, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 按钮【显示二维码图片】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.display_qr_code_picture_button, GlobalVariableOfTheControl.display_qr_code_picture_button_visible)
+    # 设置 按钮【显示二维码图片】 可用状态
+    obs.obs_property_set_enabled(GlobalVariableOfTheControl.display_qr_code_picture_button, GlobalVariableOfTheControl.display_qr_code_picture_button_enabled)
+    # 更新 按钮[显示二维码图片】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.display_qr_code_picture_button, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 按钮【删除账户】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.delete_account_button, GlobalVariableOfTheControl.delete_account_button_visible)
+    # 设置 按钮【删除账户】 可用状态
+    obs.obs_property_set_enabled(GlobalVariableOfTheControl.delete_account_button, GlobalVariableOfTheControl.delete_account_button_enabled)
+    # 更新 按钮[删除账户】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.delete_account_button, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 按钮【备份账户】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.backup_account_button, GlobalVariableOfTheControl.backup_account_button_visible)
+    # 设置 按钮【备份账户】 可用状态
+    obs.obs_property_set_enabled(GlobalVariableOfTheControl.backup_account_button, GlobalVariableOfTheControl.backup_account_button_enabled)
+    # 更新 按钮[备份账户】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.backup_account_button, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 按钮【恢复账户】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.restore_account_button, GlobalVariableOfTheControl.restore_account_button_visible)
+    # 设置 按钮【恢复账户】 可用状态
+    obs.obs_property_set_enabled(GlobalVariableOfTheControl.restore_account_button, GlobalVariableOfTheControl.restore_account_button_enabled)
+    # 更新 按钮[恢复账户】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.restore_account_button, GlobalVariableOfTheControl.current_settings)
+
+    # 设置 按钮【登出账号】 可见状态
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.logout_button, GlobalVariableOfTheControl.logout_button_visible)
+    # 设置 按钮【登出账号】 可用状态
+    obs.obs_property_set_enabled(GlobalVariableOfTheControl.logout_button, GlobalVariableOfTheControl.logout_button_enabled)
+    # 更新 按钮[登出账号】 显示
+    obs.obs_property_modified(GlobalVariableOfTheControl.logout_button, GlobalVariableOfTheControl.current_settings)
+
     return True
 
 
