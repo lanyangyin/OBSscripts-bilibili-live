@@ -7233,8 +7233,6 @@ def start_live_buttonC(props, prop):
         rtmpPushCode = startLive["data"]["rtmp"]["code"]
         logSave(0, f"将rtmp推流码复制到剪贴板，rtmp推流码长度{len(rtmpPushCode)}")
         cb.copy(rtmpPushCode)
-    # 设置组合框【用户】为'默认用户'
-    obs.obs_data_set_string(GlobalVariableOfTheControl.current_settings, 'uid_comboBox', cookies["DedeUserID"])
 
     change_liveRoom_title_buttonC(props, prop)
     change_liveRoom_news_buttonC(props, prop)
