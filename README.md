@@ -10,7 +10,7 @@ obs用于B站直播的插件，这里是对主播方进行了特化的版本，�
 > 使用本插件从事违法行为后果请自行承担
 
 ## 环境配置
-电脑系统：macOS14+/Windows10+/Ubuntu22+/Debian12+
+电脑系统：macOS14+/Windows10+/Ubuntu22+
 python版本：3.9-3.12
 
 ## 配置依赖
