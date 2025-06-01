@@ -37,7 +37,7 @@ exit()
 ```
 - python安装路径示例
 ```
-C:/Users/lanan/AppData/Local/Programs/Python/Python310
+C:/Users/$USER/AppData/Local/Programs/Python/Python310
 ```
 #### 在脚本窗口中的`python设置`中配置python安装路径
 ![gif2.gif](Windows/gif2.gif)
