@@ -6317,7 +6317,6 @@ def script_description():
     if not globalVariableOfData.networkConnectionStatus:
         return "<font color=yellow>网络不可用</font>"
     t = ('<html lang="zh-CN"><body><pre>\
-本插件建议使用<font color="#ee4343" size=5>python3.10</font><br>\
 <font color=yellow>!脚本路径中尽量不要有中文</font><br>\
 <font color="white" size=5>⟳</font><font color=green size=4>为重新载入插件按钮</font><br>\
 使用<font color="#ee4343">管理员权限</font>运行obs<br>\
