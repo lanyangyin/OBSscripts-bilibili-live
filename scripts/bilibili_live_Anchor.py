@@ -29,7 +29,7 @@ import tempfile
 import time
 import urllib
 from datetime import datetime
-from typing import Optional, Dict, Literal
+from typing import Optional, Dict, Literal, Union
 # import zlib
 from urllib.parse import quote
 from pathlib import Path
@@ -463,7 +463,7 @@ class BilibiliUserLogsIn2ConfigFile:
         except IOError as e:
             raise RuntimeError(f"配置文件写入失败: {str(e)}") from e
 
-    def addUser(self, cookies: dict) -> None:
+    def addUser(self, cookies: Dict) -> None:
         """
         添加新用户配置
         Args:
@@ -643,7 +643,7 @@ def dict2cookie(jsondict: Dict[str, str]) -> str:
     Raises:
         TypeError: 当输入不是字典时抛出
     """
-    if not isinstance(jsondict, dict):
+    if not isinstance(jsondict, Dict):
         raise TypeError("输入必须是字典类型")
     cookie_parts = [
         f"{url_decoded(key)}={url_decoded(value)}"
@@ -709,7 +709,7 @@ def url_decoded(url_string: str) -> str:
     return utf8_encoded
 
 
-def qr2str_b64_PilImg4dict(qr_str: str, border: int = 2, invert: bool = False):
+def qr2str_b64_PilImg4dict(qr_str: str, border: int = 2, invert: bool = False) -> Dict[str, Union[str, bytes, Image.Image]]:
     """
     字符串转二维码（返回包含 PIL 图像对象的字典）
     Args:
@@ -717,10 +717,10 @@ def qr2str_b64_PilImg4dict(qr_str: str, border: int = 2, invert: bool = False):
         border: 边框大小（默认2）
         invert: 是否反转颜色（默认False）
     Returns:
-        dict: 包含以下键的字典
+        Dict: 包含以下键的字典
             - str: ASCII 字符串形式的二维码
             - base64: Base64 编码的 PNG 图像
-            - img: qrcode Image 对象 [并非PIL.Image.Image 对象]
+            - img: qrcode PIL.Image.Image 对象
     Raises:
         ValueError: 输入参数不合法时抛出
     """
@@ -827,8 +827,8 @@ def PIL_Image2CentralProportionCutting(
 def PIL_Image2Zooming(
         PIL_Image: Image.Image,
         ZoomingQuality: Literal[1, 2, 3, 4],
-        target_width: Optional[int] = None,  # Optional[int] 可以简写为 int | None
-        scale_factor: Optional[int] = None  # Optional[int] 可以简写为 int | None
+        target_width: Optional[int] = None,  # Optional[int] 可以简写为 int | None(3.9中为Union[int, None])
+        scale_factor: Optional[int] = None  # Optional[int] 可以简写为 int | None(3.9中为Union[int, None])
 ) -> Image.Image:
     """
     对 PIL 图像进行缩放操作，支持指定目标宽度或缩小倍数
@@ -844,7 +844,7 @@ def PIL_Image2Zooming(
         scale_factor: 缩小倍数（与 target_width 二选一）
 
     Returns:
-        dict: 包含两种缩放结果的字典
+        Dict: 包含两种缩放结果的字典
             widthZoomingPIL_Image: 按宽度缩放的结果图像（如参数有效）
             timesZoomingPIL_Image: 按比例缩放的结果图像（如参数有效）
 
@@ -925,24 +925,22 @@ def PIL_Image2Binary(
         raise ValueError(f"不支持的压缩级别: {compress_level}，只支持 0～9")
     # 准备保存参数
     save_kwargs = {}
-
-    match ImgFormat:
-        case "PNG":
-            save_kwargs = {
-                "format": "PNG",
-                "compress_level": compress_level  # 将压缩级别映射到质量参数 (0=最高压缩，9=最高质量)
-            }
-        case "JPEG":
-            quality = 95 - (compress_level * 10)
-            quality = max(5, min(95, quality))  # 确保在有效范围内
-            # 转换图像模式为 RGB
-            if PIL_Image.mode != "RGB":
-                PIL_Image = PIL_Image.convert("RGB")
-            save_kwargs = {
-                "format": "JPEG",
-                "quality": quality,
-                "subsampling": 0 if quality >= 90 else 1  # 高质量使用全采样
-            }
+    if ImgFormat == "PNG":
+        save_kwargs = {
+            "format": "PNG",
+            "compress_level": compress_level  # 将压缩级别映射到质量参数 (0=最高压缩，9=最高质量)
+        }
+    if ImgFormat == "JPEG":
+        quality = 95 - (compress_level * 10)
+        quality = max(5, min(95, quality))  # 确保在有效范围内
+        # 转换图像模式为 RGB
+        if PIL_Image.mode != "RGB":
+            PIL_Image = PIL_Image.convert("RGB")
+        save_kwargs = {
+            "format": "JPEG",
+            "quality": quality,
+            "subsampling": 0 if quality >= 90 else 1  # 高质量使用全采样
+        }
     # 执行转换
     buffer = io.BytesIO()
     try:
@@ -956,7 +954,7 @@ def PIL_Image2Binary(
 # end
 
 # 不登录也能用的api
-def getRoomInfoOld(mid: int) -> dict:
+def getRoomInfoOld(mid: int) -> Dict:
     """
     直接用Bid查询到的直播间基础信息<br>
     @param mid: B站UID
@@ -1034,7 +1032,7 @@ def getRoomInfoOld(mid: int) -> dict:
         </tr>
         </tbody>
     </table>
-    @rtype: dict
+    @rtype: Dict
     """
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\
@@ -1361,7 +1359,7 @@ def getAreaObjList():
     return AreaList["data"]
 
 
-def getsubLiveAreaObjList(ParentLiveAreaId: str) -> Optional[list[dict[str, str | int]]]:
+def getsubLiveAreaObjList(ParentLiveAreaId: str) -> Optional[list[Dict[str, Union[str, int]]]]:  # 3.10及以上可以写成 Optional[list[Dict[str, str | int]]]
     """
     返回父分区对应的子分区对象列表
     Args:
@@ -1386,7 +1384,7 @@ def getsubLiveAreaObjList(ParentLiveAreaId: str) -> Optional[list[dict[str, str 
 
 
 # 登陆用函数
-def generate() -> dict:
+def generate() -> Dict:
     """
     申请登录二维码
     @return: {'url': 二维码文本, 'qrcode_key': 扫描秘钥}
@@ -1404,7 +1402,7 @@ def generate() -> dict:
     return {'url': url, 'qrcode_key': qrcode_key}
 
 
-def poll(qrcode_key: str) -> dict[str, dict[str, str] | int]:
+def poll(qrcode_key: str) -> Dict[str, Union[Dict[str, str], int]]:  # 3.Dict[str, Dict[str, str] | int]
     """
     获取登陆状态，登陆成功获取 基础的 cookies
     @param qrcode_key: 扫描秘钥
@@ -1427,7 +1425,7 @@ def poll(qrcode_key: str) -> dict[str, dict[str, str] | int]:
         </tr>
         </tbody>
     </table>
-    @rtype: dict
+    @rtype: Dict
     """
     global data
     headers = {
@@ -1443,10 +1441,10 @@ def poll(qrcode_key: str) -> dict[str, dict[str, str] | int]:
     if code == 0:
         def urldata_dict(url: str):
             """
-            将 url参数 转换成 dict
+            将 url参数 转换成 Dict
             @param url: 带有参数的url
             @return: 转换成的dict
-            @rtype: dict
+            @rtype: Dict
             """
             urldata = url.split('?', 1)[1]
             data_list = urldata.split('&')
@@ -1490,7 +1488,7 @@ class master:
         """
         通过用户的B站uid查看他的粉丝团成员列表
         :param uid:B站uid
-        :return: list元素：[{face：头像url，guard_icon：舰队职位图标url，guard_level：舰队职位 1|2|3->总督|提督|舰长，honor_icon：""，level：粉丝牌等级，medal_color_border：粉丝牌描边颜色数值为 10 进制的 16 进制值，medal_color_start：勋章起始颜色，medal_color_end：勋章结束颜色，medal_name：勋章名，name：用户昵称，score：勋章经验值，special：""，target_id：up主mid，uid：用户mid，user_rank：在粉丝团的排名}]
+        :return: list元素：[{face：头像url，guard_icon：舰队职位图标url，guard_level：舰队职位 1/2/3->总督/提督/舰长，honor_icon：""，level：粉丝牌等级，medal_color_border：粉丝牌描边颜色数值为 10 进制的 16 进制值，medal_color_start：勋章起始颜色，medal_color_end：勋章结束颜色，medal_name：勋章名，name：用户昵称，score：勋章经验值，special：""，target_id：up主mid，uid：用户mid，user_rank：在粉丝团的排名}]
         """
         api = "https://api.live.bilibili.com/xlive/general-interface/v1/rank/getFansMembersRank"
         headers = self.headers
@@ -5117,7 +5115,7 @@ class master:
         dynamic = dynamics
         return dynamic
 
-    def get_user_info(self) -> dict:
+    def get_user_info(self) -> Dict:
         """
         获得个人基础信息
         """
@@ -5126,7 +5124,7 @@ class master:
         response = requests.get(url, headers=headers).json()
         return response['data']
 
-    def interface_nav(self) -> dict:
+    def interface_nav(self) -> Dict:
         """
         获取登录后导航栏用户信息
         @return:
@@ -5578,7 +5576,7 @@ class master:
         Emoticons = requests.get(api, headers=headers, params=params).json()["data"]["data"]
         return Emoticons
 
-    def getDanmuInfo(self, roomid: int) -> dict:
+    def getDanmuInfo(self, roomid: int) -> Dict:
         """
         获取信息流认证秘钥
         @param roomid: 直播间真实id
