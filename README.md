@@ -17,23 +17,18 @@ obs_studio版本：30+
 ## 配置依赖
 ### pip换源
 ```bash
-pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple --user
-```
-### 更新pip
-```bash
-pip install -U pip --user
+pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 ### 安装依赖包
 ```bash
-pip install -r requirements.txt --user
+pip install -r requirements.txt
 ```
 ## obs载入python及脚本
 ### Windows
 [Windows.md](doc%2FWindows.md)
 ### MacOS
 [MacOS.md](doc%2FMacOS.md)
-### Liunx
-ing...
+
 ## 功能
 >☑ 为已实现
 >

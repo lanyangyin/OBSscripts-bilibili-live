@@ -1,14 +1,14 @@
 # Windows10 或 Windows11
 ## 环境配置
-- 下载安装Python3.10+
-- 安装OBS
+- Python3.9+，请尽量保持安装路径无中文，将python配置到环境变量中
+- OBS，需要使obs以管理员身份运行
 ## 配置插件
 - 打开OBS
 - 在菜单栏的【工具】中，选择`脚本`
 - 在脚本窗口中的`python设置`中配置python安装路径
 - 使用以下代码获得python安装路径
 ```bash
-python3.10
+python
 ```
 ```python
 import sys
