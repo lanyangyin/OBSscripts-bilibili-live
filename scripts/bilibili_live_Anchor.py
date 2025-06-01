@@ -18,6 +18,7 @@
 import base64
 import io
 import json
+import os
 # import os
 import pathlib
 import random
@@ -49,10 +50,12 @@ from PIL import Image
 
 # 全局变量
 textBox_type_name4textBox_type = {
-    obs.OBS_TEXT_INFO_NORMAL:'正常信息',
-    obs.OBS_TEXT_INFO_WARNING:'警告信息',
-    obs.OBS_TEXT_INFO_ERROR:'错误信息'
+    obs.OBS_TEXT_INFO_NORMAL: '正常信息',
+    obs.OBS_TEXT_INFO_WARNING: '警告信息',
+    obs.OBS_TEXT_INFO_ERROR: '错误信息'
 }
+
+
 class GlobalVariableOfTheControl:
     # #记录obs插件中控件的数据
     current_settings = None
@@ -283,6 +286,8 @@ class globalVariableOfData:
     # #配置文件所在路径
     scripts_config_filepath = None
 
+    # #临时文件文件夹
+    scripts_temp_dir = None
     # 用户类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     loginQrCode_key = None
 
@@ -749,14 +754,17 @@ def qr2str_b64_PilImg4dict(qr_str: str, border: int = 2, invert: bool = False) -
     # 重定向输出到变量中
     output_str = output.getvalue()
     sys.stdout = saveStdout  # 恢复 sys.stdout
-    # 将登录图片保存到临时文件
-    with tempfile.NamedTemporaryFile(suffix=".png") as tmp:
-        # 1. 将 PyPNGImage 对象保存到临时文件
-        img.save(tmp.name)
-        qrPilImg = Image.open(tmp.name)  # 将临时文件打开为PIL.Image.Image 对象
-        """
-        qr的PIL.Image.Image 对象
-        """
+    # 1. 将 PyPNGImage 对象保存到临时文件
+    img.save(os.path.join(globalVariableOfData.scripts_temp_dir, f"loginQRCode.png"))
+    # 将临时文件打开为PIL.Image.Image 对象
+    qrPilImg = Image.open(os.path.join(globalVariableOfData.scripts_temp_dir, f"loginQRCode.png"))
+    """
+    qr的PIL.Image.Image 对象
+    """
+    try:
+        os.remove(os.path.join(globalVariableOfData.scripts_temp_dir, f"loginQRCode.png"))
+    except Exception as e:
+        print(f"删除临时文件失败: {e}")
     return {"str": output_str, "base64": b64, "img": qrPilImg}
 
 
@@ -5953,7 +5961,9 @@ def script_defaults(settings):  # 设置其默认值
     # #脚本用户数据路径
     globalVariableOfData.scripts_config_filepath = Path(globalVariableOfData.scripts_data_dirpath) / "config.json"
     logSave(0, f"脚本用户数据路径：{globalVariableOfData.scripts_config_filepath}")
-
+    globalVariableOfData.scripts_temp_dir = Path(globalVariableOfData.scripts_data_dirpath) / "temp"
+    os.makedirs(globalVariableOfData.scripts_temp_dir, exist_ok=True)
+    logSave(0, f"脚本临时文件夹路径：{globalVariableOfData.scripts_temp_dir}")
     globalVariableOfData.networkConnectionStatus = check_network_connection()
     if not globalVariableOfData.networkConnectionStatus:
         logSave(1, f"\n======= 最终结果: 网络{'可用' if globalVariableOfData.networkConnectionStatus else '不可用'} =======\n")
