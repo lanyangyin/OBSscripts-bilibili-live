@@ -10,21 +10,22 @@ obs用于B站直播的插件，这里是对主播方进行了特化的版本，�
 > 使用本插件从事违法行为后果请自行承担
 
 ## 环境配置
-电脑系统：macOS14+/Windows10+/Ubuntu22+
+电脑系统：macOS14+/Windows10+
 python版本：3.9-3.12
+obs_studio版本：30+
 
 ## 配置依赖
 ### pip换源
 ```bash
-pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple --user
 ```
 ### 更新pip
 ```bash
-pip install -U pip
+pip install -U pip --user
 ```
 ### 安装依赖包
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt --user
 ```
 ## obs载入python及脚本
 ### Windows
