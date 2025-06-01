@@ -1,15 +1,12 @@
 # macOS Sonoma 14.5
-## 环境配置
-- 安装Homebrew
-- 下载安装Python>3.10,<=3.12
-- 安装OBS
+
 ## 配置插件
 - 打开OBS
 - 在菜单栏的【工具】中，选择`脚本`
 - 在脚本窗口中的`python设置`中配置python安装路径
 - 使用以下代码获得python安装路径
 ```bash
-python3.10
+python3
 ```
 ```python
 import sys

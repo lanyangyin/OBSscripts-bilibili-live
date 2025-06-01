@@ -11,7 +11,9 @@ obs用于B站直播的插件，这里是对主播方进行了特化的版本，�
 
 ## 环境配置
 电脑系统：macOS14+/Windows10+
+
 python版本：3.9-3.12
+
 obs_studio版本：30+
 
 ## 配置依赖
@@ -23,6 +25,7 @@ pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 ```bash
 pip install -r requirements.txt
 ```
+
 ## obs载入python及脚本
 ### Windows
 [Windows.md](doc%2FWindows.md)
