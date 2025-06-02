@@ -5,6 +5,11 @@
 - Python版本号3.9～3.12，建议版本3.10
 - 请尽量保持安装路径无中文
 #### 配置python环境变量
+```python
+import sys
+print(sys.prefix)
+exit()
+```
 ![gif.gif](Windows/gif.gif)
 #### 检查版本
 ```bash
