@@ -10,7 +10,7 @@ import sys
 print(sys.prefix)
 exit()
 ```
-图![gif.gif](Windows/gif.gif)
+动图![gif.gif](Windows/gif.gif)
 #### 检查版本
 ```bash
 python3.10 --version
