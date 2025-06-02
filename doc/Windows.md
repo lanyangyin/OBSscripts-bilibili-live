@@ -10,7 +10,7 @@ import sys
 print(sys.prefix)
 exit()
 ```
-图0![gif.gif](Windows/gif.gif)
+图![gif.gif](Windows/gif.gif)
 #### 检查版本
 ```bash
 python3.10 --version
@@ -27,10 +27,10 @@ python3.10 -m pip install -r requirements.txt
 ## OBS配置
 ### OBS需要使obs以管理员身份运行
 #### 右键obs --> 属性 --> 兼容性 --> 以管理员身份运行此程序
-图1![gif0.gif](Windows/gif0.gif)
+图![gif0.gif](Windows/gif0.gif)
 ### OBS连接python
 #### 在菜单栏的`工具`中，选择`脚本`，点击`python设置`
-图2![gif1.gif](Windows/gif1.gif)
+图![gif1.gif](Windows/gif1.gif)
 #### 使用以下代码获得python安装路径
 ```bash
 python3.10
@@ -45,8 +45,8 @@ exit()
 C:/Users/$USER/AppData/Local/Programs/Python/Python310
 ```
 #### 在脚本窗口中的`python设置`中配置python安装路径
-图3![gif2.gif](Windows/gif2.gif)
+图![gif2.gif](Windows/gif2.gif)
 ***
 ## OBS载入脚本
 ### 在脚本窗口中的`脚本`中添加脚本`bilibili_live_Anchor.py`
-图4![gif3.gif](Windows/gif3.gif)
+图![gif3.gif](Windows/gif3.gif)
