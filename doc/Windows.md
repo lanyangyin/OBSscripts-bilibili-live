@@ -10,11 +10,11 @@
 ```bash
 python3.10 --version
 ```
-#### 检查版本
+#### pip换源
 ```bash
 python3.10 -m pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 ```
-#### 检查版本
+#### 安装插件依赖的python包
 ```bash
 python3.10 -m pip install -r requirements.txt
 ```
