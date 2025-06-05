@@ -7,7 +7,7 @@
 from sys import version_info as _swig_python_version_info
 # Import the low-level C/C++ module
 if __package__ or "." in __name__:
-    from . import _obspython
+    from function import _obspython
 else:
     import _obspython
 

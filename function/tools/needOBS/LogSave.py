@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import Literal
 
-import obspython as obs
+from function.tools.needOBS import obspython as obs
 
 
 class globalVariableOfData:
