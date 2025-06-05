@@ -1,3 +1,4 @@
+# 输出日志文件
 from datetime import datetime
 from typing import Literal
 
@@ -29,4 +30,8 @@ def logSave(logLevel: Literal[0, 1, 2, 3], logStr: str) -> None:
     obs.script_log(logType[logLevel], log_text)
     globalVariableOfData.logRecording += log_text + "\n"
 
+
+logSave(0, "已卸载：bilibili-live")
+with open(f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.log", "w", encoding="utf-8") as f:
+    f.write(str(globalVariableOfData.logRecording))
 

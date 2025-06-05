@@ -1,3 +1,4 @@
+# 上传 和 更新 直播间封面
 import json
 import os
 import pathlib
@@ -119,14 +120,12 @@ class BilibiliUserLogsIn2ConfigFile:
     def updateUser(self, cookies: Optional[dict], setDefaultUserIs: bool = True) -> None:
         """
         更新用户配置或清空默认用户
-
         Args:
             cookies: 包含完整cookie信息的字典，传 None 表示清空默认用户
                 - 示例: {"DedeUserID": "123", "SESSDATA": "xxx"...}
                 - 传 None 时需配合 set_default_user=True 使用
             setDefaultUserIs: 是否设为默认用户
                 - 当 cookies=None 时必须为 True
-
         Raises:
             ValueError: 以下情况时抛出
                 - cookies 不完整或用户不存在
@@ -183,7 +182,6 @@ class BilibiliUserLogsIn2ConfigFile:
     def getUsers(self) -> Dict[int, Optional[str]]:
         """
         获取所有用户列表（包含默认用户占位）
-
         Returns:
             字典格式 {序号: 用户ID}，其中：
             - 键 0: 默认用户ID（若未设置则为 None）

@@ -1,3 +1,4 @@
+# 检查网络连通
 import socket
 import urllib.request
 from urllib.error import URLError
