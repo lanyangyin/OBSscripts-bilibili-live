@@ -7854,12 +7854,12 @@ def script_unload():
 
 
 def test(t=""):
-    if not GlobalVariableOfTheControl.isScript_propertiesOne:
-        logSave(0, f"┏━━━━━━━━━━━━┓")
-        logSave(0, f"┃测试函数被调用┃{t}")
-        logSave(0, f"┗━━━━━━━━━━━━┛")
-    else:
-        logSave(0, f"┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓")
-        logSave(0, f"┃测试函数被调用,但是 是由于 第一次调用Script_properties┃{t}")
-        logSave(0, f"┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛")
+    if GlobalVariableOfTheControl.isScript_propertiesOne:
+        logSave(0, f"┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓")
+        logSave(0, f"┃UI变动事件测试函数被调用,但是 是由于 第一次调用Script_properties┃{t}")
+        logSave(0, f"┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛")
+        return False
+    logSave(0, f"┏━━━━━━━━━━━━━━━━━━━━┓")
+    logSave(0, f"┃UI变动事件测试函数被调用┃{t}")
+    logSave(0, f"┗━━━━━━━━━━━━━━━━━━━━┛")
     return True
