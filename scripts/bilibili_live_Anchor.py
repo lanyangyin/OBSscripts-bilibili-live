@@ -6455,28 +6455,28 @@ def script_properties():  # 建立控件
     obs.obs_property_set_modified_callback(GlobalVariableOfTheControl.uid_comboBox, lambda ps, p, st: test("组合框【用户】"))
 
     # 添加 按钮【登录账号】
-    GlobalVariableOfTheControl.login_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "login_button", "登录账号", login_buttonC)
+    GlobalVariableOfTheControl.login_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "login_button", "登录账号", button_function_login)
 
     # 添加 按钮【更新账号列表】
-    GlobalVariableOfTheControl.update_account_list_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "update_account_list_button", "更新账号列表", updateAccountList_buttonC)
+    GlobalVariableOfTheControl.update_account_list_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "update_account_list_button", "更新账号列表", button_function_update_account_list)
 
     # 添加 按钮【二维码添加账户】
-    GlobalVariableOfTheControl.qr_code_add_account_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "qr_code_add_account_button", "二维码添加账户", qrCodeAddAccount_buttonC)
+    GlobalVariableOfTheControl.qr_code_add_account_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "qr_code_add_account_button", "二维码添加账户", button_function_qr_code_add_account)
 
     # 添加 按钮【显示登录二维码图片】
-    GlobalVariableOfTheControl.display_qr_code_picture_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "display_qr_code_picture_button", "显示登录二维码图片", show_qr_code_picture_buttonC)
+    GlobalVariableOfTheControl.display_qr_code_picture_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "display_qr_code_picture_button", "显示登录二维码图片", button_function_show_qr_code_picture)
 
     # 添加 按钮【删除账户】
-    GlobalVariableOfTheControl.delete_account_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "delete_account_button", "删除账户", del_user_buttonC)
+    GlobalVariableOfTheControl.delete_account_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "delete_account_button", "删除账户", button_function_del_user)
 
     # 添加 按钮【备份账户】
-    GlobalVariableOfTheControl.backup_account_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "backup_account_button", "备份账户", backupUsers_buttonC)
+    GlobalVariableOfTheControl.backup_account_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "backup_account_button", "备份账户", button_function_backup_users)
 
     # 添加 按钮【恢复账户】
-    GlobalVariableOfTheControl.restore_account_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "restore_account_button", "恢复账户", restoreUser_buttonC)
+    GlobalVariableOfTheControl.restore_account_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "restore_account_button", "恢复账户", button_function_restore_user)
 
     # 添加 按钮【登出账号】
-    GlobalVariableOfTheControl.logout_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "logout_button", "登出账号", logOut_buttonC)
+    GlobalVariableOfTheControl.logout_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "logout_button", "登出账号", button_function_logout)
 
     # ————————————————————————————————————————————————————————————————
     # 添加 分组框【直播间】
@@ -6488,7 +6488,7 @@ def script_properties():  # 建立控件
     obs.obs_property_set_modified_callback(GlobalVariableOfTheControl.room_status_textBox, lambda ps, p, st: test("只读文本框【直播间状态】"))
 
     # 添加 按钮【查看直播间封面】
-    GlobalVariableOfTheControl.viewLiveCover_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, 'viewLiveCover_button', f'查看直播间封面', check_roomCover_buttonC)
+    GlobalVariableOfTheControl.viewLiveCover_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, 'viewLiveCover_button', f'查看直播间封面', button_function_check_room_cover)
 
     # 添加 文件对话框【直播间封面】
     GlobalVariableOfTheControl.room_cover_fileDialogBox = obs.obs_properties_add_path(GlobalVariableOfTheControl.liveRoom_props, 'room_cover_fileDialogBox', f'直播间封面', obs.OBS_PATH_FILE, '*jpg *jpeg *.png', None)
@@ -6496,7 +6496,7 @@ def script_properties():  # 建立控件
     obs.obs_property_set_modified_callback(GlobalVariableOfTheControl.room_cover_fileDialogBox, lambda ps, p, st: test("文件对话框【直播间封面】"))
 
     # 添加 按钮【上传直播间封面】
-    GlobalVariableOfTheControl.room_cover_update_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, "room_cover_update_button", "上传直播间封面", update_roomCover_buttonC)
+    GlobalVariableOfTheControl.room_cover_update_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, "room_cover_update_button", "上传直播间封面", button_function_update_room_cover)
 
     # 添加 普通文本框【直播间标题】
     GlobalVariableOfTheControl.liveRoom_title_textBox = obs.obs_properties_add_text(GlobalVariableOfTheControl.liveRoom_props, "liveRoom_title_textBox", "直播间标题", obs.OBS_TEXT_DEFAULT)
@@ -6504,7 +6504,7 @@ def script_properties():  # 建立控件
     obs.obs_property_set_modified_callback(GlobalVariableOfTheControl.liveRoom_title_textBox, lambda ps, p, st: test("普通文本框【直播间标题】"))
 
     # 添加 按钮【更改直播间标题】
-    GlobalVariableOfTheControl.change_liveRoom_title_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, "change_liveRoom_title_button", "更改直播间标题", change_liveRoom_title_buttonC)
+    GlobalVariableOfTheControl.change_liveRoom_title_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, "change_liveRoom_title_button", "更改直播间标题", button_function_change_live_room_title)
 
     # 添加 普通文本框【直播间公告】
     GlobalVariableOfTheControl.liveRoom_news_textBox = obs.obs_properties_add_text(GlobalVariableOfTheControl.liveRoom_props, "liveRoom_news_textBox", "直播间公告", obs.OBS_TEXT_DEFAULT)
@@ -6512,7 +6512,7 @@ def script_properties():  # 建立控件
     obs.obs_property_set_modified_callback(GlobalVariableOfTheControl.liveRoom_news_textBox, lambda ps, p, st: test("普通文本框【直播间公告】"))
 
     # 添加 按钮【更改直播间公告】
-    GlobalVariableOfTheControl.change_liveRoom_news_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, "change_liveRoom_news_button", "更改直播间公告", change_liveRoom_news_buttonC)
+    GlobalVariableOfTheControl.change_liveRoom_news_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, "change_liveRoom_news_button", "更改直播间公告", button_function_change_live_room_news)
 
     # 添加 组合框【一级分区】
     GlobalVariableOfTheControl.parentLiveArea_comboBox = obs.obs_properties_add_list(GlobalVariableOfTheControl.liveRoom_props, 'parentLiveArea_comboBox', '一级分区：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING)
@@ -6520,7 +6520,7 @@ def script_properties():  # 建立控件
     obs.obs_property_set_modified_callback(GlobalVariableOfTheControl.parentLiveArea_comboBox, lambda ps, p, st: test("组合框【一级分区】"))
 
     # 添加 按钮【确认一级分区】
-    GlobalVariableOfTheControl.parentLiveArea_true_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, "parentLiveArea_true_button", "确认一级分区", start_area1_buttonC)
+    GlobalVariableOfTheControl.parentLiveArea_true_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, "parentLiveArea_true_button", "确认一级分区", button_function_start_area1)
 
     # 添加 组合框【二级分区】
     GlobalVariableOfTheControl.subLiveArea_comboBox = obs.obs_properties_add_list(GlobalVariableOfTheControl.liveRoom_props, 'subLiveArea_comboBox', '二级分区：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING)
@@ -6528,10 +6528,10 @@ def script_properties():  # 建立控件
     obs.obs_property_set_modified_callback(GlobalVariableOfTheControl.subLiveArea_comboBox, lambda ps, p, st: test("组合框【二级分区】"))
 
     # 添加 按钮【「确认分区」】
-    GlobalVariableOfTheControl.subLiveArea_true_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, "subLiveArea_true_button", "「确认分区」", lambda ps, p: start_area_buttonC())
+    GlobalVariableOfTheControl.subLiveArea_true_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, "subLiveArea_true_button", "「确认分区」", lambda ps, p: button_function_start_area())
 
     # 添加 url按钮【跳转直播间后台网页】
-    GlobalVariableOfTheControl.jump_blive_web_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, 'jump_blive_web_button', f'跳转直播间后台网页', jump_Blive_web_buttonC)
+    GlobalVariableOfTheControl.jump_blive_web_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, 'jump_blive_web_button', f'跳转直播间后台网页', button_function_jump_blive_web)
     # 设置 url按钮【跳转直播间后台网页】 类型
     obs.obs_property_button_set_type(GlobalVariableOfTheControl.jump_blive_web_button, obs.OBS_BUTTON_URL)
 
@@ -6545,19 +6545,19 @@ def script_properties():  # 建立控件
     obs.obs_property_set_modified_callback(GlobalVariableOfTheControl.live_streaming_platform_comboBox, lambda ps, p, st: test("按钮【开始直播并复制推流码】"))
 
     # 添加 按钮【开始直播并复制推流码】
-    GlobalVariableOfTheControl.start_live_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.live_props, "start_live_button", "开始直播并复制推流码", start_live_buttonC)
+    GlobalVariableOfTheControl.start_live_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.live_props, "start_live_button", "开始直播并复制推流码", button_function_start_live)
 
     # 添加 按钮【复制直播服务器】
-    GlobalVariableOfTheControl.rtmp_address_copy_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.live_props, "rtmp_address_copy_button", "复制直播服务器", rtmp_address_copy_buttonC)
+    GlobalVariableOfTheControl.rtmp_address_copy_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.live_props, "rtmp_address_copy_button", "复制直播服务器", button_function_rtmp_address_copy)
 
     # 添加 按钮【复制直播推流码】
-    GlobalVariableOfTheControl.rtmp_stream_code_copy_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.live_props, "rtmp_stream_code_copy_button", "复制直播推流码", rtmp_stream_code_copy_buttonC)
+    GlobalVariableOfTheControl.rtmp_stream_code_copy_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.live_props, "rtmp_stream_code_copy_button", "复制直播推流码", button_function_rtmp_stream_code_copy)
 
     # 添加 按钮【更新推流码并复制】
-    GlobalVariableOfTheControl.rtmp_stream_code_update_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.live_props, "rtmp_stream_code_update_button", "更新推流码并复制", rtmp_stream_code_update_buttonC)
+    GlobalVariableOfTheControl.rtmp_stream_code_update_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.live_props, "rtmp_stream_code_update_button", "更新推流码并复制", button_function_rtmp_stream_code_update)
 
     # 添加 按钮【结束直播】
-    GlobalVariableOfTheControl.stop_live_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.live_props, "stop_live_button", "结束直播", stop_live_buttonC)
+    GlobalVariableOfTheControl.stop_live_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.live_props, "stop_live_button", "结束直播", button_function_stop_live)
 
     # ————————————————————————————————————————————————————————————————————————————————
     # 更新UI界面数据#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
@@ -7035,7 +7035,7 @@ def updateTheUIInterfaceData(isScript_properties=False):
     logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
 
 
-def login_buttonC(props, prop, settings=GlobalVariableOfTheControl.script_settings):
+def button_function_login(props, prop, settings=GlobalVariableOfTheControl.script_settings):
     """
     登录并刷新控件状态
     Args:
@@ -7066,7 +7066,7 @@ def login_buttonC(props, prop, settings=GlobalVariableOfTheControl.script_settin
     return True
 
 
-def updateAccountList_buttonC(props=None, prop=None, settings=GlobalVariableOfTheControl.script_settings):
+def button_function_update_account_list(props=None, prop=None, settings=GlobalVariableOfTheControl.script_settings):
     """
     更新账号列表
     Args:
@@ -7254,7 +7254,7 @@ def updateAccountList_buttonC(props=None, prop=None, settings=GlobalVariableOfTh
     return True
 
 
-def qrCodeAddAccount_buttonC(props, prop):
+def button_function_qr_code_add_account(props, prop):
     """
     二维码添加账号
     Args:
@@ -7266,7 +7266,7 @@ def qrCodeAddAccount_buttonC(props, prop):
     return True
 
 
-def show_qr_code_picture_buttonC(props, prop):
+def button_function_show_qr_code_picture(props, prop):
     """
     显示二维码图片
     Args:
@@ -7282,7 +7282,7 @@ def show_qr_code_picture_buttonC(props, prop):
     pass
 
 
-def del_user_buttonC(props, prop):
+def button_function_del_user(props, prop):
     """
     删除用户
     Args:
@@ -7306,7 +7306,7 @@ def del_user_buttonC(props, prop):
     return True
 
 
-def backupUsers_buttonC(props, prop):
+def button_function_backup_users(props, prop):
     """
     备份用户
     Args:
@@ -7317,7 +7317,7 @@ def backupUsers_buttonC(props, prop):
     pass
 
 
-def restoreUser_buttonC(props, prop):
+def button_function_restore_user(props, prop):
     """
     恢复用户
     Args:
@@ -7328,7 +7328,7 @@ def restoreUser_buttonC(props, prop):
     pass
 
 
-def logOut_buttonC(props, prop):
+def button_function_logout(props, prop):
     """
     登出
     Args:
@@ -7354,7 +7354,7 @@ def logOut_buttonC(props, prop):
     return True
 
 
-def update_roomCover_buttonC(props, prop):
+def button_function_update_room_cover(props, prop):
     """
     上传直播间封面
     Args:
@@ -7395,7 +7395,7 @@ def update_roomCover_buttonC(props, prop):
     pass
 
 
-def check_roomCover_buttonC(props, prop):
+def button_function_check_room_cover(props, prop):
     """
     查看直播间封面
     Args:
@@ -7428,7 +7428,7 @@ def check_roomCover_buttonC(props, prop):
     pass
 
 
-def change_liveRoom_title_buttonC(props, prop):
+def button_function_change_live_room_title(props, prop):
     """
     更改直播间标题
     Args:
@@ -7450,7 +7450,7 @@ def change_liveRoom_title_buttonC(props, prop):
     pass
 
 
-def change_liveRoom_news_buttonC(props, prop):
+def button_function_change_live_room_news(props, prop):
     """
     更改直播间公告
     Args:
@@ -7471,7 +7471,7 @@ def change_liveRoom_news_buttonC(props, prop):
     pass
 
 
-def start_area1_buttonC(props, prop, settings=GlobalVariableOfTheControl.script_settings):
+def button_function_start_area1(props, prop, settings=GlobalVariableOfTheControl.script_settings):
     """
     确认一级分区
     Args:
@@ -7514,7 +7514,7 @@ def start_area1_buttonC(props, prop, settings=GlobalVariableOfTheControl.script_
     return True
 
 
-def start_area_buttonC():
+def button_function_start_area():
     # #获取 组合框【二级分区】 当前选项的值
     subLiveArea_comboBox_value = obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'subLiveArea_comboBox')
     if subLiveArea_comboBox_value != GlobalVariableOfTheControl.subLiveArea_comboBox_value:
@@ -7536,7 +7536,7 @@ def start_area_buttonC():
     pass
 
 
-def jump_Blive_web_buttonC(props, prop):
+def button_function_jump_blive_web(props, prop):
     """
     跳转直播间后台网页
     Args:
@@ -7549,7 +7549,7 @@ def jump_Blive_web_buttonC(props, prop):
 
 
 # ____________________-------------------____________________---------------------_______________________---------------
-def start_live_buttonC(props, prop):
+def button_function_start_live(props, prop):
     """
     开始直播
     Args:
@@ -7632,9 +7632,9 @@ def start_live_buttonC(props, prop):
         obs.obs_data_release(streaming_service_settings)
         # 保存到配置文件
         obs.obs_frontend_save_streaming_service()
-    change_liveRoom_title_buttonC(props, prop)
-    change_liveRoom_news_buttonC(props, prop)
-    start_area1_buttonC(props, prop, settings=GlobalVariableOfTheControl.script_settings)
+    button_function_change_live_room_title(props, prop)
+    button_function_change_live_room_news(props, prop)
+    button_function_start_area1(props, prop, settings=GlobalVariableOfTheControl.script_settings)
 
     # 调用script_defaults更新obs默认配置信息
     logSave(0, f"更新控件配置信息")
@@ -7645,7 +7645,7 @@ def start_live_buttonC(props, prop):
     return True
 
 
-def rtmp_address_copy_buttonC(props, prop):
+def button_function_rtmp_address_copy(props, prop):
     """
     复制直播服务器
     Args:
@@ -7662,7 +7662,7 @@ def rtmp_address_copy_buttonC(props, prop):
     return True
 
 
-def rtmp_stream_code_copy_buttonC(props, prop):
+def button_function_rtmp_stream_code_copy(props, prop):
     """
     复制直播推流码
     Args:
@@ -7679,7 +7679,7 @@ def rtmp_stream_code_copy_buttonC(props, prop):
     return True
 
 
-def rtmp_stream_code_update_buttonC(props, prop):
+def button_function_rtmp_stream_code_update(props, prop):
     """
     更新推流码并复制
     Args:
@@ -7696,7 +7696,7 @@ def rtmp_stream_code_update_buttonC(props, prop):
     return True
 
 
-def stop_live_buttonC(props, prop, settings=GlobalVariableOfTheControl.script_settings):
+def button_function_stop_live(props, prop, settings=GlobalVariableOfTheControl.script_settings):
     """
     结束直播
     Args:
