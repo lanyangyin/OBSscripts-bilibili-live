@@ -165,7 +165,7 @@ class GlobalVariableOfTheControl:
     logout_button_enabled = None
 
     # #【直播间】分组框中的控件-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    # ##只读文本框【直播间状态】的实例
+    # ##只读文本框【直播间 状态】的实例
     room_status_textBox = None
     room_status_textBox_visible = None
     room_status_textBox_enabled = None
@@ -291,7 +291,7 @@ class GlobalVariableOfTheControl:
     stop_live_button_enabled = None
 
 
-class globalVariableOfData:
+class GlobalVariableOfData:
     # #是否 操作 用户配置文件 中 每一个 用户 的 可用性
     accountAvailabilityDetectionSwitch = True
     # #日志记录
@@ -352,7 +352,7 @@ def logSave(logLevel: Literal[0, 1, 2, 3], logStr: str) -> None:
     formatted = now.strftime("%Y/%m/%d %H:%M:%S")
     log_text = f"【{formatted}】【{logLevel}】{logStr}"
     obs.script_log(logType[logLevel], log_text)
-    globalVariableOfData.logRecording += log_text + "\n"
+    GlobalVariableOfData.logRecording += log_text + "\n"
 
 
 def check_network_connection():
@@ -459,7 +459,7 @@ class BilibiliUserLogsIn2ConfigFile:
     def _ensure_config_file(self):
         """确保配置文件存在且结构有效"""
         if not self.configPath.exists():
-            logSave(1, f'脚本数据文件【{globalVariableOfData.scripts_data_dirpath}】不存在，尝试创建')
+            logSave(1, f'脚本数据文件【{GlobalVariableOfData.scripts_data_dirpath}】不存在，尝试创建')
             self.configPath.parent.mkdir(parents=True, exist_ok=True)
             self._write_config({"DefaultUser": None})
             logSave(1, f'success：脚本数据文件 创建成功')
@@ -771,14 +771,14 @@ def qr2str_b64_PilImg4dict(qr_str: str, border: int = 2, invert: bool = False) -
     output_str = output.getvalue()
     sys.stdout = saveStdout  # 恢复 sys.stdout
     # 1. 将 PyPNGImage 对象保存到临时文件
-    img.save(os.path.join(globalVariableOfData.scripts_temp_dir, f"loginQRCode.png"))
+    img.save(os.path.join(GlobalVariableOfData.scripts_temp_dir, f"loginQRCode.png"))
     # 将临时文件打开为PIL.Image.Image 对象
-    qrPilImg = Image.open(os.path.join(globalVariableOfData.scripts_temp_dir, f"loginQRCode.png"))
+    qrPilImg = Image.open(os.path.join(GlobalVariableOfData.scripts_temp_dir, f"loginQRCode.png"))
     """
     qr的PIL.Image.Image 对象
     """
     try:
-        os.remove(os.path.join(globalVariableOfData.scripts_temp_dir, f"loginQRCode.png"))
+        os.remove(os.path.join(GlobalVariableOfData.scripts_temp_dir, f"loginQRCode.png"))
     except Exception as e:
         print(f"删除临时文件失败: {e}")
     return {"str": output_str, "base64": b64, "img": qrPilImg}
@@ -978,12 +978,132 @@ def PIL_Image2Binary(
 # end
 
 # 不登录也能用的api
-def getRoomInfoOld(mid: int) -> Dict:
+class BilibiliApiGeneric:
     """
-    直接用Bid查询到的直播间基础信息<br>
-    @param mid: B站UID
-    @type mid: int
-    @return:
+    不登录也能用的api
+    """
+    def __init__(self):
+        self.headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\
+            (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0",
+        }
+
+    def get_room_base_info(self, room_id: int):
+        """
+        直播间的
+        @param room_id:
+        @return:
+        "data": {
+            "by_uids": {
+
+            },
+            "by_room_ids": {
+                "25322725": {
+                    "room_id": 25322725,
+                    "uid": 143474500,
+                    "area_id": 192,
+                    "live_status": 0,
+                    "live_url": "https://live.bilibili.com/25322725",
+                    "parent_area_id": 5,
+                    "title": "obsのlua插件2测试",
+                    "parent_area_name": "电台",
+                    "area_name": "聊天电台",
+                    "live_time": "0000-00-00 00:00:00",
+                    "description": "个人简介测试",
+                    "tags": "我的个人标签测试",
+                    "attention": 35,
+                    "online": 0,
+                    "short_id": 0,
+                    "uname": "兰阳音",
+                    "cover": "http://i0.hdslb.com/bfs/live/new_room_cover/c17af2dbbbdfce33888e834bdb720edbf9515f95.jpg",
+                    "background": "",
+                    "join_slide": 1,
+                    "live_id": 0,
+                    "live_id_str": "0"
+                }
+            }
+        }
+        """
+        api = "https://api.live.bilibili.com/xlive/web-room/v1/index/getRoomBaseInfo"
+        get_room_base_info_data = {
+            'room_ids': room_id,
+            'req_biz': "link-center"
+        }
+        room_base_info = requests.get(api, headers=self.headers, params=get_room_base_info_data).json()
+        return room_base_info["data"]
+
+    def get_area_obj_list(self):
+        """
+        获取直播分区
+        @return:
+        <table>
+        <thead>
+        <tr>
+            <th>字段</th>
+            <th>类型</th>
+            <th>内容</th>
+            <th>备注</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>code</td>
+            <td>num</td>
+            <td>返回值</td>
+            <td>0：成功</td>
+        </tr>
+        <tr>
+            <td>msg</td>
+            <td>str</td>
+            <td>错误信息</td>
+            <td>默认为success</td>
+        </tr>
+        <tr>
+            <td>message</td>
+            <td>str</td>
+            <td>错误信息</td>
+            <td>默认为success</td>
+        </tr>
+        <tr>
+            <td>data</td>
+            <td>array</td>
+            <td>父分区列表</td>
+            <td></td>
+        </tr>
+        </tbody>
+    </table>
+    <p><code>data</code>数组：</p>
+    <table>
+        <thead>
+        <tr>
+            <th>项</th>
+            <th>类型</th>
+            <th>内容</th>
+            <th>备注</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>0</td>
+            <td>obj</td>
+            <td>父分区1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>n</td>
+            <td>obj</td>
+            <td>父分区(n+1)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>……</td>
+            <td>obj</td>
+            <td>……</td>
+            <td>……</td>
+        </tr>
+        </tbody>
+    </table>
+    <p><code>data</code>数组中的对象：</p>
     <table>
         <thead>
         <tr>
@@ -995,414 +1115,283 @@ def getRoomInfoOld(mid: int) -> Dict:
         </thead>
         <tbody>
         <tr>
-            <td>roomStatus</td>
+            <td>id</td>
             <td>num</td>
-            <td>直播间状态</td>
-            <td>0：无房间<br>1：有房间</td>
-        </tr>
-        <tr>
-            <td>roundStatus</td>
-            <td>num</td>
-            <td>轮播状态</td>
-            <td>0：未轮播<br>1：轮播</td>
-        </tr>
-        <tr>
-            <td>liveStatus</td>
-            <td>num</td>
-            <td>直播状态</td>
-            <td>0：未开播<br>1：直播中</td>
-        </tr>
-        <tr>
-            <td>url</td>
-            <td>str</td>
-            <td>直播间网页url</td>
+            <td>父分区id</td>
             <td></td>
         </tr>
         <tr>
-            <td>title</td>
-            <td>str</td>
-            <td>直播间标题</td>
+            <td>name</td>
+            <td>name</td>
+            <td>父分区名</td>
             <td></td>
         </tr>
         <tr>
-            <td>cover</td>
-            <td>str</td>
-            <td>直播间封面url</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>online</td>
-            <td>num</td>
-            <td>直播间人气</td>
-            <td>值为上次直播时刷新</td>
-        </tr>
-        <tr>
-            <td>roomid</td>
-            <td>num</td>
-            <td>直播间id（短号）</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>broadcast_type</td>
-            <td>num</td>
-            <td>0</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>online_hidden</td>
-            <td>num</td>
-            <td>0</td>
+            <td>list</td>
+            <td>list</td>
+            <td>子分区列表</td>
             <td></td>
         </tr>
         </tbody>
     </table>
-    @rtype: Dict
-    """
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\
-        (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0",
-    }
-    api = "https://api.live.bilibili.com/room/v1/Room/getRoomInfoOld"
-    data = {
-        "mid": mid,
-    }
-    RoomInfoOld = requests.get(api, headers=headers, params=data).json()
-    return RoomInfoOld["data"]
-
-
-def getRoomBaseInfo(room_id: int):
-    """
-    直播间的
-    @param room_id:
-    @return:
-    "data": {
-        "by_uids": {
-
-        },
-        "by_room_ids": {
-            "25322725": {
-                "room_id": 25322725,
-                "uid": 143474500,
-                "area_id": 192,
-                "live_status": 0,
-                "live_url": "https://live.bilibili.com/25322725",
-                "parent_area_id": 5,
-                "title": "obsのlua插件2测试",
-                "parent_area_name": "电台",
-                "area_name": "聊天电台",
-                "live_time": "0000-00-00 00:00:00",
-                "description": "个人简介测试",
-                "tags": "我的个人标签测试",
-                "attention": 35,
-                "online": 0,
-                "short_id": 0,
-                "uname": "兰阳音",
-                "cover": "http://i0.hdslb.com/bfs/live/new_room_cover/c17af2dbbbdfce33888e834bdb720edbf9515f95.jpg",
-                "background": "",
-                "join_slide": 1,
-                "live_id": 0,
-                "live_id_str": "0"
-            }
-        }
-    }
-    """
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\
-        (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0",
-    }
-    api = "https://api.live.bilibili.com/xlive/web-room/v1/index/getRoomBaseInfo"
-    data = {
-        'room_ids': room_id,
-        'req_biz': "link-center"
-    }
-    RoomBaseInfo = requests.get(api, headers=headers, params=data).json()
-    return RoomBaseInfo["data"]
-
-
-def live_user_v1_Master_info(uid: int):
-    """
-    <h2 id="获取主播信息" tabindex="-1"><a class="header-anchor" href="#获取主播信息" aria-hidden="true">#</a> 获取主播信息</h2>
-    <blockquote><p>https://api.live.bilibili.com/live_user/v1/Master/info</p></blockquote>
-    <p><em>请求方式：GET</em></p>
-    <p><strong>url参数：</strong></p>
-    <table><thead><tr><th>参数名</th><th>类型</th><th>内容</th><th>必要性</th><th>备注</th></tr></thead><tbody><tr><td>uid</td><td>num</td><td>目标用户mid</td><td>必要</td><td></td></tr></tbody></table>
-    <p><strong>json回复：</strong></p>
-    <p>根对象：</p>
-    <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>code</td><td>num</td><td>返回值</td><td>0：成功<br>1：参数错误</td></tr><tr><td>msg</td><td>str</td><td>错误信息</td><td>默认为空</td></tr><tr><td>message</td><td>str</td><td>错误信息</td><td>默认为空</td></tr><tr><td>data</td><td>obj</td><td>信息本体</td><td></td></tr></tbody></table>
-    <p><code>data</code>对象：</p>
-    <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>info</td><td>obj</td><td>主播信息</td><td></td></tr><tr><td>exp</td><td>obj</td><td>经验等级</td><td></td></tr><tr><td>follower_num</td><td>num</td><td>主播粉丝数</td><td></td></tr><tr><td>room_id</td><td>num</td><td>直播间id（短号）</td><td></td></tr><tr><td>medal_name</td><td>str</td><td>粉丝勋章名</td><td></td></tr><tr><td>glory_count</td><td>num</td><td>主播荣誉数</td><td></td></tr><tr><td>pendant</td><td>str</td><td>直播间头像框url</td><td></td></tr><tr><td>link_group_num</td><td>num</td><td>0</td><td><strong>作用尚不明确</strong></td></tr><tr><td>room_news</td><td>obj</td><td>主播公告</td><td></td></tr></tbody></table>
-    <p><code>info</code>对象：</p>
-    <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>uid</td><td>num</td><td>主播mid</td><td></td></tr><tr><td>uname</td><td>str</td><td>主播用户名</td><td></td></tr><tr><td>face</td><td>str</td><td>主播头像url</td><td></td></tr><tr><td>official_verify</td><td>obj</td><td>认证信息</td><td></td></tr><tr><td>gender</td><td>num</td><td>主播性别</td><td>-1：保密<br>0：女<br>1：男</td></tr></tbody></table>
-    <p><code>info</code>中的<code>official_verify</code>对象：</p>
-    <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>type</td><td>num</td><td>主播认证类型</td><td>-1：无<br>0：个人认证<br>1：机构认证</td></tr><tr><td>desc</td><td>str</td><td>主播认证信息</td><td></td></tr></tbody></table>
-    <p><code>exp</code>对象：</p>
-    <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>master_level</td><td>obj</td><td>主播等级</td><td></td></tr></tbody></table>
-    <p><code>exp</code>中的<code>master_level</code>对象：</p>
-    <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>level</td><td>num</td><td>当前等级</td><td></td></tr><tr><td>color</td><td>num</td><td>等级框颜色</td><td></td></tr><tr><td>current</td><td>array</td><td>当前等级信息</td><td></td></tr><tr><td>next</td><td>array</td><td>下一等级信息</td><td></td></tr></tbody></table>
-    <p><code>master_level</code>中的<code>current</code>数组：</p>
-    <table><thead><tr><th>项</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>0</td><td>num</td><td>升级积分</td><td></td></tr><tr><td>1</td><td>num</td><td>总积分</td><td></td></tr></tbody></table>
-    <p><code>master_level</code>中的<code>next</code>数组：</p>
-    <table><thead><tr><th>项</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>0</td><td>num</td><td>升级积分</td><td></td></tr><tr><td>1</td><td>num</td><td>总积分</td><td></td></tr></tbody></table>
-    <p><code>room_news</code>对象：</p>
-    <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>content</td><td>str</td><td>公告内容</td><td></td></tr><tr><td>ctime</td><td>str</td><td>公告时间</td><td></td></tr><tr><td>ctime_text</td><td>str</td><td>公告日期</td><td></td></tr></tbody></table>
-    @param uid:目标用户mid
-    @return:
-    """
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\
-        (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0",
-    }
-    api = "https://api.live.bilibili.com/live_user/v1/Master/info"
-    data = {
-        "uid": uid
-    }
-    live_user_v1_Master_info = requests.get(api, headers=headers, params=data).json()
-    return live_user_v1_Master_info
-
-
-def getAreaObjList():
-    """
-    获取直播分区
-    @return:
+    <p><code>data</code>数组中的对象中的<code>list</code>数组：</p>
     <table>
-    <thead>
-    <tr>
-        <th>字段</th>
-        <th>类型</th>
-        <th>内容</th>
-        <th>备注</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr>
-        <td>code</td>
-        <td>num</td>
-        <td>返回值</td>
-        <td>0：成功</td>
-    </tr>
-    <tr>
-        <td>msg</td>
-        <td>str</td>
-        <td>错误信息</td>
-        <td>默认为success</td>
-    </tr>
-    <tr>
-        <td>message</td>
-        <td>str</td>
-        <td>错误信息</td>
-        <td>默认为success</td>
-    </tr>
-    <tr>
-        <td>data</td>
-        <td>array</td>
-        <td>父分区列表</td>
-        <td></td>
-    </tr>
-    </tbody>
-</table>
-<p><code>data</code>数组：</p>
-<table>
-    <thead>
-    <tr>
-        <th>项</th>
-        <th>类型</th>
-        <th>内容</th>
-        <th>备注</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr>
-        <td>0</td>
-        <td>obj</td>
-        <td>父分区1</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td>n</td>
-        <td>obj</td>
-        <td>父分区(n+1)</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td>……</td>
-        <td>obj</td>
-        <td>……</td>
-        <td>……</td>
-    </tr>
-    </tbody>
-</table>
-<p><code>data</code>数组中的对象：</p>
-<table>
-    <thead>
-    <tr>
-        <th>字段</th>
-        <th>类型</th>
-        <th>内容</th>
-        <th>备注</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr>
-        <td>id</td>
-        <td>num</td>
-        <td>父分区id</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td>name</td>
-        <td>name</td>
-        <td>父分区名</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td>list</td>
-        <td>list</td>
-        <td>子分区列表</td>
-        <td></td>
-    </tr>
-    </tbody>
-</table>
-<p><code>data</code>数组中的对象中的<code>list</code>数组：</p>
-<table>
-    <thead>
-    <tr>
-        <th>项</th>
-        <th>类型</th>
-        <th>内容</th>
-        <th>备注</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr>
-        <td>0</td>
-        <td>obj</td>
-        <td>子分区1</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td>n</td>
-        <td>obj</td>
-        <td>子分区(n+1)</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td>……</td>
-        <td>obj</td>
-        <td>……</td>
-        <td>……</td>
-    </tr>
-    </tbody>
-</table>
-<p><code>list</code>数组中的对象：</p>
-<table>
-    <thead>
-    <tr>
-        <th>字段</th>
-        <th>类型</th>
-        <th>内容</th>
-        <th>备注</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr>
-        <td>id</td>
-        <td>str</td>
-        <td>子分区id</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td>parent_id</td>
-        <td>str</td>
-        <td>父分区id</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td>old_area_id</td>
-        <td>str</td>
-        <td>旧分区id</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td>name</td>
-        <td>str</td>
-        <td>子分区名</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td>act_id</td>
-        <td>str</td>
-        <td>0</td>
-        <td><strong>作用尚不明确</strong></td>
-    </tr>
-    <tr>
-        <td>pk_status</td>
-        <td>str</td>
-        <td>？？？</td>
-        <td><strong>作用尚不明确</strong></td>
-    </tr>
-    <tr>
-        <td>hot_status</td>
-        <td>num</td>
-        <td>是否为热门分区</td>
-        <td>0：否<br>1：是</td>
-    </tr>
-    <tr>
-        <td>lock_status</td>
-        <td>str</td>
-        <td>0</td>
-        <td><strong>作用尚不明确</strong></td>
-    </tr>
-    <tr>
-        <td>pic</td>
-        <td>str</td>
-        <td>子分区标志图片url</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td>parent_name</td>
-        <td>str</td>
-        <td>父分区名</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td>area_type</td>
-        <td>num</td>
-        <td></td>
-        <td></td>
-    </tr>
-    </tbody>
-</table>
+        <thead>
+        <tr>
+            <th>项</th>
+            <th>类型</th>
+            <th>内容</th>
+            <th>备注</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>0</td>
+            <td>obj</td>
+            <td>子分区1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>n</td>
+            <td>obj</td>
+            <td>子分区(n+1)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>……</td>
+            <td>obj</td>
+            <td>……</td>
+            <td>……</td>
+        </tr>
+        </tbody>
+    </table>
+    <p><code>list</code>数组中的对象：</p>
+    <table>
+        <thead>
+        <tr>
+            <th>字段</th>
+            <th>类型</th>
+            <th>内容</th>
+            <th>备注</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>id</td>
+            <td>str</td>
+            <td>子分区id</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>parent_id</td>
+            <td>str</td>
+            <td>父分区id</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>old_area_id</td>
+            <td>str</td>
+            <td>旧分区id</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>name</td>
+            <td>str</td>
+            <td>子分区名</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>act_id</td>
+            <td>str</td>
+            <td>0</td>
+            <td><strong>作用尚不明确</strong></td>
+        </tr>
+        <tr>
+            <td>pk_status</td>
+            <td>str</td>
+            <td>？？？</td>
+            <td><strong>作用尚不明确</strong></td>
+        </tr>
+        <tr>
+            <td>hot_status</td>
+            <td>num</td>
+            <td>是否为热门分区</td>
+            <td>0：否<br>1：是</td>
+        </tr>
+        <tr>
+            <td>lock_status</td>
+            <td>str</td>
+            <td>0</td>
+            <td><strong>作用尚不明确</strong></td>
+        </tr>
+        <tr>
+            <td>pic</td>
+            <td>str</td>
+            <td>子分区标志图片url</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>parent_name</td>
+            <td>str</td>
+            <td>父分区名</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>area_type</td>
+            <td>num</td>
+            <td></td>
+            <td></td>
+        </tr>
+        </tbody>
+    </table>
 
-    """
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\
-        (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0",
-    }
-    api = "https://api.live.bilibili.com/room/v1/Area/getList"
-    AreaList = requests.get(api, headers=headers).json()
-    return AreaList["data"]
+        """
+        get_area_obj_list_api = "https://api.live.bilibili.com/room/v1/Area/getList"
+        area_list = requests.get(get_area_obj_list_api, headers=self.headers).json()
+        return area_list["data"]
 
+    def getsub_live_area_obj_list(self, parent_live_area_id: str) -> Optional[list[Dict[str, Union[str, int]]]]:  # 3.10及以上可以写成 Optional[list[Dict[str, str | int]]]
+        """
+        返回父分区对应的子分区对象列表
+        Args:
+            parent_live_area_id: 父分区id
+        Returns:子分区对象列表或None
+        """
+        area_obj_list = self.get_area_obj_list()
+        """
+        所有分区的对象列表
+        """
+        for AreaObj in area_obj_list:
+            if str(parent_live_area_id) == str(AreaObj["id"]):
+                sub_live_area_obj_list = AreaObj["list"]
+                """
+                对应一级分区的二级分区对象列表
+                """
+                return sub_live_area_obj_list
+        return None
 
-def getsubLiveAreaObjList(ParentLiveAreaId: str) -> Optional[list[Dict[str, Union[str, int]]]]:  # 3.10及以上可以写成 Optional[list[Dict[str, str | int]]]
-    """
-    返回父分区对应的子分区对象列表
-    Args:
-        ParentLiveAreaId: 父分区id
-    Returns:子分区对象列表或None
-    """
-    AreaObjList = getAreaObjList()
-    """
-    所有分区的对象列表
-    """
-    for AreaObj in AreaObjList:
-        if str(ParentLiveAreaId) == str(AreaObj["id"]):
-            subLiveAreaObjList = AreaObj["list"]
-            """
-            对应一级分区的二级分区对象列表
-            """
-            return subLiveAreaObjList
-    return None
-
+    def live_user_v1_master_info(self, uid: int):
+        """
+        <h2 id="获取主播信息" tabindex="-1"><a class="header-anchor" href="#获取主播信息" aria-hidden="true">#</a> 获取主播信息</h2>
+        <blockquote><p>https://api.live.bilibili.com/live_user/v1/Master/info</p></blockquote>
+        <p><em>请求方式：GET</em></p>
+        <p><strong>url参数：</strong></p>
+        <table><thead><tr><th>参数名</th><th>类型</th><th>内容</th><th>必要性</th><th>备注</th></tr></thead><tbody><tr><td>uid</td><td>num</td><td>目标用户mid</td><td>必要</td><td></td></tr></tbody></table>
+        <p><strong>json回复：</strong></p>
+        <p>根对象：</p>
+        <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>code</td><td>num</td><td>返回值</td><td>0：成功<br>1：参数错误</td></tr><tr><td>msg</td><td>str</td><td>错误信息</td><td>默认为空</td></tr><tr><td>message</td><td>str</td><td>错误信息</td><td>默认为空</td></tr><tr><td>data</td><td>obj</td><td>信息本体</td><td></td></tr></tbody></table>
+        <p><code>data</code>对象：</p>
+        <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>info</td><td>obj</td><td>主播信息</td><td></td></tr><tr><td>exp</td><td>obj</td><td>经验等级</td><td></td></tr><tr><td>follower_num</td><td>num</td><td>主播粉丝数</td><td></td></tr><tr><td>room_id</td><td>num</td><td>直播间id（短号）</td><td></td></tr><tr><td>medal_name</td><td>str</td><td>粉丝勋章名</td><td></td></tr><tr><td>glory_count</td><td>num</td><td>主播荣誉数</td><td></td></tr><tr><td>pendant</td><td>str</td><td>直播间头像框url</td><td></td></tr><tr><td>link_group_num</td><td>num</td><td>0</td><td><strong>作用尚不明确</strong></td></tr><tr><td>room_news</td><td>obj</td><td>主播公告</td><td></td></tr></tbody></table>
+        <p><code>info</code>对象：</p>
+        <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>uid</td><td>num</td><td>主播mid</td><td></td></tr><tr><td>uname</td><td>str</td><td>主播用户名</td><td></td></tr><tr><td>face</td><td>str</td><td>主播头像url</td><td></td></tr><tr><td>official_verify</td><td>obj</td><td>认证信息</td><td></td></tr><tr><td>gender</td><td>num</td><td>主播性别</td><td>-1：保密<br>0：女<br>1：男</td></tr></tbody></table>
+        <p><code>info</code>中的<code>official_verify</code>对象：</p>
+        <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>type</td><td>num</td><td>主播认证类型</td><td>-1：无<br>0：个人认证<br>1：机构认证</td></tr><tr><td>desc</td><td>str</td><td>主播认证信息</td><td></td></tr></tbody></table>
+        <p><code>exp</code>对象：</p>
+        <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>master_level</td><td>obj</td><td>主播等级</td><td></td></tr></tbody></table>
+        <p><code>exp</code>中的<code>master_level</code>对象：</p>
+        <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>level</td><td>num</td><td>当前等级</td><td></td></tr><tr><td>color</td><td>num</td><td>等级框颜色</td><td></td></tr><tr><td>current</td><td>array</td><td>当前等级信息</td><td></td></tr><tr><td>next</td><td>array</td><td>下一等级信息</td><td></td></tr></tbody></table>
+        <p><code>master_level</code>中的<code>current</code>数组：</p>
+        <table><thead><tr><th>项</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>0</td><td>num</td><td>升级积分</td><td></td></tr><tr><td>1</td><td>num</td><td>总积分</td><td></td></tr></tbody></table>
+        <p><code>master_level</code>中的<code>next</code>数组：</p>
+        <table><thead><tr><th>项</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>0</td><td>num</td><td>升级积分</td><td></td></tr><tr><td>1</td><td>num</td><td>总积分</td><td></td></tr></tbody></table>
+        <p><code>room_news</code>对象：</p>
+        <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>content</td><td>str</td><td>公告内容</td><td></td></tr><tr><td>ctime</td><td>str</td><td>公告时间</td><td></td></tr><tr><td>ctime_text</td><td>str</td><td>公告日期</td><td></td></tr></tbody></table>
+        @param uid:目标用户mid
+        @return:
+        """
+        api = "https://api.live.bilibili.com/live_user/v1/Master/info"
+        live_user_v1_master_info_data = {
+            "uid": uid
+        }
+        live_user_v1_master_info = requests.get(api, headers=self.headers, params=live_user_v1_master_info_data).json()
+        return live_user_v1_master_info
+    
+    def get_room_info_old(self, mid: int) -> Dict:
+        """
+        直接用Bid查询到的直播间基础信息<br>
+        @param mid: B站UID
+        @type mid: int
+        @return:
+        <table>
+            <thead>
+            <tr>
+                <th>字段</th>
+                <th>类型</th>
+                <th>内容</th>
+                <th>备注</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>roomStatus</td>
+                <td>num</td>
+                <td>直播间 状态</td>
+                <td>0：无房间<br>1：有房间</td>
+            </tr>
+            <tr>
+                <td>roundStatus</td>
+                <td>num</td>
+                <td>轮播状态</td>
+                <td>0：未轮播<br>1：轮播</td>
+            </tr>
+            <tr>
+                <td>liveStatus</td>
+                <td>num</td>
+                <td>直播状态</td>
+                <td>0：未开播<br>1：直播中</td>
+            </tr>
+            <tr>
+                <td>url</td>
+                <td>str</td>
+                <td>直播间网页url</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>title</td>
+                <td>str</td>
+                <td>直播间标题</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>cover</td>
+                <td>str</td>
+                <td>直播间封面url</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>online</td>
+                <td>num</td>
+                <td>直播间人气</td>
+                <td>值为上次直播时刷新</td>
+            </tr>
+            <tr>
+                <td>roomid</td>
+                <td>num</td>
+                <td>直播间id（短号）</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>broadcast_type</td>
+                <td>num</td>
+                <td>0</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>online_hidden</td>
+                <td>num</td>
+                <td>0</td>
+                <td></td>
+            </tr>
+            </tbody>
+        </table>
+        @rtype: Dict
+        """
+        api = "https://api.live.bilibili.com/room/v1/Room/getRoomInfoOld"
+        get_room_info_old_data = {
+            "mid": mid,
+        }
+        room_info_old = requests.get(api, headers=self.headers, params=get_room_info_old_data).json()
+        return room_info_old["data"]
 
 # end
 
@@ -1493,7 +1482,7 @@ def poll(qrcode_key: str) -> Dict[str, Union[Dict[str, str], int]]:  # 3.Dict[st
 
 
 # 登陆后才能用的函数
-class master:
+class BilibiliApiMaster:
     """登陆后才能用的函数"""
 
     def __init__(self, cookie: str):
@@ -5629,7 +5618,7 @@ class master:
         return getRoomNews_ReturnValue["data"]["content"]
 
 
-class CsrfAuthentication:
+class BilibiliApiCsrfAuthentication:
     """需要Csrf鉴权的"""
 
     def __init__(self, cookie: str):
@@ -5658,7 +5647,7 @@ class CsrfAuthentication:
         csrf = self.csrf
         AnchorChangeRoomArea_data = {
             "platform": "pc",
-            "room_id": master(self.cookie).getRoomHighlightState(),
+            "room_id": BilibiliApiMaster(self.cookie).getRoomHighlightState(),
             "area_id": area_id,
             "csrf": csrf,
             "csrf_token": csrf,
@@ -5679,7 +5668,7 @@ class CsrfAuthentication:
         csrf = self.csrf
         startLivedata = {
             "platform": platform,  # 直播姬（pc）：pc_link、web在线直播：web_link、bililink：android_link
-            "room_id": master(self.cookie).getRoomHighlightState(),
+            "room_id": BilibiliApiMaster(self.cookie).getRoomHighlightState(),
             "area_v2": area_id,
             "backup_stream": 0,
             "csrf": csrf,
@@ -5698,7 +5687,7 @@ class CsrfAuthentication:
         csrf = self.csrf
         stopLive_data = {
             "platform": "pc",
-            "room_id": master(self.cookie).getRoomHighlightState(),
+            "room_id": BilibiliApiMaster(self.cookie).getRoomHighlightState(),
             "csrf": csrf,
             "csrf_token": csrf,
         }
@@ -5749,7 +5738,7 @@ class CsrfAuthentication:
         csrf = self.csrf
         api = "https://api.live.bilibili.com/room/v1/Room/update"
         room_v1_Room_update_data = {
-            'room_id': master(self.cookie).getRoomHighlightState(),
+            'room_id': BilibiliApiMaster(self.cookie).getRoomHighlightState(),
             'title': title,
             'csrf_token': csrf,
             'csrf': csrf
@@ -5766,7 +5755,7 @@ class CsrfAuthentication:
         csrf = self.csrf
         api = "https://api.live.bilibili.com/xlive/app-blink/v1/index/updateRoomNews"
         updateRoomNews_data = {
-            'room_id': master(self.cookie).getRoomHighlightState(),
+            'room_id': BilibiliApiMaster(self.cookie).getRoomHighlightState(),
             'uid': self.cookies["DedeUserID"],
             'content': content,
             'csrf_token': csrf,
@@ -5866,7 +5855,7 @@ def logInTry(configPath: Path, uid: Optional[int]):
         missing = required_keys - cookies.keys()
         if missing:
             raise ValueError(f"cookies缺少必要字段: {', '.join(missing)}")
-        isLogin = master(dict2cookie(cookies)).interface_nav()["isLogin"]
+        isLogin = BilibiliApiMaster(dict2cookie(cookies)).interface_nav()["isLogin"]
         if not isLogin:
             logSave(3, f"用户 {uid} 的cookies已过期")
             return False
@@ -5887,11 +5876,11 @@ def check_poll():
     @return: cookies，超时为{}
     """
     # 获取uid对应的cookies
-    BUCF = BilibiliUserLogsIn2ConfigFile(globalVariableOfData.scripts_config_filepath)
+    BUCF = BilibiliUserLogsIn2ConfigFile(GlobalVariableOfData.scripts_config_filepath)
     UserListDict = BUCF.getUsers()
-    code_ = globalVariableOfData.loginQrCode_returnValue
-    poll_ = poll(globalVariableOfData.loginQrCode_key)
-    globalVariableOfData.loginQrCode_returnValue = poll_['code']
+    code_ = GlobalVariableOfData.loginQrCode_returnValue
+    poll_ = poll(GlobalVariableOfData.loginQrCode_key)
+    GlobalVariableOfData.loginQrCode_returnValue = poll_['code']
     logIn2QRCode2ReturnInformation4code = {
         0: "登录成功",
         86101: "未扫码",
@@ -5899,9 +5888,9 @@ def check_poll():
         86038: "二维码已失效",
     }
     # 二维码扫描登陆状态改变时，输出改变后状态
-    logSave(2, str(logIn2QRCode2ReturnInformation4code[globalVariableOfData.loginQrCode_returnValue])) if code_ != globalVariableOfData.loginQrCode_returnValue else None
-    if globalVariableOfData.loginQrCode_returnValue == 0 or globalVariableOfData.loginQrCode_returnValue == 86038:
-        globalVariableOfData.LoginQRCodePillowImg = None
+    logSave(2, str(logIn2QRCode2ReturnInformation4code[GlobalVariableOfData.loginQrCode_returnValue])) if code_ != GlobalVariableOfData.loginQrCode_returnValue else None
+    if GlobalVariableOfData.loginQrCode_returnValue == 0 or GlobalVariableOfData.loginQrCode_returnValue == 86038:
+        GlobalVariableOfData.LoginQRCodePillowImg = None
         # 二维码扫描登陆状态为成功或者超时时获取cookies结束[轮询二维码扫描登陆状态]
         cookies = poll_['cookies']
         if cookies:
@@ -5931,17 +5920,17 @@ def qrAddUser():
     url = url8qrcode_key['url']
     logSave(0, f"获取登录二维码链接{url}")
     # 获取二维码key
-    globalVariableOfData.loginQrCode_key = url8qrcode_key['qrcode_key']
-    logSave(0, f"获取登录二维码密钥{globalVariableOfData.loginQrCode_key}")
+    GlobalVariableOfData.loginQrCode_key = url8qrcode_key['qrcode_key']
+    logSave(0, f"获取登录二维码密钥{GlobalVariableOfData.loginQrCode_key}")
     # 获取二维码对象
     qr = qr2str_b64_PilImg4dict(url)
     # 获取登录二维码的pillow img实例
-    globalVariableOfData.LoginQRCodePillowImg = qr["img"]
+    GlobalVariableOfData.LoginQRCodePillowImg = qr["img"]
     # 输出二维码图形字符串
     logSave(2, qr["str"])
     logSave(0, f"字符串二维码已输出，如果乱码或者扫描不上，建议点击 按钮【显示登录二维码图片】")
     # 获取二维码扫描登陆状态
-    globalVariableOfData.loginQrCode_returnValue = poll(globalVariableOfData.loginQrCode_key)['code']
+    GlobalVariableOfData.loginQrCode_returnValue = poll(GlobalVariableOfData.loginQrCode_key)['code']
     logIn2QRCode2ReturnInformation4code = {
         0: "登录成功",
         86101: "未扫码",
@@ -5950,7 +5939,7 @@ def qrAddUser():
     }
     logSave(0, f"开始轮询登录状态")
     # 轮询登录状态
-    logSave(2, str(logIn2QRCode2ReturnInformation4code[globalVariableOfData.loginQrCode_returnValue]))
+    logSave(2, str(logIn2QRCode2ReturnInformation4code[GlobalVariableOfData.loginQrCode_returnValue]))
     # 开始计时器
     obs.timer_add(check_poll, 1000)
 
@@ -6003,24 +5992,24 @@ def script_defaults(settings):  # 设置其默认值
 
     # 路径变量
     # #脚本数据保存目录
-    globalVariableOfData.scripts_data_dirpath = f"{script_path()}bilibili-live"
-    logSave(0, f"脚本用户数据文件夹路径：{globalVariableOfData.scripts_data_dirpath}")
+    GlobalVariableOfData.scripts_data_dirpath = f"{script_path()}bilibili-live"
+    logSave(0, f"脚本用户数据文件夹路径：{GlobalVariableOfData.scripts_data_dirpath}")
     # #脚本用户数据路径
-    globalVariableOfData.scripts_config_filepath = Path(globalVariableOfData.scripts_data_dirpath) / "config.json"
-    logSave(0, f"脚本用户数据路径：{globalVariableOfData.scripts_config_filepath}")
-    globalVariableOfData.scripts_temp_dir = Path(globalVariableOfData.scripts_data_dirpath) / "temp"
-    os.makedirs(globalVariableOfData.scripts_temp_dir, exist_ok=True)
-    logSave(0, f"脚本临时文件夹路径：{globalVariableOfData.scripts_temp_dir}")
-    globalVariableOfData.networkConnectionStatus = check_network_connection()
-    if not globalVariableOfData.networkConnectionStatus:
-        logSave(1, f"\n======= 最终结果: 网络{'可用' if globalVariableOfData.networkConnectionStatus else '不可用'} =======\n")
+    GlobalVariableOfData.scripts_config_filepath = Path(GlobalVariableOfData.scripts_data_dirpath) / "config.json"
+    logSave(0, f"脚本用户数据路径：{GlobalVariableOfData.scripts_config_filepath}")
+    GlobalVariableOfData.scripts_temp_dir = Path(GlobalVariableOfData.scripts_data_dirpath) / "temp"
+    os.makedirs(GlobalVariableOfData.scripts_temp_dir, exist_ok=True)
+    logSave(0, f"脚本临时文件夹路径：{GlobalVariableOfData.scripts_temp_dir}")
+    GlobalVariableOfData.networkConnectionStatus = check_network_connection()
+    if not GlobalVariableOfData.networkConnectionStatus:
+        logSave(1, f"\n======= 最终结果: 网络{'可用' if GlobalVariableOfData.networkConnectionStatus else '不可用'} =======\n")
         return None
-    if globalVariableOfData.accountAvailabilityDetectionSwitch:
+    if GlobalVariableOfData.accountAvailabilityDetectionSwitch:
         logSave(1, f"执行账号可用性检测")
         # 创建用户配置文件实例
-        BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+        BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
         # 获取 用户配置文件 中 每一个用户 导航栏用户信息 排除空值
-        userInterface_navByUid4Dict = {uid: master(dict2cookie(BULC.getCookies(int(uid)))).interface_nav() for uid in [x for x in BULC.getUsers().values() if x]}
+        userInterface_navByUid4Dict = {uid: BilibiliApiMaster(dict2cookie(BULC.getCookies(int(uid)))).interface_nav() for uid in [x for x in BULC.getUsers().values() if x]}
         # 获取 用户配置文件 中 每一个 用户 的 可用性
         userIsLoginByUid4Dict = {uid: userInterface_navByUid4Dict[uid]["isLogin"] for uid in userInterface_navByUid4Dict}
         # 删除 用户配置文件 中 不可用 用户
@@ -6034,17 +6023,17 @@ def script_defaults(settings):  # 设置其默认值
         # 输出日志
         [logSave(1, f"账号：{uid} {'不可用，已删除' if not userIsLoginByUid4Dict[uid] else '可用'}") for uid in userIsLoginByUid4Dict]
         logSave(1, f"可用账号：{str(AllUnameByUid4Dict)}")
-        globalVariableOfData.accountAvailabilityDetectionSwitch = False
+        GlobalVariableOfData.accountAvailabilityDetectionSwitch = False
         logSave(1, f"关闭账号可用性检测")
 
     # 创建用户配置文件实例
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
     # 获取 用户配置文件 中 每一个用户 导航栏用户信息 排除空值
-    userInterface_navByUid4Dict = {uid: master(dict2cookie(BULC.getCookies(int(uid)))).interface_nav() for uid in [x for x in BULC.getUsers().values() if x]}
+    userInterface_navByUid4Dict = {uid: BilibiliApiMaster(dict2cookie(BULC.getCookies(int(uid)))).interface_nav() for uid in [x for x in BULC.getUsers().values() if x]}
     # 获取 用户配置文件 中 每一个 用户 的 昵称
     AllUnameByUid4Dict = {uid: userInterface_navByUid4Dict[uid]["uname"] for uid in userInterface_navByUid4Dict}
     logSave(0, f"载入账号：{str(AllUnameByUid4Dict)}")
-    DefaultUserInterfaceNav = master(dict2cookie(BULC.getCookies())).interface_nav() if BULC.getCookies() else None  # 获取 '默认账户' 导航栏用户信息
+    DefaultUserInterfaceNav = BilibiliApiMaster(dict2cookie(BULC.getCookies())).interface_nav() if BULC.getCookies() else None  # 获取 '默认账户' 导航栏用户信息
     DefaultUname = DefaultUserInterfaceNav["uname"] if BULC.getCookies() else None  # 获取默认账号的昵称
     """
     默认用户config["DefaultUser"]的昵称
@@ -6139,11 +6128,11 @@ def script_defaults(settings):  # 设置其默认值
 
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # 创建用户配置文件实例
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
-    # 获取'默认账户'获取用户对应的直播间状态
-    RoomInfoOld = getRoomInfoOld(int(BULC.getUsers()[0])) if BULC.getCookies() else {}
-    logSave(0, f"根据是否有账号登录：{bool(BULC.getCookies())} 获取 登录账户 对应的直播间状态：数据长度为{len(RoomInfoOld)}")
-    # 获取 默认用户 的 直播间状态
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
+    # 获取'默认账户'获取用户对应的直播间 状态
+    RoomInfoOld = BilibiliApiGeneric().get_room_info_old(int(BULC.getUsers()[0])) if BULC.getCookies() else {}
+    logSave(0, f"根据是否有账号登录：{bool(BULC.getCookies())} 获取 登录账户 对应的直播间 状态：数据长度为{len(RoomInfoOld)}")
+    # 获取 默认用户 的 直播间 状态
     DefaultRoomStatus = RoomInfoOld["roomStatus"] if BULC.getCookies() else None
     """
     登录的用户的直播间存在状态
@@ -6163,7 +6152,7 @@ def script_defaults(settings):  # 设置其默认值
     """
     logSave(0, f"根据 登录账户 直播间存在：{bool(DefaultRoomStatus)} 获取 登录账户 的 直播状态：{DefaultLiveStatus}")
     # 获取'默认账户'直播间的基础信息
-    RoomBaseInfo = getRoomBaseInfo(DefaultRoomid) if DefaultRoomStatus else {}
+    RoomBaseInfo = BilibiliApiGeneric().get_room_base_info(DefaultRoomid) if DefaultRoomStatus else {}
     # 获取'默认账户'直播间的分区
     DefaultArea = {
             "id": RoomBaseInfo["by_room_ids"][str(DefaultRoomid)]["parent_area_id"],
@@ -6179,23 +6168,23 @@ def script_defaults(settings):  # 设置其默认值
     """
     logSave(0, f"获取 登录账户 当前直播间分区数据{DefaultArea}")
     # 获取完整直播分区
-    parentLiveAreaNameByid4dict = {str(AreaObj["id"]): AreaObj["name"] for AreaObj in getAreaObjList()} | {} if DefaultArea else {"-1": "请选择一级分区"}
+    parentLiveAreaNameByid4dict = {str(AreaObj["id"]): AreaObj["name"] for AreaObj in BilibiliApiGeneric().get_area_obj_list()} | {} if DefaultArea else {"-1": "请选择一级分区"}
     logSave(0, f"根据 登录账户 当前直播间分区数据存在：{bool(DefaultArea)} 获取 直播间父分区数据{parentLiveAreaNameByid4dict}")
-    subLiveAreaNameByid4dict = {str(subAreaObj["id"]): subAreaObj["name"] for subAreaObj in getsubLiveAreaObjList(DefaultArea['id'])} if DefaultArea else {"-1": "请选择一级分区"}
+    subLiveAreaNameByid4dict = {str(subAreaObj["id"]): subAreaObj["name"] for subAreaObj in BilibiliApiGeneric().getsub_live_area_obj_list(DefaultArea['id'])} if DefaultArea else {"-1": "请选择一级分区"}
     logSave(0, f"根据 登录账户 当前直播间分区数据存在：{bool(DefaultArea)} 获取 登录账户 当前父分区对应的子分区数据{subLiveAreaNameByid4dict}")
 
-    # 设置 只读文本框【直播间状态】 可见状态
+    # 设置 只读文本框【直播间 状态】 可见状态
     GlobalVariableOfTheControl.room_status_textBox_visible = True
     logSave(0, f"设置 按钮【查看直播间封面】 可见状态：{str(GlobalVariableOfTheControl.room_status_textBox_visible)}")
-    # 设置 只读文本框【直播间状态】 可用状态
+    # 设置 只读文本框【直播间 状态】 可用状态
     GlobalVariableOfTheControl.room_status_textBox_enabled = True
     logSave(0, f"设置 按钮【查看直播间封面】 可用状态：{str(GlobalVariableOfTheControl.room_status_textBox_enabled)}")
-    # 设置 只读文本框【直播间状态】 的类型
+    # 设置 只读文本框【直播间 状态】 的类型
     GlobalVariableOfTheControl.room_status_textBox_type = (obs.OBS_TEXT_INFO_NORMAL if bool(DefaultRoomStatus) else obs.OBS_TEXT_INFO_WARNING) if BULC.getCookies() else obs.OBS_TEXT_INFO_ERROR
-    logSave(0, f"根据 登录状态：{bool(BULC.getCookies())} 和 直播间存在：{bool(DefaultRoomStatus)} 设置 只读文本框【直播间状态】 的类型{textBox_type_name4textBox_type[GlobalVariableOfTheControl.room_status_textBox_type]}")
-    # 设置 只读文本框【直播间状态】 的内容
+    logSave(0, f"根据 登录状态：{bool(BULC.getCookies())} 和 直播间存在：{bool(DefaultRoomStatus)} 设置 只读文本框【直播间 状态】 的类型{textBox_type_name4textBox_type[GlobalVariableOfTheControl.room_status_textBox_type]}")
+    # 设置 只读文本框【直播间 状态】 的内容
     GlobalVariableOfTheControl.room_status_textBox_string = (f"{str(DefaultRoomid)}{'直播中' if DefaultLiveStatus else '未开播'}" if DefaultRoomStatus else "无直播间") if BULC.getCookies() else "未登录"
-    logSave(0, f"根据 登录状态：{bool(BULC.getCookies())} 和 直播间存在：{bool(DefaultRoomStatus)} 设置 只读文本框【直播间状态】 的内容{GlobalVariableOfTheControl.room_status_textBox_type}")
+    logSave(0, f"根据 登录状态：{bool(BULC.getCookies())} 和 直播间存在：{bool(DefaultRoomStatus)} 设置 只读文本框【直播间 状态】 的内容{GlobalVariableOfTheControl.room_status_textBox_type}")
 
     # 设置 按钮【查看直播间封面】 可见状态
     GlobalVariableOfTheControl.viewLiveCover_button_visible = bool(DefaultRoomStatus)
@@ -6245,7 +6234,7 @@ def script_defaults(settings):  # 设置其默认值
     GlobalVariableOfTheControl.liveRoom_news_textBox_enabled = bool(DefaultRoomStatus)
     logSave(0, f"根据 直播间存在：{str(bool(DefaultRoomStatus))}，设置 普通文本框【直播间公告】 可用状态：{str(GlobalVariableOfTheControl.liveRoom_news_textBox_enabled)}")
     # 设置 普通文本框【直播间公告】 内容
-    GlobalVariableOfTheControl.liveRoom_news_textBox_string = master(dict2cookie(BULC.getCookies())).getRoomNews() if bool(DefaultRoomStatus) else ""
+    GlobalVariableOfTheControl.liveRoom_news_textBox_string = BilibiliApiMaster(dict2cookie(BULC.getCookies())).getRoomNews() if bool(DefaultRoomStatus) else ""
     logSave(0, f"根据 直播间存在：{str(bool(DefaultRoomStatus))}，设置 普通文本框【直播间公告】 内容：{str(GlobalVariableOfTheControl.liveRoom_news_textBox_string)}")
 
     # 设置 按钮【更改直播间公告】 可见状态
@@ -6371,7 +6360,7 @@ def script_description():
     """
     调用以检索要在“脚本”窗口中显示给用户的描述字符串。
     """
-    if not globalVariableOfData.networkConnectionStatus:
+    if not GlobalVariableOfData.networkConnectionStatus:
         return "<font color=yellow>网络不可用</font>"
     t = ('<html lang="zh-CN"><body><pre>\
 <font color=yellow>!脚本路径中尽量不要有中文</font><br>\
@@ -6429,7 +6418,7 @@ def script_properties():  # 建立控件
     logSave(0, "╔═════════════════════════════════════╗")
     logSave(0, "║调用内置函数script_properties调整脚本控件║")
     # 网络连通
-    if not globalVariableOfData.networkConnectionStatus:
+    if not GlobalVariableOfData.networkConnectionStatus:
         return None
     # 创建一个 OBS 属性集对象，他将包含所有控件对应的属性对象
     GlobalVariableOfTheControl.props = obs.obs_properties_create()
@@ -6482,10 +6471,10 @@ def script_properties():  # 建立控件
     # 添加 分组框【直播间】
     obs.obs_properties_add_group(GlobalVariableOfTheControl.props, 'liveRoom_group', '【直播间】', obs.OBS_GROUP_NORMAL, GlobalVariableOfTheControl.liveRoom_props)
 
-    # 添加 只读文本框【直播间状态】
-    GlobalVariableOfTheControl.room_status_textBox = obs.obs_properties_add_text(GlobalVariableOfTheControl.liveRoom_props, 'room_status_textBox', f'直播间状态', obs.OBS_TEXT_INFO)
-    # 添加 只读文本框【直播间状态】变动后事件
-    obs.obs_property_set_modified_callback(GlobalVariableOfTheControl.room_status_textBox, lambda ps, p, st: test("只读文本框【直播间状态】"))
+    # 添加 只读文本框【直播间 状态】
+    GlobalVariableOfTheControl.room_status_textBox = obs.obs_properties_add_text(GlobalVariableOfTheControl.liveRoom_props, 'room_status_textBox', f'直播间 状态', obs.OBS_TEXT_INFO)
+    # 添加 只读文本框【直播间 状态】变动后事件
+    obs.obs_property_set_modified_callback(GlobalVariableOfTheControl.room_status_textBox, lambda ps, p, st: test("只读文本框【直播间 状态】"))
 
     # 添加 按钮【查看直播间封面】
     GlobalVariableOfTheControl.viewLiveCover_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, 'viewLiveCover_button', f'查看直播间封面', button_function_check_room_cover)
@@ -6572,21 +6561,20 @@ def script_properties():  # 建立控件
         logSave(0, "╒════════════╕")
         logSave(0, "│载入控件UI数据│")
         logSave(0, "╘════════════╛")
-        updateTheUIInterfaceData(isScript_properties=True)
+        update_ui_interface_data(is_script_properties=True)
     logSave(0, "║调用内置函数script_properties调整脚本控件║")
     logSave(0, "╚═════════════════════════════════════╝")
     return GlobalVariableOfTheControl.props
 
 
-def updateTheUIInterfaceData(isScript_properties=False):
+def update_ui_interface_data(is_script_properties=False):
     """
     更新UI界面数据
     Returns:
     """
-    if isScript_properties:
+    if is_script_properties:
         logSave(0, "╱───────────────────────────────────────────────────────╲")
         logSave(0, "│由于[Script_properties]而被调用[updateTheUIInterfaceData]│")
-        logSave(0, "╲───────────────────────────────────────────────────────╱")
 
     # 只读文本框【登录状态】 UI
     logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
@@ -6727,24 +6715,24 @@ def updateTheUIInterfaceData(isScript_properties=False):
     logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
 
     # ————————————————————————————————————————————————————————————————
-    # 只读文本框【直播间状态】 UI
+    # 只读文本框【直播间 状态】 UI
     logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
-    logSave(0, f"│只读文本框【直播间状态】 UI")
-    # 设置 只读文本框【直播间状态】 可见状态
+    logSave(0, f"│只读文本框【直播间 状态】 UI")
+    # 设置 只读文本框【直播间 状态】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.room_status_textBox) != GlobalVariableOfTheControl.room_status_textBox_visible:
-        logSave(0, f"│只读文本框【直播间状态】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.room_status_textBox)}➡️{GlobalVariableOfTheControl.room_status_textBox_visible}")
+        logSave(0, f"│只读文本框【直播间 状态】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.room_status_textBox)}➡️{GlobalVariableOfTheControl.room_status_textBox_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.room_status_textBox, GlobalVariableOfTheControl.room_status_textBox_visible)
-    # 设置 只读文本框【直播间状态】 可用状态
+    # 设置 只读文本框【直播间 状态】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.room_status_textBox) != GlobalVariableOfTheControl.room_status_textBox_enabled:
-        logSave(0, f"│只读文本框【直播间状态】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.room_status_textBox)}➡️{GlobalVariableOfTheControl.room_status_textBox_enabled}")
+        logSave(0, f"│只读文本框【直播间 状态】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.room_status_textBox)}➡️{GlobalVariableOfTheControl.room_status_textBox_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.room_status_textBox, GlobalVariableOfTheControl.room_status_textBox_enabled)
-    # 设置 只读文本框【直播间状态】 信息类型
+    # 设置 只读文本框【直播间 状态】 信息类型
     if obs.obs_property_text_info_type(GlobalVariableOfTheControl.room_status_textBox) != GlobalVariableOfTheControl.room_status_textBox_type:
-        logSave(0, f"│只读文本框【直播间状态】 信息类型 发生变动: {textBox_type_name4textBox_type[obs.obs_property_text_info_type(GlobalVariableOfTheControl.room_status_textBox)]}➡️{textBox_type_name4textBox_type[GlobalVariableOfTheControl.room_status_textBox_type]}")
+        logSave(0, f"│只读文本框【直播间 状态】 信息类型 发生变动: {textBox_type_name4textBox_type[obs.obs_property_text_info_type(GlobalVariableOfTheControl.room_status_textBox)]}➡️{textBox_type_name4textBox_type[GlobalVariableOfTheControl.room_status_textBox_type]}")
         obs.obs_property_text_set_info_type(GlobalVariableOfTheControl.room_status_textBox, GlobalVariableOfTheControl.room_status_textBox_type)
-    # 设置 只读文本框【直播间状态】 文本
+    # 设置 只读文本框【直播间 状态】 文本
     if obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'room_status_textBox') != GlobalVariableOfTheControl.room_status_textBox_string:
-        logSave(0, f"│只读文本框【直播间状态】 文本 发生变动: {obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'room_status_textBox')}➡️{GlobalVariableOfTheControl.room_status_textBox_string}")
+        logSave(0, f"│只读文本框【直播间 状态】 文本 发生变动: {obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'room_status_textBox')}➡️{GlobalVariableOfTheControl.room_status_textBox_string}")
         obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, "room_status_textBox", GlobalVariableOfTheControl.room_status_textBox_string)
     logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
 
@@ -7034,6 +7022,9 @@ def updateTheUIInterfaceData(isScript_properties=False):
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.stop_live_button, GlobalVariableOfTheControl.stop_live_button_enabled)
     logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
 
+    logSave(0, "│由于[Script_properties]而被调用[updateTheUIInterfaceData]│")
+    logSave(0, "╲───────────────────────────────────────────────────────╱")
+
 
 def button_function_login(props, prop, settings=GlobalVariableOfTheControl.script_settings):
     """
@@ -7050,7 +7041,7 @@ def button_function_login(props, prop, settings=GlobalVariableOfTheControl.scrip
     logSave(0, f"即将登录的账号：{uid}")
     if uid not in ["-1"]:
         logSave(0, f"将选定的账号：{uid}，在配置文件中转移到默认账号的位置")
-        logInTry(globalVariableOfData.scripts_config_filepath, int(uid))
+        logInTry(GlobalVariableOfData.scripts_config_filepath, int(uid))
     else:
         logSave(2, "请添加或选择一个账号登录")
         return None
@@ -7062,7 +7053,7 @@ def button_function_login(props, prop, settings=GlobalVariableOfTheControl.scrip
     script_defaults(GlobalVariableOfTheControl.script_settings)
     # 更新脚本用户小部件
     logSave(0, f"更新控件UI")
-    updateTheUIInterfaceData()
+    update_ui_interface_data()
     return True
 
 
@@ -7076,14 +7067,14 @@ def button_function_update_account_list(props=None, prop=None, settings=GlobalVa
     Returns:
     """
     # 创建用户配置文件实例
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
     # 获取 用户配置文件 中 每一个用户 导航栏用户信息 排除空值
-    userInterface_navByUid4Dict = {uid: master(dict2cookie(BULC.getCookies(int(uid)))).interface_nav() for uid in [x for x in BULC.getUsers().values() if x]}
+    userInterface_navByUid4Dict = {uid: BilibiliApiMaster(dict2cookie(BULC.getCookies(int(uid)))).interface_nav() for uid in [x for x in BULC.getUsers().values() if x]}
     # 获取 用户配置文件 中 每一个 用户 的 昵称
     AllUnameByUid4Dict = {uid: userInterface_navByUid4Dict[uid]["uname"] for uid in userInterface_navByUid4Dict}
     logSave(0, f"载入账号：{str(AllUnameByUid4Dict)}")
     # 获取 '默认账户' 导航栏用户信息
-    DefaultUserInterfaceNav = master(dict2cookie(BULC.getCookies())).interface_nav() if BULC.getCookies() else None
+    DefaultUserInterfaceNav = BilibiliApiMaster(dict2cookie(BULC.getCookies())).interface_nav() if BULC.getCookies() else None
     # 获取默认账号的昵称
     DefaultUname = DefaultUserInterfaceNav["uname"] if BULC.getCookies() else None
     """
@@ -7274,9 +7265,9 @@ def button_function_show_qr_code_picture(props, prop):
         prop:
     Returns:
     """
-    if globalVariableOfData.LoginQRCodePillowImg:
+    if GlobalVariableOfData.LoginQRCodePillowImg:
         logSave(0, f"展示登录二维码图片")
-        globalVariableOfData.LoginQRCodePillowImg.show()
+        GlobalVariableOfData.LoginQRCodePillowImg.show()
     else:
         logSave(2, f"没有可展示的登录二维码图片，请点击按钮 【二维码添加账号】创建")
     pass
@@ -7292,7 +7283,7 @@ def button_function_del_user(props, prop):
     """
     uid = obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'uid_comboBox')
     if uid not in ["-1"]:
-        BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+        BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
         BULC.deleteUser(uid)
     else:
         logSave(2, "请选择一个账号")
@@ -7302,7 +7293,7 @@ def button_function_del_user(props, prop):
     script_defaults(GlobalVariableOfTheControl.script_settings)
     # 更新脚本用户小部件
     logSave(0, f"更新控件UI")
-    updateTheUIInterfaceData()
+    update_ui_interface_data()
     return True
 
 
@@ -7340,7 +7331,7 @@ def button_function_logout(props, prop):
     # 　　　　登出        ＝
     # ＝＝＝＝＝＝＝＝＝＝＝＝
     # 如果添加账户 移除默认账户
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
     BULC.updateUser(None)
     # ＝＝＝＝＝＝＝＝＝＝＝＝
     # 　　　　更新     　　＝
@@ -7350,7 +7341,7 @@ def button_function_logout(props, prop):
     script_defaults(GlobalVariableOfTheControl.script_settings)
     # 更新脚本用户小部件
     logSave(0, f"更新控件UI")
-    updateTheUIInterfaceData()
+    update_ui_interface_data()
     return True
 
 
@@ -7383,12 +7374,12 @@ def button_function_update_room_cover(props, prop):
         PIL_Image1609ZoomingWidth1020Binary = PIL_Image2Binary(PIL_Image1609ZoomingWidth1020, ImgFormat="JPEG", compress_level=0)
         logSave(0, f"图片二进制化")
         # 创建用户配置文件实例
-        BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+        BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
         # 获取 '默认账户' cookies
         DefaultUserCookies = BULC.getCookies()
-        coverUrl = CsrfAuthentication(dict2cookie(DefaultUserCookies)).upload_cover(PIL_Image1609ZoomingWidth1020Binary)['data']['location']
+        coverUrl = BilibiliApiCsrfAuthentication(dict2cookie(DefaultUserCookies)).upload_cover(PIL_Image1609ZoomingWidth1020Binary)['data']['location']
         logSave(0, f"上传二进制图片，获得图片链接：{coverUrl}")
-        CsrfAuthentication(dict2cookie(DefaultUserCookies)).update_cover(coverUrl)
+        BilibiliApiCsrfAuthentication(dict2cookie(DefaultUserCookies)).update_cover(coverUrl)
         logSave(0, f"更改封面结束")
     else:
         logSave(2, "未获取到图片")
@@ -7404,16 +7395,16 @@ def button_function_check_room_cover(props, prop):
     Returns:
     """
     # 创建用户配置文件实例
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
-    # 获取'默认账户'获取用户对应的直播间状态
-    RoomInfoOld = getRoomInfoOld(int(BULC.getUsers()[0])) if BULC.getCookies() else {}
-    logSave(0, f"根据是否有账号登录：{bool(BULC.getCookies())} 获取 登录账户 对应的直播间状态：数据长度为{len(RoomInfoOld)}")
-    # 获取 默认用户 的 直播间状态
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
+    # 获取'默认账户'获取用户对应的直播间 状态
+    RoomInfoOld = BilibiliApiGeneric().get_room_info_old(int(BULC.getUsers()[0])) if BULC.getCookies() else {}
+    logSave(0, f"根据是否有账号登录：{bool(BULC.getCookies())} 获取 登录账户 对应的直播间 状态：数据长度为{len(RoomInfoOld)}")
+    # 获取 默认用户 的 直播间 状态
     DefaultRoomStatus = RoomInfoOld["roomStatus"] if BULC.getCookies() else None
     # 获取默认用户的 直播间id
     DefaultRoomid = RoomInfoOld["roomid"] if bool(DefaultRoomStatus) else 0
     # 获取'默认账户'直播间的基础信息
-    RoomBaseInfo = getRoomBaseInfo(DefaultRoomid) if DefaultRoomStatus else {}
+    RoomBaseInfo = BilibiliApiGeneric().get_room_base_info(DefaultRoomid) if DefaultRoomStatus else {}
     # 获取直播间封面的链接
     LiveRoomCover_url = RoomBaseInfo["by_room_ids"][str(DefaultRoomid)]["cover"] if bool(DefaultRoomStatus) else ""
     """
@@ -7441,9 +7432,9 @@ def button_function_change_live_room_title(props, prop):
         GlobalVariableOfTheControl.liveRoom_title_textBox_string = liveRoom_title_textBox_string
         logSave(0, "直播间标题改变")
         # 获取 '默认账户' cookie
-        BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+        BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
         cookies = BULC.getCookies()
-        turn_title_return = CsrfAuthentication(dict2cookie(cookies)).room_v1_Room_update(liveRoom_title_textBox_string)
+        turn_title_return = BilibiliApiCsrfAuthentication(dict2cookie(cookies)).room_v1_Room_update(liveRoom_title_textBox_string)
         logSave(0, f"更改直播间标题返回消息：{turn_title_return}")
     else:
         logSave(0, "直播间标题未改变")
@@ -7462,9 +7453,9 @@ def button_function_change_live_room_news(props, prop):
     if GlobalVariableOfTheControl.liveRoom_news_textBox_string != liveRoom_news_textBox_string:
         GlobalVariableOfTheControl.liveRoom_news_textBox_string = liveRoom_news_textBox_string
         logSave(0, "直播间公告已改变")
-        BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+        BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
         cookies = BULC.getCookies()
-        turn_news_return = CsrfAuthentication(dict2cookie(cookies)).updateRoomNews(liveRoom_news_textBox_string)
+        turn_news_return = BilibiliApiCsrfAuthentication(dict2cookie(cookies)).updateRoomNews(liveRoom_news_textBox_string)
         logSave(0, f'更改直播间公告返回消息：{turn_news_return}')
     else:
         logSave(0, "直播间公告未改变")
@@ -7484,7 +7475,7 @@ def button_function_start_area1(props, prop, settings=GlobalVariableOfTheControl
     parentLiveArea_comboBox_value = obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'parentLiveArea_comboBox')
     logSave(0, f"获取 组合框【一级分区】 当前选项的值{parentLiveArea_comboBox_value}")
     if parentLiveArea_comboBox_value not in ["-1"]:
-        subLiveAreaNameByid4dict = {str(subAreaObj["id"]): subAreaObj["name"] for subAreaObj in getsubLiveAreaObjList(parentLiveArea_comboBox_value)} if parentLiveArea_comboBox_value else {"-1": "请选择一级分区"}
+        subLiveAreaNameByid4dict = {str(subAreaObj["id"]): subAreaObj["name"] for subAreaObj in BilibiliApiGeneric().getsub_live_area_obj_list(parentLiveArea_comboBox_value)} if parentLiveArea_comboBox_value else {"-1": "请选择一级分区"}
         logSave(0, f"选中的父分区id：{parentLiveArea_comboBox_value} 获取 登录账户 当前父分区对应的子分区数据{subLiveAreaNameByid4dict}")
         # 设置 组合框【二级分区】 数据字典
         GlobalVariableOfTheControl.subLiveArea_comboBox_dict = subLiveAreaNameByid4dict
@@ -7520,11 +7511,11 @@ def button_function_start_area():
     if subLiveArea_comboBox_value != GlobalVariableOfTheControl.subLiveArea_comboBox_value:
         logSave(0, f"子分区有变化{subLiveArea_comboBox_value}")
         # 获取默认账户
-        BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+        BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
         cookies = BULC.getCookies()
         # 获取二级分区id
         area2_id = obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'subLiveArea_comboBox')
-        ChangeRoomArea = CsrfAuthentication(dict2cookie(cookies)).AnchorChangeRoomArea(int(area2_id))
+        ChangeRoomArea = BilibiliApiCsrfAuthentication(dict2cookie(cookies)).AnchorChangeRoomArea(int(area2_id))
         logSave(0, f"更新直播间分区返回：{ChangeRoomArea}")
         if ChangeRoomArea["code"]:
             logSave(2, f"更新直播间分区失败：{ChangeRoomArea['message']}")
@@ -7559,7 +7550,7 @@ def button_function_start_live(props, prop):
     """
     logSave(0, 'start_live')
     # 获取默认账户
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
     cookies = BULC.getCookies()
     # 开播
     if cookies:
@@ -7567,7 +7558,7 @@ def button_function_start_live(props, prop):
         subLiveArea_id = obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'subLiveArea_comboBox')
         live_streaming_platform = obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'live_streaming_platform_comboBox')
         logSave(0, f"使用【{live_streaming_platform}】开播")
-        startLive = CsrfAuthentication(dict2cookie(cookies)).startLive(int(subLiveArea_id), live_streaming_platform)
+        startLive = BilibiliApiCsrfAuthentication(dict2cookie(cookies)).startLive(int(subLiveArea_id), live_streaming_platform)
         logSave(0, f"开播消息代码【{startLive['code']}】。消息内容：【{startLive['message']}】。")
         # 推流地址
         rtmpServer = startLive["data"]["rtmp"]["addr"]
@@ -7641,7 +7632,7 @@ def button_function_start_live(props, prop):
     script_defaults(GlobalVariableOfTheControl.script_settings)
     # 更新脚本用户小部件
     logSave(0, f"更新控件UI")
-    updateTheUIInterfaceData()
+    update_ui_interface_data()
     return True
 
 
@@ -7654,9 +7645,9 @@ def button_function_rtmp_address_copy(props, prop):
     Returns:
     """
     # 获取默认账户
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
     cookies = BULC.getCookies()
-    StreamAddr = CsrfAuthentication(dict2cookie(cookies)).FetchWebUpStreamAddr()
+    StreamAddr = BilibiliApiCsrfAuthentication(dict2cookie(cookies)).FetchWebUpStreamAddr()
     cb.copy(StreamAddr['data']['addr']['addr'])
     logSave(0, f"已将 直播服务器 复制到剪贴板：【{StreamAddr['data']['addr']['addr']}】")
     return True
@@ -7671,9 +7662,9 @@ def button_function_rtmp_stream_code_copy(props, prop):
     Returns:
     """
     # 获取默认账户
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
     cookies = BULC.getCookies()
-    StreamAddr = CsrfAuthentication(dict2cookie(cookies)).FetchWebUpStreamAddr()
+    StreamAddr = BilibiliApiCsrfAuthentication(dict2cookie(cookies)).FetchWebUpStreamAddr()
     cb.copy(StreamAddr['data']['addr']['code'])
     logSave(0, f"已将 直播推流码 复制到剪贴板：【{StreamAddr['data']['addr']['code']}】")
     return True
@@ -7688,9 +7679,9 @@ def button_function_rtmp_stream_code_update(props, prop):
     Returns:
     """
     # 获取默认账户
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
     cookies = BULC.getCookies()
-    StreamAddr = CsrfAuthentication(dict2cookie(cookies)).FetchWebUpStreamAddr(True)
+    StreamAddr = BilibiliApiCsrfAuthentication(dict2cookie(cookies)).FetchWebUpStreamAddr(True)
     cb.copy(StreamAddr['data']['addr']['code'])
     logSave(0, f"已更新推流码 并将 直播推流码 复制到剪贴板：【{StreamAddr['data']['addr']['code']}】")
     return True
@@ -7707,22 +7698,22 @@ def button_function_stop_live(props, prop, settings=GlobalVariableOfTheControl.s
     """
     logSave(0, 'stop_live')
     # 获取默认账户
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
     cookies = BULC.getCookies()
     # 停播
     if cookies:
-        stopLive = CsrfAuthentication(dict2cookie(cookies)).stopLive()
+        stopLive = BilibiliApiCsrfAuthentication(dict2cookie(cookies)).stopLive()
         logSave(0, f"下播消息代码【{stopLive['code']}】。消息内容：【{stopLive['message']}】。")
     # 设置组合框【用户】为'默认用户'
     obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, 'uid_comboBox', cookies["DedeUserID"])
 
     # 默认值-=-=-=-==-=-=-=-=-=-=-==-=-=-=-=-=-=-==-=-=-=-=-=-=-==-=-=-=-=-=-=-==-=-=-=-=-=-=-==-=-=-=-=-=-=-==-=-=-=-=-=-=-==-=-=-=
     # 创建用户配置文件实例
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=globalVariableOfData.scripts_config_filepath)
-    # 获取'默认账户'获取用户对应的直播间状态
-    RoomInfoOld = getRoomInfoOld(int(BULC.getUsers()[0])) if BULC.getCookies() else {}
-    logSave(0, f"根据是否有账号登录：{bool(BULC.getCookies())} 获取 登录账户 对应的直播间状态：数据长度为{len(RoomInfoOld)}")
-    # 获取 默认用户 的 直播间状态
+    BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
+    # 获取'默认账户'获取用户对应的直播间 状态
+    RoomInfoOld = BilibiliApiGeneric().get_room_info_old(int(BULC.getUsers()[0])) if BULC.getCookies() else {}
+    logSave(0, f"根据是否有账号登录：{bool(BULC.getCookies())} 获取 登录账户 对应的直播间 状态：数据长度为{len(RoomInfoOld)}")
+    # 获取 默认用户 的 直播间 状态
     DefaultRoomStatus = RoomInfoOld["roomStatus"] if BULC.getCookies() else None
     """
     登录的用户的直播间存在状态
@@ -7849,8 +7840,8 @@ def script_unload():
     logSave(0, "╔════════════════════╗")
     logSave(0, "║已卸载: bilibili-live║")
     logSave(0, "╚════════════════════╝")
-    with open(Path(globalVariableOfData.scripts_data_dirpath) / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.log", "w", encoding="utf-8") as f:
-        f.write(str(globalVariableOfData.logRecording))
+    with open(Path(GlobalVariableOfData.scripts_data_dirpath) / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.log", "w", encoding="utf-8") as f:
+        f.write(str(GlobalVariableOfData.logRecording))
 
 
 def test(t=""):
