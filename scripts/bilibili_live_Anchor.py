@@ -78,19 +78,70 @@ information4login_qr_return_code = {
 """
 
 information4frontend_event = {
+    # 推流相关事件
     obs.OBS_FRONTEND_EVENT_STREAMING_STARTING: "推流正在启动",
     obs.OBS_FRONTEND_EVENT_STREAMING_STARTED: "推流已开始",
     obs.OBS_FRONTEND_EVENT_STREAMING_STOPPING: "推流正在停止",
     obs.OBS_FRONTEND_EVENT_STREAMING_STOPPED: "推流已停止",
+
+    # 录制相关事件
+    obs.OBS_FRONTEND_EVENT_RECORDING_STARTING: "录制正在启动",
     obs.OBS_FRONTEND_EVENT_RECORDING_STARTED: "录制已开始",
+    obs.OBS_FRONTEND_EVENT_RECORDING_STOPPING: "录制正在停止",
     obs.OBS_FRONTEND_EVENT_RECORDING_STOPPED: "录制已停止",
-    obs.OBS_FRONTEND_EVENT_SCENE_CHANGED: "当前场景改变",
-    obs.OBS_FRONTEND_EVENT_TRANSITION_CHANGED: "转场效果改变",
-    obs.OBS_FRONTEND_EVENT_PROFILE_CHANGED: "配置文件切换",
-    obs.OBS_FRONTEND_EVENT_PROFILE_LIST_CHANGED: "配置文件列表改变",
-    obs.OBS_FRONTEND_EVENT_SCENE_LIST_CHANGED: "场景列表改变",
+    obs.OBS_FRONTEND_EVENT_RECORDING_PAUSED: "录制已暂停",
+    obs.OBS_FRONTEND_EVENT_RECORDING_UNPAUSED: "录制已恢复",
+
+    # 回放缓存相关事件
+    obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTING: "回放缓存正在启动",
+    obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTED: "回放缓存已开始",
+    obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPING: "回放缓存正在停止",
+    obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPED: "回放缓存已停止",
+    obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED: "回放已保存",
+
+    # 场景相关事件
+    obs.OBS_FRONTEND_EVENT_SCENE_CHANGED: "当前场景已改变",
+    obs.OBS_FRONTEND_EVENT_PREVIEW_SCENE_CHANGED: "预览场景已改变",
+    obs.OBS_FRONTEND_EVENT_SCENE_LIST_CHANGED: "场景列表已改变",
+
+    # 转场相关事件
+    obs.OBS_FRONTEND_EVENT_TRANSITION_CHANGED: "转场效果已改变",
+    obs.OBS_FRONTEND_EVENT_TRANSITION_STOPPED: "转场效果已停止",
+    obs.OBS_FRONTEND_EVENT_TRANSITION_LIST_CHANGED: "转场列表已改变",
+    obs.OBS_FRONTEND_EVENT_TRANSITION_DURATION_CHANGED: "转场持续时间已更改",
+
+    # 配置文件相关事件
+    obs.OBS_FRONTEND_EVENT_PROFILE_CHANGING: "配置文件即将切换",
+    obs.OBS_FRONTEND_EVENT_PROFILE_CHANGED: "配置文件已切换",
+    obs.OBS_FRONTEND_EVENT_PROFILE_LIST_CHANGED: "配置文件列表已改变",
+    obs.OBS_FRONTEND_EVENT_PROFILE_RENAMED: "配置文件已重命名",
+
+    # 场景集合相关事件
+    obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_CHANGING: "场景集合即将切换",
+    obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_CHANGED: "场景集合已切换",
+    obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_LIST_CHANGED: "场景集合列表已改变",
+    obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_RENAMED: "场景集合已重命名",
+    obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_CLEANUP: "场景集合清理完成",
+
+    # 工作室模式事件
+    obs.OBS_FRONTEND_EVENT_STUDIO_MODE_ENABLED: "工作室模式已启用",
+    obs.OBS_FRONTEND_EVENT_STUDIO_MODE_DISABLED: "工作室模式已禁用",
+
+    # 系统级事件
     obs.OBS_FRONTEND_EVENT_EXIT: "OBS 即将退出",
     obs.OBS_FRONTEND_EVENT_FINISHED_LOADING: "OBS 完成加载",
+    obs.OBS_FRONTEND_EVENT_SCRIPTING_SHUTDOWN: "脚本关闭中",
+
+    # 虚拟摄像头事件
+    obs.OBS_FRONTEND_EVENT_VIRTUALCAM_STARTED: "虚拟摄像头已启动",
+    obs.OBS_FRONTEND_EVENT_VIRTUALCAM_STOPPED: "虚拟摄像头已停止",
+
+    # 控制条事件
+    obs.OBS_FRONTEND_EVENT_TBAR_VALUE_CHANGED: "转场控制条(T-Bar)值已改变",
+
+    # OBS 28+ 新增事件
+    obs.OBS_FRONTEND_EVENT_SCREENSHOT_TAKEN: "截图已完成",
+    obs.OBS_FRONTEND_EVENT_THEME_CHANGED: "主题已更改"
 }
 
 
@@ -1210,6 +1261,116 @@ class BilibiliApiGeneric:
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\
             (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0",
         }
+
+    def get_bilibili_user_card(self, mid, photo=False) -> dict:
+        """
+        获取Bilibili用户名片信息
+
+        参数:
+        mid (int/str): 目标用户mid (必需)
+        photo (bool): 是否请求用户主页头图 (可选，默认为False)
+
+        返回:
+        dict: 解析后的用户信息字典，包含主要字段
+        """
+        # API地址
+        url = "https://api.bilibili.com/x/web-interface/card"
+
+        # 请求参数
+        params = {
+            'mid': mid,
+            'photo': 'true' if photo else 'false'
+        }
+
+        try:
+            # 发送GET请求
+            response = requests.get(
+                url,
+                params=params,
+                headers=self.headers,
+                timeout=10  # 添加超时设置
+            )
+            response.raise_for_status()  # 检查HTTP错误
+
+            # 解析JSON响应
+            data = response.json()
+
+            # 检查API返回状态
+            if data['code'] != 0:
+                return {
+                    'error': True,
+                    'code': data['code'],
+                    'message': data['message'],
+                    'ttl': data.get('ttl', 1)
+                }
+
+            # 提取主要数据
+            result = {
+                'basic_info': {
+                    'mid': data['data']['card'].get('mid', ''),
+                    'name': data['data']['card'].get('name', ''),
+                    'sex': data['data']['card'].get('sex', '保密'),
+                    'avatar': data['data']['card'].get('face', ''),
+                    'sign': data['data']['card'].get('sign', ''),
+                    'level': data['data']['card']['level_info']['current_level'] if 'level_info' in data['data'][
+                        'card'] else 0,
+                    'status': '正常' if data['data']['card'].get('spacesta', 0) == 0 else '封禁'
+                },
+                'stats': {
+                    'following': data['data'].get('following', False),
+                    'archive_count': data['data'].get('archive_count', 0),
+                    'follower': data['data'].get('follower', 0),
+                    'like_num': data['data'].get('like_num', 0),
+                    'attention': data['data']['card'].get('attention', 0)  # 关注数
+                },
+                'verification': {
+                    'role': data['data']['card']['Official'].get('role', -1) if 'Official' in data['data'][
+                        'card'] else -1,
+                    'title': data['data']['card']['Official'].get('title', '') if 'Official' in data['data'][
+                        'card'] else '',
+                    'type': data['data']['card']['Official'].get('type', -1) if 'Official' in data['data'][
+                        'card'] else -1
+                },
+                'vip_info': {
+                    'type': data['data']['card']['vip'].get('vipType', 0) if 'vip' in data['data']['card'] else 0,
+                    'status': data['data']['card']['vip'].get('vipStatus', 0) if 'vip' in data['data']['card'] else 0,
+                    'label': data['data']['card']['vip']['label'].get('text', '') if 'vip' in data['data'][
+                        'card'] and 'label' in data['data']['card']['vip'] else ''
+                }
+            }
+
+            # 如果请求了头图
+            if photo and 'space' in data['data']:
+                result['space_image'] = {
+                    'small': data['data']['space'].get('s_img', ''),
+                    'large': data['data']['space'].get('l_img', '')
+                }
+
+            # 添加勋章信息（如果存在）
+            if 'nameplate' in data['data']['card']:
+                result['nameplate'] = {
+                    'id': data['data']['card']['nameplate'].get('nid', 0),
+                    'name': data['data']['card']['nameplate'].get('name', ''),
+                    'image': data['data']['card']['nameplate'].get('image', ''),
+                    'level': data['data']['card']['nameplate'].get('level', '')
+                }
+
+            # 添加挂件信息（如果存在）
+            if 'pendant' in data['data']['card']:
+                result['pendant'] = {
+                    'id': data['data']['card']['pendant'].get('pid', 0),
+                    'name': data['data']['card']['pendant'].get('name', ''),
+                    'image': data['data']['card']['pendant'].get('image', '')
+                }
+
+            return result
+
+        except requests.exceptions.RequestException as e:
+            return {'error': True, 'message': f'网络请求失败: {str(e)}'}
+        except ValueError as e:
+            return {'error': True, 'message': f'JSON解析失败: {str(e)}'}
+        except KeyError as e:
+            return {'error': True, 'message': f'响应数据缺少必要字段: {str(e)}'}
 
     def get_room_base_info(self, room_id: int):
         """
@@ -2459,7 +2620,7 @@ def on_event(event):
     处理推流事件
     """
     logSave(0, f"┏━━━━监测到obs前端事件━━━━━┓")
-    logSave(0, f"┃    监测到obs前端事件     ┃{information4frontend_event[event]}")
+    logSave(0, f"┃　　　　监测到obs前端事件　　　　　┃{information4frontend_event[event]}")
     logSave(0, f"┗━━━━监测到obs前端事件━━━━━┛")
     if event == obs.OBS_FRONTEND_EVENT_STREAMING_STARTED:
         last_status_change = time.time()
@@ -2482,36 +2643,47 @@ def script_defaults(settings):  # 设置其默认值
     调用以设置与脚本关联的默认设置(如果有的话)。为了设置其默认值，您通常会调用默认值函数。
     :param settings:与脚本关联的设置。
     """
-    logSave(0, "╔══════设置控件默认属性══════╗")
-    logSave(0, "║      设置控件默认属性      ║")
-    logSave(0, "╚══════设置控件默认属性══════╝")
-    # obs推流状态
-    GlobalVariableOfTheControl.streaming_active = obs.obs_frontend_streaming_active()
+    logSave(0, f"╔{25*'═'}设置控件默认属性{25*'═'}╗")
+    logSave(0, f"║{25*' '}设置控件默认属性{25*' '}║")
+    # 检查网络连接
+    GlobalVariableOfData.networkConnectionStatus = check_network_connection()
+    if GlobalVariableOfData.networkConnectionStatus:
+        logSave(0, f"║⭐检查网络连接: 网络可用⭐")
+    else:
+        logSave(3, f"║⚠️检查网络连接: 网络不可用❌")
+        return None
 
     # obs脚本中控件的数据
     GlobalVariableOfTheControl.script_settings = settings
+    logSave(0, f"║获取脚本属性集")
+
+    # obs推流状态
+    GlobalVariableOfTheControl.streaming_active = obs.obs_frontend_streaming_active()
+    logSave(0, f"║obs推流状态: {GlobalVariableOfTheControl.streaming_active}")
 
     # 路径变量
+    logSave(0, f"║╔{4 * '═'}路径变量{4 * '═'}╗")
     # #脚本数据保存目录
     GlobalVariableOfData.scripts_data_dirpath = f"{script_path()}bilibili-live"
-    logSave(0, f"脚本用户数据文件夹路径：{GlobalVariableOfData.scripts_data_dirpath}")
+    logSave(0, f"║║脚本用户数据文件夹路径：{GlobalVariableOfData.scripts_data_dirpath}")
     # #脚本用户数据路径
     GlobalVariableOfData.scripts_config_filepath = Path(GlobalVariableOfData.scripts_data_dirpath) / "config.json"
-    logSave(0, f"脚本用户数据路径：{GlobalVariableOfData.scripts_config_filepath}")
+    logSave(0, f"║║脚本用户数据路径：{GlobalVariableOfData.scripts_config_filepath}")
+    # #脚本临时文件夹路径
     GlobalVariableOfData.scripts_temp_dir = Path(GlobalVariableOfData.scripts_data_dirpath) / "temp"
     os.makedirs(GlobalVariableOfData.scripts_temp_dir, exist_ok=True)
-    logSave(0, f"脚本临时文件夹路径：{GlobalVariableOfData.scripts_temp_dir}")
-    GlobalVariableOfData.networkConnectionStatus = check_network_connection()
-    if not GlobalVariableOfData.networkConnectionStatus:
-        logSave(1, f"======= 最终结果: 网络{'可用' if GlobalVariableOfData.networkConnectionStatus else '不可用'} =======")
-        return None
+    logSave(0, f"║║脚本临时文件夹路径：{GlobalVariableOfData.scripts_temp_dir}")
+    logSave(0, f"║╚{4 * '═'}路径变量{4 * '═'}╝")
+
+    # 账号可用性检测
+    logSave(1, f"║是否账号可用性检测：{GlobalVariableOfData.accountAvailabilityDetectionSwitch}")
     if GlobalVariableOfData.accountAvailabilityDetectionSwitch:
-        logSave(1, f"执行账号可用性检测")
+        logSave(1, f"║╔{3 * '═'}账号可用性检测{3 * '═'}╗")
+        logSave(1, f"║║执行账号可用性检测")
         # 创建用户配置文件实例
         b_u_l_c = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
         # 获取 用户配置文件 中 每一个用户 导航栏用户信息 排除空值
-        user_interface_nav4uid = {uid: BilibiliApiMaster(dict2cookie(
-            b_u_l_c.get_cookies(int(uid)))).interface_nav() for uid in [x for x in b_u_l_c.get_users().values() if x]}
+        user_interface_nav4uid = {uid: BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies(int(uid)))).interface_nav() for uid in [x for x in b_u_l_c.get_users().values() if x]}
         # 获取 用户配置文件 中 每一个 用户 的 可用性
         user_is_login4uid = {uid: user_interface_nav4uid[uid]["isLogin"] for uid in user_interface_nav4uid}
         # 删除 用户配置文件 中 不可用 用户
@@ -2519,14 +2691,15 @@ def script_defaults(settings):  # 设置其默认值
         # 获取 用户配置文件 中 每一个 可用 用户 的 昵称
         all_uname4uid = {uid: user_interface_nav4uid[uid]["uname"] for uid in user_is_login4uid if user_is_login4uid[uid]}
         """
-        全部账户的数据
+        全部账户的昵称
         {uid: uname}
         """
         # 输出日志
-        [logSave(1, f"账号：{uid} {'不可用，已删除' if not user_is_login4uid[uid] else '可用'}") for uid in user_is_login4uid]
-        logSave(1, f"可用账号：{str(all_uname4uid)}")
+        [logSave(1, f"║║账号：{BilibiliApiGeneric().get_bilibili_user_card(uid)['basic_info']['name']} {'可用' if user_is_login4uid[uid] else '不可用，已删除'}") for uid in user_is_login4uid]
+        logSave(1, f"║║可用账号：{str(all_uname4uid)}")
         GlobalVariableOfData.accountAvailabilityDetectionSwitch = False
-        logSave(1, f"关闭账号可用性检测")
+        logSave(1, f"║║关闭账号可用性检测")
+        logSave(1, f"║╚{3 * '═'}账号可用性检测{3 * '═'}╝")
 
     # 创建用户配置文件实例
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
@@ -2535,14 +2708,57 @@ def script_defaults(settings):  # 设置其默认值
     # 获取 用户配置文件 中 每一个 用户 的 昵称
     all_uname4uid = {uid: user_interface_nav4uid[uid]["uname"] for uid in user_interface_nav4uid}
     logSave(0, f"载入账号：{str(all_uname4uid)}")
-    DefaultUserInterfaceNav = BilibiliApiMaster(dict2cookie(
-        b_u_l_c.get_cookies())).interface_nav() if b_u_l_c.get_cookies() else None  # 获取 '默认账户' 导航栏用户信息
-    DefaultUname = DefaultUserInterfaceNav["uname"] if b_u_l_c.get_cookies() else None  # 获取默认账号的昵称
+    default_user_interface_nav = BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies())).interface_nav() if b_u_l_c.get_cookies() else None  # 获取 '默认账户' 导航栏用户信息
+    default_uname = default_user_interface_nav["uname"] if b_u_l_c.get_cookies() else None  # 获取默认账号的昵称
     """
     默认用户config["DefaultUser"]的昵称
     没有则为None
     """
-    logSave(0, f"用户：{DefaultUname} 已登录" if b_u_l_c.get_cookies() else f"未登录账号")
+    logSave(0, f"用户：{default_uname} 已登录" if b_u_l_c.get_cookies() else f"未登录账号")
+    # 获取'默认账户'获取用户对应的直播间 状态
+    RoomInfoOld = BilibiliApiGeneric().get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else {}
+    logSave(0, f"根据是否有账号登录：{bool(b_u_l_c.get_cookies())} 获取 登录账户 对应的直播间 状态：数据长度为{len(RoomInfoOld)}")
+    # 获取 默认用户 的 直播间 状态
+    DefaultRoomStatus = RoomInfoOld["roomStatus"] if b_u_l_c.get_cookies() else None
+    """
+    登录的用户的直播间存在状态
+    """
+    logSave(0, f"根据是否有账号登录：{bool(b_u_l_c.get_cookies())} 获取 登录账户 是否有直播间：{DefaultRoomStatus}")
+    # 获取默认用户的 直播间id
+    DefaultRoomid = RoomInfoOld["roomid"] if bool(DefaultRoomStatus) else 0
+    """
+    登录的用户的直播间id
+    """
+    logSave(0, f"根据 登录账户 直播间存在：{bool(DefaultRoomStatus)} 获取 登录账户 的 直播间id：{DefaultRoomid}")
+    # 获取默认用户的 直播状态
+    DefaultLiveStatus = RoomInfoOld["liveStatus"] if bool(DefaultRoomStatus) else None
+    """
+    直播状态
+    0：未开播 1：直播中
+    """
+    logSave(0, f"根据 登录账户 直播间存在：{bool(DefaultRoomStatus)} 获取 登录账户 的 直播状态：{DefaultLiveStatus}")
+    # 获取'默认账户'直播间的基础信息
+    RoomBaseInfo = BilibiliApiGeneric().get_room_base_info(DefaultRoomid) if DefaultRoomStatus else {}
+    # 获取'默认账户'直播间的分区
+    DefaultArea = {
+            "id": RoomBaseInfo["by_room_ids"][str(DefaultRoomid)]["parent_area_id"],
+            "name": RoomBaseInfo["by_room_ids"][str(DefaultRoomid)]["parent_area_name"],
+            "data": {
+                "id": RoomBaseInfo["by_room_ids"][str(DefaultRoomid)]["area_id"],
+                "name": RoomBaseInfo["by_room_ids"][str(DefaultRoomid)]["area_name"],
+            }
+        } if DefaultRoomStatus else {}
+    """
+    默认的直播分区
+    {"id": parent_area_id, "name": parent_area_name, "data":{"id": area_id, "name": area_name}}
+    """
+    logSave(0, f"获取 登录账户 当前直播间分区数据{DefaultArea}")
+    # 获取完整直播分区
+    parentLiveAreaNameByid4dict = {str(AreaObj["id"]): AreaObj["name"] for AreaObj in BilibiliApiGeneric().get_area_obj_list()} | {} if DefaultArea else {"-1": "请选择一级分区"}
+    logSave(0, f"根据 登录账户 当前直播间分区数据存在：{bool(DefaultArea)} 获取 直播间父分区数据{parentLiveAreaNameByid4dict}")
+    subLiveAreaNameByid4dict = {str(subAreaObj["id"]): subAreaObj["name"] for subAreaObj in BilibiliApiGeneric().getsub_live_area_obj_list(DefaultArea['id'])} if DefaultArea else {"-1": "请选择一级分区"}
+    logSave(0, f"根据 登录账户 当前直播间分区数据存在：{bool(DefaultArea)} 获取 登录账户 当前父分区对应的子分区数据{subLiveAreaNameByid4dict}")
+
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # 设置 只读文本框【登录状态】 可见状态
     GlobalVariableOfTheControl.login_status_textBox_visible = True
@@ -2554,7 +2770,7 @@ def script_defaults(settings):  # 设置其默认值
     GlobalVariableOfTheControl.login_status_textBox_type = obs.OBS_TEXT_INFO_NORMAL if b_u_l_c.get_cookies() else obs.OBS_TEXT_INFO_WARNING
     logSave(0, f"根据是否有账号登录：{bool(b_u_l_c.get_cookies())} 设置 只读文本框【登录状态】 信息类型：{textBox_type_name4textBox_type[GlobalVariableOfTheControl.login_status_textBox_type]}")
     # 设置 只读文本框【登录状态】 内容
-    GlobalVariableOfTheControl.login_status_textBox_string = f'{DefaultUname} 已登录' if b_u_l_c.get_cookies() else '未登录，请登录后点击【更新账号列表】'
+    GlobalVariableOfTheControl.login_status_textBox_string = f'{default_uname} 已登录' if b_u_l_c.get_cookies() else '未登录，请登录后点击【更新账号列表】'
     logSave(0, f"根据是否有账号登录：{bool(b_u_l_c.get_cookies())} 设置 只读文本框【登录状态】 内容：{GlobalVariableOfTheControl.login_status_textBox_string}")
 
     # 设置 组合框【用户】 可见状态
@@ -2567,7 +2783,7 @@ def script_defaults(settings):  # 设置其默认值
     GlobalVariableOfTheControl.uid_comboBox_dict = {uid or '-1': all_uname4uid.get(uid, '添加或选择一个账号登录') for uid in b_u_l_c.get_users().values()}
     logSave(0, f"设置 组合框【用户】 数据字典：{str(GlobalVariableOfTheControl.uid_comboBox_dict)}")
     # 设置 组合框【用户】 默认显示内容
-    GlobalVariableOfTheControl.uid_comboBox_string = DefaultUname if b_u_l_c.get_cookies() else '添加或选择一个账号登录'
+    GlobalVariableOfTheControl.uid_comboBox_string = default_uname if b_u_l_c.get_cookies() else '添加或选择一个账号登录'
     logSave(0, f"根据是否有账号登录：{bool(b_u_l_c.get_cookies())} 设置 组合框【用户】 内容：{GlobalVariableOfTheControl.uid_comboBox_string}")
     # 设置 组合框【用户】 默认显示内容 的 列表值
     GlobalVariableOfTheControl.uid_comboBox_value = b_u_l_c.get_users()[0] if b_u_l_c.get_cookies() else '-1'
@@ -2630,52 +2846,6 @@ def script_defaults(settings):  # 设置其默认值
     logSave(0, f"根据 是否有账户：{str(bool(all_uname4uid))}，是否登录：{str(bool(b_u_l_c.get_cookies()))}，设置 按钮【登出账号】 可用状态：{str(GlobalVariableOfTheControl.logout_button_enabled)}")
 
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    # 创建用户配置文件实例
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
-    # 获取'默认账户'获取用户对应的直播间 状态
-    RoomInfoOld = BilibiliApiGeneric().get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else {}
-    logSave(0, f"根据是否有账号登录：{bool(b_u_l_c.get_cookies())} 获取 登录账户 对应的直播间 状态：数据长度为{len(RoomInfoOld)}")
-    # 获取 默认用户 的 直播间 状态
-    DefaultRoomStatus = RoomInfoOld["roomStatus"] if b_u_l_c.get_cookies() else None
-    """
-    登录的用户的直播间存在状态
-    """
-    logSave(0, f"根据是否有账号登录：{bool(b_u_l_c.get_cookies())} 获取 登录账户 是否有直播间：{DefaultRoomStatus}")
-    # 获取默认用户的 直播间id
-    DefaultRoomid = RoomInfoOld["roomid"] if bool(DefaultRoomStatus) else 0
-    """
-    登录的用户的直播间id
-    """
-    logSave(0, f"根据 登录账户 直播间存在：{bool(DefaultRoomStatus)} 获取 登录账户 的 直播间id：{DefaultRoomid}")
-    # 获取默认用户的 直播状态
-    DefaultLiveStatus = RoomInfoOld["liveStatus"] if bool(DefaultRoomStatus) else None
-    """
-    直播状态
-    0：未开播 1：直播中
-    """
-    logSave(0, f"根据 登录账户 直播间存在：{bool(DefaultRoomStatus)} 获取 登录账户 的 直播状态：{DefaultLiveStatus}")
-    # 获取'默认账户'直播间的基础信息
-    RoomBaseInfo = BilibiliApiGeneric().get_room_base_info(DefaultRoomid) if DefaultRoomStatus else {}
-    # 获取'默认账户'直播间的分区
-    DefaultArea = {
-            "id": RoomBaseInfo["by_room_ids"][str(DefaultRoomid)]["parent_area_id"],
-            "name": RoomBaseInfo["by_room_ids"][str(DefaultRoomid)]["parent_area_name"],
-            "data": {
-                "id": RoomBaseInfo["by_room_ids"][str(DefaultRoomid)]["area_id"],
-                "name": RoomBaseInfo["by_room_ids"][str(DefaultRoomid)]["area_name"],
-            }
-        } if DefaultRoomStatus else {}
-    """
-    默认的直播分区
-    {"id": parent_area_id, "name": parent_area_name, "data":{"id": area_id, "name": area_name}}
-    """
-    logSave(0, f"获取 登录账户 当前直播间分区数据{DefaultArea}")
-    # 获取完整直播分区
-    parentLiveAreaNameByid4dict = {str(AreaObj["id"]): AreaObj["name"] for AreaObj in BilibiliApiGeneric().get_area_obj_list()} | {} if DefaultArea else {"-1": "请选择一级分区"}
-    logSave(0, f"根据 登录账户 当前直播间分区数据存在：{bool(DefaultArea)} 获取 直播间父分区数据{parentLiveAreaNameByid4dict}")
-    subLiveAreaNameByid4dict = {str(subAreaObj["id"]): subAreaObj["name"] for subAreaObj in BilibiliApiGeneric().getsub_live_area_obj_list(DefaultArea['id'])} if DefaultArea else {"-1": "请选择一级分区"}
-    logSave(0, f"根据 登录账户 当前直播间分区数据存在：{bool(DefaultArea)} 获取 登录账户 当前父分区对应的子分区数据{subLiveAreaNameByid4dict}")
-
     # 设置 只读文本框【直播间 状态】 可见状态
     GlobalVariableOfTheControl.room_status_textBox_visible = True
     logSave(0, f"设置 按钮【查看直播间封面】 可见状态：{str(GlobalVariableOfTheControl.room_status_textBox_visible)}")
@@ -2855,6 +3025,8 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【结束直播】 可用状态
     GlobalVariableOfTheControl.stop_live_button_enabled = True if (DefaultLiveStatus and DefaultRoomStatus) else False
     logSave(0, f"根据直播间存在：{str(bool(DefaultRoomStatus))}，直播状态{str(bool(DefaultRoomStatus))}，设置 按钮【结束直播】 可用状态：{str(GlobalVariableOfTheControl.stop_live_button_enabled)}")
+    logSave(0, f"║{25*' '}设置控件默认属性{25*' '}║")
+    logSave(0, f"╚{25*'═'}设置控件默认属性{25*'═'}╝")
 
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -2882,13 +3054,13 @@ def script_load(settings):
     相反，该参数用于脚本中可能使用的任何额外的内部设置数据。
     :param settings:与脚本关联的设置。
     """
-    logSave(0, "╔═════════════════════════╗")
-    logSave(0, "║　　已载入: bilibili_live  ║")
-    logSave(0, "╚═════════════════════════╝")
+    logSave(0, "╔══已载入: bilibili_live══╗")
+    logSave(0, "║  已载入: bilibili_live  ║")
+    logSave(0, "╚══已载入: bilibili_live══╝")
     # 注册事件回调
-    logSave(0, "╭───────────────╮")
-    logSave(0, "│　开始监视obs事件 │")
-    logSave(0, "╰───────────────╯")
+    logSave(0, "┌──开始监视obs事件──┐")
+    logSave(0, "│  开始监视obs事件  │")
+    logSave(0, "└──开始监视obs事件──┘")
     obs.obs_frontend_add_event_callback(on_event)
     # obs_data_t 类型的数据对象。这个数据对象可以用来存储和管理设置项，例如场景、源或过滤器的配置信息
     # settings = obs.obs_data_create()
@@ -2902,9 +3074,9 @@ def script_update(settings):
     不要在这里控制控件的【可见】、【可用】、【值】和【名称】
     :param settings:与脚本关联的设置。
     """
-    logSave(0, "╔══════════════════════╗")
-    logSave(0, "║　　　监测到控件数据变动   ║")
-    logSave(0, "╚══════════════════════╝")
+    logSave(0, "╔════监测到控件数据变动════╗")
+    logSave(0, "║    监测到控件数据变动    ║")
+    logSave(0, "╚════监测到控件数据变动════╝")
     pass
 
 
@@ -2917,8 +3089,8 @@ def script_properties():  # 建立控件
     Returns:通过 obs_properties_create() 创建的 Obs_properties_t 对象
     obs_properties_t 类型的属性对象。这个属性对象通常用于枚举 libobs 对象的可用设置，
     """
-    logSave(0, f"╔══════════════════════════════════════════════════════════════════════════════════════════╗")
-    logSave(0, f"║                          调用内置函数script_properties调整脚本控件                            ║")
+    logSave(0, f"╔{'═'*20}调用内置函数script_properties调整脚本控件{'═'*20}╗")
+    logSave(0, f"║{' '*20}调用内置函数script_properties调整脚本控件{' '*20}║")
     # 网络连通
     if not GlobalVariableOfData.networkConnectionStatus:
         return None
@@ -3053,20 +3225,13 @@ def script_properties():  # 建立控件
     # ————————————————————————————————————————————————————————————————————————————————
     # 更新UI界面数据#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
     GlobalVariableOfTheControl.isScript_propertiesNum += 1
-    if GlobalVariableOfTheControl.isScript_propertiesNum <= 1:
-        logSave(0, f"╒══════════════════创建初始控件════════════════╕")
-        logSave(0, f"│                  创建初始控件                │")
-        update_ui_interface_data(is_script_properties=True)
-        logSave(0, f"│                  创建初始控件                │")
-        logSave(0, f"╘══════════════════创建初始控件════════════════╛")
-    else:
-        logSave(0, f"╒══════════════════载入控件UI数据════════════════╕")
-        logSave(0, f"│                  载入控件UI数据                │")
-        update_ui_interface_data(is_script_properties=True)
-        logSave(0, f"│                  载入控件UI数据                │")
-        logSave(0, f"╘══════════════════载入控件UI数据════════════════╛")
-    logSave(0, f"║                          调用内置函数script_properties调整脚本控件                          ║")
-    logSave(0, f"╚══════════════════════════调用内置函数script_properties调整脚本控件══════════════════════════╝")
+    logSave(0, f"╒{'═'*30}{'创建初始控件' if GlobalVariableOfTheControl.isScript_propertiesNum <= 1 else '载入控件UI数据'}{'═'*30}╕")
+    logSave(0, f"│{' '*30}{'创建初始控件' if GlobalVariableOfTheControl.isScript_propertiesNum <= 1 else '载入控件UI数据'}{' '*30}│")
+    update_ui_interface_data(is_script_properties=True)
+    logSave(0, f"│{' '*30}{'创建初始控件' if GlobalVariableOfTheControl.isScript_propertiesNum <= 1 else '载入控件UI数据'}{' '*30}│")
+    logSave(0, f"╘{'═'*30}{'创建初始控件' if GlobalVariableOfTheControl.isScript_propertiesNum <= 1 else '载入控件UI数据'}{'═'*30}╛")
+    logSave(0, f"║{' '*20}调用内置函数script_properties调整脚本控件{' '*20}║")
+    logSave(0, f"╚{'═'*20}调用内置函数script_properties调整脚本控件{'═'*20}╝")
     return GlobalVariableOfTheControl.props
 
 
@@ -3076,457 +3241,458 @@ def update_ui_interface_data(is_script_properties=False):
     Returns:
     """
     if is_script_properties:
-        logSave(0, f"╱─────────────────────────────────────────────────────────╲")
-        logSave(0, f"│由于[Script_properties]而被调用[updateTheUIInterfaceData]   │")
+        logSave(0, f"╱──由于[Script_properties]而被调用[updateTheUIInterfaceData]──╲")
+        logSave(0, f"　│ 由于[Script_properties]而被调用[updateTheUIInterfaceData] │")
 
     # 只读文本框【登录状态】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│只读文本框【登录状态】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│只读文本框【登录状态】 UI")
     # 设置 只读文本框【登录状态】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.login_status_textBox) != GlobalVariableOfTheControl.login_status_textBox_visible:
-        logSave(0, f"│只读文本框【登录状态】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.login_status_textBox)}➡️{GlobalVariableOfTheControl.login_status_textBox_visible}")
+        logSave(0, f"　│只读文本框【登录状态】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.login_status_textBox)}➡️{GlobalVariableOfTheControl.login_status_textBox_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.login_status_textBox, GlobalVariableOfTheControl.login_status_textBox_visible)
     # 设置 只读文本框【登录状态】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.login_status_textBox) != GlobalVariableOfTheControl.login_status_textBox_enabled:
-        logSave(0, f"│只读文本框【登录状态】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.login_status_textBox)}➡️{GlobalVariableOfTheControl.login_status_textBox_enabled}")
+        logSave(0, f"　│只读文本框【登录状态】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.login_status_textBox)}➡️{GlobalVariableOfTheControl.login_status_textBox_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.login_status_textBox, GlobalVariableOfTheControl.login_status_textBox_enabled)
     # 设置 只读文本框【登录状态】 信息类型
     if obs.obs_property_text_info_type(GlobalVariableOfTheControl.login_status_textBox) != GlobalVariableOfTheControl.login_status_textBox_type:
-        logSave(0, f"│只读文本框【登录状态】 信息类型 发生变动: {textBox_type_name4textBox_type[obs.obs_property_text_info_type(GlobalVariableOfTheControl.login_status_textBox)]}➡️{textBox_type_name4textBox_type[GlobalVariableOfTheControl.login_status_textBox_type]}")
+        logSave(0, f"　│只读文本框【登录状态】 信息类型 发生变动: {textBox_type_name4textBox_type[obs.obs_property_text_info_type(GlobalVariableOfTheControl.login_status_textBox)]}➡️{textBox_type_name4textBox_type[GlobalVariableOfTheControl.login_status_textBox_type]}")
         obs.obs_property_text_set_info_type(GlobalVariableOfTheControl.login_status_textBox, GlobalVariableOfTheControl.login_status_textBox_type)
     # 设置 只读文本框【登录状态】 文本
     if obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'login_status_textBox') != GlobalVariableOfTheControl.login_status_textBox_string:
-        logSave(0, f"│只读文本框【登录状态】 文本 发生变动: {obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'login_status_textBox')}➡️{GlobalVariableOfTheControl.login_status_textBox_string}")
+        logSave(0, f"　│只读文本框【登录状态】 文本 发生变动: {obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'login_status_textBox')}➡️{GlobalVariableOfTheControl.login_status_textBox_string}")
         obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, 'login_status_textBox', f'{GlobalVariableOfTheControl.login_status_textBox_string}')
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # 组合框【用户】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│组合框【用户】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│组合框【用户】 UI")
     # 设置 组合框【用户】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.uid_comboBox) != GlobalVariableOfTheControl.uid_comboBox_visible:
-        logSave(0, f"│组合框【用户】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.uid_comboBox)}➡️{GlobalVariableOfTheControl.uid_comboBox_visible}")
+        logSave(0, f"　│组合框【用户】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.uid_comboBox)}➡️{GlobalVariableOfTheControl.uid_comboBox_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.uid_comboBox, GlobalVariableOfTheControl.uid_comboBox_visible)
     # 设置 组合框【用户】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.uid_comboBox) != GlobalVariableOfTheControl.uid_comboBox_enabled:
-        logSave(0, f"│组合框【用户】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.uid_comboBox)}➡️{GlobalVariableOfTheControl.uid_comboBox_enabled}")
+        logSave(0, f"　│组合框【用户】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.uid_comboBox)}➡️{GlobalVariableOfTheControl.uid_comboBox_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.uid_comboBox, GlobalVariableOfTheControl.uid_comboBox_enabled)
     # 判断 组合框【用户】字典数据 和 当前数据是否有变化
     if GlobalVariableOfTheControl.uid_comboBox_dict != {obs.obs_property_list_item_string(GlobalVariableOfTheControl.uid_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.uid_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.uid_comboBox))}:
-        logSave(0, f"│组合框【用户】数据发生变动：{len({obs.obs_property_list_item_string(GlobalVariableOfTheControl.uid_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.uid_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.uid_comboBox))})}个元素➡️{len(GlobalVariableOfTheControl.uid_comboBox_dict)}个元素")
+        logSave(0, f"　│组合框【用户】数据发生变动：{len({obs.obs_property_list_item_string(GlobalVariableOfTheControl.uid_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.uid_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.uid_comboBox))})}个元素➡️{len(GlobalVariableOfTheControl.uid_comboBox_dict)}个元素")
         # 清空 组合框【用户】
-        logSave(0, f"│更新 组合框【用户】数据 第一步：清空 组合框【用户】")
+        logSave(0, f"　│更新 组合框【用户】数据 第一步：清空 组合框【用户】")
         obs.obs_property_list_clear(GlobalVariableOfTheControl.uid_comboBox)
         # 添加 组合框【用户】 列表选项  默认值会被设置在第一位
-        logSave(0, f"│更新 组合框【用户】数据 第二步：添加 组合框【用户】 列表选项  如果有默认值，会被设置在第一位")
+        logSave(0, f"　│更新 组合框【用户】数据 第二步：添加 组合框【用户】 列表选项  如果有默认值，会被设置在第一位")
         for uid in GlobalVariableOfTheControl.uid_comboBox_dict:
             obs.obs_property_list_add_string(GlobalVariableOfTheControl.uid_comboBox, GlobalVariableOfTheControl.uid_comboBox_dict[uid], uid) if uid != GlobalVariableOfTheControl.uid_comboBox_value else obs.obs_property_list_insert_string(GlobalVariableOfTheControl.uid_comboBox, 0, GlobalVariableOfTheControl.uid_comboBox_string, GlobalVariableOfTheControl.uid_comboBox_value)
         # 设置 组合框【用户】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
-        logSave(0, f"│更新 组合框【用户】数据 第三步：更新 组合框【用户】 文本")
+        logSave(0, f"　│更新 组合框【用户】数据 第三步：更新 组合框【用户】 文本")
         obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, 'uid_comboBox', obs.obs_property_list_item_string(GlobalVariableOfTheControl.uid_comboBox, 0))
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # 按钮【登录账号】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│按钮【登录账号】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│按钮【登录账号】 UI")
     # 设置 按钮【登录账号】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.login_button) != GlobalVariableOfTheControl.login_button_visible:
-        logSave(0, f"│按钮【登录账号】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.login_button)}➡️{GlobalVariableOfTheControl.login_button_visible}")
+        logSave(0, f"　│按钮【登录账号】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.login_button)}➡️{GlobalVariableOfTheControl.login_button_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.login_button, GlobalVariableOfTheControl.login_button_visible)
     # 设置 按钮【登录账号】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.login_button) != GlobalVariableOfTheControl.login_button_enabled:
-        logSave(0, f"│按钮【登录账号】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.login_button)}➡️{GlobalVariableOfTheControl.login_button_enabled}")
+        logSave(0, f"　│按钮【登录账号】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.login_button)}➡️{GlobalVariableOfTheControl.login_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.login_button, GlobalVariableOfTheControl.login_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # 按钮【二维码添加账户】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│按钮【二维码添加账户】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│按钮【二维码添加账户】 UI")
     # 设置 按钮【二维码添加账户】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.qr_add_account_button) != GlobalVariableOfTheControl.qr_add_account_button_visible:
-        logSave(0, f"│按钮【二维码添加账户】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.qr_add_account_button)}➡️{GlobalVariableOfTheControl.qr_add_account_button_visible}")
+        logSave(0, f"　│按钮【二维码添加账户】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.qr_add_account_button)}➡️{GlobalVariableOfTheControl.qr_add_account_button_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.qr_add_account_button, GlobalVariableOfTheControl.qr_add_account_button_visible)
     # 设置 按钮【二维码添加账户】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.qr_add_account_button) != GlobalVariableOfTheControl.qr_add_account_button_enabled:
-        logSave(0, f"│按钮【二维码添加账户】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.qr_add_account_button)}➡️{GlobalVariableOfTheControl.qr_add_account_button_enabled}")
+        logSave(0, f"　│按钮【二维码添加账户】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.qr_add_account_button)}➡️{GlobalVariableOfTheControl.qr_add_account_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.qr_add_account_button, GlobalVariableOfTheControl.qr_add_account_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # 按钮【显示二维码图片】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│按钮【显示二维码图片】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│按钮【显示二维码图片】 UI")
     # 设置 按钮【显示二维码图片】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.display_qr_picture_button) != GlobalVariableOfTheControl.display_qr_picture_button_visible:
-        logSave(0, f"│按钮【显示二维码图片】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.display_qr_picture_button)}➡️{GlobalVariableOfTheControl.display_qr_picture_button_visible}")
+        logSave(0, f"　│按钮【显示二维码图片】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.display_qr_picture_button)}➡️{GlobalVariableOfTheControl.display_qr_picture_button_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.display_qr_picture_button, GlobalVariableOfTheControl.display_qr_picture_button_visible)
     # 设置 按钮【显示二维码图片】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.display_qr_picture_button) != GlobalVariableOfTheControl.display_qr_picture_button_enabled:
-        logSave(0, f"│按钮【显示二维码图片】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.display_qr_picture_button)}➡️{GlobalVariableOfTheControl.display_qr_picture_button_enabled}")
+        logSave(0, f"　│按钮【显示二维码图片】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.display_qr_picture_button)}➡️{GlobalVariableOfTheControl.display_qr_picture_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.display_qr_picture_button, GlobalVariableOfTheControl.display_qr_picture_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # 按钮【删除账户】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│按钮【删除账户】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│按钮【删除账户】 UI")
     # 设置 按钮【删除账户】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.delete_account_button) != GlobalVariableOfTheControl.delete_account_button_visible:
-        logSave(0, f"│按钮【删除账户】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.delete_account_button)}➡️{GlobalVariableOfTheControl.delete_account_button_visible}")
+        logSave(0, f"　│按钮【删除账户】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.delete_account_button)}➡️{GlobalVariableOfTheControl.delete_account_button_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.delete_account_button, GlobalVariableOfTheControl.delete_account_button_visible)
     # 设置 按钮【删除账户】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.delete_account_button) != GlobalVariableOfTheControl.delete_account_button_enabled:
-        logSave(0, f"│按钮【删除账户】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.delete_account_button)}➡️{GlobalVariableOfTheControl.delete_account_button_enabled}")
+        logSave(0, f"　│按钮【删除账户】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.delete_account_button)}➡️{GlobalVariableOfTheControl.delete_account_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.delete_account_button, GlobalVariableOfTheControl.delete_account_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # 按钮【备份账户】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│按钮【备份账户】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│按钮【备份账户】 UI")
     # 设置 按钮【备份账户】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.backup_account_button) != GlobalVariableOfTheControl.backup_account_button_visible:
-        logSave(0, f"│按钮【备份账户】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.backup_account_button)}➡️{GlobalVariableOfTheControl.backup_account_button_visible}")
+        logSave(0, f"　│按钮【备份账户】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.backup_account_button)}➡️{GlobalVariableOfTheControl.backup_account_button_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.backup_account_button, GlobalVariableOfTheControl.backup_account_button_visible)
     # 设置 按钮【备份账户】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.backup_account_button) != GlobalVariableOfTheControl.backup_account_button_enabled:
-        logSave(0, f"│按钮【备份账户】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.backup_account_button)}➡️{GlobalVariableOfTheControl.backup_account_button_enabled}")
+        logSave(0, f"　│按钮【备份账户】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.backup_account_button)}➡️{GlobalVariableOfTheControl.backup_account_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.backup_account_button, GlobalVariableOfTheControl.backup_account_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # 按钮【恢复账户】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│按钮【恢复账户】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│按钮【恢复账户】 UI")
     # 设置 按钮【恢复账户】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.restore_account_button) != GlobalVariableOfTheControl.restore_account_button_visible:
-        logSave(0, f"│按钮【恢复账户】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.restore_account_button)}➡️{GlobalVariableOfTheControl.restore_account_button_visible}")
+        logSave(0, f"　│按钮【恢复账户】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.restore_account_button)}➡️{GlobalVariableOfTheControl.restore_account_button_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.restore_account_button, GlobalVariableOfTheControl.restore_account_button_visible)
     # 设置 按钮【恢复账户】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.restore_account_button) != GlobalVariableOfTheControl.restore_account_button_enabled:
-        logSave(0, f"│按钮【恢复账户】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.restore_account_button)}➡️{GlobalVariableOfTheControl.restore_account_button_enabled}")
+        logSave(0, f"　│按钮【恢复账户】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.restore_account_button)}➡️{GlobalVariableOfTheControl.restore_account_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.restore_account_button, GlobalVariableOfTheControl.restore_account_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # 按钮【登出账号】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│按钮【登出账号】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│按钮【登出账号】 UI")
     # 设置 按钮【登出账号】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.logout_button) != GlobalVariableOfTheControl.logout_button_visible:
-        logSave(0, f"│按钮【登出账号】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.logout_button)}➡️{GlobalVariableOfTheControl.logout_button_visible}")
+        logSave(0, f"　│按钮【登出账号】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.logout_button)}➡️{GlobalVariableOfTheControl.logout_button_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.logout_button, GlobalVariableOfTheControl.logout_button_visible)
     # 设置 按钮【登出账号】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.logout_button) != GlobalVariableOfTheControl.logout_button_enabled:
-        logSave(0, f"│按钮【登出账号】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.logout_button)}➡️{GlobalVariableOfTheControl.logout_button_enabled}")
+        logSave(0, f"　│按钮【登出账号】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.logout_button)}➡️{GlobalVariableOfTheControl.logout_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.logout_button, GlobalVariableOfTheControl.logout_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # ————————————————————————————————————————————————————————————————
     # 只读文本框【直播间 状态】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│只读文本框【直播间 状态】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│只读文本框【直播间 状态】 UI")
     # 设置 只读文本框【直播间 状态】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.room_status_textBox) != GlobalVariableOfTheControl.room_status_textBox_visible:
-        logSave(0, f"│只读文本框【直播间 状态】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.room_status_textBox)}➡️{GlobalVariableOfTheControl.room_status_textBox_visible}")
+        logSave(0, f"　│只读文本框【直播间 状态】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.room_status_textBox)}➡️{GlobalVariableOfTheControl.room_status_textBox_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.room_status_textBox, GlobalVariableOfTheControl.room_status_textBox_visible)
     # 设置 只读文本框【直播间 状态】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.room_status_textBox) != GlobalVariableOfTheControl.room_status_textBox_enabled:
-        logSave(0, f"│只读文本框【直播间 状态】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.room_status_textBox)}➡️{GlobalVariableOfTheControl.room_status_textBox_enabled}")
+        logSave(0, f"　│只读文本框【直播间 状态】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.room_status_textBox)}➡️{GlobalVariableOfTheControl.room_status_textBox_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.room_status_textBox, GlobalVariableOfTheControl.room_status_textBox_enabled)
     # 设置 只读文本框【直播间 状态】 信息类型
     if obs.obs_property_text_info_type(GlobalVariableOfTheControl.room_status_textBox) != GlobalVariableOfTheControl.room_status_textBox_type:
-        logSave(0, f"│只读文本框【直播间 状态】 信息类型 发生变动: {textBox_type_name4textBox_type[obs.obs_property_text_info_type(GlobalVariableOfTheControl.room_status_textBox)]}➡️{textBox_type_name4textBox_type[GlobalVariableOfTheControl.room_status_textBox_type]}")
+        logSave(0, f"　│只读文本框【直播间 状态】 信息类型 发生变动: {textBox_type_name4textBox_type[obs.obs_property_text_info_type(GlobalVariableOfTheControl.room_status_textBox)]}➡️{textBox_type_name4textBox_type[GlobalVariableOfTheControl.room_status_textBox_type]}")
         obs.obs_property_text_set_info_type(GlobalVariableOfTheControl.room_status_textBox, GlobalVariableOfTheControl.room_status_textBox_type)
     # 设置 只读文本框【直播间 状态】 文本
     if obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'room_status_textBox') != GlobalVariableOfTheControl.room_status_textBox_string:
-        logSave(0, f"│只读文本框【直播间 状态】 文本 发生变动: {obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'room_status_textBox')}➡️{GlobalVariableOfTheControl.room_status_textBox_string}")
+        logSave(0, f"　│只读文本框【直播间 状态】 文本 发生变动: {obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'room_status_textBox')}➡️{GlobalVariableOfTheControl.room_status_textBox_string}")
         obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, "room_status_textBox", GlobalVariableOfTheControl.room_status_textBox_string)
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # 按钮【查看直播间封面】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│按钮【查看直播间封面】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│按钮【查看直播间封面】 UI")
     # 设置 按钮【查看直播间封面】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.viewLiveCover_button) != GlobalVariableOfTheControl.viewLiveCover_button_visible:
-        logSave(0, f"│按钮【查看直播间封面】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.viewLiveCover_button)}➡️{GlobalVariableOfTheControl.viewLiveCover_button_visible}")
+        logSave(0, f"　│按钮【查看直播间封面】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.viewLiveCover_button)}➡️{GlobalVariableOfTheControl.viewLiveCover_button_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.viewLiveCover_button, GlobalVariableOfTheControl.viewLiveCover_button_visible)
     # 设置 按钮【查看直播间封面】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.viewLiveCover_button) != GlobalVariableOfTheControl.viewLiveCover_button_enabled:
-        logSave(0, f"│按钮【查看直播间封面】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.viewLiveCover_button)}➡️{GlobalVariableOfTheControl.viewLiveCover_button_enabled}")
+        logSave(0, f"　│按钮【查看直播间封面】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.viewLiveCover_button)}➡️{GlobalVariableOfTheControl.viewLiveCover_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.viewLiveCover_button, GlobalVariableOfTheControl.viewLiveCover_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # 文件对话框【直播间封面】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│文件对话框【直播间封面】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│文件对话框【直播间封面】 UI")
     # 设置 文件对话框【直播间封面】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.room_cover_fileDialogBox) != GlobalVariableOfTheControl.room_cover_fileDialogBox_visible:
-        logSave(0, f"│文件对话框【直播间封面】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.room_cover_fileDialogBox)}➡️{GlobalVariableOfTheControl.room_cover_fileDialogBox_visible}")
+        logSave(0, f"　│文件对话框【直播间封面】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.room_cover_fileDialogBox)}➡️{GlobalVariableOfTheControl.room_cover_fileDialogBox_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.room_cover_fileDialogBox, GlobalVariableOfTheControl.room_cover_fileDialogBox_visible)
     # 设置 文件对话框【直播间封面】 文件路径
     if obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'room_cover_fileDialogBox') != GlobalVariableOfTheControl.room_cover_fileDialogBox_string:
-        logSave(0, f"│文件对话框【直播间封面】 文件路径 发生变动: {obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'room_cover_fileDialogBox')}➡️{GlobalVariableOfTheControl.room_cover_fileDialogBox_string}")
+        logSave(0, f"　│文件对话框【直播间封面】 文件路径 发生变动: {obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'room_cover_fileDialogBox')}➡️{GlobalVariableOfTheControl.room_cover_fileDialogBox_string}")
         obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, "room_cover_fileDialogBox", GlobalVariableOfTheControl.room_cover_fileDialogBox_string)
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # 按钮【上传直播间封面】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│按钮【上传直播间封面】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│按钮【上传直播间封面】 UI")
     # 设置 按钮【上传直播间封面】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.room_cover_update_button) != GlobalVariableOfTheControl.room_cover_update_button_visible:
-        logSave(0, f"│按钮【上传直播间封面】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.room_cover_update_button)}➡️{GlobalVariableOfTheControl.room_cover_update_button_visible}")
+        logSave(0, f"　│按钮【上传直播间封面】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.room_cover_update_button)}➡️{GlobalVariableOfTheControl.room_cover_update_button_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.room_cover_update_button, GlobalVariableOfTheControl.room_cover_update_button_visible)
     # 设置 按钮【上传直播间封面】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.room_cover_update_button) != GlobalVariableOfTheControl.room_cover_update_button_enabled:
-        logSave(0, f"│按钮【上传直播间封面】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.room_cover_update_button)}➡️{GlobalVariableOfTheControl.room_cover_update_button_enabled}")
+        logSave(0, f"　│按钮【上传直播间封面】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.room_cover_update_button)}➡️{GlobalVariableOfTheControl.room_cover_update_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.room_cover_update_button, GlobalVariableOfTheControl.room_cover_update_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # 普通文本框【直播间标题】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│普通文本框【直播间标题】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│普通文本框【直播间标题】 UI")
     # 设置 普通文本框【直播间标题】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.liveRoom_title_textBox) != GlobalVariableOfTheControl.liveRoom_title_textBox_visible:
-        logSave(0, f"│普通文本框【直播间标题】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.liveRoom_title_textBox)}➡️{GlobalVariableOfTheControl.liveRoom_title_textBox_visible}")
+        logSave(0, f"　│普通文本框【直播间标题】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.liveRoom_title_textBox)}➡️{GlobalVariableOfTheControl.liveRoom_title_textBox_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.liveRoom_title_textBox, GlobalVariableOfTheControl.liveRoom_title_textBox_visible)
     # 设置 普通文本框【直播间标题】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.liveRoom_title_textBox) != GlobalVariableOfTheControl.liveRoom_title_textBox_enabled:
-        logSave(0, f"│普通文本框【直播间标题】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.liveRoom_title_textBox)}➡️{GlobalVariableOfTheControl.liveRoom_title_textBox_enabled}")
+        logSave(0, f"　│普通文本框【直播间标题】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.liveRoom_title_textBox)}➡️{GlobalVariableOfTheControl.liveRoom_title_textBox_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.liveRoom_title_textBox, GlobalVariableOfTheControl.liveRoom_title_textBox_enabled)
     # 设置 普通文本框【直播间标题】 文本
     if obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'liveRoom_title_textBox') != GlobalVariableOfTheControl.liveRoom_title_textBox_string:
-        logSave(0, f"│普通文本框【直播间标题】 文本 发生变动: {obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'liveRoom_title_textBox')}➡️{GlobalVariableOfTheControl.liveRoom_title_textBox_string}")
+        logSave(0, f"　│普通文本框【直播间标题】 文本 发生变动: {obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'liveRoom_title_textBox')}➡️{GlobalVariableOfTheControl.liveRoom_title_textBox_string}")
         obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, "liveRoom_title_textBox", GlobalVariableOfTheControl.liveRoom_title_textBox_string)
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # 按钮【更改直播间标题】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│按钮【更改直播间标题】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│按钮【更改直播间标题】 UI")
     # 设置 按钮【更改直播间标题】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.change_liveRoom_title_button) != GlobalVariableOfTheControl.change_liveRoom_title_button_visible:
-        logSave(0, f"│按钮【更改直播间标题】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.change_liveRoom_title_button)}➡️{GlobalVariableOfTheControl.change_liveRoom_title_button_visible}")
+        logSave(0, f"　│按钮【更改直播间标题】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.change_liveRoom_title_button)}➡️{GlobalVariableOfTheControl.change_liveRoom_title_button_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.change_liveRoom_title_button, GlobalVariableOfTheControl.change_liveRoom_title_button_visible)
     # 设置 按钮【更改直播间标题】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.change_liveRoom_title_button) != GlobalVariableOfTheControl.change_liveRoom_title_button_enabled:
-        logSave(0, f"│按钮【更改直播间标题】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.change_liveRoom_title_button)}➡️{GlobalVariableOfTheControl.change_liveRoom_title_button_enabled}")
+        logSave(0, f"　│按钮【更改直播间标题】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.change_liveRoom_title_button)}➡️{GlobalVariableOfTheControl.change_liveRoom_title_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.change_liveRoom_title_button, GlobalVariableOfTheControl.change_liveRoom_title_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # 普通文本框【直播间公告】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│普通文本框【直播间公告】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│普通文本框【直播间公告】 UI")
     # 设置 普通文本框【直播间公告】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.liveRoom_news_textBox) != GlobalVariableOfTheControl.liveRoom_news_textBox_visible:
-        logSave(0, f"│普通文本框【直播间公告】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.liveRoom_news_textBox)}➡️{GlobalVariableOfTheControl.liveRoom_news_textBox_visible}")
+        logSave(0, f"　│普通文本框【直播间公告】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.liveRoom_news_textBox)}➡️{GlobalVariableOfTheControl.liveRoom_news_textBox_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.liveRoom_news_textBox, GlobalVariableOfTheControl.liveRoom_news_textBox_visible)
     # 设置 普通文本框【直播间公告】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.liveRoom_news_textBox) != GlobalVariableOfTheControl.liveRoom_news_textBox_enabled:
-        logSave(0, f"│普通文本框【直播间公告】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.liveRoom_news_textBox)}➡️{GlobalVariableOfTheControl.liveRoom_news_textBox_enabled}")
+        logSave(0, f"　│普通文本框【直播间公告】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.liveRoom_news_textBox)}➡️{GlobalVariableOfTheControl.liveRoom_news_textBox_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.liveRoom_news_textBox, GlobalVariableOfTheControl.liveRoom_news_textBox_enabled)
     # 设置 普通文本框【直播间公告】 文本
     if obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'liveRoom_news_textBox') != GlobalVariableOfTheControl.liveRoom_news_textBox_string:
-        logSave(0, f"│普通文本框【直播间公告】 文本 发生变动: {obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'liveRoom_news_textBox')}➡️{GlobalVariableOfTheControl.liveRoom_news_textBox_string}")
+        logSave(0, f"　│普通文本框【直播间公告】 文本 发生变动: {obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'liveRoom_news_textBox')}➡️{GlobalVariableOfTheControl.liveRoom_news_textBox_string}")
         obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, "liveRoom_news_textBox", GlobalVariableOfTheControl.liveRoom_news_textBox_string)
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # 按钮【更改直播间公告】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│按钮【更改直播间公告】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│按钮【更改直播间公告】 UI")
     # 设置 按钮【更改直播间公告】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.change_liveRoom_news_button) != GlobalVariableOfTheControl.change_liveRoom_news_button_visible:
-        logSave(0, f"│按钮【更改直播间公告】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.change_liveRoom_news_button)}➡️{GlobalVariableOfTheControl.change_liveRoom_news_button_visible}")
+        logSave(0, f"　│按钮【更改直播间公告】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.change_liveRoom_news_button)}➡️{GlobalVariableOfTheControl.change_liveRoom_news_button_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.change_liveRoom_news_button, GlobalVariableOfTheControl.change_liveRoom_news_button_visible)
     # 设置 按钮【更改直播间公告】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.change_liveRoom_news_button) != GlobalVariableOfTheControl.change_liveRoom_news_button_enabled:
-        logSave(0, f"│按钮【更改直播间公告】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.change_liveRoom_news_button)}➡️{GlobalVariableOfTheControl.change_liveRoom_news_button_enabled}")
+        logSave(0, f"　│按钮【更改直播间公告】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.change_liveRoom_news_button)}➡️{GlobalVariableOfTheControl.change_liveRoom_news_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.change_liveRoom_news_button, GlobalVariableOfTheControl.change_liveRoom_news_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # 组合框【一级分区】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│组合框【一级分区】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│组合框【一级分区】 UI")
     # 设置 组合框【一级分区】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.parentLiveArea_comboBox) != GlobalVariableOfTheControl.parentLiveArea_comboBox_visible:
-        logSave(0, f"│组合框【一级分区】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.parentLiveArea_comboBox)}➡️{GlobalVariableOfTheControl.parentLiveArea_comboBox_visible}")
+        logSave(0, f"　│组合框【一级分区】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.parentLiveArea_comboBox)}➡️{GlobalVariableOfTheControl.parentLiveArea_comboBox_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.parentLiveArea_comboBox, GlobalVariableOfTheControl.parentLiveArea_comboBox_visible)
     # 设置 组合框【一级分区】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.parentLiveArea_comboBox) != GlobalVariableOfTheControl.parentLiveArea_comboBox_enabled:
-        logSave(0, f"│组合框【一级分区】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.parentLiveArea_comboBox)}➡️{GlobalVariableOfTheControl.parentLiveArea_comboBox_enabled}")
+        logSave(0, f"　│组合框【一级分区】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.parentLiveArea_comboBox)}➡️{GlobalVariableOfTheControl.parentLiveArea_comboBox_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.parentLiveArea_comboBox, GlobalVariableOfTheControl.parentLiveArea_comboBox_enabled)
     # 判断 组合框【一级分区】字典数据 和 当前数据是否有变化
     if GlobalVariableOfTheControl.parentLiveArea_comboBox_dict != {obs.obs_property_list_item_string(GlobalVariableOfTheControl.parentLiveArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.parentLiveArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.parentLiveArea_comboBox))}:
-        logSave(0, f"│组合框【一级分区】数据发生变动：{len({obs.obs_property_list_item_string(GlobalVariableOfTheControl.parentLiveArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.parentLiveArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.parentLiveArea_comboBox))})}个元素➡️{len(GlobalVariableOfTheControl.parentLiveArea_comboBox_dict)}个元素")
+        logSave(0, f"　│组合框【一级分区】数据发生变动：{len({obs.obs_property_list_item_string(GlobalVariableOfTheControl.parentLiveArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.parentLiveArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.parentLiveArea_comboBox))})}个元素➡️{len(GlobalVariableOfTheControl.parentLiveArea_comboBox_dict)}个元素")
         # 清空 组合框【一级分区】
-        logSave(0, f"│更新 组合框【一级分区】数据 第一步：清空 组合框【一级分区】")
+        logSave(0, f"　│更新 组合框【一级分区】数据 第一步：清空 组合框【一级分区】")
         obs.obs_property_list_clear(GlobalVariableOfTheControl.parentLiveArea_comboBox)
         # 添加 组合框【一级分区】 列表选项  默认值会被设置在第一位
-        logSave(0, f"│更新 组合框【一级分区】数据 第二步：添加 组合框【一级分区】 列表选项  如果有默认值，会被设置在第一位")
+        logSave(0, f"　│更新 组合框【一级分区】数据 第二步：添加 组合框【一级分区】 列表选项  如果有默认值，会被设置在第一位")
         for parentLiveAreaId in GlobalVariableOfTheControl.parentLiveArea_comboBox_dict:
             obs.obs_property_list_add_string(GlobalVariableOfTheControl.parentLiveArea_comboBox, GlobalVariableOfTheControl.parentLiveArea_comboBox_dict[parentLiveAreaId], parentLiveAreaId) if parentLiveAreaId != GlobalVariableOfTheControl.parentLiveArea_comboBox_value else obs.obs_property_list_insert_string(GlobalVariableOfTheControl.parentLiveArea_comboBox, 0, GlobalVariableOfTheControl.parentLiveArea_comboBox_string, GlobalVariableOfTheControl.parentLiveArea_comboBox_value)
         # 设置 组合框【一级分区】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
-        logSave(0, f"│更新 组合框【一级分区】数据 第三步：更新 组合框【一级分区】 文本")
+        logSave(0, f"　│更新 组合框【一级分区】数据 第三步：更新 组合框【一级分区】 文本")
         obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, 'parentLiveArea_comboBox', obs.obs_property_list_item_string(GlobalVariableOfTheControl.parentLiveArea_comboBox, 0))
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # 按钮【确认一级分区】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│按钮【确认一级分区】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│按钮【确认一级分区】 UI")
     # 设置 按钮【确认一级分区】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.parentLiveArea_true_button) != GlobalVariableOfTheControl.parentLiveArea_true_button_visible:
-        logSave(0, f"│按钮【确认一级分区】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.parentLiveArea_true_button)}➡️{GlobalVariableOfTheControl.parentLiveArea_true_button_visible}")
+        logSave(0, f"　│按钮【确认一级分区】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.parentLiveArea_true_button)}➡️{GlobalVariableOfTheControl.parentLiveArea_true_button_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.parentLiveArea_true_button, GlobalVariableOfTheControl.parentLiveArea_true_button_visible)
     # 设置 按钮【确认一级分区】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.parentLiveArea_true_button) != GlobalVariableOfTheControl.parentLiveArea_true_button_enabled:
-        logSave(0, f"│按钮【确认一级分区】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.parentLiveArea_true_button)}➡️{GlobalVariableOfTheControl.parentLiveArea_true_button_enabled}")
+        logSave(0, f"　│按钮【确认一级分区】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.parentLiveArea_true_button)}➡️{GlobalVariableOfTheControl.parentLiveArea_true_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.parentLiveArea_true_button, GlobalVariableOfTheControl.parentLiveArea_true_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # 组合框【二级分区】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│组合框【二级分区】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│组合框【二级分区】 UI")
     # 设置 组合框【二级分区】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.subLiveArea_comboBox) != GlobalVariableOfTheControl.subLiveArea_comboBox_visible:
-        logSave(0, f"│组合框【二级分区】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.subLiveArea_comboBox)}➡️{GlobalVariableOfTheControl.subLiveArea_comboBox_visible}")
+        logSave(0, f"　│组合框【二级分区】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.subLiveArea_comboBox)}➡️{GlobalVariableOfTheControl.subLiveArea_comboBox_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.subLiveArea_comboBox, GlobalVariableOfTheControl.subLiveArea_comboBox_visible)
     # 设置 组合框【二级分区】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.subLiveArea_comboBox) != GlobalVariableOfTheControl.subLiveArea_comboBox_enabled:
-        logSave(0, f"│组合框【二级分区】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.subLiveArea_comboBox)}➡️{GlobalVariableOfTheControl.subLiveArea_comboBox_enabled}")
+        logSave(0, f"　│组合框【二级分区】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.subLiveArea_comboBox)}➡️{GlobalVariableOfTheControl.subLiveArea_comboBox_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.subLiveArea_comboBox, GlobalVariableOfTheControl.subLiveArea_comboBox_enabled)
     # 判断 组合框【二级分区】字典数据 和 当前数据是否有变化
     if GlobalVariableOfTheControl.subLiveArea_comboBox_dict != {obs.obs_property_list_item_string(GlobalVariableOfTheControl.subLiveArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.subLiveArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.subLiveArea_comboBox))}:
-        logSave(0, f"│组合框【二级分区】数据发生变动：{len({obs.obs_property_list_item_string(GlobalVariableOfTheControl.subLiveArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.subLiveArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.subLiveArea_comboBox))})}个元素➡️{len(GlobalVariableOfTheControl.subLiveArea_comboBox_dict)}个元素")
+        logSave(0, f"　│组合框【二级分区】数据发生变动：{len({obs.obs_property_list_item_string(GlobalVariableOfTheControl.subLiveArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.subLiveArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.subLiveArea_comboBox))})}个元素➡️{len(GlobalVariableOfTheControl.subLiveArea_comboBox_dict)}个元素")
         # 清空 组合框【二级分区】
-        logSave(0, f"│更新 组合框【二级分区】数据 第一步：清空 组合框【二级分区】")
+        logSave(0, f"　│更新 组合框【二级分区】数据 第一步：清空 组合框【二级分区】")
         obs.obs_property_list_clear(GlobalVariableOfTheControl.subLiveArea_comboBox)
         # 添加 组合框【二级分区】 列表选项  默认值会被设置在第一位
-        logSave(0, f"│更新 组合框【二级分区】数据 第二步：添加 组合框【二级分区】 列表选项  如果有默认值，会被设置在第一位")
+        logSave(0, f"　│更新 组合框【二级分区】数据 第二步：添加 组合框【二级分区】 列表选项  如果有默认值，会被设置在第一位")
         for subLiveAreaId in GlobalVariableOfTheControl.subLiveArea_comboBox_dict:
             obs.obs_property_list_add_string(GlobalVariableOfTheControl.subLiveArea_comboBox, GlobalVariableOfTheControl.subLiveArea_comboBox_dict[subLiveAreaId], subLiveAreaId) if subLiveAreaId != GlobalVariableOfTheControl.subLiveArea_comboBox_value else obs.obs_property_list_insert_string(GlobalVariableOfTheControl.subLiveArea_comboBox, 0, GlobalVariableOfTheControl.subLiveArea_comboBox_string, GlobalVariableOfTheControl.subLiveArea_comboBox_value)
         # 设置 组合框【二级分区】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
-        logSave(0, f"│更新 组合框【二级分区】数据 第三步：更新 组合框【二级分区】 文本")
+        logSave(0, f"　│更新 组合框【二级分区】数据 第三步：更新 组合框【二级分区】 文本")
         obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, 'subLiveArea_comboBox', obs.obs_property_list_item_string(GlobalVariableOfTheControl.subLiveArea_comboBox, 0))
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # 按钮【「确认分区」】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│按钮【「确认分区」】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│按钮【「确认分区」】 UI")
     # 设置 按钮【「确认分区」】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.subLiveArea_true_button) != GlobalVariableOfTheControl.subLiveArea_true_button_visible:
-        logSave(0, f"│按钮【「确认分区」】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.subLiveArea_true_button)}➡️{GlobalVariableOfTheControl.subLiveArea_true_button_visible}")
+        logSave(0, f"　│按钮【「确认分区」】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.subLiveArea_true_button)}➡️{GlobalVariableOfTheControl.subLiveArea_true_button_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.subLiveArea_true_button, GlobalVariableOfTheControl.subLiveArea_true_button_visible)
     # 设置 按钮【「确认分区」】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.subLiveArea_true_button) != GlobalVariableOfTheControl.subLiveArea_true_button_enabled:
-        logSave(0, f"│按钮【「确认分区」】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.subLiveArea_true_button)}➡️{GlobalVariableOfTheControl.subLiveArea_true_button_enabled}")
+        logSave(0, f"　│按钮【「确认分区」】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.subLiveArea_true_button)}➡️{GlobalVariableOfTheControl.subLiveArea_true_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.subLiveArea_true_button, GlobalVariableOfTheControl.subLiveArea_true_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # url按钮【跳转直播间后台网页】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│url按钮【跳转直播间后台网页】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│url按钮【跳转直播间后台网页】 UI")
     # 设置 url按钮【跳转直播间后台网页】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.jump_blive_web_button) != GlobalVariableOfTheControl.jump_blive_web_button_visible:
-        logSave(0, f"│url按钮【跳转直播间后台网页】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.jump_blive_web_button)}➡️{GlobalVariableOfTheControl.jump_blive_web_button_visible}")
+        logSave(0, f"　│url按钮【跳转直播间后台网页】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.jump_blive_web_button)}➡️{GlobalVariableOfTheControl.jump_blive_web_button_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.jump_blive_web_button, GlobalVariableOfTheControl.jump_blive_web_button_visible)
     # 设置 url按钮【跳转直播间后台网页】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.jump_blive_web_button) != GlobalVariableOfTheControl.jump_blive_web_button_enabled:
-        logSave(0, f"│url按钮【跳转直播间后台网页】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.jump_blive_web_button)}➡️{GlobalVariableOfTheControl.jump_blive_web_button_enabled}")
+        logSave(0, f"　│url按钮【跳转直播间后台网页】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.jump_blive_web_button)}➡️{GlobalVariableOfTheControl.jump_blive_web_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.jump_blive_web_button, GlobalVariableOfTheControl.jump_blive_web_button_enabled)
     # 设置 url按钮【跳转直播间后台网页】 链接
     if obs.obs_property_button_url(GlobalVariableOfTheControl.jump_blive_web_button) != GlobalVariableOfTheControl.jump_blive_web_button_url:
-        logSave(0, f"│url按钮【跳转直播间后台网页】 链接 发生变动: {obs.obs_property_button_url(GlobalVariableOfTheControl.jump_blive_web_button)}➡️{GlobalVariableOfTheControl.jump_blive_web_button_url}")
+        logSave(0, f"　│url按钮【跳转直播间后台网页】 链接 发生变动: {obs.obs_property_button_url(GlobalVariableOfTheControl.jump_blive_web_button)}➡️{GlobalVariableOfTheControl.jump_blive_web_button_url}")
         obs.obs_property_button_set_url(GlobalVariableOfTheControl.jump_blive_web_button, GlobalVariableOfTheControl.jump_blive_web_button_url)
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # ————————————————————————————————————————————————————————————————
     # 组合框【直播平台】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│组合框【直播平台】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│组合框【直播平台】 UI")
     # 设置 组合框【直播平台】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.live_streaming_platform_comboBox) != GlobalVariableOfTheControl.live_streaming_platform_comboBox_visible:
-        logSave(0, f"│组合框【直播平台】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.live_streaming_platform_comboBox)}➡️{GlobalVariableOfTheControl.live_streaming_platform_comboBox_visible}")
+        logSave(0, f"　│组合框【直播平台】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.live_streaming_platform_comboBox)}➡️{GlobalVariableOfTheControl.live_streaming_platform_comboBox_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.live_streaming_platform_comboBox, GlobalVariableOfTheControl.live_streaming_platform_comboBox_visible)
     # 设置 组合框【直播平台】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.live_streaming_platform_comboBox) != GlobalVariableOfTheControl.live_streaming_platform_comboBox_enabled:
-        logSave(0, f"│组合框【直播平台】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.live_streaming_platform_comboBox)}➡️{GlobalVariableOfTheControl.live_streaming_platform_comboBox_enabled}")
+        logSave(0, f"　│组合框【直播平台】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.live_streaming_platform_comboBox)}➡️{GlobalVariableOfTheControl.live_streaming_platform_comboBox_enabled}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.live_streaming_platform_comboBox, GlobalVariableOfTheControl.live_streaming_platform_comboBox_enabled)
     # 判断 组合框【直播平台】字典数据 和 当前数据是否有变化
     if GlobalVariableOfTheControl.live_streaming_platform_comboBox_dict != {obs.obs_property_list_item_string(GlobalVariableOfTheControl.live_streaming_platform_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.live_streaming_platform_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.live_streaming_platform_comboBox))}:
-        logSave(0, f"│组合框【直播平台】数据发生变动：{len({obs.obs_property_list_item_string(GlobalVariableOfTheControl.live_streaming_platform_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.live_streaming_platform_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.live_streaming_platform_comboBox))})}个元素➡️{len(GlobalVariableOfTheControl.live_streaming_platform_comboBox_dict)}个元素")
+        logSave(0, f"　│组合框【直播平台】数据发生变动：{len({obs.obs_property_list_item_string(GlobalVariableOfTheControl.live_streaming_platform_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.live_streaming_platform_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.live_streaming_platform_comboBox))})}个元素➡️{len(GlobalVariableOfTheControl.live_streaming_platform_comboBox_dict)}个元素")
         # 清空 组合框【直播平台】
-        logSave(0, f"│更新 组合框【直播平台】数据 第一步：清空 组合框【直播平台】")
+        logSave(0, f"　│更新 组合框【直播平台】数据 第一步：清空 组合框【直播平台】")
         obs.obs_property_list_clear(GlobalVariableOfTheControl.live_streaming_platform_comboBox)
         # 添加 组合框【直播平台】 列表选项  默认值会被设置在第一位
-        logSave(0, f"│更新 组合框【直播平台】数据 第二步：添加 组合框【直播平台】 列表选项  如果有默认值，会被设置在第一位")
+        logSave(0, f"　│更新 组合框【直播平台】数据 第二步：添加 组合框【直播平台】 列表选项  如果有默认值，会被设置在第一位")
         for LivePlatforms in GlobalVariableOfTheControl.live_streaming_platform_comboBox_dict:
             obs.obs_property_list_add_string(GlobalVariableOfTheControl.live_streaming_platform_comboBox, GlobalVariableOfTheControl.live_streaming_platform_comboBox_dict[LivePlatforms], LivePlatforms) if LivePlatforms != GlobalVariableOfTheControl.live_streaming_platform_comboBox_value else obs.obs_property_list_insert_string(GlobalVariableOfTheControl.live_streaming_platform_comboBox, 0, GlobalVariableOfTheControl.live_streaming_platform_comboBox_string, GlobalVariableOfTheControl.live_streaming_platform_comboBox_value)
         # 设置 组合框【直播平台】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
-        logSave(0, f"│更新 组合框【直播平台】数据 第三步：更新 组合框【直播平台】 文本")
+        logSave(0, f"　│更新 组合框【直播平台】数据 第三步：更新 组合框【直播平台】 文本")
         obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, 'live_streaming_platform_comboBox', obs.obs_property_list_item_string(GlobalVariableOfTheControl.live_streaming_platform_comboBox, 0))
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # 按钮【开始直播并复制推流码】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│按钮【开始直播并复制推流码】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│按钮【开始直播并复制推流码】 UI")
     # 设置 按钮【开始直播并复制推流码】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.start_live_button) != GlobalVariableOfTheControl.start_live_button_visible:
-        logSave(0, f"│按钮【开始直播并复制推流码】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.start_live_button)}➡️{GlobalVariableOfTheControl.start_live_button_visible}")
+        logSave(0, f"　│按钮【开始直播并复制推流码】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.start_live_button)}➡️{GlobalVariableOfTheControl.start_live_button_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.start_live_button, GlobalVariableOfTheControl.start_live_button_visible)
     # 设置 按钮【开始直播并复制推流码】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.start_live_button) != GlobalVariableOfTheControl.start_live_button_enabled:
-        logSave(0, f"│按钮【开始直播并复制推流码】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.start_live_button)}➡️{GlobalVariableOfTheControl.start_live_button_enabled}")
+        logSave(0, f"　│按钮【开始直播并复制推流码】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.start_live_button)}➡️{GlobalVariableOfTheControl.start_live_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.start_live_button, GlobalVariableOfTheControl.start_live_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # 按钮【复制直播服务器】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│按钮【复制直播服务器】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│按钮【复制直播服务器】 UI")
     # 设置 按钮【复制直播服务器】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.rtmp_address_copy_button) != GlobalVariableOfTheControl.rtmp_address_copy_button_visible:
-        logSave(0, f"│按钮【复制直播服务器】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.rtmp_address_copy_button)}➡️{GlobalVariableOfTheControl.rtmp_address_copy_button_visible}")
+        logSave(0, f"　│按钮【复制直播服务器】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.rtmp_address_copy_button)}➡️{GlobalVariableOfTheControl.rtmp_address_copy_button_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.rtmp_address_copy_button, GlobalVariableOfTheControl.rtmp_address_copy_button_visible)
     # 设置 按钮【复制直播服务器】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.rtmp_address_copy_button) != GlobalVariableOfTheControl.rtmp_address_copy_button_enabled:
-        logSave(0, f"│按钮【复制直播服务器】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.rtmp_address_copy_button)}➡️{GlobalVariableOfTheControl.rtmp_address_copy_button_enabled}")
+        logSave(0, f"　│按钮【复制直播服务器】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.rtmp_address_copy_button)}➡️{GlobalVariableOfTheControl.rtmp_address_copy_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.rtmp_address_copy_button, GlobalVariableOfTheControl.rtmp_address_copy_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # 按钮【复制直播推流码】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│按钮【复制直播推流码】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│按钮【复制直播推流码】 UI")
     # 设置 按钮【复制直播推流码】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.rtmp_stream_code_copy_button) != GlobalVariableOfTheControl.rtmp_stream_code_copy_button_visible:
-        logSave(0, f"│按钮【复制直播推流码】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.rtmp_stream_code_copy_button)}➡️{GlobalVariableOfTheControl.rtmp_stream_code_copy_button_visible}")
+        logSave(0, f"　│按钮【复制直播推流码】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.rtmp_stream_code_copy_button)}➡️{GlobalVariableOfTheControl.rtmp_stream_code_copy_button_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.rtmp_stream_code_copy_button, GlobalVariableOfTheControl.rtmp_stream_code_copy_button_visible)
     # 设置 按钮【复制直播推流码】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.rtmp_stream_code_copy_button) != GlobalVariableOfTheControl.rtmp_stream_code_copy_button_enabled:
-        logSave(0, f"│按钮【复制直播推流码】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.rtmp_stream_code_copy_button)}➡️{GlobalVariableOfTheControl.rtmp_stream_code_copy_button_enabled}")
+        logSave(0, f"　│按钮【复制直播推流码】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.rtmp_stream_code_copy_button)}➡️{GlobalVariableOfTheControl.rtmp_stream_code_copy_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.rtmp_stream_code_copy_button, GlobalVariableOfTheControl.rtmp_stream_code_copy_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # 按钮【更新推流码并复制】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│按钮【更新推流码并复制】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│按钮【更新推流码并复制】 UI")
     # 设置 按钮【更新推流码并复制】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.rtmp_stream_code_update_button) != GlobalVariableOfTheControl.rtmp_stream_code_update_button_visible:
-        logSave(0, f"│按钮【更新推流码并复制】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.rtmp_stream_code_update_button)}➡️{GlobalVariableOfTheControl.rtmp_stream_code_update_button_visible}")
+        logSave(0, f"　│按钮【更新推流码并复制】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.rtmp_stream_code_update_button)}➡️{GlobalVariableOfTheControl.rtmp_stream_code_update_button_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.rtmp_stream_code_update_button, GlobalVariableOfTheControl.rtmp_stream_code_update_button_visible)
     # 设置 按钮【更新推流码并复制】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.rtmp_stream_code_update_button) != GlobalVariableOfTheControl.rtmp_stream_code_update_button_enabled:
-        logSave(0, f"│按钮【更新推流码并复制】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.rtmp_stream_code_update_button)}➡️{GlobalVariableOfTheControl.rtmp_stream_code_update_button_enabled}")
+        logSave(0, f"　│按钮【更新推流码并复制】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.rtmp_stream_code_update_button)}➡️{GlobalVariableOfTheControl.rtmp_stream_code_update_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.rtmp_stream_code_update_button, GlobalVariableOfTheControl.rtmp_stream_code_update_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
     # 按钮【结束直播】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────")
-    logSave(0, f"│按钮【结束直播】 UI")
+    logSave(0, f"　┌─────────────────────────────────────────────────────────")
+    logSave(0, f"　│按钮【结束直播】 UI")
     # 设置 按钮【结束直播】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.stop_live_button) != GlobalVariableOfTheControl.stop_live_button_visible:
-        logSave(0, f"│按钮【结束直播】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.stop_live_button)}➡️{GlobalVariableOfTheControl.stop_live_button_visible}")
+        logSave(0, f"　│按钮【结束直播】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.stop_live_button)}➡️{GlobalVariableOfTheControl.stop_live_button_visible}")
         obs.obs_property_set_visible(GlobalVariableOfTheControl.stop_live_button, GlobalVariableOfTheControl.stop_live_button_visible)
     # 设置 按钮【结束直播】 可用状态
     if obs.obs_property_enabled(GlobalVariableOfTheControl.stop_live_button) != GlobalVariableOfTheControl.stop_live_button_enabled:
-        logSave(0, f"│按钮【结束直播】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.stop_live_button)}➡️{GlobalVariableOfTheControl.stop_live_button_enabled}")
+        logSave(0, f"　│按钮【结束直播】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.stop_live_button)}➡️{GlobalVariableOfTheControl.stop_live_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.stop_live_button, GlobalVariableOfTheControl.stop_live_button_enabled)
-    logSave(0, f"└──────────────────────────────────────────────────────────────")
+    logSave(0, f"　└─────────────────────────────────────────────────────────")
 
-    logSave(0, f"│由于[Script_properties]而被调用[updateTheUIInterfaceData]   │")
-    logSave(0, f"╲─────────────────────────────────────────────────────────╱")
+    if is_script_properties:
+        logSave(0, f"　│ 由于[Script_properties]而被调用[updateTheUIInterfaceData] │　")
+        logSave(0, f"╲──由于[Script_properties]而被调用[updateTheUIInterfaceData]──╱")
 
 
 def button_function_login(props, prop, settings=GlobalVariableOfTheControl.script_settings):
@@ -4208,8 +4374,8 @@ def button_function_stop_live(props, prop, settings=GlobalVariableOfTheControl.s
     cookies = b_u_l_c.get_cookies()
     # 停播
     if cookies:
-        stopLive = BilibiliApiCsrfAuthentication(dict2cookie(cookies)).stopLive()
-        logSave(0, f"下播消息代码【{stopLive['code']}】。消息内容：【{stopLive['message']}】。")
+        stop_live = BilibiliApiCsrfAuthentication(dict2cookie(cookies)).stopLive()
+        logSave(0, f"下播消息代码【{stop_live['code']}】。消息内容：【{stop_live['message']}】。")
     # 设置组合框【用户】为'默认用户'
     obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, 'uid_comboBox', cookies["DedeUserID"])
 
@@ -4217,27 +4383,27 @@ def button_function_stop_live(props, prop, settings=GlobalVariableOfTheControl.s
     # 创建用户配置文件实例
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
     # 获取'默认账户'获取用户对应的直播间 状态
-    RoomInfoOld = BilibiliApiGeneric().get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else {}
-    logSave(0, f"根据是否有账号登录：{bool(b_u_l_c.get_cookies())} 获取 登录账户 对应的直播间 状态：数据长度为{len(RoomInfoOld)}")
+    room_info_old = BilibiliApiGeneric().get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else {}
+    logSave(0, f"根据是否有账号登录：{bool(b_u_l_c.get_cookies())} 获取 登录账户 对应的直播间 状态：数据长度为{len(room_info_old)}")
     # 获取 默认用户 的 直播间 状态
-    DefaultRoomStatus = RoomInfoOld["roomStatus"] if b_u_l_c.get_cookies() else None
+    default_room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
     """
     登录的用户的直播间存在状态
     """
-    logSave(0, f"根据是否有账号登录：{bool(b_u_l_c.get_cookies())} 获取 登录账户 是否有直播间：{DefaultRoomStatus}")
+    logSave(0, f"根据是否有账号登录：{bool(b_u_l_c.get_cookies())} 获取 登录账户 是否有直播间：{default_room_status}")
     # 获取默认用户的 直播状态
-    DefaultLiveStatus = RoomInfoOld["liveStatus"] if bool(DefaultRoomStatus) else None
+    default_live_status = room_info_old["liveStatus"] if bool(default_room_status) else None
     """
     直播状态
     0：未开播 1：直播中
     """
-    logSave(0, f"根据 登录账户 直播间存在：{bool(DefaultRoomStatus)} 获取 登录账户 的 直播状态：{DefaultLiveStatus}")
+    logSave(0, f"根据 登录账户 直播间存在：{bool(default_room_status)} 获取 登录账户 的 直播状态：{default_live_status}")
     # 设置 组合框【直播平台】 可见状态
-    GlobalVariableOfTheControl.live_streaming_platform_comboBox_visible = True if ((not DefaultLiveStatus) and DefaultRoomStatus) else False
-    logSave(0, f"根据直播间存在：{str(bool(DefaultRoomStatus))}，直播状态{str(bool(DefaultRoomStatus))}，设置 组合框【直播平台】 可见状态：{str(GlobalVariableOfTheControl.jump_blive_web_button_visible)}")
+    GlobalVariableOfTheControl.live_streaming_platform_comboBox_visible = True if ((not default_live_status) and default_room_status) else False
+    logSave(0, f"根据直播间存在：{str(bool(default_room_status))}，直播状态{str(bool(default_room_status))}，设置 组合框【直播平台】 可见状态：{str(GlobalVariableOfTheControl.jump_blive_web_button_visible)}")
     # 设置 组合框【直播平台】 可用状态
-    GlobalVariableOfTheControl.live_streaming_platform_comboBox_enabled = True if ((not DefaultLiveStatus) and DefaultRoomStatus) else False
-    logSave(0, f"根据直播间存在：{str(bool(DefaultRoomStatus))}，直播状态{str(bool(DefaultRoomStatus))}，设置 组合框【直播平台】 可用状态：{str(GlobalVariableOfTheControl.live_streaming_platform_comboBox_enabled)}")
+    GlobalVariableOfTheControl.live_streaming_platform_comboBox_enabled = True if ((not default_live_status) and default_room_status) else False
+    logSave(0, f"根据直播间存在：{str(bool(default_room_status))}，直播状态{str(bool(default_room_status))}，设置 组合框【直播平台】 可用状态：{str(GlobalVariableOfTheControl.live_streaming_platform_comboBox_enabled)}")
     # 设置 组合框【直播平台】 的数据字典
     GlobalVariableOfTheControl.live_streaming_platform_comboBox_dict = {"pc_link": "直播姬（pc）", "web_link": "web在线直播", "android_link": "bililink"}
     logSave(0, f"设置 组合框【直播平台】 的数据字典：{str(GlobalVariableOfTheControl.live_streaming_platform_comboBox_dict)}")
@@ -4249,39 +4415,39 @@ def button_function_stop_live(props, prop, settings=GlobalVariableOfTheControl.s
     logSave(0, f"设置 组合框【直播平台】 的内容 的 列表值：{str(GlobalVariableOfTheControl.live_streaming_platform_comboBox_value)}")
 
     # 设置 按钮【开始直播并复制推流码】 可见状态
-    GlobalVariableOfTheControl.start_live_button_visible = True if ((not DefaultLiveStatus) and DefaultRoomStatus) else False
-    logSave(0, f"根据直播间存在：{str(bool(DefaultRoomStatus))}，直播状态{str(bool(DefaultRoomStatus))}，设置 按钮【开始直播并复制推流码】 可见状态：{str(GlobalVariableOfTheControl.start_live_button_visible)}")
+    GlobalVariableOfTheControl.start_live_button_visible = True if ((not default_live_status) and default_room_status) else False
+    logSave(0, f"根据直播间存在：{str(bool(default_room_status))}，直播状态{str(bool(default_room_status))}，设置 按钮【开始直播并复制推流码】 可见状态：{str(GlobalVariableOfTheControl.start_live_button_visible)}")
     # 设置 按钮【开始直播并复制推流码】 可用状态
-    GlobalVariableOfTheControl.start_live_button_enabled = True if ((not DefaultLiveStatus) and DefaultRoomStatus) else False
-    logSave(0, f"根据直播间存在：{str(bool(DefaultRoomStatus))}，直播状态{str(bool(DefaultRoomStatus))}，设置 按钮【开始直播并复制推流码】 可用状态：{str(GlobalVariableOfTheControl.start_live_button_enabled)}")
+    GlobalVariableOfTheControl.start_live_button_enabled = True if ((not default_live_status) and default_room_status) else False
+    logSave(0, f"根据直播间存在：{str(bool(default_room_status))}，直播状态{str(bool(default_room_status))}，设置 按钮【开始直播并复制推流码】 可用状态：{str(GlobalVariableOfTheControl.start_live_button_enabled)}")
 
     # 设置 按钮【复制直播服务器】 可见状态
-    GlobalVariableOfTheControl.rtmp_address_copy_button_visible = True if (DefaultLiveStatus and DefaultRoomStatus) else False
-    logSave(0, f"根据直播间存在：{str(bool(DefaultRoomStatus))}，直播状态{str(bool(DefaultRoomStatus))}，设置 按钮【复制直播服务器】 可见状态：{str(GlobalVariableOfTheControl.rtmp_address_copy_button_visible)}")
+    GlobalVariableOfTheControl.rtmp_address_copy_button_visible = True if (default_live_status and default_room_status) else False
+    logSave(0, f"根据直播间存在：{str(bool(default_room_status))}，直播状态{str(bool(default_room_status))}，设置 按钮【复制直播服务器】 可见状态：{str(GlobalVariableOfTheControl.rtmp_address_copy_button_visible)}")
     # 设置 按钮【复制直播服务器】 可用状态
-    GlobalVariableOfTheControl.rtmp_address_copy_button_enabled = True if (DefaultLiveStatus and DefaultRoomStatus) else False
-    logSave(0, f"根据直播间存在：{str(bool(DefaultRoomStatus))}，直播状态{str(bool(DefaultRoomStatus))}，设置 按钮【复制直播服务器】 可用状态：{str(GlobalVariableOfTheControl.rtmp_address_copy_button_enabled)}")
+    GlobalVariableOfTheControl.rtmp_address_copy_button_enabled = True if (default_live_status and default_room_status) else False
+    logSave(0, f"根据直播间存在：{str(bool(default_room_status))}，直播状态{str(bool(default_room_status))}，设置 按钮【复制直播服务器】 可用状态：{str(GlobalVariableOfTheControl.rtmp_address_copy_button_enabled)}")
 
     # 设置 按钮【复制直播推流码】 可见状态
-    GlobalVariableOfTheControl.rtmp_stream_code_copy_button_visible = True if (DefaultLiveStatus and DefaultRoomStatus) else False
-    logSave(0, f"根据直播间存在：{str(bool(DefaultRoomStatus))}，直播状态{str(bool(DefaultRoomStatus))}，设置 按钮【复制直播推流码】 可见状态：{str(GlobalVariableOfTheControl.rtmp_stream_code_copy_button_visible)}")
+    GlobalVariableOfTheControl.rtmp_stream_code_copy_button_visible = True if (default_live_status and default_room_status) else False
+    logSave(0, f"根据直播间存在：{str(bool(default_room_status))}，直播状态{str(bool(default_room_status))}，设置 按钮【复制直播推流码】 可见状态：{str(GlobalVariableOfTheControl.rtmp_stream_code_copy_button_visible)}")
     # 设置 按钮【复制直播推流码】 可用状态
-    GlobalVariableOfTheControl.rtmp_stream_code_copy_button_enabled = True if (DefaultLiveStatus and DefaultRoomStatus) else False
-    logSave(0, f"根据直播间存在：{str(bool(DefaultRoomStatus))}，直播状态{str(bool(DefaultRoomStatus))}，设置 按钮【复制直播推流码】 可用状态：{str(GlobalVariableOfTheControl.rtmp_stream_code_copy_button_enabled)}")
+    GlobalVariableOfTheControl.rtmp_stream_code_copy_button_enabled = True if (default_live_status and default_room_status) else False
+    logSave(0, f"根据直播间存在：{str(bool(default_room_status))}，直播状态{str(bool(default_room_status))}，设置 按钮【复制直播推流码】 可用状态：{str(GlobalVariableOfTheControl.rtmp_stream_code_copy_button_enabled)}")
 
     # 设置 按钮【更新推流码并复制】 可见状态
-    GlobalVariableOfTheControl.rtmp_stream_code_update_button_visible = True if (DefaultLiveStatus and DefaultRoomStatus) else False
-    logSave(0, f"根据直播间存在：{str(bool(DefaultRoomStatus))}，直播状态{str(bool(DefaultRoomStatus))}，设置 按钮【更新推流码并复制】 可见状态：{str(GlobalVariableOfTheControl.rtmp_stream_code_update_button_visible)}")
+    GlobalVariableOfTheControl.rtmp_stream_code_update_button_visible = True if (default_live_status and default_room_status) else False
+    logSave(0, f"根据直播间存在：{str(bool(default_room_status))}，直播状态{str(bool(default_room_status))}，设置 按钮【更新推流码并复制】 可见状态：{str(GlobalVariableOfTheControl.rtmp_stream_code_update_button_visible)}")
     # 设置 按钮【更新推流码并复制】 可用状态
-    GlobalVariableOfTheControl.rtmp_stream_code_update_button_enabled = True if (DefaultLiveStatus and DefaultRoomStatus) else False
-    logSave(0, f"根据直播间存在：{str(bool(DefaultRoomStatus))}，直播状态{str(bool(DefaultRoomStatus))}，设置 按钮【更新推流码并复制】 可用状态：{str(GlobalVariableOfTheControl.rtmp_stream_code_update_button_enabled)}")
+    GlobalVariableOfTheControl.rtmp_stream_code_update_button_enabled = True if (default_live_status and default_room_status) else False
+    logSave(0, f"根据直播间存在：{str(bool(default_room_status))}，直播状态{str(bool(default_room_status))}，设置 按钮【更新推流码并复制】 可用状态：{str(GlobalVariableOfTheControl.rtmp_stream_code_update_button_enabled)}")
 
     # 设置 按钮【结束直播】 可见状态
-    GlobalVariableOfTheControl.stop_live_button_visible = True if (DefaultLiveStatus and DefaultRoomStatus) else False
-    logSave(0, f"根据直播间存在：{str(bool(DefaultRoomStatus))}，直播状态{str(bool(DefaultRoomStatus))}，设置 按钮【结束直播】 可见状态：{str(GlobalVariableOfTheControl.stop_live_button_visible)}")
+    GlobalVariableOfTheControl.stop_live_button_visible = True if (default_live_status and default_room_status) else False
+    logSave(0, f"根据直播间存在：{str(bool(default_room_status))}，直播状态{str(bool(default_room_status))}，设置 按钮【结束直播】 可见状态：{str(GlobalVariableOfTheControl.stop_live_button_visible)}")
     # 设置 按钮【结束直播】 可用状态
-    GlobalVariableOfTheControl.stop_live_button_enabled = True if (DefaultLiveStatus and DefaultRoomStatus) else False
-    logSave(0, f"根据直播间存在：{str(bool(DefaultRoomStatus))}，直播状态{str(bool(DefaultRoomStatus))}，设置 按钮【结束直播】 可用状态：{str(GlobalVariableOfTheControl.stop_live_button_enabled)}")
+    GlobalVariableOfTheControl.stop_live_button_enabled = True if (default_live_status and default_room_status) else False
+    logSave(0, f"根据直播间存在：{str(bool(default_room_status))}，直播状态{str(bool(default_room_status))}，设置 按钮【结束直播】 可用状态：{str(GlobalVariableOfTheControl.stop_live_button_enabled)}")
 
     # ————————————————————————————————————————————————————————————————
     # 判断组合框【直播平台】字典数据 和 当前数据是否有变化
@@ -4339,24 +4505,26 @@ def script_unload():
     在脚本被卸载时调用。
     """
     # """注销事件回调"""
-    logSave(0, "╭—————————————————╮")
-    logSave(0, "│　 停止监视obs事件  │")
-    logSave(0, "╰—————————————————╯")
+    logSave(0, "┌——停止监视obs事件——┐")
+    logSave(0, "│  停止监视obs事件  │")
+    logSave(0, "└——停止监视obs事件——┘")
     obs.obs_frontend_remove_event_callback(on_event)
-    logSave(0, "╔════════════════════════╗")
+    logSave(0, "╔══已卸载: bilibili-live══╗")
     logSave(0, "║  已卸载: bilibili-live  ║")
-    logSave(0, "╚════════════════════════╝")
+    logSave(0, "╚══已卸载: bilibili-live══╝")
+    logSave(0, "保存日志文件")
+    logSave(0, f"{'═'*120}\n")
     with open(Path(GlobalVariableOfData.scripts_data_dirpath) / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.log", "w", encoding="utf-8") as f:
         f.write(str(GlobalVariableOfData.logRecording))
 
 
 def test(t=""):
     if GlobalVariableOfTheControl.isScript_propertiesNum == 1:
-        logSave(0, f"┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓")
-        logSave(0, f"┃　UI变动事件测试函数被调用（Script_properties）┃{t}")
-        logSave(0, f"┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛")
+        logSave(0, f"┏━UI变动事件测试函数被调用（Script_properties）━┓")
+        logSave(0, f"┃　UI变动事件测试函数被调用（Script_properties）　┃{t}")
+        logSave(0, f"┗━UI变动事件测试函数被调用（Script_properties）━┛")
         return False
-    logSave(0, f"┏━━━━━━━━━━━━━━━━━━━━━━━┓")
-    logSave(0, f"┃　UI变动事件测试函数被调用  ┃{t}")
-    logSave(0, f"┗━━━━━━━━━━━━━━━━━━━━━━━┛")
+    logSave(0, f"┏━UI变动事件测试函数被调用━┓")
+    logSave(0, f"┃　UI变动事件测试函数被调用　┃{t}")
+    logSave(0, f"┗━UI变动事件测试函数被调用━┛")
     return True
