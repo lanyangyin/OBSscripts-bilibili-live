@@ -15,7 +15,7 @@
 #         along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #         2436725966@qq.com
 # import asyncio
-import base64
+# import base64
 import io
 import json
 import os
@@ -25,14 +25,14 @@ import random
 import string
 # import pprint
 import sys
-import tempfile
+# import tempfile
 # import threading
 import time
 import urllib
 from datetime import datetime
-from typing import Optional, Dict, Literal, Union
+from typing import Optional, Dict, Literal, Union, List, Any
 # import zlib
-from urllib.parse import quote
+from urllib.parse import quote, unquote, parse_qs, urlparse
 from pathlib import Path
 import socket
 import urllib.request
@@ -56,15 +56,48 @@ textBox_type_name4textBox_type = {
 }
 """
 只读文本框的消息类型字典
-'正常信息', '警告信息', '错误信息'
+
+- obs.OBS_TEXT_INFO_NORMAL：'正常信息', 
+- obs.OBS_TEXT_INFO_WARNING：'警告信息', 
+- obs.OBS_TEXT_INFO_ERROR：'错误信息'
 """
+
+information4login_qr_return_code = {
+    0: "登录成功",
+    86101: "未扫码",
+    86090: "二维码已扫码未确认",
+    86038: "二维码已失效",
+}
+"""
+登陆二维码被调用后轮询函数返回值对应的含义
+
+- 0: "登录成功",
+- 86101: "未扫码",
+- 86090: "二维码已扫码未确认",
+- 86038: "二维码已失效",
+"""
+
+information4frontend_event = {
+    obs.OBS_FRONTEND_EVENT_STREAMING_STARTING: "推流正在启动",
+    obs.OBS_FRONTEND_EVENT_STREAMING_STARTED: "推流已开始",
+    obs.OBS_FRONTEND_EVENT_STREAMING_STOPPING: "推流正在停止",
+    obs.OBS_FRONTEND_EVENT_STREAMING_STOPPED: "推流已停止",
+    obs.OBS_FRONTEND_EVENT_RECORDING_STARTED: "录制已开始",
+    obs.OBS_FRONTEND_EVENT_RECORDING_STOPPED: "录制已停止",
+    obs.OBS_FRONTEND_EVENT_SCENE_CHANGED: "当前场景改变",
+    obs.OBS_FRONTEND_EVENT_TRANSITION_CHANGED: "转场效果改变",
+    obs.OBS_FRONTEND_EVENT_PROFILE_CHANGED: "配置文件切换",
+    obs.OBS_FRONTEND_EVENT_PROFILE_LIST_CHANGED: "配置文件列表改变",
+    obs.OBS_FRONTEND_EVENT_SCENE_LIST_CHANGED: "场景列表改变",
+    obs.OBS_FRONTEND_EVENT_EXIT: "OBS 即将退出",
+    obs.OBS_FRONTEND_EVENT_FINISHED_LOADING: "OBS 完成加载",
+}
 
 
 class GlobalVariableOfTheControl:
     isScript_propertiesNum = 0
-    isScript_propertiesOne = False
     """
-    是否第一次调用Script_properties
+    `Script_properties`被调用的次数
     """
 
     streaming_active = None
@@ -75,31 +108,28 @@ class GlobalVariableOfTheControl:
     # #记录obs脚本中控件的数据
     script_settings = None
 
-    # #分组框控件-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    # ##控件对象数据集
+    # #控件对象的属性集
     props = None
 
-    # #分组框控件-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    # ##【账号】分组框的实例
+    # ##【账号】分组框中的控件对象 属性集
     setting_props = None
-    setting_props_visible = None  # ###【账号】分组框的实例的【可见】
-    setting_props_enabled = None  # ###【账号】分组框的实例的【可用】
 
-    # ##【直播间】分组框的实例
+    # ##【直播间】分组框中的控件对象 属性集
     liveRoom_props = None
-    liveRoom_props_visible = None  # ###【直播间】分组框的实例的【可见】
-    liveRoom_props__enabled = None  # ###【直播间】分组框的实例的【可用】
 
-    # ##【直播】分组框的实例
+    # ##【直播】分组框中的控件对象 属性集
     live_props = None
-    live_props_visible = None  # ###【直播】分组框的实例的【可见】
-    live_props__enabled = None  # ###【直播】分组框的实例的【可用】
 
     # #【账号】分组框中的控件-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # ##分组框【账号】的实例
+    setting_group = None
+    setting_group_visible = False  # ###分组框【账号】的实例的【可见】
+    setting_group_enabled = False  # ###分组框【账号】的实例的【可用】
+
     # ##只读文本框【登录状态】的实例
     login_status_textBox = None
-    login_status_textBox_visible = None  # ###只读文本框【登录状态】的实例的【可见】
-    login_status_textBox_enabled = None  # ###只读文本框【登录状态】的实例的【可用】
+    login_status_textBox_visible = False  # ###只读文本框【登录状态】的实例的【可见】
+    login_status_textBox_enabled = False  # ###只读文本框【登录状态】的实例的【可用】
     login_status_textBox_type = None  # ###只读文本框【登录状态】的实例的【类型】
     login_status_textBox_string = ""  # ###只读文本框【登录状态】的实例的【显示】
     """
@@ -109,8 +139,8 @@ class GlobalVariableOfTheControl:
 
     # ##组合框【用户】的实例
     uid_comboBox = None
-    uid_comboBox_visible = None
-    uid_comboBox_enabled = None
+    uid_comboBox_visible = False
+    uid_comboBox_enabled = False
     uid_comboBox_string = ""
     """
     组合框【用户】的第0行显示的字符串
@@ -126,138 +156,148 @@ class GlobalVariableOfTheControl:
 
     # ##按钮【登录账号】的实例
     login_button = None
-    login_button_visible = None  # ###按钮【登录账号】的实例的【可见】
-    login_button_enabled = None  # ###按钮【登录账号】的实例的【可用】
+    login_button_visible = False  # ###按钮【登录账号】的实例的【可见】
+    login_button_enabled = False  # ###按钮【登录账号】的实例的【可用】
 
     # ##按钮【更新账号列表】的实例
     update_account_list_button = None
-    update_account_list_button_visible = None  # ###按钮【更新账号列表】的实例的【可见】
-    update_account_list_button_enabled = None  # ###按钮【更新账号列表】的实例的【可用】
+    update_account_list_button_visible = False  # ###按钮【更新账号列表】的实例的【可见】
+    update_account_list_button_enabled = False  # ###按钮【更新账号列表】的实例的【可用】
 
     # ##按钮【二维码添加账户】的实例
-    qr_code_add_account_button = None
-    qr_code_add_account_button_visible = None
-    qr_code_add_account_button_enabled = None
+    qr_add_account_button = None
+    qr_add_account_button_visible = False
+    qr_add_account_button_enabled = False
 
     # ##按钮【显示登录二维码图片】的实例
-    display_qr_code_picture_button = None
-    display_qr_code_picture_button_visible = None
-    display_qr_code_picture_button_enabled = None
+    display_qr_picture_button = None
+    display_qr_picture_button_visible = False
+    display_qr_picture_button_enabled = False
 
     # ##按钮【删除账户】的实例
     delete_account_button = None
-    delete_account_button_visible = None
-    delete_account_button_enabled = None
+    delete_account_button_visible = False
+    delete_account_button_enabled = False
 
     # ##按钮【备份账户】的实例
     backup_account_button = None
-    backup_account_button_visible = None
-    backup_account_button_enabled = None
+    backup_account_button_visible = False
+    backup_account_button_enabled = False
 
     # ##按钮【恢复账户】的实例
     restore_account_button = None
-    restore_account_button_visible = None
-    restore_account_button_enabled = None
+    restore_account_button_visible = False
+    restore_account_button_enabled = False
 
     # ##按钮【退出登录】的实例
     logout_button = None
-    logout_button_visible = None
-    logout_button_enabled = None
+    logout_button_visible = False
+    logout_button_enabled = False
 
     # #【直播间】分组框中的控件-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # ##分组框【直播间】的实例
+    liveRoom_group = None
+    liveRoom_group_visible = False  # ###分组框【直播间】的实例的【可见】
+    liveRoom_group__enabled = False  # ###分组框【直播间】的实例的【可用】
+
     # ##只读文本框【直播间 状态】的实例
     room_status_textBox = None
-    room_status_textBox_visible = None
-    room_status_textBox_enabled = None
+    room_status_textBox_visible = False
+    room_status_textBox_enabled = False
     room_status_textBox_type = None
     room_status_textBox_string = ""
 
     # ##按钮【查看当前直播间封面】的实例
     viewLiveCover_button = None
-    viewLiveCover_button_visible = None
-    viewLiveCover_button_enabled = None
+    viewLiveCover_button_visible = False
+    viewLiveCover_button_enabled = False
 
     # ##文件对话框【直播间封面】的实例
     room_cover_fileDialogBox = None
-    room_cover_fileDialogBox_visible = None
-    room_cover_fileDialogBox_enabled = None
+    room_cover_fileDialogBox_visible = False
+    room_cover_fileDialogBox_enabled = False
     room_cover_fileDialogBox_string = ""
 
     # ##按钮【上传直播间封面】的实例
     room_cover_update_button = None
-    room_cover_update_button_visible = None
-    room_cover_update_button_enabled = None
+    room_cover_update_button_visible = False
+    room_cover_update_button_enabled = False
 
     # ##普通文本框【直播间标题】的实例
     liveRoom_title_textBox = None
-    liveRoom_title_textBox_visible = None
-    liveRoom_title_textBox_enabled = None
+    liveRoom_title_textBox_visible = False
+    liveRoom_title_textBox_enabled = False
     liveRoom_title_textBox_string = ""
 
     # ##按钮【更改直播间标题】的实例
     change_liveRoom_title_button = None
-    change_liveRoom_title_button_visible = None
-    change_liveRoom_title_button_enabled = None
+    change_liveRoom_title_button_visible = False
+    change_liveRoom_title_button_enabled = False
 
     # ##普通文本框【直播间公告】的实例
     liveRoom_news_textBox = None
-    liveRoom_news_textBox_visible = None
-    liveRoom_news_textBox_enabled = None
+    liveRoom_news_textBox_visible = False
+    liveRoom_news_textBox_enabled = False
     liveRoom_news_textBox_string = ""
 
     # ##按钮【更改直播间公告】的实例
     change_liveRoom_news_button = None
-    change_liveRoom_news_button_visible = None  # ###按钮【更改直播间公告】的实例的【可见】
-    change_liveRoom_news_button_enabled = None  # ###按钮【更改直播间公告】的实例的【可用】
+    change_liveRoom_news_button_visible = False  # ###按钮【更改直播间公告】的实例的【可见】
+    change_liveRoom_news_button_enabled = False  # ###按钮【更改直播间公告】的实例的【可用】
 
     # ##组合框【一级分区】的实例
     parentLiveArea_comboBox = None
-    parentLiveArea_comboBox_visible = None
-    parentLiveArea_comboBox_enabled = None
+    parentLiveArea_comboBox_visible = False
+    parentLiveArea_comboBox_enabled = False
     parentLiveArea_comboBox_string = ""
     parentLiveArea_comboBox_value = ""
     parentLiveArea_comboBox_dict = {}
 
     # ##按钮【确认一级分区】的实例
     parentLiveArea_true_button = None
-    parentLiveArea_true_button_visible = None
-    parentLiveArea_true_button_enabled = None
+    parentLiveArea_true_button_visible = False
+    parentLiveArea_true_button_enabled = False
 
     # ##组合框【二级分区】的实例
     subLiveArea_comboBox = None
-    subLiveArea_comboBox_visible = None
-    subLiveArea_comboBox_enabled = None
+    subLiveArea_comboBox_visible = False
+    subLiveArea_comboBox_enabled = False
     subLiveArea_comboBox_string = ""
     subLiveArea_comboBox_value = ""
     subLiveArea_comboBox_dict = {}
 
     # ##按钮【「确认分区」】的实例
     subLiveArea_true_button = None
-    subLiveArea_true_button_visible = None
-    subLiveArea_true_button_enabled = None
+    subLiveArea_true_button_visible = False
+    subLiveArea_true_button_enabled = False
 
     # ##普通文本框【直播间标签】的实例
     liveRoom_Tags_textBox = None
-    liveRoom_Tags_textBox_visible = None
-    liveRoom_Tags_textBox_enabled = None
+    liveRoom_Tags_textBox_visible = False
+    liveRoom_Tags_textBox_enabled = False
     liveRoom_Tags_textBox_string = ""
 
     # ##按钮【更改直播间标签】的实例
     change_liveRoom_Tags_button = None
-    change_liveRoom_Tags_button_visible = None
-    change_liveRoom_Tags_button_enabled = None
+    change_liveRoom_Tags_button_visible = False
+    change_liveRoom_Tags_button_enabled = False
 
     # ##url按钮【跳转直播间后台网页】
     jump_blive_web_button = None
-    jump_blive_web_button_visible = None
-    jump_blive_web_button_enabled = None
+    jump_blive_web_button_visible = False
+    jump_blive_web_button_enabled = False
     jump_blive_web_button_url = ""
 
     # #【直播】分组框中的控件-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # ##分组框【直播】的实例
+    live_group = None
+    live_group_visible = False  # ###分组框【直播】的实例的【可见】
+    live_group__enabled = False  # ###分组框【直播】的实例的【可用】
+
     # ##组合框【直播平台】的实例
     live_streaming_platform_comboBox = None
-    live_streaming_platform_comboBox_visible = None
-    live_streaming_platform_comboBox_enabled = None
+    live_streaming_platform_comboBox_visible = False
+    live_streaming_platform_comboBox_enabled = False
     live_streaming_platform_comboBox_string = ""
     live_streaming_platform_comboBox_value = ""
     live_streaming_platform_comboBox_dict = {}
@@ -267,37 +307,37 @@ class GlobalVariableOfTheControl:
 
     # ##按钮【开始直播并复制推流码】的实例
     start_live_button = None
-    start_live_button_visible = None  # ###按钮【开始直播并复制推流码】的实例的【可见】
-    start_live_button_enabled = None  # ###按钮【开始直播并复制推流码】的实例的【可用】
+    start_live_button_visible = False  # ###按钮【开始直播并复制推流码】的实例的【可见】
+    start_live_button_enabled = False  # ###按钮【开始直播并复制推流码】的实例的【可用】
 
     # ##按钮【复制直播服务器】的实例
     rtmp_address_copy_button = None
-    rtmp_address_copy_button_visible = None
-    rtmp_address_copy_button_enabled = None
+    rtmp_address_copy_button_visible = False
+    rtmp_address_copy_button_enabled = False
 
     # ##按钮【复制直播推流码】的实例
     rtmp_stream_code_copy_button = None
-    rtmp_stream_code_copy_button_visible = None
-    rtmp_stream_code_copy_button_enabled = None
+    rtmp_stream_code_copy_button_visible = False
+    rtmp_stream_code_copy_button_enabled = False
 
     # ##按钮【更新推流码并复制】的实例
     rtmp_stream_code_update_button = None
-    rtmp_stream_code_update_button_visible = None
-    rtmp_stream_code_update_button_enabled = None
+    rtmp_stream_code_update_button_visible = False
+    rtmp_stream_code_update_button_enabled = False
 
     # ##按钮【结束直播】的实例
     stop_live_button = None
-    stop_live_button_visible = None
-    stop_live_button_enabled = None
+    stop_live_button_visible = False
+    stop_live_button_enabled = False
 
 
 class GlobalVariableOfData:
     # #是否 操作 用户配置文件 中 每一个 用户 的 可用性
     accountAvailabilityDetectionSwitch = True
-    # #日志记录
+    # #日志记录的文本
     logRecording = ""
     # #网络连接状态
-    networkConnectionStatus = None
+    networkConnectionStatus = False
     # 文件配置类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # #脚本所在目录，末尾带/
     scripts_data_dirpath = None
@@ -310,7 +350,7 @@ class GlobalVariableOfData:
     # 用户类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     loginQrCode_key = None
 
-    loginQrCode_returnValue = None
+    loginQrCodeReturn = None
 
     # ##登录二维码的pillow img实例
     LoginQRCodePillowImg = None
@@ -357,7 +397,7 @@ def logSave(logLevel: Literal[0, 1, 2, 3], logStr: str) -> None:
 
 def check_network_connection():
     """检查网络连接，通过多个服务提供者的链接验证"""
-    logSave(0, "\n======= 开始网络连接检查 =======")
+    logSave(0, "======= 开始网络连接检查 =======")
 
     # 1. 首先尝试快速DNS连接检查
     logSave(0, "[步骤1] 尝试通过DNS连接检查网络 (8.8.8.8:53)...")
@@ -487,7 +527,7 @@ class BilibiliUserLogsIn2ConfigFile:
         except IOError as e:
             raise RuntimeError(f"配置文件写入失败: {str(e)}") from e
 
-    def addUser(self, cookies: Dict) -> None:
+    def add_user(self, cookies: Dict) -> None:
         """
         添加新用户配置
         Args:
@@ -514,7 +554,7 @@ class BilibiliUserLogsIn2ConfigFile:
         config[uid] = cookies
         self._write_config(config)
 
-    def deleteUser(self, uid: int) -> None:
+    def delete_user(self, uid: int) -> None:
         """
         删除用户配置
         Args:
@@ -535,7 +575,7 @@ class BilibiliUserLogsIn2ConfigFile:
         del config[uid_str]
         self._write_config(config)
 
-    def updateUser(self, cookies: Optional[dict], setDefaultUserIs: bool = True) -> None:
+    def update_ser(self, cookies: Optional[dict], setDefaultUserIs: bool = True) -> None:
         """
         更新用户配置或清空默认用户
         Args:
@@ -578,7 +618,7 @@ class BilibiliUserLogsIn2ConfigFile:
 
         self._write_config(config)
 
-    def getCookies(self, uid: Optional[int] = None) -> Optional[dict]:
+    def get_cookies(self, uid: Optional[int] = None) -> Optional[dict]:
         """
         获取指定用户的cookie信息
         Args:
@@ -597,11 +637,11 @@ class BilibiliUserLogsIn2ConfigFile:
         uid_str = str(uid)
         return config.get(uid_str)
 
-    def getUsers(self) -> Dict[int, Optional[str]]:
+    def get_users(self) -> Dict[int, Optional[str]]:
         """
         获取所有用户列表（包含默认用户占位）
         Returns:
-            字典格式 {序号: 用户ID}，其中：
+            Dict[int, Optional[str]]
             - 键 0: 默认用户ID（若未设置则为 None）
             - 键 1~N: 其他用户ID（按插入顺序编号）
         """
@@ -625,17 +665,19 @@ class BilibiliUserLogsIn2ConfigFile:
         return users
 
 
-def url2pillowImage(url) -> Image.Image:
+def url2pillow_image(url) -> Image.Image:
     """
     将url图片转换为pillow_image实例
     Args:
         url:
-    Returns:pillow_image实例
+    Returns:
+        pillow_image实例
     """
     try:
         # 添加请求头模拟浏览器访问，避免被拒绝
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                          '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
         }
         # 发送 GET 请求
         response = requests.get(url, headers=headers, stream=True)
@@ -651,26 +693,41 @@ def url2pillowImage(url) -> Image.Image:
         print(f"处理图像时出错: {e}")
 
 
-def dict2cookie(jsondict: Dict[str, str]) -> str:
+def dict2cookie(jsondict: Dict[str, Union[str, int, float, bool]], safe: str = "/:") -> str:
     """
     将字典转换为符合HTTP标准的Cookie字符串格式
     Args:
         jsondict: 包含Cookie键值对的字典
-            - 示例: {"name": "value", "age": "20"}
-            - 键和值将自动进行URL编码处理
+            - 示例: {"name": "value", "age": 20, "secure": True}
+        safe: URL编码中保留的安全字符（默认保留/和:）
     Returns:
         str: 符合Cookie规范的字符串
-            - 示例: "name=value; age=20"
+            - 示例: "name=value; age=20; secure"
     Raises:
         TypeError: 当输入不是字典时抛出
     """
-    if not isinstance(jsondict, Dict):
+    if not isinstance(jsondict, dict):
         raise TypeError("输入必须是字典类型")
-    cookie_parts = [
-        f"{url_decoded(key)}={url_decoded(value)}"
-        for key, value in jsondict.items()
-        if value is not None  # 过滤空值
-    ]
+
+    cookie_parts = []
+
+    for key, value in jsondict.items():
+        # 处理键
+        encoded_key = quote(str(key), safe=safe, encoding='utf-8')
+
+        # 处理不同类型的值
+        if value is True:
+            # 布尔值True表示为标志属性
+            cookie_parts.append(encoded_key)
+        elif value is False or value is None:
+            # 跳过False和None值
+            continue
+        else:
+            # 其他类型转换为字符串并编码
+            str_value = str(value)
+            encoded_value = quote(str_value, safe=safe, encoding='utf-8')
+            cookie_parts.append(f"{encoded_key}={encoded_value}")
+
     return "; ".join(cookie_parts)
 
 
@@ -684,53 +741,224 @@ def cookie2dict(cookie: str) -> Dict[str, str]:
         解析后的字典，键值均为字符串类型
         示例: {'name': 'value', 'age': '20', 'token': 'abc 123'}
     Raises:
-        ValueError: 当输入不是字符串时抛出
+        TypeError: 当输入不是字符串时抛出
     Features:
         - 自动处理URL解码
         - 兼容不同分隔符（; 或 ; ）
-        - 过滤空值和无效条目
+        - 过滤空键和空值条目
         - 保留重复键的最后出现值（符合HTTP规范）
+        - 处理值中的等号
+        - 更健壮的解码错误处理
     """
     if not isinstance(cookie, str):
         raise TypeError("输入必须是字符串类型")
+
     cookie_dict = {}
-    # 处理空字符串和去除首尾空格
-    cookie_str = cookie.strip()
-    if not cookie_str:
+    # 处理空字符串
+    if not cookie.strip():
         return cookie_dict
-    # 兼容不同分隔符格式（支持 ; 和 ; ）
-    for pair in cookie_str.split(';'):
+
+    # 分割Cookie字符串
+    for pair in cookie.split(';'):
         pair = pair.strip()
         if not pair:
             continue
-        # 处理键值对（仅分割第一个等号）
-        try:
-            key, value = pair.split('=', 1)
-        except ValueError:
+
+        # 仅分割第一个等号，正确处理含等号的值
+        parts = pair.split('=', 1)
+        if len(parts) != 2:
             continue  # 跳过无效条目
+
+        key, value = parts
         key = key.strip()
+        if not key:  # 过滤空键
+            continue
+
+        # 值处理：去除首尾空格
         value = value.strip()
-        # 执行URL解码（仅值部分）
+
+        # 处理带引号的值 (如: "value")
+        if len(value) >= 2 and value.startswith('"') and value.endswith('"'):
+            value = value[1:-1]
+
+        # 执行URL解码
         try:
             decoded_value = urllib.parse.unquote(value)
         except Exception:
             decoded_value = value  # 解码失败保留原始值
+
+        # 过滤空值（空字符串）
+        if decoded_value == "":
+            continue
+
         cookie_dict[key] = decoded_value
+
     return cookie_dict
 
 
-def url_decoded(url_string: str) -> str:
+def utf_8_to_url(string: str, safe: str = "/:") -> str:
     """
-    将 UTF-8 解码成 URL编码
-    @param url_string: 要解码的 UTF-8 编码字符串
-    @return: URL编码
+    将字符串编码为 URL 安全的 UTF-8 格式
+
+    改进点:
+    1. 添加安全字符参数
+    2. 更清晰的函数名
+    3. 更好的错误处理
+
+    @param string: 要编码的字符串
+    @param safe: 编码中保留的安全字符（默认保留/和:）
+    @return: URL编码的字符串
     """
-    # 使用quote()函数将URL编码转换为UTF-8
-    utf8_encoded = quote(url_string, encoding='utf-8')
-    return utf8_encoded
+    try:
+        return quote(string, safe=safe, encoding='utf-8')
+    except Exception:
+        # 编码失败时返回原始字符串
+        return string
 
 
-def qr2str_b64_PilImg4dict(qr_str: str, border: int = 2, invert: bool = False) -> Dict[str, Union[str, bytes, Image.Image]]:
+def url2dict(url: str, decode: bool = True, handle_multiple: bool = True) -> Dict[str, Union[str, int, float, bool, None, List[Any]]]:
+    """
+    将 URL 参数解析为字典，支持复杂参数处理
+
+    功能特点：
+    1. 自动处理 URL 编码参数
+    2. 支持多值参数（保留所有值）
+    3. 处理空值和缺失值
+    4. 支持 URL 片段(#)和完整 URL
+    5. 自动类型转换尝试
+    6. 查询参数优先级高于片段参数
+
+    Args:
+        url: 包含查询参数的 URL 字符串
+        decode: 是否自动 URL 解码参数值（默认 True）
+        handle_multiple: 是否保留多值参数的所有值（默认 True）
+
+    Returns:
+        解析后的参数字典，单值参数为基本类型，多值参数为列表
+
+    Examples:
+        >>> url2dict("https://example.com?name=John&age=30&lang=Python&lang=Java")
+        {'name': 'John', 'age': 30, 'lang': ['Python', 'Java']}
+
+        >>> url2dict("search?q=hello%20world&safe=on&price=")
+        {'q': 'hello world', 'safe': True, 'price': None}
+    """
+
+    # 内部辅助函数
+    def _convert_types(value: str) -> Union[str, int, float, bool, None]:
+        """尝试将字符串值转换为合适的类型（修复类型转换顺序）"""
+        if value == '':
+            return None
+
+        # 先尝试数字转换（避免数字被误转为布尔值）
+        if value.isdigit():
+            try:
+                return int(value)
+            except (ValueError, TypeError):
+                pass
+
+        if '.' in value or 'e' in value.lower():
+            try:
+                return float(value)
+            except (ValueError, TypeError):
+                pass
+
+        if value.endswith('%') and value[:-1].replace('.', '', 1).isdigit():
+            try:
+                return float(value[:-1]) / 100.0
+            except (ValueError, TypeError):
+                pass
+
+        # 最后尝试布尔值
+        if value.lower() in {'true', 'yes', 'on', '1'}:
+            return True
+        if value.lower() in {'false', 'no', 'off', '0'}:
+            return False
+
+        return value
+
+    def _fallback_parse(query_str: str) -> Dict[str, Any]:
+        """手动解析回退方案"""
+        result = {}
+        if not query_str:
+            return result
+
+        pairs = [p for p in query_str.split('&') if p]
+
+        for pair in pairs:
+            parts = pair.split('=', 1)
+            key = parts[0]
+            value = parts[1] if len(parts) > 1 else ''
+
+            key = unquote(key) if decode else key
+            value_str = unquote(value) if decode else value
+            converted_value = _convert_types(value_str)
+
+            if handle_multiple and key in result:
+                existing = result[key]
+                if isinstance(existing, list):
+                    existing.append(converted_value)
+                else:
+                    result[key] = [existing, converted_value]
+            else:
+                result[key] = converted_value
+
+        return result
+
+    def _parse_query_string(query_str: str) -> Dict[str, Any]:
+        """解析查询字符串为字典"""
+        if not query_str:
+            return {}
+
+        try:
+            params_dict = parse_qs(query_str, keep_blank_values=True)
+        except Exception:
+            return _fallback_parse(query_str)
+
+        result = {}
+        for key, values in params_dict.items():
+            clean_key = unquote(key) if decode else key
+
+            if handle_multiple and len(values) > 1:
+                converted_values = [_convert_types(unquote(v) if decode else v) for v in values]
+                result[clean_key] = converted_values
+            else:
+                value = values[0] if values else ''
+                clean_value = unquote(value) if decode else value
+                result[clean_key] = _convert_types(clean_value)
+
+        return result
+
+    # 主函数逻辑开始
+    if not url or not isinstance(url, str):
+        return {}
+
+    parsed = urlparse(url)
+    query_str = parsed.query
+    fragment_str = parsed.fragment
+
+    # 处理片段中的参数
+    frag_query_str = None
+    if fragment_str:
+        if '?' in fragment_str:
+            _, frag_query = fragment_str.split('?', 1)
+            frag_query_str = frag_query
+        elif '=' in fragment_str:
+            frag_query_str = fragment_str
+
+    # 分别解析查询参数和片段参数
+    query_dict = _parse_query_string(query_str)
+    frag_dict = _parse_query_string(frag_query_str) if frag_query_str else {}
+
+    # 合并参数：查询参数优先于片段参数
+    result = {}
+    result.update(frag_dict)
+    result.update(query_dict)
+
+    return result
+
+
+def qr_text8pil_img(qr_str: str, border: int = 2, invert: bool = False) -> Dict[str, Union[str, bytes, Image.Image]]:
     """
     字符串转二维码（返回包含 PIL 图像对象的字典）
     Args:
@@ -740,7 +968,6 @@ def qr2str_b64_PilImg4dict(qr_str: str, border: int = 2, invert: bool = False) -
     Returns:
         Dict: 包含以下键的字典
             - str: ASCII 字符串形式的二维码
-            - base64: Base64 编码的 PNG 图像
             - img: qrcode PIL.Image.Image 对象
     Raises:
         ValueError: 输入参数不合法时抛出
@@ -760,20 +987,19 @@ def qr2str_b64_PilImg4dict(qr_str: str, border: int = 2, invert: bool = False) -
     # 将 Pillow 图像对象保存到一个内存中的字节流 buf 中
     buf = io.BytesIO()
     img.save(buf)
-    b64 = base64.b64encode(buf.getvalue()).decode()
     # 捕获 print 输出
-    saveStdout = sys.stdout  # 保存了当前的标准输出（stdout）
+    save_stdout = sys.stdout  # 保存了当前的标准输出（stdout）
     output = io.StringIO()  # 创建一个 StringIO 对象来捕获 print 输出
     sys.stdout = output  # 将系统的标准输出重定向到 output
     # 使用 qr 对象的 print_ascii 方法将二维码以 ASCII 字符串的形式打印出来，并根据 invert 参数的值决定是否反转黑白颜色
     qr.print_ascii(out=None, tty=False, invert=invert)
     # 重定向输出到变量中
     output_str = output.getvalue()
-    sys.stdout = saveStdout  # 恢复 sys.stdout
+    sys.stdout = save_stdout  # 恢复 sys.stdout
     # 1. 将 PyPNGImage 对象保存到临时文件
     img.save(os.path.join(GlobalVariableOfData.scripts_temp_dir, f"loginQRCode.png"))
     # 将临时文件打开为PIL.Image.Image 对象
-    qrPilImg = Image.open(os.path.join(GlobalVariableOfData.scripts_temp_dir, f"loginQRCode.png"))
+    qr_pil_img = Image.open(os.path.join(GlobalVariableOfData.scripts_temp_dir, f"loginQRCode.png"))
     """
     qr的PIL.Image.Image 对象
     """
@@ -781,52 +1007,49 @@ def qr2str_b64_PilImg4dict(qr_str: str, border: int = 2, invert: bool = False) -
         os.remove(os.path.join(GlobalVariableOfData.scripts_temp_dir, f"loginQRCode.png"))
     except Exception as e:
         print(f"删除临时文件失败: {e}")
-    return {"str": output_str, "base64": b64, "img": qrPilImg}
+    return {"str": output_str, "img": qr_pil_img}
 
 
-def PIL_Image2CentralProportionCutting(
-        PIL_Image: Image.Image,
-        target_WidthToHeightRatio: float
+def pil_image2central_proportion_cutting(
+        pil_image: Image.Image,
+        target_width2height_ratio: float
 ) -> Optional[Image.Image]:
     """
     对图像进行中心比例裁切，保持目标宽高比
-
     Args:
-        PIL_Image: 要处理的 PIL 图像对象
-        target_WidthToHeightRatio: 目标宽高比（宽度/高度的比值）
+        pil_image: 要处理的 PIL 图像对象
+        target_width2height_ratio: 目标宽高比（宽度/高度的比值）
             示例：
             - 16:9 → 16/9 ≈ 1.778
             - 1:1 → 1.0
             - 4:3 → 1.333
-
     Returns:
         Image.Image: 裁切后的新图像对象，如果裁切失败返回 None
-
     Raises:
         TypeError: 输入不是有效的 PIL 图像对象
         ValueError: 目标比例不是正数或裁切尺寸无效
     """
     # 参数验证
-    if not isinstance(PIL_Image, Image.Image):
+    if not isinstance(pil_image, Image.Image):
         raise TypeError("输入必须是有效的 PIL.Image.Image 对象")
 
-    if target_WidthToHeightRatio <= 0:
+    if target_width2height_ratio <= 0:
         raise ValueError("目标比例必须是正数")
 
     # 获取原始尺寸
-    original_width, original_height = PIL_Image.size
+    original_width, original_height = pil_image.size
     original_ratio = original_width / original_height
 
     try:
         # 计算裁切区域
-        if original_ratio > target_WidthToHeightRatio:
+        if original_ratio > target_width2height_ratio:
             # 过宽：固定高度，计算宽度
             crop_height = original_height
-            crop_width = int(round(crop_height * target_WidthToHeightRatio))
+            crop_width = int(round(crop_height * target_width2height_ratio))
         else:
             # 过高：固定宽度，计算高度
             crop_width = original_width
-            crop_height = int(round(crop_width / target_WidthToHeightRatio))
+            crop_height = int(round(crop_width / target_width2height_ratio))
 
         # 验证裁切尺寸
         if crop_width <= 0 or crop_height <= 0:
@@ -840,7 +1063,7 @@ def PIL_Image2CentralProportionCutting(
         right = left + crop_width
         bottom = top + crop_height
 
-        return PIL_Image.crop((left, top, right, bottom))
+        return pil_image.crop((left, top, right, bottom))
 
     except ValueError as e:
         raise ValueError(f"裁切失败: {str(e)}")
@@ -848,9 +1071,9 @@ def PIL_Image2CentralProportionCutting(
         raise ValueError(f"未知错误: {str(e)}")
 
 
-def PIL_Image2Zooming(
-        PIL_Image: Image.Image,
-        ZoomingQuality: Literal[1, 2, 3, 4],
+def pil_image2zooming(
+        pil_image: Image.Image,
+        zooming_quality: Literal[1, 2, 3, 4],
         target_width: Optional[int] = None,  # Optional[int] 可以简写为 int | None(3.9中为Union[int, None])
         scale_factor: Optional[int] = None  # Optional[int] 可以简写为 int | None(3.9中为Union[int, None])
 ) -> Image.Image:
@@ -858,8 +1081,8 @@ def PIL_Image2Zooming(
     对 PIL 图像进行缩放操作，支持指定目标宽度或缩小倍数
 
     Args:
-        PIL_Image: 要缩放的 PIL 图像对象
-        ZoomingQuality: 缩放质量等级 (1-4)
+        pil_image: 要缩放的 PIL 图像对象
+        zooming_quality: 缩放质量等级 (1-4)
             1 = 最近邻 (速度快质量低)
             2 = 双线性 (平衡模式)
             3 = 双三次 (高质量放大)
@@ -877,29 +1100,29 @@ def PIL_Image2Zooming(
         TypeError: 输入图像类型错误时抛出
     """
     # 参数验证
-    if not isinstance(PIL_Image, Image.Image):
+    if not isinstance(pil_image, Image.Image):
         raise TypeError("输入必须是 PIL.Image.Image 对象")
-    if ZoomingQuality not in (1, 2, 3, 4):
+    if zooming_quality not in (1, 2, 3, 4):
         raise ValueError("缩放质量等级必须是 1-4 的整数")
     if not (False if bool(target_width) == bool(scale_factor) else True):
         raise ValueError("正确使用参数 target_width 或 scale_factor")
     # 选择重采样滤波器
-    resampling_filter4ZoomingQuality = {
-        1: Image.NEAREST,
-        2: Image.BILINEAR,
-        3: Image.BICUBIC,
-        4: Image.LANCZOS,
+    resampling_filter4zooming_quality = {
+        1: Image.Resampling.NEAREST,
+        2: Image.Resampling.BILINEAR,
+        3: Image.Resampling.BICUBIC,
+        4: Image.Resampling.LANCZOS,
     }
-    resampling_filter = resampling_filter4ZoomingQuality[ZoomingQuality]
+    resampling_filter = resampling_filter4zooming_quality[zooming_quality]
     # """
-    # 滤波器名称	    质量	速度	适用场景
-    # Image.NEAREST	低	最快	像素艺术/保留原始像素值
+    # 滤波器名称	        质量	速度	适用场景
+    # Image.NEAREST	    低	最快	像素艺术/保留原始像素值
     # Image.BILINEAR	中	较快	通用缩放（默认选项）
-    # Image.BICUBIC	高	较慢	高质量放大
-    # Image.LANCZOS	最高	最慢	超高精度缩放（推荐选项）
+    # Image.BICUBIC	    高	较慢	高质量放大
+    # Image.LANCZOS	    最高	最慢	超高精度缩放（推荐选项）
     # """
-    original_width, original_height = PIL_Image.size
-    widthHeightRatio = original_width / original_height
+    original_width, original_height = pil_image.size
+    width_height_ratio = original_width / original_height
     new_width = None
     if target_width:
         if target_width > original_width:
@@ -911,22 +1134,22 @@ def PIL_Image2Zooming(
         if 1 < scale_factor:
             raise ValueError("比例因子必须大于1")
         new_width = original_width / scale_factor
-    new_height = new_width / widthHeightRatio
-    ZoomingPIL_Image = PIL_Image.resize((round(new_width), round(new_height)), resampling_filter)
-    return ZoomingPIL_Image
+    new_height = new_width / width_height_ratio
+    zooming_pil_image = pil_image.resize((round(new_width), round(new_height)), resampling_filter)
+    return zooming_pil_image
 
 
-def PIL_Image2Binary(
-        PIL_Image: Image.Image,
-        ImgFormat: Literal["PNG", "JPEG"],
+def pil_image2binary(
+        pil_image: Image.Image,
+        img_format: Literal["PNG", "JPEG"],
         compress_level: Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 ) -> bytes:
     """
     将 PIL 图像对象转换为指定格式的二进制数据
 
     Args:
-        PIL_Image: PIL 图像对象
-        ImgFormat: 输出图像格式
+        pil_image: PIL 图像对象
+        img_format: 输出图像格式
             "PNG" - 使用无损压缩
             "JPEG" - 使用有损压缩
         compress_level: 压缩等级 (不同格式有不同表现)
@@ -941,25 +1164,25 @@ def PIL_Image2Binary(
         OSError: 图像保存失败时抛出
     """
     # 参数验证
-    if not isinstance(PIL_Image, Image.Image):
+    if not isinstance(pil_image, Image.Image):
         raise ValueError("输入必须是有效的 PIL.Image.Image 对象")
-    if ImgFormat not in ("PNG", "JPEG"):
-        raise ValueError(f"不支持的图像格式: {ImgFormat}，只支持 PNG/JPEG")
+    if img_format not in ("PNG", "JPEG"):
+        raise ValueError(f"不支持的图像格式: {img_format}，只支持 PNG/JPEG")
     if compress_level not in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9):
         raise ValueError(f"不支持的压缩级别: {compress_level}，只支持 0～9")
     # 准备保存参数
     save_kwargs = {}
-    if ImgFormat == "PNG":
+    if img_format == "PNG":
         save_kwargs = {
             "format": "PNG",
             "compress_level": compress_level  # 将压缩级别映射到质量参数 (0=最高压缩，9=最高质量)
         }
-    if ImgFormat == "JPEG":
+    if img_format == "JPEG":
         quality = 95 - (compress_level * 10)
         quality = max(5, min(95, quality))  # 确保在有效范围内
         # 转换图像模式为 RGB
-        if PIL_Image.mode != "RGB":
-            PIL_Image = PIL_Image.convert("RGB")
+        if pil_image.mode != "RGB":
+            pil_image = pil_image.convert("RGB")
         save_kwargs = {
             "format": "JPEG",
             "quality": quality,
@@ -968,7 +1191,7 @@ def PIL_Image2Binary(
     # 执行转换
     buffer = io.BytesIO()
     try:
-        PIL_Image.save(buffer, **save_kwargs)
+        pil_image.save(buffer, **save_kwargs)
     except Exception as e:
         raise OSError(f"图像保存失败: {str(e)}") from e
     image_bytes = buffer.getvalue()  # 转换为字节流
@@ -994,9 +1217,7 @@ class BilibiliApiGeneric:
         @param room_id:
         @return:
         "data": {
-            "by_uids": {
-
-            },
+            "by_uids": {},
             "by_room_ids": {
                 "25322725": {
                     "room_id": 25322725,
@@ -1393,89 +1614,54 @@ class BilibiliApiGeneric:
         room_info_old = requests.get(api, headers=self.headers, params=get_room_info_old_data).json()
         return room_info_old["data"]
 
-# end
+    # 登陆用函数
+    def generate(self, ) -> Dict:
+        """
+        申请登录二维码
+        @return: {'url': 二维码文本, 'qrcode_key': 扫描秘钥}
+        """
+        api = 'https://passport.bilibili.com/x/passport-login/web/qrcode/generate'
+        url8qrcode_key = requests.get(api, headers=self.headers).json()
+        # print(url8qrcode_key)
+        generate_data = url8qrcode_key['data']
+        url = generate_data['url']
+        qrcode_key = generate_data['qrcode_key']
+        return {'url': url, 'qrcode_key': qrcode_key}
 
-
-# 登陆用函数
-def generate() -> Dict:
-    """
-    申请登录二维码
-    @return: {'url': 二维码文本, 'qrcode_key': 扫描秘钥}
-    """
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\
-        (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0",
-    }
-    api = 'https://passport.bilibili.com/x/passport-login/web/qrcode/generate'
-    url8qrcode_key = requests.get(api, headers=headers).json()
-    # print(url8qrcode_key)
-    data = url8qrcode_key['data']
-    url = data['url']
-    qrcode_key = data['qrcode_key']
-    return {'url': url, 'qrcode_key': qrcode_key}
-
-
-def poll(qrcode_key: str) -> Dict[str, Union[Dict[str, str], int]]:  # 3.Dict[str, Dict[str, str] | int]
-    """
-    获取登陆状态，登陆成功获取 基础的 cookies
-    @param qrcode_key: 扫描秘钥
-    @return: {'code', 'cookies'}
-    <table>
-        <thead>
-        <tr>
-            <th>字段</th>
-            <th>类型</th>
-            <th>内容</th>
-            <th>备注</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-            <td>code</td>
-            <td>num</td>
-            <td>0：扫码登录成功<br>86038：二维码已失效<br>86090：二维码已扫码未确认<br>86101：未扫码</td>
-            <td></td>
-        </tr>
-        </tbody>
-    </table>
-    @rtype: Dict
-    """
-    global data
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\
-        (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0",
-    }
-    api = f'https://passport.bilibili.com/x/passport-login/web/qrcode/poll?qrcode_key={qrcode_key}'
-    DedeUserID8DedeUserID__ckMd58SESSDATA8bili_jct = requests.get(api, data=qrcode_key, headers=headers).json()
-    data = DedeUserID8DedeUserID__ckMd58SESSDATA8bili_jct['data']
-    # print(data)
-    cookies = {}
-    code = data['code']
-    if code == 0:
-        def urldata_dict(url: str):
-            """
-            将 url参数 转换成 Dict
-            @param url: 带有参数的url
-            @return: 转换成的dict
-            @rtype: Dict
-            """
-            urldata = url.split('?', 1)[1]
-            data_list = urldata.split('&')
-            data_dict = {}
-            for data in data_list:
-                data = data.split('=')
-                data_dict[data[0]] = data[1]
-            return data_dict
-
-        data_dict = urldata_dict(data['url'])
-        cookies["DedeUserID"] = data_dict['DedeUserID']
-        cookies["DedeUserID__ckMd5"] = data_dict['DedeUserID__ckMd5']
-        cookies["SESSDATA"] = data_dict['SESSDATA']
-        cookies["bili_jct"] = data_dict['bili_jct']
-        # 补充 cookie
-        buvid3 = requests.get(f'https://www.bilibili.com/video/', headers=headers)
-        cookies.update(buvid3.cookies.get_dict())
-    return {'code': code, 'cookies': cookies}
+    def poll(self, qrcode_key: str) -> Dict[str, Union[Dict[str, str], int]]:  # 3.Dict[str, Dict[str, str] | int]
+        """
+        获取登陆状态，登陆成功获取 基础的 cookies
+        @param qrcode_key: 扫描秘钥
+        @return: {'code', 'cookies'}
+        @rtype: Dict
+        """
+        api = f'https://passport.bilibili.com/x/passport-login/web/qrcode/poll?qrcode_key={qrcode_key}'
+        poll_return = requests.get(api, data=qrcode_key, headers=self.headers).json()
+        data = poll_return['data']
+        cookies = {}
+        """
+        - DedeUserID:           用户id
+        - DedeUserID__ckMd5:    携带时间戳加密的用户id
+        - SESSDATA:             账户密钥
+        - bili_jct:             csrf鉴权
+        """
+        code = data['code']
+        """
+        - 0：    扫码登录成功 
+        - 86038：二维码已失效 
+        - 86090：二维码已扫码未确认 
+        - 86101：未扫码
+        """
+        if code == 0:  # code = 0 代表登陆成功
+            data_dict = url2dict(data['url'])
+            cookies["DedeUserID"] = data_dict['DedeUserID']
+            cookies["DedeUserID__ckMd5"] = data_dict['DedeUserID__ckMd5']
+            cookies["SESSDATA"] = data_dict['SESSDATA']
+            cookies["bili_jct"] = data_dict['bili_jct']
+            # 补充 cookie
+            buvid3 = requests.get(f'https://www.bilibili.com/video/', headers=self.headers)
+            cookies.update(buvid3.cookies.get_dict())
+        return {'code': code, 'cookies': cookies}
 
 
 # end
@@ -1490,3652 +1676,12 @@ class BilibiliApiMaster:
         完善 浏览器headers
         @param cookie: B站cookie
         """
-        UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
-              "Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0")
+        user_agent = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+                      "Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0")
         self.headers = {
-            "User-Agent": UA,
+            "User-Agent": user_agent,
             "cookie": cookie,
         }
-
-    def getFansMembersRank(self, uid: int) -> list:
-        """
-        通过用户的B站uid查看他的粉丝团成员列表
-        :param uid:B站uid
-        :return: list元素：[{face：头像url，guard_icon：舰队职位图标url，guard_level：舰队职位 1/2/3->总督/提督/舰长，honor_icon：""，level：粉丝牌等级，medal_color_border：粉丝牌描边颜色数值为 10 进制的 16 进制值，medal_color_start：勋章起始颜色，medal_color_end：勋章结束颜色，medal_name：勋章名，name：用户昵称，score：勋章经验值，special：""，target_id：up主mid，uid：用户mid，user_rank：在粉丝团的排名}]
-        """
-        api = "https://api.live.bilibili.com/xlive/general-interface/v1/rank/getFansMembersRank"
-        headers = self.headers
-        page = 0
-        # maxpage = 1
-        RankFans = []
-        FansMember = True
-        while FansMember:
-            # while page <= maxpage:
-            page += 1
-            data = {
-                "ruid": uid,
-                "page": page,
-                "page_size": 30,
-            }
-            try:
-                FansMembersRank = requests.get(api, headers=headers, params=data).json()
-            except:
-                time.sleep(5)
-                FansMembersRank = requests.get(api, headers=headers, params=data).json()
-            # num_FansMembersRank = FansMembersRank["data"]["num"]
-            # print(FansMembersRank)
-            FansMember = FansMembersRank["data"]["item"]
-            RankFans += FansMember
-            # maxpage = math.ceil(num_FansMembersRank / 30) + 1
-        return RankFans
-
-    def dynamic_v1_feed_space(self, host_mid, all: bool = False) -> list:
-        """
-
-        @param host_mid:
-        @param all:
-        @return:
-        <div><h1 id="获取动态列表" tabindex="-1"><a class="header-anchor" href="#获取动态列表" aria-hidden="true">#</a> 获取动态列表
-        </h1>
-            <blockquote><p>https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/all</p></blockquote>
-            <p>请求方式：<code>GET</code></p>
-            <p>是否需要登录：<code>是</code></p>
-            <h2 id="json回复" tabindex="-1"><a class="header-anchor" href="#json回复" aria-hidden="true">#</a> Json回复</h2>
-            <h3 id="根对象" tabindex="-1"><a class="header-anchor" href="#根对象" aria-hidden="true">#</a> 根对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>code</td>
-                    <td>num</td>
-                    <td>响应码</td>
-                    <td>0：成功<br>-101：账号未登录</td>
-                </tr>
-                <tr>
-                    <td>message</td>
-                    <td>str</td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>ttl</td>
-                    <td>num</td>
-                    <td>1</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>data</td>
-                    <td>obj</td>
-                    <td>信息本体</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象" tabindex="-1"><a class="header-anchor" href="#data对象" aria-hidden="true">#</a> <code>data</code>对象
-            </h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>has_more</td>
-                    <td>bool</td>
-                    <td>是否有更多数据</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>items</td>
-                    <td>array</td>
-                    <td>数据数组</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>offset</td>
-                    <td>str</td>
-                    <td>偏移量</td>
-                    <td>等于<code>items</code>中最后一条记录的id<br>获取下一页时使用</td>
-                </tr>
-                <tr>
-                    <td>update_baseline</td>
-                    <td>str</td>
-                    <td>更新基线</td>
-                    <td>等于<code>items</code>中第一条记录的id</td>
-                </tr>
-                <tr>
-                    <td>update_num</td>
-                    <td>num</td>
-                    <td>本次获取获取到了多少条新动态</td>
-                    <td>在更新基线以上的动态条数</td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象" tabindex="-1"><a class="header-anchor" href="#data对象-items数组中的对象"
-                                                                 aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象
-            </h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>basic</td>
-                    <td>obj</td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>id_str</td>
-                    <td>str</td>
-                    <td>动态id</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>modules</td>
-                    <td>obj</td>
-                    <td>动态信息</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>type</td>
-                    <td>str</td>
-                    <td>动态类型</td>
-                    <td><a href="/bilibili-API-collect/docs/dynamic/dynamic_enum.html#%E5%8A%A8%E6%80%81%E7%B1%BB%E5%9E%8B"
-                           class="">动态类型</a></td>
-                </tr>
-                <tr>
-                    <td>visible</td>
-                    <td>bool</td>
-                    <td>是否显示</td>
-                    <td><code>true</code>：正常显示<br><code>false</code>：折叠动态</td>
-                </tr>
-                <tr>
-                    <td>orig</td>
-                    <td>obj</td>
-                    <td>原动态信息</td>
-                    <td>仅动态类型为<code>DYNAMIC_TYPE_FORWARD</code>的情况下存在</td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-basic对象" tabindex="-1"><a class="header-anchor"
-                                                                           href="#data对象-items数组中的对象-basic对象"
-                                                                           aria-hidden="true">#</a> <code>data</code>对象 -&gt;
-                <code>items</code>数组中的对象 -&gt; <code>basic</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>comment_id_str</td>
-                    <td>str</td>
-                    <td></td>
-                    <td><code>DYNAMIC_TYPE_AV</code>：视频AV号<br><code>DYNAMIC_TYPE_UGC_SEASON</code>：视频AV号<br><code>DYNAMIC_TYPE_PGC</code>：剧集分集AV号<br><code>DYNAMIC_TYPE_LIVE_RCMD</code>：动态本身id<br><code>DYNAMIC_TYPE_DRAW</code>：相簿id<br><code>DYNAMIC_TYPE_ARTICLE</code>：专栏cv号<br><code>DYNAMIC_TYPE_FORWARD</code>：动态本身id<br><code>DYNAMIC_TYPE_WORD</code>：动态本身id<br><code>DYNAMIC_TYPE_LIVE</code>:动态本身id<br><code>DYNAMIC_TYPE_MEDIALIST</code>:收藏夹ml号
-                    </td>
-                </tr>
-                <tr>
-                    <td>comment_type</td>
-                    <td>num</td>
-                    <td></td>
-                    <td>1：<code>DYNAMIC_TYPE_AV</code> <code>DYNAMIC_TYPE_PGC</code> <code>DYNAMIC_TYPE_UGC_SEASON</code><br>11：<code>DYNAMIC_TYPE_DRAW</code><br>12：<code>DYNAMIC_TYPE_ARTICLE</code><br>17：<code>DYNAMIC_TYPE_LIVE_RCMD</code>
-                        <code>DYNAMIC_TYPE_FORWARD</code> <code>DYNAMIC_TYPE_WORD</code> <code>DYNAMIC_TYPE_COMMON_SQUARE</code><br>19：<code>DYNAMIC_TYPE_MEDIALIST</code>
-                    </td>
-                </tr>
-                <tr>
-                    <td>like_icon</td>
-                    <td>obj</td>
-                    <td></td>
-                    <td><code>空串</code></td>
-                </tr>
-                <tr>
-                    <td>rid_str</td>
-                    <td>str</td>
-                    <td></td>
-                    <td><code>DYNAMIC_TYPE_AV</code>：视频AV号<br><code>DYNAMIC_TYPE_UGC_SEASON</code>：视频AV号 <code>DYNAMIC_TYPE_PGC</code>：剧集分集EP号<br><code>DYNAMIC_TYPE_DRAW</code>：相簿id<br><code>DYNAMIC_TYPE_ARTICLE</code>：专栏cv号<br><code>DYNAMIC_TYPE_LIVE_RCMD</code>：live_id<br><code>DYNAMIC_TYPE_FORWARD</code>：未知<br><code>DYNAMIC_TYPE_WORD</code>：未知<br><code>DYNAMIC_TYPE_COMMON_SQUARE</code>：未知<br><code>DYNAMIC_TYPE_LIVE</code>：直播间id<br><code>DYNAMIC_TYPE_MEDIALIST</code>：收藏夹ml号
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-basic对象-like-icon对象" tabindex="-1"><a class="header-anchor"
-                                                                                         href="#data对象-items数组中的对象-basic对象-like-icon对象"
-                                                                                         aria-hidden="true">#</a>
-                <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt; <code>basic</code>对象 -&gt;
-                <code>like_icon</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>action_url</td>
-                    <td>str</td>
-                    <td><code>空串</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>end_url</td>
-                    <td>str</td>
-                    <td><code>空串</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>id</td>
-                    <td>num</td>
-                    <td><code>0</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>start_url</td>
-                    <td>str</td>
-                    <td><code>空串</code></td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象" tabindex="-1"><a class="header-anchor"
-                                                                             href="#data对象-items数组中的对象-modules对象"
-                                                                             aria-hidden="true">#</a> <code>data</code>对象 -&gt;
-                <code>items</code>数组中的对象 -&gt; <code>modules</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>module_author</td>
-                    <td>obj</td>
-                    <td>UP主信息</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>module_dynamic</td>
-                    <td>obj</td>
-                    <td>动态内容信息</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>module_more</td>
-                    <td>obj</td>
-                    <td>动态右上角三点菜单</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>module_stat</td>
-                    <td>obj</td>
-                    <td>动态统计数据</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>module_interaction</td>
-                    <td>obj</td>
-                    <td>热度评论</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>module_fold</td>
-                    <td>obj</td>
-                    <td>动态折叠信息</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>module_dispute</td>
-                    <td>obj</td>
-                    <td>争议小黄条</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>module_tag</td>
-                    <td>obj</td>
-                    <td>置顶信息</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-author对象" tabindex="-1"><a class="header-anchor"
-                                                                                               href="#data对象-items数组中的对象-modules对象-module-author对象"
-                                                                                               aria-hidden="true">#</a> <code>data</code>对象
-                -&gt; <code>items</code>数组中的对象 -&gt; <code>modules</code>对象 -&gt; <code>module_author</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>face</td>
-                    <td>str</td>
-                    <td>头像</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>face_nft</td>
-                    <td>bool</td>
-                    <td>是否为NFT头像</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>following</td>
-                    <td>bool</td>
-                    <td>是否关注此UP主</td>
-                    <td>自己的动态为<code>null</code></td>
-                </tr>
-                <tr>
-                    <td>jump_url</td>
-                    <td>str</td>
-                    <td>跳转链接</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>label</td>
-                    <td>str</td>
-                    <td>名称前标签</td>
-                    <td><code>合集</code><br><code>电视剧</code><br><code>番剧</code></td>
-                </tr>
-                <tr>
-                    <td>mid</td>
-                    <td>num</td>
-                    <td>UP主UID<br>剧集SeasonId</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>name</td>
-                    <td>str</td>
-                    <td>UP主名称<br>剧集名称<br>合集名称</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>official_verify</td>
-                    <td>obj</td>
-                    <td>UP主认证信息</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>pendant</td>
-                    <td>obj</td>
-                    <td>UP主头像框</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>pub_action</td>
-                    <td>str</td>
-                    <td>更新动作描述</td>
-                    <td><code>投稿了视频</code><br><code>直播了</code><br><code>投稿了文章</code><br><code>更新了合集</code><br><code>与他人联合创作</code><br><code>发布了动态视频</code><br><code>投稿了直播回放</code>
-                    </td>
-                </tr>
-                <tr>
-                    <td>pub_location_text</td>
-                    <td>str</td>
-                    <td><code>空串</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>pub_time</td>
-                    <td>str</td>
-                    <td>更新时间</td>
-                    <td><code>x分钟前</code><br><code>x小时前</code><br><code>昨天</code></td>
-                </tr>
-                <tr>
-                    <td>pub_ts</td>
-                    <td>num</td>
-                    <td>更新时间戳</td>
-                    <td>单位：秒</td>
-                </tr>
-                <tr>
-                    <td>type</td>
-                    <td>str</td>
-                    <td>作者类型</td>
-                    <td><a href="/bilibili-API-collect/docs/dynamic/dynamic_enum.html#%E4%BD%9C%E8%80%85%E7%B1%BB%E5%9E%8B"
-                           class="">作者类型</a></td>
-                </tr>
-                <tr>
-                    <td>vip</td>
-                    <td>obj</td>
-                    <td>UP主大会员信息</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>decorate</td>
-                    <td>obj</td>
-                    <td>装扮信息</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>nft_info</td>
-                    <td>obj</td>
-                    <td>NFT头像信息</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-author对象-official-verify对象" tabindex="-1"><a
-                    class="header-anchor" href="#data对象-items数组中的对象-modules对象-module-author对象-official-verify对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_author</code>对象 -&gt; <code>official_verify</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>desc</td>
-                    <td>str</td>
-                    <td>认证说明</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>type</td>
-                    <td>num</td>
-                    <td>认证类型</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-author对象-pendant对象" tabindex="-1"><a class="header-anchor"
-                                                                                                           href="#data对象-items数组中的对象-modules对象-module-author对象-pendant对象"
-                                                                                                           aria-hidden="true">#</a>
-                <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt; <code>modules</code>对象 -&gt; <code>module_author</code>对象
-                -&gt; <code>pendant</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>expire</td>
-                    <td>num</td>
-                    <td>过期时间</td>
-                    <td>此接口返回恒为<code>0</code></td>
-                </tr>
-                <tr>
-                    <td>image</td>
-                    <td>str</td>
-                    <td>头像框图片url</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>image_enhance</td>
-                    <td>str</td>
-                    <td>头像框图片url</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>image_enhance_frame</td>
-                    <td>str</td>
-                    <td>头像框图片逐帧序列url</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>name</td>
-                    <td>str</td>
-                    <td>头像框名称</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>pid</td>
-                    <td>num</td>
-                    <td>头像框id</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-author对象-vip对象" tabindex="-1"><a class="header-anchor"
-                                                                                                       href="#data对象-items数组中的对象-modules对象-module-author对象-vip对象"
-                                                                                                       aria-hidden="true">#</a>
-                <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt; <code>modules</code>对象 -&gt; <code>module_author</code>对象
-                -&gt; <code>vip</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>avatar_subscript</td>
-                    <td>num</td>
-                    <td>是否显示角标</td>
-                    <td>0：不显示<br>1：显示</td>
-                </tr>
-                <tr>
-                    <td>avatar_subscript_url</td>
-                    <td>str</td>
-                    <td><code>空串</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>due_date</td>
-                    <td>num</td>
-                    <td>大会员过期时间戳</td>
-                    <td>单位：秒</td>
-                </tr>
-                <tr>
-                    <td>label</td>
-                    <td>obj</td>
-                    <td>大会员标签</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>nickname_color</td>
-                    <td>str</td>
-                    <td>名字显示颜色</td>
-                    <td>大会员：<code>#FB7299</code></td>
-                </tr>
-                <tr>
-                    <td>status</td>
-                    <td>num</td>
-                    <td>大会员状态</td>
-                    <td>0：无<br>1：有<br>2：？</td>
-                </tr>
-                <tr>
-                    <td>theme_type</td>
-                    <td>num</td>
-                    <td><code>0</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>type</td>
-                    <td>num</td>
-                    <td>大会员类型</td>
-                    <td>0：无<br>1：月大会员<br>2：年度及以上大会员</td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-author对象-vip对象-label对象" tabindex="-1"><a
-                    class="header-anchor" href="#data对象-items数组中的对象-modules对象-module-author对象-vip对象-label对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_author</code>对象 -&gt; <code>vip</code>对象 -&gt;
-                <code>label</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>bg_color</td>
-                    <td>str</td>
-                    <td>会员标签背景颜色</td>
-                    <td><code>#FB7299</code></td>
-                </tr>
-                <tr>
-                    <td>bg_style</td>
-                    <td>num</td>
-                    <td><code>0</code> <code>1</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>border_color</td>
-                    <td>str</td>
-                    <td><code>空串</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>img_label_uri_hans</td>
-                    <td>str</td>
-                    <td>大会员牌子图片</td>
-                    <td>动态版 简体版</td>
-                </tr>
-                <tr>
-                    <td>img_label_uri_hans_static</td>
-                    <td>str</td>
-                    <td>大会员牌子图片</td>
-                    <td>静态版 简体版</td>
-                </tr>
-                <tr>
-                    <td>img_label_uri_hant</td>
-                    <td>str</td>
-                    <td>大会员牌子图片</td>
-                    <td>动态版 繁体版</td>
-                </tr>
-                <tr>
-                    <td>img_label_uri_hant_static</td>
-                    <td>str</td>
-                    <td>大会员牌子图片</td>
-                    <td>静态版 繁体版</td>
-                </tr>
-                <tr>
-                    <td>label_theme</td>
-                    <td>str</td>
-                    <td>会员标签</td>
-                    <td>vip：大会员<br>annual_vip：年度大会员<br>ten_annual_vip：十年大会员<br>hundred_annual_vip：百年大会员<br>fools_day_hundred_annual_vip：最强绿鲤鱼
-                    </td>
-                </tr>
-                <tr>
-                    <td>path</td>
-                    <td>str</td>
-                    <td><code>空串</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>text</td>
-                    <td>str</td>
-                    <td>会员类型文案</td>
-                    <td><code>大会员</code> <code>年度大会员</code> <code>十年大会员</code> <code>百年大会员</code>
-                        <code>最强绿鲤鱼</code></td>
-                </tr>
-                <tr>
-                    <td>text_color</td>
-                    <td>str</td>
-                    <td>用户名文字颜色</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>use_img_label</td>
-                    <td>bool</td>
-                    <td><code>true</code></td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-author对象-decorate对象" tabindex="-1"><a
-                    class="header-anchor" href="#data对象-items数组中的对象-modules对象-module-author对象-decorate对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_author</code>对象 -&gt; <code>decorate</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>card_url</td>
-                    <td>str</td>
-                    <td>动态卡片小图标图片URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>fan</td>
-                    <td>obj</td>
-                    <td>粉丝装扮信息</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>id</td>
-                    <td>num</td>
-                    <td>装扮ID</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>jump_url</td>
-                    <td>str</td>
-                    <td>跳转URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>name</td>
-                    <td>str</td>
-                    <td>装扮名称</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>type</td>
-                    <td>num</td>
-                    <td><code>1</code> <code>2</code> <code>3</code></td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-author对象-decorate对象-fan对象" tabindex="-1"><a
-                    class="header-anchor" href="#data对象-items数组中的对象-modules对象-module-author对象-decorate对象-fan对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_author</code>对象 -&gt; <code>decorate</code>对象 -&gt;
-                <code>fan</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>color</td>
-                    <td>str</td>
-                    <td>编号颜色</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>is_fan</td>
-                    <td>bool</td>
-                    <td>是否是粉丝装扮</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>num_str</td>
-                    <td>str</td>
-                    <td>装扮编号</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>number</td>
-                    <td>num</td>
-                    <td>装扮编号</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-author对象-nft-info对象" tabindex="-1"><a
-                    class="header-anchor" href="#data对象-items数组中的对象-modules对象-module-author对象-nft-info对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_author</code>对象 -&gt; <code>nft_info</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>region_icon</td>
-                    <td>str</td>
-                    <td>NFT头像角标URL</td>
-                    <td>
-                        类型1：https://i0.hdslb.com/bfs/activity-plat/static/20220506/334553dd7c506a92b88eaf4d59ac8b4d/j8AeXAkEul.gif
-                        <br>类型2：https://i0.hdslb.com/bfs/activity-plat/static/20220506/334553dd7c506a92b88eaf4d59ac8b4d/IOHoVs1ebP.gif
-                    </td>
-                </tr>
-                <tr>
-                    <td>region_type</td>
-                    <td>num</td>
-                    <td>NFT头像角标类型</td>
-                    <td>1,2</td>
-                </tr>
-                <tr>
-                    <td>show_status</td>
-                    <td>num</td>
-                    <td><code>1</code></td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象" tabindex="-1"><a class="header-anchor"
-                                                                                                href="#data对象-items数组中的对象-modules对象-module-dynamic对象"
-                                                                                                aria-hidden="true">#</a> <code>data</code>对象
-                -&gt; <code>items</code>数组中的对象 -&gt; <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>additional</td>
-                    <td>obj</td>
-                    <td>相关内容卡片信息</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>desc</td>
-                    <td>obj</td>
-                    <td>动态文字内容</td>
-                    <td>其他动态时为null</td>
-                </tr>
-                <tr>
-                    <td>major</td>
-                    <td>obj</td>
-                    <td>动态主体对象</td>
-                    <td>转发动态时为null</td>
-                </tr>
-                <tr>
-                    <td>topic</td>
-                    <td>obj</td>
-                    <td>话题信息</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象" tabindex="-1"><a
-                    class="header-anchor" href="#data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>additional</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>common</td>
-                    <td>obj</td>
-                    <td>一般类型</td>
-                    <td><code>ADDITIONAL_TYPE_COMMON</code>类型独有</td>
-                </tr>
-                <tr>
-                    <td>type</td>
-                    <td>str</td>
-                    <td>卡片类型</td>
-                    <td>
-                        <a href="/bilibili-API-collect/docs/dynamic/dynamic_enum.html#%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9%E5%8D%A1%E7%89%87%E7%B1%BB%E5%9E%8B"
-                           class="">相关内容卡片类型</a></td>
-                </tr>
-                <tr>
-                    <td>reserve</td>
-                    <td>obj</td>
-                    <td>预约信息</td>
-                    <td><code>ADDITIONAL_TYPE_RESERVE</code>类型独有</td>
-                </tr>
-                <tr>
-                    <td>goods</td>
-                    <td>obj</td>
-                    <td>商品内容</td>
-                    <td><code>ADDITIONAL_TYPE_GOODS</code>类型独有</td>
-                </tr>
-                <tr>
-                    <td>vote</td>
-                    <td>obj</td>
-                    <td>投票信息</td>
-                    <td><code>ADDITIONAL_TYPE_VOTE</code>类型独有</td>
-                </tr>
-                <tr>
-                    <td>ugc</td>
-                    <td>obj</td>
-                    <td>视频信息</td>
-                    <td><code>ADDITIONAL_TYPE_UGC</code>类型独有</td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-common对象" tabindex="-1"><a
-                    class="header-anchor"
-                    href="#data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-common对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>additional</code>对象 -&gt; <code>common</code>对象
-            </h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>button</td>
-                    <td>obj</td>
-                    <td>按钮内容</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>cover</td>
-                    <td>str</td>
-                    <td>左侧封面图</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>desc1</td>
-                    <td>str</td>
-                    <td>描述1</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>desc2</td>
-                    <td>str</td>
-                    <td>描述2</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>head_text</td>
-                    <td>str</td>
-                    <td>卡片头文本</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>id_str</td>
-                    <td>str</td>
-                    <td>相关id</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>jump_url</td>
-                    <td>str</td>
-                    <td>跳转URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>style</td>
-                    <td>num</td>
-                    <td><code>1</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>sub_type</td>
-                    <td>str</td>
-                    <td>子类型</td>
-                    <td><code>game</code><br><code>decoration</code><br><code>ogv</code></td>
-                </tr>
-                <tr>
-                    <td>title</td>
-                    <td>str</td>
-                    <td>卡片标题</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-common对象-button对象"
-                tabindex="-1"><a class="header-anchor"
-                                 href="#data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-common对象-button对象"
-                                 aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>additional</code>对象 -&gt; <code>common</code>对象
-                -&gt; <code>button</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>jump_style</td>
-                    <td>obj</td>
-                    <td>跳转类型</td>
-                    <td><code>game</code>和<code>decoration</code>类型特有</td>
-                </tr>
-                <tr>
-                    <td>jump_url</td>
-                    <td>str</td>
-                    <td>跳转URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>type</td>
-                    <td>num</td>
-                    <td></td>
-                    <td>1：<code>game</code>和<code>decoration</code>类型<br>2：<code>ogv</code>类型</td>
-                </tr>
-                <tr>
-                    <td>check</td>
-                    <td>obj</td>
-                    <td></td>
-                    <td><code>ogv</code>类型特有</td>
-                </tr>
-                <tr>
-                    <td>status</td>
-                    <td>num</td>
-                    <td><code>1</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>uncheck</td>
-                    <td>obj</td>
-                    <td></td>
-                    <td><code>ogv</code>类型特有</td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-common对象-button对象-jump-style对象"
-                tabindex="-1"><a class="header-anchor"
-                                 href="#data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-common对象-button对象-jump-style对象"
-                                 aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>additional</code>对象 -&gt; <code>common</code>对象
-                -&gt; <code>button</code>对象 -&gt; <code>jump_style</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>icon_url</td>
-                    <td>str</td>
-                    <td><code>空串</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>text</td>
-                    <td>str</td>
-                    <td>按钮显示文案</td>
-                    <td>game：<code>进入</code><br>decoration：<code>去看看</code></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-common对象-button对象-check对象"
-                tabindex="-1"><a class="header-anchor"
-                                 href="#data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-common对象-button对象-check对象"
-                                 aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>additional</code>对象 -&gt; <code>common</code>对象
-                -&gt; <code>button</code>对象 -&gt; <code>check</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>icon_url</td>
-                    <td>str</td>
-                    <td>按钮图片URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>text</td>
-                    <td>str</td>
-                    <td>按钮显示文案</td>
-                    <td><code>ogv</code>：已追剧</td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-common对象-button对象-uncheck对象"
-                tabindex="-1"><a class="header-anchor"
-                                 href="#data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-common对象-button对象-uncheck对象"
-                                 aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>additional</code>对象 -&gt; <code>common</code>对象
-                -&gt; <code>button</code>对象 -&gt; <code>uncheck</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>icon_url</td>
-                    <td>str</td>
-                    <td>按钮图片URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>text</td>
-                    <td>str</td>
-                    <td>按钮显示文案</td>
-                    <td><code>ogv</code>：追剧</td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-reserve对象" tabindex="-1"><a
-                    class="header-anchor"
-                    href="#data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-reserve对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>additional</code>对象 -&gt; <code>reserve</code>对象
-            </h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>button</td>
-                    <td>obj</td>
-                    <td>按钮信息</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>desc1</td>
-                    <td>obj</td>
-                    <td>预约时间</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>desc2</td>
-                    <td>obj</td>
-                    <td>预约观看量</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>jump_url</td>
-                    <td>str</td>
-                    <td>跳转URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>reserve_total</td>
-                    <td>num</td>
-                    <td>预约人数</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>rid</td>
-                    <td>num</td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>state</td>
-                    <td>num</td>
-                    <td><code>0</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>stype</td>
-                    <td>num</td>
-                    <td><code>1</code> <code>2</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>title</td>
-                    <td>str</td>
-                    <td>预约标题</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>up_mid</td>
-                    <td>num</td>
-                    <td>预约发起人UID</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>desc3</td>
-                    <td>obj</td>
-                    <td>预约有奖信息</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-reserve对象-button对象"
-                tabindex="-1"><a class="header-anchor"
-                                 href="#data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-reserve对象-button对象"
-                                 aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>additional</code>对象 -&gt; <code>reserve</code>对象
-                -&gt; <code>button</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>check</td>
-                    <td>obj</td>
-                    <td>已预约状态显示内容</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>status</td>
-                    <td>num</td>
-                    <td>预约状态</td>
-                    <td>1：未预约，使用<code>uncheck</code><br>2：已预约，使用<code>check</code></td>
-                </tr>
-                <tr>
-                    <td>type</td>
-                    <td>num</td>
-                    <td>类型</td>
-                    <td>1：视频预约，使用<code>jump_style</code><br>2：直播预约，使用<code>check</code>和<code>uncheck</code></td>
-                </tr>
-                <tr>
-                    <td>uncheck</td>
-                    <td>obj</td>
-                    <td>未预约状态显示内容</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>jump_style</td>
-                    <td>obj</td>
-                    <td>跳转按钮</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>jump_url</td>
-                    <td>str</td>
-                    <td>跳转URL</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-reserve对象-button对象-check对象"
-                tabindex="-1"><a class="header-anchor"
-                                 href="#data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-reserve对象-button对象-check对象"
-                                 aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>additional</code>对象 -&gt; <code>reserve</code>对象
-                -&gt; <code>button</code>对象 -&gt; <code>check</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>icon_url</td>
-                    <td>str</td>
-                    <td><code>空串</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>text</td>
-                    <td>str</td>
-                    <td>按钮显示文案</td>
-                    <td><code>已预约</code></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-reserve对象-button对象-uncheck对象"
-                tabindex="-1"><a class="header-anchor"
-                                 href="#data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-reserve对象-button对象-uncheck对象"
-                                 aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>additional</code>对象 -&gt; <code>reserve</code>对象
-                -&gt; <code>button</code>对象 -&gt; <code>uncheck</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>icon_url</td>
-                    <td>str</td>
-                    <td>显示图标URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>text</td>
-                    <td>str</td>
-                    <td>按钮显示文案</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>toast</td>
-                    <td>str</td>
-                    <td>预约成功显示提示文案</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>disable</td>
-                    <td>num</td>
-                    <td>是否不可预约</td>
-                    <td>1：是</td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-reserve对象-button对象-jump-style对象"
-                tabindex="-1"><a class="header-anchor"
-                                 href="#data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-reserve对象-button对象-jump-style对象"
-                                 aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>additional</code>对象 -&gt; <code>reserve</code>对象
-                -&gt; <code>button</code>对象 -&gt; <code>jump_style</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>icon_url</td>
-                    <td>str</td>
-                    <td><code>空串</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>text</td>
-                    <td>str</td>
-                    <td>按钮显示文案</td>
-                    <td><code>去观看</code></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-reserve对象-desc1对象"
-                tabindex="-1"><a class="header-anchor"
-                                 href="#data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-reserve对象-desc1对象"
-                                 aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>additional</code>对象 -&gt; <code>reserve</code>对象
-                -&gt; <code>desc1</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>style</td>
-                    <td>num</td>
-                    <td>类型</td>
-                    <td>0：<code>视频预约</code> <code>11-05 20:00 直播</code> <code>预计今天
-                        17:05发布</code><br>1：<code>直播中</code></td>
-                </tr>
-                <tr>
-                    <td>text</td>
-                    <td>str</td>
-                    <td>显示文案</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-reserve对象-desc2对象"
-                tabindex="-1"><a class="header-anchor"
-                                 href="#data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-reserve对象-desc2对象"
-                                 aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>additional</code>对象 -&gt; <code>reserve</code>对象
-                -&gt; <code>desc2</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>style</td>
-                    <td>num</td>
-                    <td><code>0</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>text</td>
-                    <td>str</td>
-                    <td>显示文案</td>
-                    <td><code>2人预约</code><br><code>743观看</code><br><code>1.0万人看过</code><br><code>2151人气</code></td>
-                </tr>
-                <tr>
-                    <td>visible</td>
-                    <td>bool</td>
-                    <td>是否显示</td>
-                    <td>true：显示文案<br>false：显示已结束</td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-reserve对象-desc3对象"
-                tabindex="-1"><a class="header-anchor"
-                                 href="#data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-reserve对象-desc3对象"
-                                 aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>additional</code>对象 -&gt; <code>reserve</code>对象
-                -&gt; <code>desc3</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>jump_url</td>
-                    <td>str</td>
-                    <td>开奖信息跳转URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>style</td>
-                    <td>num</td>
-                    <td><code>1</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>text</td>
-                    <td>str</td>
-                    <td>奖品信息显示文案</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-goods对象" tabindex="-1"><a
-                    class="header-anchor"
-                    href="#data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-goods对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>additional</code>对象 -&gt; <code>goods</code>对象
-            </h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>head_icon</td>
-                    <td>str</td>
-                    <td><code>空串</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>head_text</td>
-                    <td>str</td>
-                    <td>卡片头显示文案</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>items</td>
-                    <td>array</td>
-                    <td>商品信息列表</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>jump_url</td>
-                    <td>str</td>
-                    <td><code>空串</code></td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-goods对象-items数组中的对象"
-                tabindex="-1"><a class="header-anchor"
-                                 href="#data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-goods对象-items数组中的对象"
-                                 aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>additional</code>对象 -&gt; <code>goods</code>对象
-                -&gt; <code>items</code>数组中的对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>brief</td>
-                    <td>str</td>
-                    <td>商品副标题</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>cover</td>
-                    <td>str</td>
-                    <td>商品封面</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>id</td>
-                    <td>str</td>
-                    <td>商品ID</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>jump_desc</td>
-                    <td>str</td>
-                    <td>跳转按钮显示文案</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>jump_url</td>
-                    <td>str</td>
-                    <td>跳转URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>name</td>
-                    <td>str</td>
-                    <td>商品名称</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>price</td>
-                    <td>str</td>
-                    <td>商品价格</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-vote对象" tabindex="-1"><a
-                    class="header-anchor"
-                    href="#data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-vote对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>additional</code>对象 -&gt; <code>vote</code>对象
-            </h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>choice_cnt</td>
-                    <td>num</td>
-                    <td><code>1</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>default_share</td>
-                    <td>num</td>
-                    <td>是否默认勾选<code>同时分享至动态</code></td>
-                    <td>1：勾选</td>
-                </tr>
-                <tr>
-                    <td>desc</td>
-                    <td>str</td>
-                    <td>投票标题</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>end_time</td>
-                    <td>num</td>
-                    <td>剩余时间</td>
-                    <td>单位：秒</td>
-                </tr>
-                <tr>
-                    <td>join_num</td>
-                    <td>num</td>
-                    <td>已参与人数</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>status</td>
-                    <td>num</td>
-                    <td><code>1</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>type</td>
-                    <td>null</td>
-                    <td><code>null</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>uid</td>
-                    <td>num</td>
-                    <td>发起人UID</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>vote_id</td>
-                    <td>num</td>
-                    <td>投票ID</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-ugc对象" tabindex="-1"><a
-                    class="header-anchor"
-                    href="#data对象-items数组中的对象-modules对象-module-dynamic对象-additional对象-ugc对象" aria-hidden="true">#</a>
-                <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt; <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象
-                -&gt; <code>additional</code>对象 -&gt; <code>ugc</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>cover</td>
-                    <td>str</td>
-                    <td>封面</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>desc_second</td>
-                    <td>str</td>
-                    <td>播放量与弹幕数</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>duration</td>
-                    <td>str</td>
-                    <td>视频长度</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>head_text</td>
-                    <td>str</td>
-                    <td><code>空串</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>id_str</td>
-                    <td>str</td>
-                    <td>视频AV号</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>jump_url</td>
-                    <td>str</td>
-                    <td>视频跳转URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>multi_line</td>
-                    <td>bool</td>
-                    <td><code>true</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>title</td>
-                    <td>str</td>
-                    <td>视频标题</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-desc对象" tabindex="-1"><a class="header-anchor"
-                                                                                                         href="#data对象-items数组中的对象-modules对象-module-dynamic对象-desc对象"
-                                                                                                         aria-hidden="true">#</a>
-                <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt; <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象
-                -&gt; <code>desc</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>rich_text_nodes</td>
-                    <td>array</td>
-                    <td>富文本节点列表</td>
-                    <td>
-                        <a href="/bilibili-API-collect/docs/dynamic/dynamic_enum.html#%E5%AF%8C%E6%96%87%E6%9C%AC%E8%8A%82%E7%82%B9%E7%B1%BB%E5%9E%8B"
-                           class="">富文本节点类型</a></td>
-                </tr>
-                <tr>
-                    <td>text</td>
-                    <td>str</td>
-                    <td>动态的文字内容</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-desc对象-rich-text-nodes数组中的对象"
-                tabindex="-1"><a class="header-anchor"
-                                 href="#data对象-items数组中的对象-modules对象-module-dynamic对象-desc对象-rich-text-nodes数组中的对象"
-                                 aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>desc</code>对象 -&gt; <code>rich_text_nodes</code>数组中的对象
-            </h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>orig_text</td>
-                    <td>str</td>
-                    <td>原始文本</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>text</td>
-                    <td>str</td>
-                    <td>替换后的文本</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>type</td>
-                    <td>str</td>
-                    <td>节点类型</td>
-                    <td>
-                        <a href="/bilibili-API-collect/docs/dynamic/dynamic_enum.html#%E5%AF%8C%E6%96%87%E6%9C%AC%E8%8A%82%E7%82%B9%E7%B1%BB%E5%9E%8B"
-                           class="">富文本节点类型</a></td>
-                </tr>
-                <tr>
-                    <td>emoji</td>
-                    <td>obj</td>
-                    <td>表情信息</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>jump_url</td>
-                    <td>str</td>
-                    <td>跳转URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>rid</td>
-                    <td>str</td>
-                    <td>关联id</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>goods</td>
-                    <td>obj</td>
-                    <td>商品信息</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>icon_name</td>
-                    <td>str</td>
-                    <td>图标名称</td>
-                    <td><code>taobao</code></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-desc对象-rich-text-nodes数组中的对象-emoji对象"
-                tabindex="-1"><a class="header-anchor"
-                                 href="#data对象-items数组中的对象-modules对象-module-dynamic对象-desc对象-rich-text-nodes数组中的对象-emoji对象"
-                                 aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>desc</code>对象 -&gt; <code>rich_text_nodes</code>数组中的对象
-                -&gt; <code>emoji</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>icon_url</td>
-                    <td>str</td>
-                    <td>表情图片URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>size</td>
-                    <td>num</td>
-                    <td>表情尺寸</td>
-                    <td><code>1</code> <code>2</code></td>
-                </tr>
-                <tr>
-                    <td>text</td>
-                    <td>str</td>
-                    <td>表情的文字代码</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>type</td>
-                    <td>num</td>
-                    <td>表情类型</td>
-                    <td><code>1</code> <code>2</code> <code>3</code></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-desc对象-rich-text-nodes数组中的对象-goods对象"
-                tabindex="-1"><a class="header-anchor"
-                                 href="#data对象-items数组中的对象-modules对象-module-dynamic对象-desc对象-rich-text-nodes数组中的对象-goods对象"
-                                 aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>desc</code>对象 -&gt; <code>rich_text_nodes</code>数组中的对象
-                -&gt; <code>goods</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>jump_url</td>
-                    <td>str</td>
-                    <td>跳转URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>type</td>
-                    <td>num</td>
-                    <td><code>1</code></td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-major对象" tabindex="-1"><a class="header-anchor"
-                                                                                                          href="#data对象-items数组中的对象-modules对象-module-dynamic对象-major对象"
-                                                                                                          aria-hidden="true">#</a>
-                <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt; <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象
-                -&gt; <code>major</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>type</td>
-                    <td>str</td>
-                    <td>动态主体类型</td>
-                    <td>
-                        <a href="/bilibili-API-collect/docs/dynamic/dynamic_enum.html#%E5%8A%A8%E6%80%81%E4%B8%BB%E4%BD%93%E7%B1%BB%E5%9E%8B"
-                           class="">动态主体类型</a></td>
-                </tr>
-                <tr>
-                    <td>ugc_season</td>
-                    <td>obj</td>
-                    <td>合集信息</td>
-                    <td><code>MAJOR_TYPE_UGC_SEASON</code></td>
-                </tr>
-                <tr>
-                    <td>article</td>
-                    <td>obj</td>
-                    <td>专栏类型</td>
-                    <td><code>MAJOR_TYPE_ARTICLE</code></td>
-                </tr>
-                <tr>
-                    <td>draw</td>
-                    <td>obj</td>
-                    <td>带图动态</td>
-                    <td><code>MAJOR_TYPE_DRAW</code></td>
-                </tr>
-                <tr>
-                    <td>archive</td>
-                    <td>obj</td>
-                    <td>视频信息</td>
-                    <td><code>MAJOR_TYPE_ARCHIVE</code></td>
-                </tr>
-                <tr>
-                    <td>live_rcmd</td>
-                    <td>obj</td>
-                    <td>直播状态</td>
-                    <td><code>MAJOR_TYPE_LIVE_RCMD</code></td>
-                </tr>
-                <tr>
-                    <td>common</td>
-                    <td>obj</td>
-                    <td>一般类型</td>
-                    <td><code>MAJOR_TYPE_COMMON</code></td>
-                </tr>
-                <tr>
-                    <td>pgc</td>
-                    <td>obj</td>
-                    <td>剧集信息</td>
-                    <td><code>MAJOR_TYPE_PGC</code></td>
-                </tr>
-                <tr>
-                    <td>courses</td>
-                    <td>obj</td>
-                    <td>课程信息</td>
-                    <td><code>MAJOR_TYPE_COURSES</code></td>
-                </tr>
-                <tr>
-                    <td>music</td>
-                    <td>obj</td>
-                    <td>音频信息</td>
-                    <td><code>MAJOR_TYPE_MUSIC</code></td>
-                </tr>
-                <tr>
-                    <td>opus</td>
-                    <td>obj</td>
-                    <td>图文动态</td>
-                    <td><code>MAJOR_TYPE_OPUS</code></td>
-                </tr>
-                <tr>
-                    <td>live</td>
-                    <td>obj</td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>none</td>
-                    <td>obj</td>
-                    <td>动态失效</td>
-                    <td><code>MAJOR_TYPE_NONE</code></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-ugc-season对象" tabindex="-1"><a
-                    class="header-anchor"
-                    href="#data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-ugc-season对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>major</code>对象 -&gt; <code>ugc_season</code>对象
-            </h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>aid</td>
-                    <td>num</td>
-                    <td>视频AV号</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>badge</td>
-                    <td>obj</td>
-                    <td>角标信息</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>cover</td>
-                    <td>str</td>
-                    <td>视频封面</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>desc</td>
-                    <td>str</td>
-                    <td>视频简介</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>disable_preview</td>
-                    <td>num</td>
-                    <td><code>0</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>duration_text</td>
-                    <td>str</td>
-                    <td>时长</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>jump_url</td>
-                    <td>str</td>
-                    <td>跳转URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>stat</td>
-                    <td>obj</td>
-                    <td>统计信息</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>title</td>
-                    <td>str</td>
-                    <td>视频标题</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-ugc-season对象-badge对象" tabindex="-1">
-                <a class="header-anchor"
-                   href="#data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-ugc-season对象-badge对象"
-                   aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>major</code>对象 -&gt; <code>ugc_season</code>对象
-                -&gt; <code>badge</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>bg_color</td>
-                    <td>str</td>
-                    <td>背景颜色</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>color</td>
-                    <td>str</td>
-                    <td>字体颜色</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>text</td>
-                    <td>str</td>
-                    <td>角标文案</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-ugc-season对象-stat对象" tabindex="-1">
-                <a class="header-anchor"
-                   href="#data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-ugc-season对象-stat对象"
-                   aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>major</code>对象 -&gt; <code>ugc_season</code>对象
-                -&gt; <code>stat</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>danmaku</td>
-                    <td>str</td>
-                    <td>弹幕数</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>play</td>
-                    <td>str</td>
-                    <td>播放数</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-article对象" tabindex="-1"><a
-                    class="header-anchor"
-                    href="#data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-article对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>major</code>对象 -&gt;
-                <code>article</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>covers</td>
-                    <td>array</td>
-                    <td>封面图数组</td>
-                    <td>最多三张</td>
-                </tr>
-                <tr>
-                    <td>desc</td>
-                    <td>str</td>
-                    <td>文章摘要</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>id</td>
-                    <td>num</td>
-                    <td>文章CV号</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>jump_url</td>
-                    <td>str</td>
-                    <td>文章跳转地址</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>label</td>
-                    <td>str</td>
-                    <td>文章阅读量</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>title</td>
-                    <td>str</td>
-                    <td>文章标题</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-draw对象" tabindex="-1"><a
-                    class="header-anchor" href="#data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-draw对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>major</code>对象 -&gt;
-                <code>draw</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>id</td>
-                    <td>num</td>
-                    <td>对应相簿id</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>items</td>
-                    <td>array</td>
-                    <td>图片信息列表</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-draw对象-items数组中的对象"
-                tabindex="-1"><a class="header-anchor"
-                                 href="#data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-draw对象-items数组中的对象"
-                                 aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>major</code>对象 -&gt;
-                <code>draw</code>对象 -&gt; <code>items</code>数组中的对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>height</td>
-                    <td>num</td>
-                    <td>图片高度</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>size</td>
-                    <td>num</td>
-                    <td>图片大小</td>
-                    <td>单位KB</td>
-                </tr>
-                <tr>
-                    <td>src</td>
-                    <td>str</td>
-                    <td>图片URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>tags</td>
-                    <td>array</td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>width</td>
-                    <td>num</td>
-                    <td>图片宽度</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-archive对象" tabindex="-1"><a
-                    class="header-anchor"
-                    href="#data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-archive对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>major</code>对象 -&gt;
-                <code>archive</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>aid</td>
-                    <td>str</td>
-                    <td>视频AV号</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>badge</td>
-                    <td>obj</td>
-                    <td>角标信息</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>bvid</td>
-                    <td>str</td>
-                    <td>视频BVID</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>cover</td>
-                    <td>str</td>
-                    <td>视频封面</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>desc</td>
-                    <td>str</td>
-                    <td>视频简介</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>disable_preview</td>
-                    <td>num</td>
-                    <td><code>0</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>duration_text</td>
-                    <td>str</td>
-                    <td>视频长度</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>jump_url</td>
-                    <td>str</td>
-                    <td>跳转URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>stat</td>
-                    <td>obj</td>
-                    <td>统计信息</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>title</td>
-                    <td>str</td>
-                    <td>视频标题</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>type</td>
-                    <td>num</td>
-                    <td><code>1</code></td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-archive对象-badge对象" tabindex="-1"><a
-                    class="header-anchor"
-                    href="#data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-archive对象-badge对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>major</code>对象 -&gt;
-                <code>archive</code>对象 -&gt; <code>badge</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>bg_color</td>
-                    <td>str</td>
-                    <td>背景颜色</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>color</td>
-                    <td>str</td>
-                    <td>字体颜色</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>text</td>
-                    <td>str</td>
-                    <td>角标文案</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-archive对象-stat对象" tabindex="-1"><a
-                    class="header-anchor"
-                    href="#data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-archive对象-stat对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>major</code>对象 -&gt;
-                <code>archive</code>对象 -&gt; <code>stat</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>danmaku</td>
-                    <td>str</td>
-                    <td>弹幕数</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>play</td>
-                    <td>str</td>
-                    <td>播放数</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-live-rcmd对象" tabindex="-1"><a
-                    class="header-anchor"
-                    href="#data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-live-rcmd对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>major</code>对象 -&gt; <code>live_rcmd</code>对象
-            </h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>content</td>
-                    <td>str</td>
-                    <td>直播间内容JSON</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>reserve_type</td>
-                    <td>num</td>
-                    <td><code>0</code></td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-common对象" tabindex="-1"><a
-                    class="header-anchor" href="#data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-common对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>major</code>对象 -&gt;
-                <code>common</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>badge</td>
-                    <td>obj</td>
-                    <td>角标信息</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>biz_type</td>
-                    <td>num</td>
-                    <td><code>0</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>cover</td>
-                    <td>str</td>
-                    <td>左侧图片封面</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>desc</td>
-                    <td>str</td>
-                    <td>右侧描述信息</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>id</td>
-                    <td>str</td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>jump_url</td>
-                    <td>str</td>
-                    <td>跳转地址</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>label</td>
-                    <td>str</td>
-                    <td><code>空串</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>sketch_id</td>
-                    <td>str</td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>style</td>
-                    <td>num</td>
-                    <td><code>1</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>title</td>
-                    <td>str</td>
-                    <td>右侧标题</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-common对象-badge对象" tabindex="-1"><a
-                    class="header-anchor"
-                    href="#data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-common对象-badge对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>major</code>对象 -&gt;
-                <code>common</code>对象 -&gt; <code>badge</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>bg_color</td>
-                    <td>str</td>
-                    <td><code>空串</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>color</td>
-                    <td>str</td>
-                    <td><code>空串</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>text</td>
-                    <td>str</td>
-                    <td><code>空串</code></td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-pgc对象" tabindex="-1"><a
-                    class="header-anchor" href="#data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-pgc对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>major</code>对象 -&gt;
-                <code>pgc</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>badge</td>
-                    <td>obj</td>
-                    <td>角标信息</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>cover</td>
-                    <td>str</td>
-                    <td>视频封面</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>epid</td>
-                    <td>num</td>
-                    <td>分集EpId</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>jump_url</td>
-                    <td>str</td>
-                    <td>跳转URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>season_id</td>
-                    <td>num</td>
-                    <td>剧集SeasonId</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>stat</td>
-                    <td>obj</td>
-                    <td>统计信息</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>sub_type</td>
-                    <td>num</td>
-                    <td>剧集类型</td>
-                    <td>1：番剧<br>2：电影<br>3：纪录片<br>4：国创<br>5：电视剧<br>6：漫画<br>7：综艺</td>
-                </tr>
-                <tr>
-                    <td>title</td>
-                    <td>str</td>
-                    <td>视频标题</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>type</td>
-                    <td>num</td>
-                    <td><code>2</code></td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-pgc对象-badge对象" tabindex="-1"><a
-                    class="header-anchor"
-                    href="#data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-pgc对象-badge对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>major</code>对象 -&gt;
-                <code>pgc</code>对象 -&gt; <code>badge</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>bg_color</td>
-                    <td>str</td>
-                    <td>背景颜色</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>color</td>
-                    <td>str</td>
-                    <td>字体颜色</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>text</td>
-                    <td>str</td>
-                    <td>角标文案</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-pgc对象-stat对象" tabindex="-1"><a
-                    class="header-anchor"
-                    href="#data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-pgc对象-stat对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>major</code>对象 -&gt;
-                <code>pgc</code>对象 -&gt; <code>stat</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>danmaku</td>
-                    <td>str</td>
-                    <td>弹幕数</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>play</td>
-                    <td>str</td>
-                    <td>播放数</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-courses对象" tabindex="-1"><a
-                    class="header-anchor"
-                    href="#data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-courses对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>major</code>对象 -&gt;
-                <code>courses</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>badge</td>
-                    <td>obj</td>
-                    <td>角标信息</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>cover</td>
-                    <td>str</td>
-                    <td>封面图URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>desc</td>
-                    <td>str</td>
-                    <td>更新状态描述</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>id</td>
-                    <td>num</td>
-                    <td>课程id</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>jump_url</td>
-                    <td>str</td>
-                    <td>跳转URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>sub_title</td>
-                    <td>str</td>
-                    <td>课程副标题</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>title</td>
-                    <td>str</td>
-                    <td>课程标题</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-courses对象-badge对象" tabindex="-1"><a
-                    class="header-anchor"
-                    href="#data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-courses对象-badge对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>major</code>对象 -&gt;
-                <code>courses</code>对象 -&gt; <code>badge</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>bg_color</td>
-                    <td>str</td>
-                    <td>背景颜色</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>color</td>
-                    <td>str</td>
-                    <td>字体颜色</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>text</td>
-                    <td>str</td>
-                    <td>角标文案</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-music对象" tabindex="-1"><a
-                    class="header-anchor" href="#data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-music对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>major</code>对象 -&gt;
-                <code>music</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>cover</td>
-                    <td>str</td>
-                    <td>音频封面</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>id</td>
-                    <td>num</td>
-                    <td>音频AUID</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>jump_url</td>
-                    <td>str</td>
-                    <td>跳转URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>label</td>
-                    <td>str</td>
-                    <td>音频分类</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>title</td>
-                    <td>str</td>
-                    <td>音频标题</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-opus对象" tabindex="-1"><a
-                    class="header-anchor" href="#data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-opus对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>major</code>对象 -&gt;
-                <code>opus</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>fold_action</td>
-                    <td>array</td>
-                    <td>展开收起</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>jump_url</td>
-                    <td>str</td>
-                    <td>跳转URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>pics</td>
-                    <td>array</td>
-                    <td>图片信息</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>summary</td>
-                    <td>obj</td>
-                    <td>动态内容</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>title</td>
-                    <td>str</td>
-                    <td>动态标题</td>
-                    <td>没有标题时为null</td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-opus对象-summary对象" tabindex="-1"><a
-                    class="header-anchor"
-                    href="#data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-opus对象-summary对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>major</code>对象 -&gt;
-                <code>opus</code>对象 -&gt; <code>summary</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>rich_text_nodes</td>
-                    <td>array</td>
-                    <td>富文本节点列表</td>
-                    <td>和<code>desc</code>对象中的<code>rich_text_nodes</code>数组结构一样</td>
-                </tr>
-                <tr>
-                    <td>text</td>
-                    <td>str</td>
-                    <td>评论内容</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-live对象" tabindex="-1"><a
-                    class="header-anchor" href="#data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-live对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>major</code>对象 -&gt;
-                <code>live</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>badge</td>
-                    <td>obj</td>
-                    <td>角标信息</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>cover</td>
-                    <td>str</td>
-                    <td>直播封面</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>desc_first</td>
-                    <td>str</td>
-                    <td>直播主分区名称</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>desc_second</td>
-                    <td>str</td>
-                    <td>观看人数</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>id</td>
-                    <td>num</td>
-                    <td>直播间id</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>jump_url</td>
-                    <td>str</td>
-                    <td>直播间跳转URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>live_state</td>
-                    <td>num</td>
-                    <td>直播状态</td>
-                    <td>0：直播结束<br>1：正在直播</td>
-                </tr>
-                <tr>
-                    <td>reserve_type</td>
-                    <td>num</td>
-                    <td><code>0</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>title</td>
-                    <td>str</td>
-                    <td>直播间标题</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-live对象-badge对象" tabindex="-1"><a
-                    class="header-anchor"
-                    href="#data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-live对象-badge对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>major</code>对象 -&gt;
-                <code>live</code>对象 -&gt; <code>badge</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>bg_color</td>
-                    <td>str</td>
-                    <td>背景颜色</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>color</td>
-                    <td>str</td>
-                    <td>字体颜色</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>text</td>
-                    <td>str</td>
-                    <td>角标文案</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-none对象" tabindex="-1"><a
-                    class="header-anchor" href="#data对象-items数组中的对象-modules对象-module-dynamic对象-major对象-none对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象 -&gt; <code>major</code>对象 -&gt;
-                <code>none</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>tips</td>
-                    <td>str</td>
-                    <td>动态失效显示文案</td>
-                    <td>deprecated?</td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dynamic对象-topic对象" tabindex="-1"><a class="header-anchor"
-                                                                                                          href="#data对象-items数组中的对象-modules对象-module-dynamic对象-topic对象"
-                                                                                                          aria-hidden="true">#</a>
-                <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt; <code>modules</code>对象 -&gt; <code>module_dynamic</code>对象
-                -&gt; <code>topic</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>id</td>
-                    <td>num</td>
-                    <td>话题id</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>jump_url</td>
-                    <td>str</td>
-                    <td>跳转URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>name</td>
-                    <td>str</td>
-                    <td>话题名称</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-more对象" tabindex="-1"><a class="header-anchor"
-                                                                                             href="#data对象-items数组中的对象-modules对象-module-more对象"
-                                                                                             aria-hidden="true">#</a>
-                <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt; <code>modules</code>对象 -&gt; <code>module_more</code>对象
-            </h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>three_point_items</td>
-                    <td>array</td>
-                    <td>右上角三点菜单</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-more对象-three-point-items数组中的对象" tabindex="-1"><a
-                    class="header-anchor"
-                    href="#data对象-items数组中的对象-modules对象-module-more对象-three-point-items数组中的对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_more</code>对象 -&gt; <code>three_point_items</code>数组中的对象
-            </h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>label</td>
-                    <td>str</td>
-                    <td>显示文本</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>type</td>
-                    <td>str</td>
-                    <td>类型</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>modal</td>
-                    <td>obj</td>
-                    <td>弹出框信息</td>
-                    <td>删除动态时弹出</td>
-                </tr>
-                <tr>
-                    <td>params</td>
-                    <td>obj</td>
-                    <td>参数</td>
-                    <td>置顶/取消置顶时使用</td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-more对象-three-point-items数组中的对象-modal对象"
-                tabindex="-1"><a class="header-anchor"
-                                 href="#data对象-items数组中的对象-modules对象-module-more对象-three-point-items数组中的对象-modal对象"
-                                 aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_more</code>对象 -&gt; <code>three_point_items</code>数组中的对象 -&gt;
-                <code>modal</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>cancel</td>
-                    <td>str</td>
-                    <td>取消按钮</td>
-                    <td><code>我点错了</code></td>
-                </tr>
-                <tr>
-                    <td>confirm</td>
-                    <td>str</td>
-                    <td>确认按钮</td>
-                    <td><code>删除</code></td>
-                </tr>
-                <tr>
-                    <td>content</td>
-                    <td>str</td>
-                    <td>提示内容</td>
-                    <td><code>确定要删除此条动态吗？</code></td>
-                </tr>
-                <tr>
-                    <td>title</td>
-                    <td>str</td>
-                    <td>标题</td>
-                    <td><code>删除动态</code></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-more对象-three-point-items数组中的对象-params对象"
-                tabindex="-1"><a class="header-anchor"
-                                 href="#data对象-items数组中的对象-modules对象-module-more对象-three-point-items数组中的对象-params对象"
-                                 aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_more</code>对象 -&gt; <code>three_point_items</code>数组中的对象 -&gt;
-                <code>params</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>dynamic_id</td>
-                    <td>str</td>
-                    <td>当前动态ID</td>
-                    <td>deprecated?</td>
-                </tr>
-                <tr>
-                    <td>status</td>
-                    <td>bool</td>
-                    <td>当前动态是否处于置顶状态</td>
-                    <td>deprecated?</td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-stat对象" tabindex="-1"><a class="header-anchor"
-                                                                                             href="#data对象-items数组中的对象-modules对象-module-stat对象"
-                                                                                             aria-hidden="true">#</a>
-                <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt; <code>modules</code>对象 -&gt; <code>module_stat</code>对象
-            </h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>comment</td>
-                    <td>obj</td>
-                    <td>评论数据</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>forward</td>
-                    <td>obj</td>
-                    <td>转发数据</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>like</td>
-                    <td>obj</td>
-                    <td>点赞数据</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-stat对象-comment对象" tabindex="-1"><a class="header-anchor"
-                                                                                                         href="#data对象-items数组中的对象-modules对象-module-stat对象-comment对象"
-                                                                                                         aria-hidden="true">#</a>
-                <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt; <code>modules</code>对象 -&gt; <code>module_stat</code>对象
-                -&gt; <code>comment</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>count</td>
-                    <td>num</td>
-                    <td>评论数</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>forbidden</td>
-                    <td>bool</td>
-                    <td><code>false</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>hidden</td>
-                    <td>bool</td>
-                    <td>是否隐藏</td>
-                    <td>直播类型动态会隐藏回复功能</td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-stat对象-forward对象" tabindex="-1"><a class="header-anchor"
-                                                                                                         href="#data对象-items数组中的对象-modules对象-module-stat对象-forward对象"
-                                                                                                         aria-hidden="true">#</a>
-                <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt; <code>modules</code>对象 -&gt; <code>module_stat</code>对象
-                -&gt; <code>forward</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>count</td>
-                    <td>num</td>
-                    <td>转发数</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>forbidden</td>
-                    <td>bool</td>
-                    <td><code>false</code></td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-stat对象-like对象" tabindex="-1"><a class="header-anchor"
-                                                                                                      href="#data对象-items数组中的对象-modules对象-module-stat对象-like对象"
-                                                                                                      aria-hidden="true">#</a>
-                <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt; <code>modules</code>对象 -&gt; <code>module_stat</code>对象
-                -&gt; <code>like</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>count</td>
-                    <td>num</td>
-                    <td>点赞数</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>forbidden</td>
-                    <td>bool</td>
-                    <td><code>false</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>status</td>
-                    <td>bool</td>
-                    <td>当前用户是否点赞</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-interaction对象" tabindex="-1"><a class="header-anchor"
-                                                                                                    href="#data对象-items数组中的对象-modules对象-module-interaction对象"
-                                                                                                    aria-hidden="true">#</a>
-                <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt; <code>modules</code>对象 -&gt; <code>module_interaction</code>对象
-            </h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>items</td>
-                    <td>array</td>
-                    <td>信息列表</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-interaction对象-items数组中的对象" tabindex="-1"><a
-                    class="header-anchor"
-                    href="#data对象-items数组中的对象-modules对象-module-interaction对象-items数组中的对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_interaction</code>对象 -&gt; <code>items</code>数组中的对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>desc</td>
-                    <td>obj</td>
-                    <td>点赞/评论信息</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>type</td>
-                    <td>num</td>
-                    <td>类型</td>
-                    <td>0：点赞信息<br>1：评论信息</td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-interaction对象-items数组中的对象-desc对象" tabindex="-1"><a
-                    class="header-anchor"
-                    href="#data对象-items数组中的对象-modules对象-module-interaction对象-items数组中的对象-desc对象"
-                    aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_interaction</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>desc</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>rich_text_nodes</td>
-                    <td>array</td>
-                    <td>富文本节点列表</td>
-                    <td>
-                        <a href="/bilibili-API-collect/docs/dynamic/dynamic_enum.html#%E5%AF%8C%E6%96%87%E6%9C%AC%E8%8A%82%E7%82%B9%E7%B1%BB%E5%9E%8B"
-                           class="">富文本节点类型</a></td>
-                </tr>
-                <tr>
-                    <td>text</td>
-                    <td>str</td>
-                    <td>评论内容</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-interaction对象-items数组中的对象-desc对象-rich-text-nodes数组中的对象"
-                tabindex="-1"><a class="header-anchor"
-                                 href="#data对象-items数组中的对象-modules对象-module-interaction对象-items数组中的对象-desc对象-rich-text-nodes数组中的对象"
-                                 aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_interaction</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>desc</code>对象 -&gt; <code>rich_text_nodes</code>数组中的对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>orig_text</td>
-                    <td>str</td>
-                    <td>原始文本</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>rid</td>
-                    <td>str</td>
-                    <td>关联ID</td>
-                    <td>用户UID</td>
-                </tr>
-                <tr>
-                    <td>text</td>
-                    <td>str</td>
-                    <td>替换后文本</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>type</td>
-                    <td>str</td>
-                    <td>富文本节点类型</td>
-                    <td>
-                        <a href="/bilibili-API-collect/docs/dynamic/dynamic_enum.html#%E5%AF%8C%E6%96%87%E6%9C%AC%E8%8A%82%E7%82%B9%E7%B1%BB%E5%9E%8B"
-                           class="">富文本节点类型</a></td>
-                </tr>
-                <tr>
-                    <td>emoji</td>
-                    <td>obj</td>
-                    <td>表情信息</td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-interaction对象-items数组中的对象-desc对象-rich-text-nodes数组中的对象-emoji对象"
-                tabindex="-1"><a class="header-anchor"
-                                 href="#data对象-items数组中的对象-modules对象-module-interaction对象-items数组中的对象-desc对象-rich-text-nodes数组中的对象-emoji对象"
-                                 aria-hidden="true">#</a> <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>modules</code>对象 -&gt; <code>module_interaction</code>对象 -&gt; <code>items</code>数组中的对象 -&gt;
-                <code>desc</code>对象 -&gt; <code>rich_text_nodes</code>数组中的对象 -&gt; <code>emoji</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>icon_url</td>
-                    <td>str</td>
-                    <td>表情图片URL</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>size</td>
-                    <td>num</td>
-                    <td>表情尺寸</td>
-                    <td><code>1</code> <code>2</code></td>
-                </tr>
-                <tr>
-                    <td>text</td>
-                    <td>str</td>
-                    <td>表情的文字代码</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>type</td>
-                    <td>num</td>
-                    <td>表情类型</td>
-                    <td><code>1</code> <code>2</code> <code>3</code></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-fold对象" tabindex="-1"><a class="header-anchor"
-                                                                                             href="#data对象-items数组中的对象-modules对象-module-fold对象"
-                                                                                             aria-hidden="true">#</a>
-                <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt; <code>modules</code>对象 -&gt; <code>module_fold</code>对象
-            </h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>ids</td>
-                    <td>array</td>
-                    <td>被折叠的动态id列表</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>statement</td>
-                    <td>str</td>
-                    <td>显示文案</td>
-                    <td>例：展开x条相关动态</td>
-                </tr>
-                <tr>
-                    <td>type</td>
-                    <td>num</td>
-                    <td><code>1</code></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>users</td>
-                    <td>array</td>
-                    <td><code>空数组</code></td>
-                    <td></td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-dispute对象" tabindex="-1"><a class="header-anchor"
-                                                                                                href="#data对象-items数组中的对象-modules对象-module-dispute对象"
-                                                                                                aria-hidden="true">#</a> <code>data</code>对象
-                -&gt; <code>items</code>数组中的对象 -&gt; <code>modules</code>对象 -&gt; <code>module_dispute</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>desc</td>
-                    <td>str</td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>jump_url</td>
-                    <td>str</td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>title</td>
-                    <td>str</td>
-                    <td>提醒文案</td>
-                    <td>例：视频内含有危险行为，请勿模仿</td>
-                </tr>
-                </tbody>
-            </table>
-            <h3 id="data对象-items数组中的对象-modules对象-module-tag对象" tabindex="-1"><a class="header-anchor"
-                                                                                            href="#data对象-items数组中的对象-modules对象-module-tag对象"
-                                                                                            aria-hidden="true">#</a>
-                <code>data</code>对象 -&gt; <code>items</code>数组中的对象 -&gt; <code>modules</code>对象 -&gt;
-                <code>module_tag</code>对象</h3>
-            <table>
-                <thead>
-                <tr>
-                    <th>字段名</th>
-                    <th>类型</th>
-                    <th>内容</th>
-                    <th>备注</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>text</td>
-                    <td>str</td>
-                    <td>'置顶'</td>
-                    <td>置顶动态出现这个对象，否则没有</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-
-        """
-        api = "https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space"
-        headers = self.headers
-        data = {
-            "offset": "",
-            "host_mid": host_mid
-        }
-        dynamic = requests.get(api, headers=headers, params=data).json()
-        if not all:
-            dynamics = dynamic["data"]["items"]
-        else:
-            dynamics = dynamic["data"]["items"]
-            while dynamic["data"]["has_more"]:
-                data["offset"] = dynamic["data"]["offset"]
-                dynamic = requests.get(api, headers=headers, params=data).json()
-                for i in dynamic["data"]["items"]:
-                    if i not in dynamics:
-                        dynamics.append(i)
-        dynamic = dynamics
-        return dynamic
-
-    def get_user_info(self) -> Dict:
-        """
-        获得个人基础信息
-        """
-        url = "https://api.live.bilibili.com/xlive/web-ucenter/user/get_user_info"
-        headers = self.headers
-        response = requests.get(url, headers=headers).json()
-        return response['data']
 
     def interface_nav(self) -> Dict:
         """
@@ -5564,7 +2110,7 @@ class BilibiliApiMaster:
         nav = requests.get(api, headers=headers).json()
         return nav["data"]
 
-    def getRoomHighlightState(self):
+    def get_room_highlight_state(self):
         """
         获取直播间号
         @return:
@@ -5574,48 +2120,16 @@ class BilibiliApiMaster:
         room_id = requests.get(api, headers=headers).json()["data"]["room_id"]
         return room_id
 
-    def GetEmoticons(self, roomid: int):
-        """
-        获取表情
-        @return:
-        @rtype: list
-        """
-        api = "https://api.live.bilibili.com/xlive/web-ucenter/v2/emoticon/GetEmoticons"
-        headers = self.headers
-        params = {
-            "platform": "pc",
-            "room_id": roomid
-        }
-        Emoticons = requests.get(api, headers=headers, params=params).json()["data"]["data"]
-        return Emoticons
-
-    def getDanmuInfo(self, roomid: int) -> Dict:
-        """
-        获取信息流认证秘钥
-        @param roomid: 直播间真实id
-        @return:
-        <p>根对象：</p>
-        <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>code</td><td>num</td><td>返回值</td><td>0：成功<br>65530：token错误（登录错误）<br>1：错误<br>60009：分区不存在<br><strong>（其他错误码有待补充）</strong></td></tr><tr><td>message</td><td>str</td><td>错误信息</td><td>默认为空</td></tr><tr><td>ttl</td><td>num</td><td>1</td><td></td></tr><tr><td>data</td><td>obj</td><td>信息本体</td><td></td></tr></tbody></table>
-        <p><code>data</code>对象：</p>
-        <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>group</td><td>str</td><td>live</td><td></td></tr><tr><td>business_id</td><td>num</td><td>0</td><td></td></tr><tr><td>refresh_row_factor</td><td>num</td><td>0.125</td><td></td></tr><tr><td>refresh_rate</td><td>num</td><td>100</td><td></td></tr><tr><td>max_delay</td><td>num</td><td>5000</td><td></td></tr><tr><td>token</td><td>str</td><td>认证秘钥</td><td></td></tr><tr><td>host_list</td><td>array</td><td>信息流服务器节点列表</td><td></td></tr></tbody></table>
-        <p><code>host_list</code>数组中的对象：</p>
-        <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>host</td><td>str</td><td>服务器域名</td><td></td></tr><tr><td>port</td><td>num</td><td>tcp端口</td><td></td></tr><tr><td>wss_port</td><td>num</td><td>wss端口</td><td></td></tr><tr><td>ws_port</td><td>num</td><td>ws端口</td><td></td></tr></tbody></table>
-        """
-        headers = self.headers
-        url = f'https://api.live.bilibili.com/xlive/web-room/v1/index/getDanmuInfo?id={roomid}'
-        response = requests.get(url, headers=headers).json()
-        return response
-
-    def getRoomNews(self):
+    def get_room_news(self) -> str:
         # 获取直播公告
         headers = self.headers
         api = "https://api.live.bilibili.com/xlive/app-blink/v1/index/getRoomNews"
         params = {
-            'room_id': self.getRoomHighlightState(),
+            'room_id': self.get_room_highlight_state(),
             'uid': cookie2dict(self.headers["cookie"])["DedeUserID"]
         }
-        getRoomNews_ReturnValue = requests.get(api, headers=headers, params=params).json()
-        return getRoomNews_ReturnValue["data"]["content"]
+        room_news = requests.get(api, headers=headers, params=params).json()
+        return room_news["data"]["content"]
 
 
 class BilibiliApiCsrfAuthentication:
@@ -5647,7 +2161,7 @@ class BilibiliApiCsrfAuthentication:
         csrf = self.csrf
         AnchorChangeRoomArea_data = {
             "platform": "pc",
-            "room_id": BilibiliApiMaster(self.cookie).getRoomHighlightState(),
+            "room_id": BilibiliApiMaster(self.cookie).get_room_highlight_state(),
             "area_id": area_id,
             "csrf": csrf,
             "csrf_token": csrf,
@@ -5668,7 +2182,7 @@ class BilibiliApiCsrfAuthentication:
         csrf = self.csrf
         startLivedata = {
             "platform": platform,  # 直播姬（pc）：pc_link、web在线直播：web_link、bililink：android_link
-            "room_id": BilibiliApiMaster(self.cookie).getRoomHighlightState(),
+            "room_id": BilibiliApiMaster(self.cookie).get_room_highlight_state(),
             "area_v2": area_id,
             "backup_stream": 0,
             "csrf": csrf,
@@ -5687,7 +2201,7 @@ class BilibiliApiCsrfAuthentication:
         csrf = self.csrf
         stopLive_data = {
             "platform": "pc",
-            "room_id": BilibiliApiMaster(self.cookie).getRoomHighlightState(),
+            "room_id": BilibiliApiMaster(self.cookie).get_room_highlight_state(),
             "csrf": csrf,
             "csrf_token": csrf,
         }
@@ -5738,7 +2252,7 @@ class BilibiliApiCsrfAuthentication:
         csrf = self.csrf
         api = "https://api.live.bilibili.com/room/v1/Room/update"
         room_v1_Room_update_data = {
-            'room_id': BilibiliApiMaster(self.cookie).getRoomHighlightState(),
+            'room_id': BilibiliApiMaster(self.cookie).get_room_highlight_state(),
             'title': title,
             'csrf_token': csrf,
             'csrf': csrf
@@ -5755,7 +2269,7 @@ class BilibiliApiCsrfAuthentication:
         csrf = self.csrf
         api = "https://api.live.bilibili.com/xlive/app-blink/v1/index/updateRoomNews"
         updateRoomNews_data = {
-            'room_id': BilibiliApiMaster(self.cookie).getRoomHighlightState(),
+            'room_id': BilibiliApiMaster(self.cookie).get_room_highlight_state(),
             'uid': self.cookies["DedeUserID"],
             'content': content,
             'csrf_token': csrf,
@@ -5842,13 +2356,13 @@ class BilibiliApiCsrfAuthentication:
 
 
 # 整合类函数
-def logInTry(configPath: Path, uid: Optional[int]):
+def login_try(config_path: Path, uid: Optional[int]):
     try:
-        BUCF = BilibiliUserLogsIn2ConfigFile(configPath=configPath)
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(configPath=config_path)
         uid = str(uid)
         logSave(0, f"尝试登录用户: {uid}")
         # 验证cookies完整性
-        cookies = BUCF.getCookies(int(uid))
+        cookies = b_u_l_c.get_cookies(int(uid))
         if cookies is None:
             raise ValueError(f"缺少该用户: {uid}")
         required_keys = {"DedeUserID", "SESSDATA", "bili_jct"}
@@ -5859,7 +2373,7 @@ def logInTry(configPath: Path, uid: Optional[int]):
         if not isLogin:
             logSave(3, f"用户 {uid} 的cookies已过期")
             return False
-        BUCF.updateUser(cookies)
+        b_u_l_c.update_ser(cookies)
         logSave(0, f"用户 {uid} 登录成功")
         return True
     except ValueError as e:
@@ -5876,31 +2390,24 @@ def check_poll():
     @return: cookies，超时为{}
     """
     # 获取uid对应的cookies
-    BUCF = BilibiliUserLogsIn2ConfigFile(GlobalVariableOfData.scripts_config_filepath)
-    UserListDict = BUCF.getUsers()
-    code_ = GlobalVariableOfData.loginQrCode_returnValue
-    poll_ = poll(GlobalVariableOfData.loginQrCode_key)
-    GlobalVariableOfData.loginQrCode_returnValue = poll_['code']
-    logIn2QRCode2ReturnInformation4code = {
-        0: "登录成功",
-        86101: "未扫码",
-        86090: "二维码已扫码未确认",
-        86038: "二维码已失效",
-    }
+    b_u_l_c = BilibiliUserLogsIn2ConfigFile(GlobalVariableOfData.scripts_config_filepath)
+    user_list_dict = b_u_l_c.get_users()
+    code_old = GlobalVariableOfData.loginQrCodeReturn['code']
+    GlobalVariableOfData.loginQrCodeReturn = BilibiliApiGeneric().poll(GlobalVariableOfData.loginQrCode_key)
     # 二维码扫描登陆状态改变时，输出改变后状态
-    logSave(2, str(logIn2QRCode2ReturnInformation4code[GlobalVariableOfData.loginQrCode_returnValue])) if code_ != GlobalVariableOfData.loginQrCode_returnValue else None
-    if GlobalVariableOfData.loginQrCode_returnValue == 0 or GlobalVariableOfData.loginQrCode_returnValue == 86038:
+    logSave(2, str(information4login_qr_return_code[GlobalVariableOfData.loginQrCodeReturn['code']])) if code_old != GlobalVariableOfData.loginQrCodeReturn['code'] else None
+    if GlobalVariableOfData.loginQrCodeReturn['code'] == 0 or GlobalVariableOfData.loginQrCodeReturn['code'] == 86038:
         GlobalVariableOfData.LoginQRCodePillowImg = None
         # 二维码扫描登陆状态为成功或者超时时获取cookies结束[轮询二维码扫描登陆状态]
-        cookies = poll_['cookies']
+        cookies = GlobalVariableOfData.loginQrCodeReturn['cookies']
         if cookies:
             # 获取登陆账号cookies中携带的uid
             uid = int(cookies['DedeUserID'])
-            if str(uid) in UserListDict.values():
+            if str(uid) in user_list_dict.values():
                 logSave(1, "已有该用户，正在更新用户登录信息")
-                BUCF.updateUser(cookies, False)
+                b_u_l_c.update_ser(cookies, False)
             else:
-                BUCF.addUser(cookies)
+                b_u_l_c.add_user(cookies)
                 logSave(0, "添加用户成功")
                 # 请点击按钮【更新账号列表】，更新用户列表
                 logSave(0, "请点击按钮【更新账号列表】，更新用户列表")
@@ -5910,43 +2417,37 @@ def check_poll():
         obs.remove_current_callback()
 
 
-def qrAddUser():
+def qr_add_user():
     """
     扫码登陆记录用户cookies
     """
     # 申请登录二维码
-    url8qrcode_key = generate()
+    url8qrkey = BilibiliApiGeneric().generate()
     # 获取二维码url
-    url = url8qrcode_key['url']
+    url = url8qrkey['url']
     logSave(0, f"获取登录二维码链接{url}")
     # 获取二维码key
-    GlobalVariableOfData.loginQrCode_key = url8qrcode_key['qrcode_key']
+    GlobalVariableOfData.loginQrCode_key = url8qrkey['qrcode_key']
     logSave(0, f"获取登录二维码密钥{GlobalVariableOfData.loginQrCode_key}")
     # 获取二维码对象
-    qr = qr2str_b64_PilImg4dict(url)
+    qr = qr_text8pil_img(url)
     # 获取登录二维码的pillow img实例
     GlobalVariableOfData.LoginQRCodePillowImg = qr["img"]
     # 输出二维码图形字符串
-    logSave(2, qr["str"])
+    logSave(0, qr["str"])
     logSave(0, f"字符串二维码已输出，如果乱码或者扫描不上，建议点击 按钮【显示登录二维码图片】")
     # 获取二维码扫描登陆状态
-    GlobalVariableOfData.loginQrCode_returnValue = poll(GlobalVariableOfData.loginQrCode_key)['code']
-    logIn2QRCode2ReturnInformation4code = {
-        0: "登录成功",
-        86101: "未扫码",
-        86090: "二维码已扫码未确认",
-        86038: "二维码已失效",
-    }
+    GlobalVariableOfData.loginQrCodeReturn = BilibiliApiGeneric().poll(GlobalVariableOfData.loginQrCode_key)
     logSave(0, f"开始轮询登录状态")
     # 轮询登录状态
-    logSave(2, str(logIn2QRCode2ReturnInformation4code[GlobalVariableOfData.loginQrCode_returnValue]))
+    logSave(2, str(information4login_qr_return_code[GlobalVariableOfData.loginQrCodeReturn['code']]))
     # 开始计时器
     obs.timer_add(check_poll, 1000)
 
 
 # end
 
-# ================================================================================================
+# ====================================================================================================================
 
 
 # -----------------------------------------------------------
@@ -5957,9 +2458,9 @@ def on_event(event):
     """
     处理推流事件
     """
-    logSave(0, "┏━━━━━━━━━━━━━━━┓")
-    logSave(0, "┃监测到obs前端事件┃")
-    logSave(0, "┗━━━━━━━━━━━━━━━┛")
+    logSave(0, f"┏━━━━监测到obs前端事件━━━━━┓")
+    logSave(0, f"┃    监测到obs前端事件     ┃{information4frontend_event[event]}")
+    logSave(0, f"┗━━━━监测到obs前端事件━━━━━┛")
     if event == obs.OBS_FRONTEND_EVENT_STREAMING_STARTED:
         last_status_change = time.time()
         logSave(0, f"监控到推流开始事件: {last_status_change}")
@@ -5981,9 +2482,9 @@ def script_defaults(settings):  # 设置其默认值
     调用以设置与脚本关联的默认设置(如果有的话)。为了设置其默认值，您通常会调用默认值函数。
     :param settings:与脚本关联的设置。
     """
-    logSave(0, "╔══════════╗")
-    logSave(0, "║设置其默认值║")
-    logSave(0, "╚══════════╝")
+    logSave(0, "╔══════设置控件默认属性══════╗")
+    logSave(0, "║      设置控件默认属性      ║")
+    logSave(0, "╚══════设置控件默认属性══════╝")
     # obs推流状态
     GlobalVariableOfTheControl.streaming_active = obs.obs_frontend_streaming_active()
 
@@ -6002,44 +2503,46 @@ def script_defaults(settings):  # 设置其默认值
     logSave(0, f"脚本临时文件夹路径：{GlobalVariableOfData.scripts_temp_dir}")
     GlobalVariableOfData.networkConnectionStatus = check_network_connection()
     if not GlobalVariableOfData.networkConnectionStatus:
-        logSave(1, f"\n======= 最终结果: 网络{'可用' if GlobalVariableOfData.networkConnectionStatus else '不可用'} =======\n")
+        logSave(1, f"======= 最终结果: 网络{'可用' if GlobalVariableOfData.networkConnectionStatus else '不可用'} =======")
         return None
     if GlobalVariableOfData.accountAvailabilityDetectionSwitch:
         logSave(1, f"执行账号可用性检测")
         # 创建用户配置文件实例
-        BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
         # 获取 用户配置文件 中 每一个用户 导航栏用户信息 排除空值
-        userInterface_navByUid4Dict = {uid: BilibiliApiMaster(dict2cookie(BULC.getCookies(int(uid)))).interface_nav() for uid in [x for x in BULC.getUsers().values() if x]}
+        user_interface_nav4uid = {uid: BilibiliApiMaster(dict2cookie(
+            b_u_l_c.get_cookies(int(uid)))).interface_nav() for uid in [x for x in b_u_l_c.get_users().values() if x]}
         # 获取 用户配置文件 中 每一个 用户 的 可用性
-        userIsLoginByUid4Dict = {uid: userInterface_navByUid4Dict[uid]["isLogin"] for uid in userInterface_navByUid4Dict}
+        user_is_login4uid = {uid: user_interface_nav4uid[uid]["isLogin"] for uid in user_interface_nav4uid}
         # 删除 用户配置文件 中 不可用 用户
-        [BULC.deleteUser(int(uid)) for uid in userIsLoginByUid4Dict if not userIsLoginByUid4Dict[uid]]
+        [b_u_l_c.delete_user(int(uid)) for uid in user_is_login4uid if not user_is_login4uid[uid]]
         # 获取 用户配置文件 中 每一个 可用 用户 的 昵称
-        AllUnameByUid4Dict = {uid: userInterface_navByUid4Dict[uid]["uname"] for uid in userIsLoginByUid4Dict if userIsLoginByUid4Dict[uid]}
+        all_uname4uid = {uid: user_interface_nav4uid[uid]["uname"] for uid in user_is_login4uid if user_is_login4uid[uid]}
         """
         全部账户的数据
         {uid: uname}
         """
         # 输出日志
-        [logSave(1, f"账号：{uid} {'不可用，已删除' if not userIsLoginByUid4Dict[uid] else '可用'}") for uid in userIsLoginByUid4Dict]
-        logSave(1, f"可用账号：{str(AllUnameByUid4Dict)}")
+        [logSave(1, f"账号：{uid} {'不可用，已删除' if not user_is_login4uid[uid] else '可用'}") for uid in user_is_login4uid]
+        logSave(1, f"可用账号：{str(all_uname4uid)}")
         GlobalVariableOfData.accountAvailabilityDetectionSwitch = False
         logSave(1, f"关闭账号可用性检测")
 
     # 创建用户配置文件实例
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
+    b_u_l_c = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
     # 获取 用户配置文件 中 每一个用户 导航栏用户信息 排除空值
-    userInterface_navByUid4Dict = {uid: BilibiliApiMaster(dict2cookie(BULC.getCookies(int(uid)))).interface_nav() for uid in [x for x in BULC.getUsers().values() if x]}
+    user_interface_nav4uid = {uid: BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies(int(uid)))).interface_nav() for uid in [x for x in b_u_l_c.get_users().values() if x]}
     # 获取 用户配置文件 中 每一个 用户 的 昵称
-    AllUnameByUid4Dict = {uid: userInterface_navByUid4Dict[uid]["uname"] for uid in userInterface_navByUid4Dict}
-    logSave(0, f"载入账号：{str(AllUnameByUid4Dict)}")
-    DefaultUserInterfaceNav = BilibiliApiMaster(dict2cookie(BULC.getCookies())).interface_nav() if BULC.getCookies() else None  # 获取 '默认账户' 导航栏用户信息
-    DefaultUname = DefaultUserInterfaceNav["uname"] if BULC.getCookies() else None  # 获取默认账号的昵称
+    all_uname4uid = {uid: user_interface_nav4uid[uid]["uname"] for uid in user_interface_nav4uid}
+    logSave(0, f"载入账号：{str(all_uname4uid)}")
+    DefaultUserInterfaceNav = BilibiliApiMaster(dict2cookie(
+        b_u_l_c.get_cookies())).interface_nav() if b_u_l_c.get_cookies() else None  # 获取 '默认账户' 导航栏用户信息
+    DefaultUname = DefaultUserInterfaceNav["uname"] if b_u_l_c.get_cookies() else None  # 获取默认账号的昵称
     """
     默认用户config["DefaultUser"]的昵称
     没有则为None
     """
-    logSave(0, f"用户：{DefaultUname} 已登录" if BULC.getCookies() else f"未登录账号")
+    logSave(0, f"用户：{DefaultUname} 已登录" if b_u_l_c.get_cookies() else f"未登录账号")
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # 设置 只读文本框【登录状态】 可见状态
     GlobalVariableOfTheControl.login_status_textBox_visible = True
@@ -6048,11 +2551,11 @@ def script_defaults(settings):  # 设置其默认值
     GlobalVariableOfTheControl.login_status_textBox_enabled = True
     logSave(0, f"设置 只读文本框【登录状态】 可用状态：{str(GlobalVariableOfTheControl.login_status_textBox_enabled)}")
     # 设置 只读文本框【登录状态】 信息类型
-    GlobalVariableOfTheControl.login_status_textBox_type = obs.OBS_TEXT_INFO_NORMAL if BULC.getCookies() else obs.OBS_TEXT_INFO_WARNING
-    logSave(0, f"根据是否有账号登录：{bool(BULC.getCookies())} 设置 只读文本框【登录状态】 信息类型：{textBox_type_name4textBox_type[GlobalVariableOfTheControl.login_status_textBox_type]}")
+    GlobalVariableOfTheControl.login_status_textBox_type = obs.OBS_TEXT_INFO_NORMAL if b_u_l_c.get_cookies() else obs.OBS_TEXT_INFO_WARNING
+    logSave(0, f"根据是否有账号登录：{bool(b_u_l_c.get_cookies())} 设置 只读文本框【登录状态】 信息类型：{textBox_type_name4textBox_type[GlobalVariableOfTheControl.login_status_textBox_type]}")
     # 设置 只读文本框【登录状态】 内容
-    GlobalVariableOfTheControl.login_status_textBox_string = f'{DefaultUname} 已登录' if BULC.getCookies() else '未登录，请登录后点击【更新账号列表】'
-    logSave(0, f"根据是否有账号登录：{bool(BULC.getCookies())} 设置 只读文本框【登录状态】 内容：{GlobalVariableOfTheControl.login_status_textBox_string}")
+    GlobalVariableOfTheControl.login_status_textBox_string = f'{DefaultUname} 已登录' if b_u_l_c.get_cookies() else '未登录，请登录后点击【更新账号列表】'
+    logSave(0, f"根据是否有账号登录：{bool(b_u_l_c.get_cookies())} 设置 只读文本框【登录状态】 内容：{GlobalVariableOfTheControl.login_status_textBox_string}")
 
     # 设置 组合框【用户】 可见状态
     GlobalVariableOfTheControl.uid_comboBox_visible = True
@@ -6061,21 +2564,21 @@ def script_defaults(settings):  # 设置其默认值
     GlobalVariableOfTheControl.uid_comboBox_enabled = True
     logSave(0, f"设置 组合框【用户】 可用状态：{str(GlobalVariableOfTheControl.uid_comboBox_enabled)}")
     # 设置 组合框【用户】 的数据字典
-    GlobalVariableOfTheControl.uid_comboBox_dict = {uid or '-1': AllUnameByUid4Dict.get(uid, '添加或选择一个账号登录') for uid in BULC.getUsers().values()}
+    GlobalVariableOfTheControl.uid_comboBox_dict = {uid or '-1': all_uname4uid.get(uid, '添加或选择一个账号登录') for uid in b_u_l_c.get_users().values()}
     logSave(0, f"设置 组合框【用户】 数据字典：{str(GlobalVariableOfTheControl.uid_comboBox_dict)}")
     # 设置 组合框【用户】 默认显示内容
-    GlobalVariableOfTheControl.uid_comboBox_string = DefaultUname if BULC.getCookies() else '添加或选择一个账号登录'
-    logSave(0, f"根据是否有账号登录：{bool(BULC.getCookies())} 设置 组合框【用户】 内容：{GlobalVariableOfTheControl.uid_comboBox_string}")
+    GlobalVariableOfTheControl.uid_comboBox_string = DefaultUname if b_u_l_c.get_cookies() else '添加或选择一个账号登录'
+    logSave(0, f"根据是否有账号登录：{bool(b_u_l_c.get_cookies())} 设置 组合框【用户】 内容：{GlobalVariableOfTheControl.uid_comboBox_string}")
     # 设置 组合框【用户】 默认显示内容 的 列表值
-    GlobalVariableOfTheControl.uid_comboBox_value = BULC.getUsers()[0] if BULC.getCookies() else '-1'
-    logSave(0, f"根据是否有账号登录：{bool(BULC.getCookies())} 设置 组合框【用户】 列表值：{GlobalVariableOfTheControl.uid_comboBox_value}")
+    GlobalVariableOfTheControl.uid_comboBox_value = b_u_l_c.get_users()[0] if b_u_l_c.get_cookies() else '-1'
+    logSave(0, f"根据是否有账号登录：{bool(b_u_l_c.get_cookies())} 设置 组合框【用户】 列表值：{GlobalVariableOfTheControl.uid_comboBox_value}")
 
     # 设置 按钮【登录账号】 可见状态
-    GlobalVariableOfTheControl.login_button_visible = True if AllUnameByUid4Dict else False
-    logSave(0, f"根据 是否有账户：{str(bool(AllUnameByUid4Dict))}，设置 按钮【登录账号】 可见状态：{str(GlobalVariableOfTheControl.login_button_visible)}")
+    GlobalVariableOfTheControl.login_button_visible = True if all_uname4uid else False
+    logSave(0, f"根据 是否有账户：{str(bool(all_uname4uid))}，设置 按钮【登录账号】 可见状态：{str(GlobalVariableOfTheControl.login_button_visible)}")
     # 设置 按钮【登录账号】 可用状态
-    GlobalVariableOfTheControl.login_button_enabled = True if AllUnameByUid4Dict else False
-    logSave(0, f"根据 是否有账户：{str(bool(AllUnameByUid4Dict))}，设置 按钮【登录账号】 可用状态：{str(GlobalVariableOfTheControl.login_button_enabled)}")
+    GlobalVariableOfTheControl.login_button_enabled = True if all_uname4uid else False
+    logSave(0, f"根据 是否有账户：{str(bool(all_uname4uid))}，设置 按钮【登录账号】 可用状态：{str(GlobalVariableOfTheControl.login_button_enabled)}")
 
     # 设置 按钮【更新账号列表】 可见状态
     GlobalVariableOfTheControl.update_account_list_button_visible = True
@@ -6085,25 +2588,25 @@ def script_defaults(settings):  # 设置其默认值
     logSave(0, f"设置 按钮【更新账号列表】 可用状态：{str(GlobalVariableOfTheControl.update_account_list_button_enabled)}")
 
     # 设置 按钮【二维码添加账户】 可见状态
-    GlobalVariableOfTheControl.qr_code_add_account_button_visible = True
-    logSave(0, f"设置 按钮【二维码添加账户】 可见状态：{str(GlobalVariableOfTheControl.qr_code_add_account_button_visible)}")
+    GlobalVariableOfTheControl.qr_add_account_button_visible = True
+    logSave(0, f"设置 按钮【二维码添加账户】 可见状态：{str(GlobalVariableOfTheControl.qr_add_account_button_visible)}")
     # 设置 按钮【二维码添加账户】 可用状态
-    GlobalVariableOfTheControl.qr_code_add_account_button_enabled = True
-    logSave(0, f"设置 按钮【二维码添加账户】 可用状态：{str(GlobalVariableOfTheControl.qr_code_add_account_button_enabled)}")
+    GlobalVariableOfTheControl.qr_add_account_button_enabled = True
+    logSave(0, f"设置 按钮【二维码添加账户】 可用状态：{str(GlobalVariableOfTheControl.qr_add_account_button_enabled)}")
 
     # 设置 按钮【显示二维码图片】 可见状态
-    GlobalVariableOfTheControl.display_qr_code_picture_button_visible = True
-    logSave(0, f"设置 按钮【显示二维码图片】 可见状态：{str(GlobalVariableOfTheControl.display_qr_code_picture_button_visible)}")
+    GlobalVariableOfTheControl.display_qr_picture_button_visible = True
+    logSave(0, f"设置 按钮【显示二维码图片】 可见状态：{str(GlobalVariableOfTheControl.display_qr_picture_button_visible)}")
     # 设置 按钮【显示二维码图片】 可用状态
-    GlobalVariableOfTheControl.display_qr_code_picture_button_enabled = True
-    logSave(0, f"设置 按钮【显示二维码图片】 可用状态：{str(GlobalVariableOfTheControl.display_qr_code_picture_button_enabled)}")
+    GlobalVariableOfTheControl.display_qr_picture_button_enabled = True
+    logSave(0, f"设置 按钮【显示二维码图片】 可用状态：{str(GlobalVariableOfTheControl.display_qr_picture_button_enabled)}")
 
     # 设置 按钮【删除账户】 可见状态
-    GlobalVariableOfTheControl.delete_account_button_visible = True if AllUnameByUid4Dict else False
-    logSave(0, f"根据 是否有账户：{str(bool(AllUnameByUid4Dict))}，设置 按钮【删除账户】 可见状态：{str(GlobalVariableOfTheControl.delete_account_button_visible)}")
+    GlobalVariableOfTheControl.delete_account_button_visible = True if all_uname4uid else False
+    logSave(0, f"根据 是否有账户：{str(bool(all_uname4uid))}，设置 按钮【删除账户】 可见状态：{str(GlobalVariableOfTheControl.delete_account_button_visible)}")
     # 设置 按钮【删除账户】 可用状态
-    GlobalVariableOfTheControl.delete_account_button_enabled = True if AllUnameByUid4Dict else False
-    logSave(0, f"根据 是否有账户：{str(bool(AllUnameByUid4Dict))}，设置 按钮【删除账户】 可用状态：{str(GlobalVariableOfTheControl.delete_account_button_enabled)}")
+    GlobalVariableOfTheControl.delete_account_button_enabled = True if all_uname4uid else False
+    logSave(0, f"根据 是否有账户：{str(bool(all_uname4uid))}，设置 按钮【删除账户】 可用状态：{str(GlobalVariableOfTheControl.delete_account_button_enabled)}")
 
     # 设置 按钮【备份账户】 可见状态
     GlobalVariableOfTheControl.backup_account_button_visible = False
@@ -6120,24 +2623,24 @@ def script_defaults(settings):  # 设置其默认值
     logSave(0, f"设置 按钮【恢复账户】 可用状态：{str(GlobalVariableOfTheControl.restore_account_button_enabled)}")
 
     # 设置 按钮【登出账号】 可见状态
-    GlobalVariableOfTheControl.logout_button_visible = True if AllUnameByUid4Dict and BULC.getCookies() else False
-    logSave(0, f"根据 是否有账户：{str(bool(AllUnameByUid4Dict))}，是否登录：{str(bool(BULC.getCookies()))}，设置 按钮【登出账号】 可见状态：{str(GlobalVariableOfTheControl.logout_button_visible)}")
+    GlobalVariableOfTheControl.logout_button_visible = True if all_uname4uid and b_u_l_c.get_cookies() else False
+    logSave(0, f"根据 是否有账户：{str(bool(all_uname4uid))}，是否登录：{str(bool(b_u_l_c.get_cookies()))}，设置 按钮【登出账号】 可见状态：{str(GlobalVariableOfTheControl.logout_button_visible)}")
     # 设置 按钮【登出账号】 可用状态
-    GlobalVariableOfTheControl.logout_button_enabled = True if AllUnameByUid4Dict and BULC.getCookies() else False
-    logSave(0, f"根据 是否有账户：{str(bool(AllUnameByUid4Dict))}，是否登录：{str(bool(BULC.getCookies()))}，设置 按钮【登出账号】 可用状态：{str(GlobalVariableOfTheControl.logout_button_enabled)}")
+    GlobalVariableOfTheControl.logout_button_enabled = True if all_uname4uid and b_u_l_c.get_cookies() else False
+    logSave(0, f"根据 是否有账户：{str(bool(all_uname4uid))}，是否登录：{str(bool(b_u_l_c.get_cookies()))}，设置 按钮【登出账号】 可用状态：{str(GlobalVariableOfTheControl.logout_button_enabled)}")
 
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # 创建用户配置文件实例
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
+    b_u_l_c = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
     # 获取'默认账户'获取用户对应的直播间 状态
-    RoomInfoOld = BilibiliApiGeneric().get_room_info_old(int(BULC.getUsers()[0])) if BULC.getCookies() else {}
-    logSave(0, f"根据是否有账号登录：{bool(BULC.getCookies())} 获取 登录账户 对应的直播间 状态：数据长度为{len(RoomInfoOld)}")
+    RoomInfoOld = BilibiliApiGeneric().get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else {}
+    logSave(0, f"根据是否有账号登录：{bool(b_u_l_c.get_cookies())} 获取 登录账户 对应的直播间 状态：数据长度为{len(RoomInfoOld)}")
     # 获取 默认用户 的 直播间 状态
-    DefaultRoomStatus = RoomInfoOld["roomStatus"] if BULC.getCookies() else None
+    DefaultRoomStatus = RoomInfoOld["roomStatus"] if b_u_l_c.get_cookies() else None
     """
     登录的用户的直播间存在状态
     """
-    logSave(0, f"根据是否有账号登录：{bool(BULC.getCookies())} 获取 登录账户 是否有直播间：{DefaultRoomStatus}")
+    logSave(0, f"根据是否有账号登录：{bool(b_u_l_c.get_cookies())} 获取 登录账户 是否有直播间：{DefaultRoomStatus}")
     # 获取默认用户的 直播间id
     DefaultRoomid = RoomInfoOld["roomid"] if bool(DefaultRoomStatus) else 0
     """
@@ -6180,11 +2683,11 @@ def script_defaults(settings):  # 设置其默认值
     GlobalVariableOfTheControl.room_status_textBox_enabled = True
     logSave(0, f"设置 按钮【查看直播间封面】 可用状态：{str(GlobalVariableOfTheControl.room_status_textBox_enabled)}")
     # 设置 只读文本框【直播间 状态】 的类型
-    GlobalVariableOfTheControl.room_status_textBox_type = (obs.OBS_TEXT_INFO_NORMAL if bool(DefaultRoomStatus) else obs.OBS_TEXT_INFO_WARNING) if BULC.getCookies() else obs.OBS_TEXT_INFO_ERROR
-    logSave(0, f"根据 登录状态：{bool(BULC.getCookies())} 和 直播间存在：{bool(DefaultRoomStatus)} 设置 只读文本框【直播间 状态】 的类型{textBox_type_name4textBox_type[GlobalVariableOfTheControl.room_status_textBox_type]}")
+    GlobalVariableOfTheControl.room_status_textBox_type = (obs.OBS_TEXT_INFO_NORMAL if bool(DefaultRoomStatus) else obs.OBS_TEXT_INFO_WARNING) if b_u_l_c.get_cookies() else obs.OBS_TEXT_INFO_ERROR
+    logSave(0, f"根据 登录状态：{bool(b_u_l_c.get_cookies())} 和 直播间存在：{bool(DefaultRoomStatus)} 设置 只读文本框【直播间 状态】 的类型{textBox_type_name4textBox_type[GlobalVariableOfTheControl.room_status_textBox_type]}")
     # 设置 只读文本框【直播间 状态】 的内容
-    GlobalVariableOfTheControl.room_status_textBox_string = (f"{str(DefaultRoomid)}{'直播中' if DefaultLiveStatus else '未开播'}" if DefaultRoomStatus else "无直播间") if BULC.getCookies() else "未登录"
-    logSave(0, f"根据 登录状态：{bool(BULC.getCookies())} 和 直播间存在：{bool(DefaultRoomStatus)} 设置 只读文本框【直播间 状态】 的内容{GlobalVariableOfTheControl.room_status_textBox_type}")
+    GlobalVariableOfTheControl.room_status_textBox_string = (f"{str(DefaultRoomid)}{'直播中' if DefaultLiveStatus else '未开播'}" if DefaultRoomStatus else "无直播间") if b_u_l_c.get_cookies() else "未登录"
+    logSave(0, f"根据 登录状态：{bool(b_u_l_c.get_cookies())} 和 直播间存在：{bool(DefaultRoomStatus)} 设置 只读文本框【直播间 状态】 的内容{GlobalVariableOfTheControl.room_status_textBox_type}")
 
     # 设置 按钮【查看直播间封面】 可见状态
     GlobalVariableOfTheControl.viewLiveCover_button_visible = bool(DefaultRoomStatus)
@@ -6234,7 +2737,8 @@ def script_defaults(settings):  # 设置其默认值
     GlobalVariableOfTheControl.liveRoom_news_textBox_enabled = bool(DefaultRoomStatus)
     logSave(0, f"根据 直播间存在：{str(bool(DefaultRoomStatus))}，设置 普通文本框【直播间公告】 可用状态：{str(GlobalVariableOfTheControl.liveRoom_news_textBox_enabled)}")
     # 设置 普通文本框【直播间公告】 内容
-    GlobalVariableOfTheControl.liveRoom_news_textBox_string = BilibiliApiMaster(dict2cookie(BULC.getCookies())).getRoomNews() if bool(DefaultRoomStatus) else ""
+    GlobalVariableOfTheControl.liveRoom_news_textBox_string = BilibiliApiMaster(dict2cookie(
+        b_u_l_c.get_cookies())).get_room_news() if bool(DefaultRoomStatus) else ""
     logSave(0, f"根据 直播间存在：{str(bool(DefaultRoomStatus))}，设置 普通文本框【直播间公告】 内容：{str(GlobalVariableOfTheControl.liveRoom_news_textBox_string)}")
 
     # 设置 按钮【更改直播间公告】 可见状态
@@ -6378,13 +2882,13 @@ def script_load(settings):
     相反，该参数用于脚本中可能使用的任何额外的内部设置数据。
     :param settings:与脚本关联的设置。
     """
-    logSave(0, "╔════════════════════╗")
-    logSave(0, "║已载入: bilibili_live║")
-    logSave(0, "╚════════════════════╝")
+    logSave(0, "╔═════════════════════════╗")
+    logSave(0, "║　　已载入: bilibili_live  ║")
+    logSave(0, "╚═════════════════════════╝")
     # 注册事件回调
-    logSave(0, "╭─────────────╮")
-    logSave(0, "│开始监视obs事件│")
-    logSave(0, "╰─────────────╯")
+    logSave(0, "╭───────────────╮")
+    logSave(0, "│　开始监视obs事件 │")
+    logSave(0, "╰───────────────╯")
     obs.obs_frontend_add_event_callback(on_event)
     # obs_data_t 类型的数据对象。这个数据对象可以用来存储和管理设置项，例如场景、源或过滤器的配置信息
     # settings = obs.obs_data_create()
@@ -6398,11 +2902,9 @@ def script_update(settings):
     不要在这里控制控件的【可见】、【可用】、【值】和【名称】
     :param settings:与脚本关联的设置。
     """
-    logSave(0, "╔═══════════════╗")
-    logSave(0, "║监测到控件数据变动║")
-    logSave(0, "╚═══════════════╝")
-    # # obs脚本中控件的数据
-    # GlobalVariableOfTheControl.script_settings = settings
+    logSave(0, "╔══════════════════════╗")
+    logSave(0, "║　　　监测到控件数据变动   ║")
+    logSave(0, "╚══════════════════════╝")
     pass
 
 
@@ -6415,8 +2917,8 @@ def script_properties():  # 建立控件
     Returns:通过 obs_properties_create() 创建的 Obs_properties_t 对象
     obs_properties_t 类型的属性对象。这个属性对象通常用于枚举 libobs 对象的可用设置，
     """
-    logSave(0, "╔═════════════════════════════════════╗")
-    logSave(0, "║调用内置函数script_properties调整脚本控件║")
+    logSave(0, f"╔══════════════════════════════════════════════════════════════════════════════════════════╗")
+    logSave(0, f"║                          调用内置函数script_properties调整脚本控件                            ║")
     # 网络连通
     if not GlobalVariableOfData.networkConnectionStatus:
         return None
@@ -6431,7 +2933,7 @@ def script_properties():  # 建立控件
 
     # —————————————————————————————————————————————————————————————————————————————————————————————————————
     # 添加 分组框【配置】
-    obs.obs_properties_add_group(GlobalVariableOfTheControl.props, 'setting_group', "【账号】", obs.OBS_GROUP_NORMAL, GlobalVariableOfTheControl.setting_props)
+    GlobalVariableOfTheControl.setting_group = obs.obs_properties_add_group(GlobalVariableOfTheControl.props, 'setting_group', "【账号】", obs.OBS_GROUP_NORMAL, GlobalVariableOfTheControl.setting_props)
 
     # 添加 只读文本框【登录状态】
     GlobalVariableOfTheControl.login_status_textBox = obs.obs_properties_add_text(GlobalVariableOfTheControl.setting_props, 'login_status_textBox', "登录状态：", obs.OBS_TEXT_INFO)
@@ -6450,10 +2952,10 @@ def script_properties():  # 建立控件
     GlobalVariableOfTheControl.update_account_list_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "update_account_list_button", "更新账号列表", button_function_update_account_list)
 
     # 添加 按钮【二维码添加账户】
-    GlobalVariableOfTheControl.qr_code_add_account_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "qr_code_add_account_button", "二维码添加账户", button_function_qr_code_add_account)
+    GlobalVariableOfTheControl.qr_add_account_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "qr_add_account_button", "二维码添加账户", button_function_qr_add_account)
 
     # 添加 按钮【显示登录二维码图片】
-    GlobalVariableOfTheControl.display_qr_code_picture_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "display_qr_code_picture_button", "显示登录二维码图片", button_function_show_qr_code_picture)
+    GlobalVariableOfTheControl.display_qr_picture_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "display_qr_picture_button", "显示登录二维码图片", button_function_show_qr_picture)
 
     # 添加 按钮【删除账户】
     GlobalVariableOfTheControl.delete_account_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.setting_props, "delete_account_button", "删除账户", button_function_del_user)
@@ -6469,7 +2971,7 @@ def script_properties():  # 建立控件
 
     # ————————————————————————————————————————————————————————————————
     # 添加 分组框【直播间】
-    obs.obs_properties_add_group(GlobalVariableOfTheControl.props, 'liveRoom_group', '【直播间】', obs.OBS_GROUP_NORMAL, GlobalVariableOfTheControl.liveRoom_props)
+    GlobalVariableOfTheControl.liveRoom_group = obs.obs_properties_add_group(GlobalVariableOfTheControl.props, 'liveRoom_group', '【直播间】', obs.OBS_GROUP_NORMAL, GlobalVariableOfTheControl.liveRoom_props)
 
     # 添加 只读文本框【直播间 状态】
     GlobalVariableOfTheControl.room_status_textBox = obs.obs_properties_add_text(GlobalVariableOfTheControl.liveRoom_props, 'room_status_textBox', f'直播间 状态', obs.OBS_TEXT_INFO)
@@ -6526,7 +3028,7 @@ def script_properties():  # 建立控件
 
     # ————————————————————————————————————————————————————————————————
     # 添加 分组框【直播】
-    obs.obs_properties_add_group(GlobalVariableOfTheControl.props, 'live_group', '【直播】', obs.OBS_GROUP_NORMAL, GlobalVariableOfTheControl.live_props)
+    GlobalVariableOfTheControl.live_group = obs.obs_properties_add_group(GlobalVariableOfTheControl.props, 'live_group', '【直播】', obs.OBS_GROUP_NORMAL, GlobalVariableOfTheControl.live_props)
 
     # 添加 组合框【直播平台】
     GlobalVariableOfTheControl.live_streaming_platform_comboBox = obs.obs_properties_add_list(GlobalVariableOfTheControl.live_props, 'live_streaming_platform_comboBox', '直播平台：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING)
@@ -6550,20 +3052,21 @@ def script_properties():  # 建立控件
 
     # ————————————————————————————————————————————————————————————————————————————————
     # 更新UI界面数据#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
-    if not GlobalVariableOfTheControl.isScript_propertiesNum:
-        logSave(0, "╒════════════╕")
-        logSave(0, "│创建初始控件UI│")
-        logSave(0, "╘════════════╛")
-        GlobalVariableOfTheControl.isScript_propertiesOne = True
-        GlobalVariableOfTheControl.isScript_propertiesNum += 1
-    else:
-        GlobalVariableOfTheControl.isScript_propertiesOne = False
-        logSave(0, "╒════════════╕")
-        logSave(0, "│载入控件UI数据│")
-        logSave(0, "╘════════════╛")
+    GlobalVariableOfTheControl.isScript_propertiesNum += 1
+    if GlobalVariableOfTheControl.isScript_propertiesNum <= 1:
+        logSave(0, f"╒══════════════════创建初始控件════════════════╕")
+        logSave(0, f"│                  创建初始控件                │")
         update_ui_interface_data(is_script_properties=True)
-    logSave(0, "║调用内置函数script_properties调整脚本控件║")
-    logSave(0, "╚═════════════════════════════════════╝")
+        logSave(0, f"│                  创建初始控件                │")
+        logSave(0, f"╘══════════════════创建初始控件════════════════╛")
+    else:
+        logSave(0, f"╒══════════════════载入控件UI数据════════════════╕")
+        logSave(0, f"│                  载入控件UI数据                │")
+        update_ui_interface_data(is_script_properties=True)
+        logSave(0, f"│                  载入控件UI数据                │")
+        logSave(0, f"╘══════════════════载入控件UI数据════════════════╛")
+    logSave(0, f"║                          调用内置函数script_properties调整脚本控件                          ║")
+    logSave(0, f"╚══════════════════════════调用内置函数script_properties调整脚本控件══════════════════════════╝")
     return GlobalVariableOfTheControl.props
 
 
@@ -6573,11 +3076,11 @@ def update_ui_interface_data(is_script_properties=False):
     Returns:
     """
     if is_script_properties:
-        logSave(0, "╱───────────────────────────────────────────────────────╲")
-        logSave(0, "│由于[Script_properties]而被调用[updateTheUIInterfaceData]│")
+        logSave(0, f"╱─────────────────────────────────────────────────────────╲")
+        logSave(0, f"│由于[Script_properties]而被调用[updateTheUIInterfaceData]   │")
 
     # 只读文本框【登录状态】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│只读文本框【登录状态】 UI")
     # 设置 只读文本框【登录状态】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.login_status_textBox) != GlobalVariableOfTheControl.login_status_textBox_visible:
@@ -6595,10 +3098,10 @@ def update_ui_interface_data(is_script_properties=False):
     if obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'login_status_textBox') != GlobalVariableOfTheControl.login_status_textBox_string:
         logSave(0, f"│只读文本框【登录状态】 文本 发生变动: {obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'login_status_textBox')}➡️{GlobalVariableOfTheControl.login_status_textBox_string}")
         obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, 'login_status_textBox', f'{GlobalVariableOfTheControl.login_status_textBox_string}')
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # 组合框【用户】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│组合框【用户】 UI")
     # 设置 组合框【用户】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.uid_comboBox) != GlobalVariableOfTheControl.uid_comboBox_visible:
@@ -6621,10 +3124,10 @@ def update_ui_interface_data(is_script_properties=False):
         # 设置 组合框【用户】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
         logSave(0, f"│更新 组合框【用户】数据 第三步：更新 组合框【用户】 文本")
         obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, 'uid_comboBox', obs.obs_property_list_item_string(GlobalVariableOfTheControl.uid_comboBox, 0))
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # 按钮【登录账号】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│按钮【登录账号】 UI")
     # 设置 按钮【登录账号】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.login_button) != GlobalVariableOfTheControl.login_button_visible:
@@ -6634,36 +3137,36 @@ def update_ui_interface_data(is_script_properties=False):
     if obs.obs_property_enabled(GlobalVariableOfTheControl.login_button) != GlobalVariableOfTheControl.login_button_enabled:
         logSave(0, f"│按钮【登录账号】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.login_button)}➡️{GlobalVariableOfTheControl.login_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.login_button, GlobalVariableOfTheControl.login_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # 按钮【二维码添加账户】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│按钮【二维码添加账户】 UI")
     # 设置 按钮【二维码添加账户】 可见状态
-    if obs.obs_property_visible(GlobalVariableOfTheControl.qr_code_add_account_button) != GlobalVariableOfTheControl.qr_code_add_account_button_visible:
-        logSave(0, f"│按钮【二维码添加账户】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.qr_code_add_account_button)}➡️{GlobalVariableOfTheControl.qr_code_add_account_button_visible}")
-        obs.obs_property_set_visible(GlobalVariableOfTheControl.qr_code_add_account_button, GlobalVariableOfTheControl.qr_code_add_account_button_visible)
+    if obs.obs_property_visible(GlobalVariableOfTheControl.qr_add_account_button) != GlobalVariableOfTheControl.qr_add_account_button_visible:
+        logSave(0, f"│按钮【二维码添加账户】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.qr_add_account_button)}➡️{GlobalVariableOfTheControl.qr_add_account_button_visible}")
+        obs.obs_property_set_visible(GlobalVariableOfTheControl.qr_add_account_button, GlobalVariableOfTheControl.qr_add_account_button_visible)
     # 设置 按钮【二维码添加账户】 可用状态
-    if obs.obs_property_enabled(GlobalVariableOfTheControl.qr_code_add_account_button) != GlobalVariableOfTheControl.qr_code_add_account_button_enabled:
-        logSave(0, f"│按钮【二维码添加账户】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.qr_code_add_account_button)}➡️{GlobalVariableOfTheControl.qr_code_add_account_button_enabled}")
-        obs.obs_property_set_enabled(GlobalVariableOfTheControl.qr_code_add_account_button, GlobalVariableOfTheControl.qr_code_add_account_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    if obs.obs_property_enabled(GlobalVariableOfTheControl.qr_add_account_button) != GlobalVariableOfTheControl.qr_add_account_button_enabled:
+        logSave(0, f"│按钮【二维码添加账户】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.qr_add_account_button)}➡️{GlobalVariableOfTheControl.qr_add_account_button_enabled}")
+        obs.obs_property_set_enabled(GlobalVariableOfTheControl.qr_add_account_button, GlobalVariableOfTheControl.qr_add_account_button_enabled)
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # 按钮【显示二维码图片】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│按钮【显示二维码图片】 UI")
     # 设置 按钮【显示二维码图片】 可见状态
-    if obs.obs_property_visible(GlobalVariableOfTheControl.display_qr_code_picture_button) != GlobalVariableOfTheControl.display_qr_code_picture_button_visible:
-        logSave(0, f"│按钮【显示二维码图片】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.display_qr_code_picture_button)}➡️{GlobalVariableOfTheControl.display_qr_code_picture_button_visible}")
-        obs.obs_property_set_visible(GlobalVariableOfTheControl.display_qr_code_picture_button, GlobalVariableOfTheControl.display_qr_code_picture_button_visible)
+    if obs.obs_property_visible(GlobalVariableOfTheControl.display_qr_picture_button) != GlobalVariableOfTheControl.display_qr_picture_button_visible:
+        logSave(0, f"│按钮【显示二维码图片】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.display_qr_picture_button)}➡️{GlobalVariableOfTheControl.display_qr_picture_button_visible}")
+        obs.obs_property_set_visible(GlobalVariableOfTheControl.display_qr_picture_button, GlobalVariableOfTheControl.display_qr_picture_button_visible)
     # 设置 按钮【显示二维码图片】 可用状态
-    if obs.obs_property_enabled(GlobalVariableOfTheControl.display_qr_code_picture_button) != GlobalVariableOfTheControl.display_qr_code_picture_button_enabled:
-        logSave(0, f"│按钮【显示二维码图片】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.display_qr_code_picture_button)}➡️{GlobalVariableOfTheControl.display_qr_code_picture_button_enabled}")
-        obs.obs_property_set_enabled(GlobalVariableOfTheControl.display_qr_code_picture_button, GlobalVariableOfTheControl.display_qr_code_picture_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    if obs.obs_property_enabled(GlobalVariableOfTheControl.display_qr_picture_button) != GlobalVariableOfTheControl.display_qr_picture_button_enabled:
+        logSave(0, f"│按钮【显示二维码图片】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.display_qr_picture_button)}➡️{GlobalVariableOfTheControl.display_qr_picture_button_enabled}")
+        obs.obs_property_set_enabled(GlobalVariableOfTheControl.display_qr_picture_button, GlobalVariableOfTheControl.display_qr_picture_button_enabled)
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # 按钮【删除账户】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│按钮【删除账户】 UI")
     # 设置 按钮【删除账户】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.delete_account_button) != GlobalVariableOfTheControl.delete_account_button_visible:
@@ -6673,10 +3176,10 @@ def update_ui_interface_data(is_script_properties=False):
     if obs.obs_property_enabled(GlobalVariableOfTheControl.delete_account_button) != GlobalVariableOfTheControl.delete_account_button_enabled:
         logSave(0, f"│按钮【删除账户】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.delete_account_button)}➡️{GlobalVariableOfTheControl.delete_account_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.delete_account_button, GlobalVariableOfTheControl.delete_account_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # 按钮【备份账户】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│按钮【备份账户】 UI")
     # 设置 按钮【备份账户】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.backup_account_button) != GlobalVariableOfTheControl.backup_account_button_visible:
@@ -6686,10 +3189,10 @@ def update_ui_interface_data(is_script_properties=False):
     if obs.obs_property_enabled(GlobalVariableOfTheControl.backup_account_button) != GlobalVariableOfTheControl.backup_account_button_enabled:
         logSave(0, f"│按钮【备份账户】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.backup_account_button)}➡️{GlobalVariableOfTheControl.backup_account_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.backup_account_button, GlobalVariableOfTheControl.backup_account_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # 按钮【恢复账户】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│按钮【恢复账户】 UI")
     # 设置 按钮【恢复账户】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.restore_account_button) != GlobalVariableOfTheControl.restore_account_button_visible:
@@ -6699,10 +3202,10 @@ def update_ui_interface_data(is_script_properties=False):
     if obs.obs_property_enabled(GlobalVariableOfTheControl.restore_account_button) != GlobalVariableOfTheControl.restore_account_button_enabled:
         logSave(0, f"│按钮【恢复账户】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.restore_account_button)}➡️{GlobalVariableOfTheControl.restore_account_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.restore_account_button, GlobalVariableOfTheControl.restore_account_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # 按钮【登出账号】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│按钮【登出账号】 UI")
     # 设置 按钮【登出账号】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.logout_button) != GlobalVariableOfTheControl.logout_button_visible:
@@ -6712,11 +3215,11 @@ def update_ui_interface_data(is_script_properties=False):
     if obs.obs_property_enabled(GlobalVariableOfTheControl.logout_button) != GlobalVariableOfTheControl.logout_button_enabled:
         logSave(0, f"│按钮【登出账号】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.logout_button)}➡️{GlobalVariableOfTheControl.logout_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.logout_button, GlobalVariableOfTheControl.logout_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # ————————————————————————————————————————————————————————————————
     # 只读文本框【直播间 状态】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│只读文本框【直播间 状态】 UI")
     # 设置 只读文本框【直播间 状态】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.room_status_textBox) != GlobalVariableOfTheControl.room_status_textBox_visible:
@@ -6734,10 +3237,10 @@ def update_ui_interface_data(is_script_properties=False):
     if obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'room_status_textBox') != GlobalVariableOfTheControl.room_status_textBox_string:
         logSave(0, f"│只读文本框【直播间 状态】 文本 发生变动: {obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'room_status_textBox')}➡️{GlobalVariableOfTheControl.room_status_textBox_string}")
         obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, "room_status_textBox", GlobalVariableOfTheControl.room_status_textBox_string)
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # 按钮【查看直播间封面】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│按钮【查看直播间封面】 UI")
     # 设置 按钮【查看直播间封面】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.viewLiveCover_button) != GlobalVariableOfTheControl.viewLiveCover_button_visible:
@@ -6747,10 +3250,10 @@ def update_ui_interface_data(is_script_properties=False):
     if obs.obs_property_enabled(GlobalVariableOfTheControl.viewLiveCover_button) != GlobalVariableOfTheControl.viewLiveCover_button_enabled:
         logSave(0, f"│按钮【查看直播间封面】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.viewLiveCover_button)}➡️{GlobalVariableOfTheControl.viewLiveCover_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.viewLiveCover_button, GlobalVariableOfTheControl.viewLiveCover_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # 文件对话框【直播间封面】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│文件对话框【直播间封面】 UI")
     # 设置 文件对话框【直播间封面】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.room_cover_fileDialogBox) != GlobalVariableOfTheControl.room_cover_fileDialogBox_visible:
@@ -6760,10 +3263,10 @@ def update_ui_interface_data(is_script_properties=False):
     if obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'room_cover_fileDialogBox') != GlobalVariableOfTheControl.room_cover_fileDialogBox_string:
         logSave(0, f"│文件对话框【直播间封面】 文件路径 发生变动: {obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'room_cover_fileDialogBox')}➡️{GlobalVariableOfTheControl.room_cover_fileDialogBox_string}")
         obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, "room_cover_fileDialogBox", GlobalVariableOfTheControl.room_cover_fileDialogBox_string)
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # 按钮【上传直播间封面】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│按钮【上传直播间封面】 UI")
     # 设置 按钮【上传直播间封面】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.room_cover_update_button) != GlobalVariableOfTheControl.room_cover_update_button_visible:
@@ -6773,10 +3276,10 @@ def update_ui_interface_data(is_script_properties=False):
     if obs.obs_property_enabled(GlobalVariableOfTheControl.room_cover_update_button) != GlobalVariableOfTheControl.room_cover_update_button_enabled:
         logSave(0, f"│按钮【上传直播间封面】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.room_cover_update_button)}➡️{GlobalVariableOfTheControl.room_cover_update_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.room_cover_update_button, GlobalVariableOfTheControl.room_cover_update_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # 普通文本框【直播间标题】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│普通文本框【直播间标题】 UI")
     # 设置 普通文本框【直播间标题】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.liveRoom_title_textBox) != GlobalVariableOfTheControl.liveRoom_title_textBox_visible:
@@ -6790,10 +3293,10 @@ def update_ui_interface_data(is_script_properties=False):
     if obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'liveRoom_title_textBox') != GlobalVariableOfTheControl.liveRoom_title_textBox_string:
         logSave(0, f"│普通文本框【直播间标题】 文本 发生变动: {obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'liveRoom_title_textBox')}➡️{GlobalVariableOfTheControl.liveRoom_title_textBox_string}")
         obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, "liveRoom_title_textBox", GlobalVariableOfTheControl.liveRoom_title_textBox_string)
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # 按钮【更改直播间标题】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│按钮【更改直播间标题】 UI")
     # 设置 按钮【更改直播间标题】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.change_liveRoom_title_button) != GlobalVariableOfTheControl.change_liveRoom_title_button_visible:
@@ -6803,10 +3306,10 @@ def update_ui_interface_data(is_script_properties=False):
     if obs.obs_property_enabled(GlobalVariableOfTheControl.change_liveRoom_title_button) != GlobalVariableOfTheControl.change_liveRoom_title_button_enabled:
         logSave(0, f"│按钮【更改直播间标题】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.change_liveRoom_title_button)}➡️{GlobalVariableOfTheControl.change_liveRoom_title_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.change_liveRoom_title_button, GlobalVariableOfTheControl.change_liveRoom_title_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # 普通文本框【直播间公告】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│普通文本框【直播间公告】 UI")
     # 设置 普通文本框【直播间公告】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.liveRoom_news_textBox) != GlobalVariableOfTheControl.liveRoom_news_textBox_visible:
@@ -6820,10 +3323,10 @@ def update_ui_interface_data(is_script_properties=False):
     if obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'liveRoom_news_textBox') != GlobalVariableOfTheControl.liveRoom_news_textBox_string:
         logSave(0, f"│普通文本框【直播间公告】 文本 发生变动: {obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'liveRoom_news_textBox')}➡️{GlobalVariableOfTheControl.liveRoom_news_textBox_string}")
         obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, "liveRoom_news_textBox", GlobalVariableOfTheControl.liveRoom_news_textBox_string)
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # 按钮【更改直播间公告】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│按钮【更改直播间公告】 UI")
     # 设置 按钮【更改直播间公告】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.change_liveRoom_news_button) != GlobalVariableOfTheControl.change_liveRoom_news_button_visible:
@@ -6833,10 +3336,10 @@ def update_ui_interface_data(is_script_properties=False):
     if obs.obs_property_enabled(GlobalVariableOfTheControl.change_liveRoom_news_button) != GlobalVariableOfTheControl.change_liveRoom_news_button_enabled:
         logSave(0, f"│按钮【更改直播间公告】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.change_liveRoom_news_button)}➡️{GlobalVariableOfTheControl.change_liveRoom_news_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.change_liveRoom_news_button, GlobalVariableOfTheControl.change_liveRoom_news_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # 组合框【一级分区】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│组合框【一级分区】 UI")
     # 设置 组合框【一级分区】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.parentLiveArea_comboBox) != GlobalVariableOfTheControl.parentLiveArea_comboBox_visible:
@@ -6859,10 +3362,10 @@ def update_ui_interface_data(is_script_properties=False):
         # 设置 组合框【一级分区】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
         logSave(0, f"│更新 组合框【一级分区】数据 第三步：更新 组合框【一级分区】 文本")
         obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, 'parentLiveArea_comboBox', obs.obs_property_list_item_string(GlobalVariableOfTheControl.parentLiveArea_comboBox, 0))
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # 按钮【确认一级分区】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│按钮【确认一级分区】 UI")
     # 设置 按钮【确认一级分区】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.parentLiveArea_true_button) != GlobalVariableOfTheControl.parentLiveArea_true_button_visible:
@@ -6872,10 +3375,10 @@ def update_ui_interface_data(is_script_properties=False):
     if obs.obs_property_enabled(GlobalVariableOfTheControl.parentLiveArea_true_button) != GlobalVariableOfTheControl.parentLiveArea_true_button_enabled:
         logSave(0, f"│按钮【确认一级分区】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.parentLiveArea_true_button)}➡️{GlobalVariableOfTheControl.parentLiveArea_true_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.parentLiveArea_true_button, GlobalVariableOfTheControl.parentLiveArea_true_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # 组合框【二级分区】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│组合框【二级分区】 UI")
     # 设置 组合框【二级分区】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.subLiveArea_comboBox) != GlobalVariableOfTheControl.subLiveArea_comboBox_visible:
@@ -6898,10 +3401,10 @@ def update_ui_interface_data(is_script_properties=False):
         # 设置 组合框【二级分区】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
         logSave(0, f"│更新 组合框【二级分区】数据 第三步：更新 组合框【二级分区】 文本")
         obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, 'subLiveArea_comboBox', obs.obs_property_list_item_string(GlobalVariableOfTheControl.subLiveArea_comboBox, 0))
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # 按钮【「确认分区」】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│按钮【「确认分区」】 UI")
     # 设置 按钮【「确认分区」】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.subLiveArea_true_button) != GlobalVariableOfTheControl.subLiveArea_true_button_visible:
@@ -6911,10 +3414,10 @@ def update_ui_interface_data(is_script_properties=False):
     if obs.obs_property_enabled(GlobalVariableOfTheControl.subLiveArea_true_button) != GlobalVariableOfTheControl.subLiveArea_true_button_enabled:
         logSave(0, f"│按钮【「确认分区」】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.subLiveArea_true_button)}➡️{GlobalVariableOfTheControl.subLiveArea_true_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.subLiveArea_true_button, GlobalVariableOfTheControl.subLiveArea_true_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # url按钮【跳转直播间后台网页】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│url按钮【跳转直播间后台网页】 UI")
     # 设置 url按钮【跳转直播间后台网页】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.jump_blive_web_button) != GlobalVariableOfTheControl.jump_blive_web_button_visible:
@@ -6928,11 +3431,11 @@ def update_ui_interface_data(is_script_properties=False):
     if obs.obs_property_button_url(GlobalVariableOfTheControl.jump_blive_web_button) != GlobalVariableOfTheControl.jump_blive_web_button_url:
         logSave(0, f"│url按钮【跳转直播间后台网页】 链接 发生变动: {obs.obs_property_button_url(GlobalVariableOfTheControl.jump_blive_web_button)}➡️{GlobalVariableOfTheControl.jump_blive_web_button_url}")
         obs.obs_property_button_set_url(GlobalVariableOfTheControl.jump_blive_web_button, GlobalVariableOfTheControl.jump_blive_web_button_url)
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # ————————————————————————————————————————————————————————————————
     # 组合框【直播平台】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│组合框【直播平台】 UI")
     # 设置 组合框【直播平台】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.live_streaming_platform_comboBox) != GlobalVariableOfTheControl.live_streaming_platform_comboBox_visible:
@@ -6955,10 +3458,10 @@ def update_ui_interface_data(is_script_properties=False):
         # 设置 组合框【直播平台】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
         logSave(0, f"│更新 组合框【直播平台】数据 第三步：更新 组合框【直播平台】 文本")
         obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, 'live_streaming_platform_comboBox', obs.obs_property_list_item_string(GlobalVariableOfTheControl.live_streaming_platform_comboBox, 0))
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # 按钮【开始直播并复制推流码】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│按钮【开始直播并复制推流码】 UI")
     # 设置 按钮【开始直播并复制推流码】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.start_live_button) != GlobalVariableOfTheControl.start_live_button_visible:
@@ -6968,10 +3471,10 @@ def update_ui_interface_data(is_script_properties=False):
     if obs.obs_property_enabled(GlobalVariableOfTheControl.start_live_button) != GlobalVariableOfTheControl.start_live_button_enabled:
         logSave(0, f"│按钮【开始直播并复制推流码】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.start_live_button)}➡️{GlobalVariableOfTheControl.start_live_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.start_live_button, GlobalVariableOfTheControl.start_live_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # 按钮【复制直播服务器】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│按钮【复制直播服务器】 UI")
     # 设置 按钮【复制直播服务器】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.rtmp_address_copy_button) != GlobalVariableOfTheControl.rtmp_address_copy_button_visible:
@@ -6981,10 +3484,10 @@ def update_ui_interface_data(is_script_properties=False):
     if obs.obs_property_enabled(GlobalVariableOfTheControl.rtmp_address_copy_button) != GlobalVariableOfTheControl.rtmp_address_copy_button_enabled:
         logSave(0, f"│按钮【复制直播服务器】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.rtmp_address_copy_button)}➡️{GlobalVariableOfTheControl.rtmp_address_copy_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.rtmp_address_copy_button, GlobalVariableOfTheControl.rtmp_address_copy_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # 按钮【复制直播推流码】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│按钮【复制直播推流码】 UI")
     # 设置 按钮【复制直播推流码】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.rtmp_stream_code_copy_button) != GlobalVariableOfTheControl.rtmp_stream_code_copy_button_visible:
@@ -6994,10 +3497,10 @@ def update_ui_interface_data(is_script_properties=False):
     if obs.obs_property_enabled(GlobalVariableOfTheControl.rtmp_stream_code_copy_button) != GlobalVariableOfTheControl.rtmp_stream_code_copy_button_enabled:
         logSave(0, f"│按钮【复制直播推流码】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.rtmp_stream_code_copy_button)}➡️{GlobalVariableOfTheControl.rtmp_stream_code_copy_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.rtmp_stream_code_copy_button, GlobalVariableOfTheControl.rtmp_stream_code_copy_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # 按钮【更新推流码并复制】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│按钮【更新推流码并复制】 UI")
     # 设置 按钮【更新推流码并复制】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.rtmp_stream_code_update_button) != GlobalVariableOfTheControl.rtmp_stream_code_update_button_visible:
@@ -7007,10 +3510,10 @@ def update_ui_interface_data(is_script_properties=False):
     if obs.obs_property_enabled(GlobalVariableOfTheControl.rtmp_stream_code_update_button) != GlobalVariableOfTheControl.rtmp_stream_code_update_button_enabled:
         logSave(0, f"│按钮【更新推流码并复制】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.rtmp_stream_code_update_button)}➡️{GlobalVariableOfTheControl.rtmp_stream_code_update_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.rtmp_stream_code_update_button, GlobalVariableOfTheControl.rtmp_stream_code_update_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└─────────────────────────────────────────────────────────")
 
     # 按钮【结束直播】 UI
-    logSave(0, f"┌─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"┌─────────────────────────────────────────────────────────")
     logSave(0, f"│按钮【结束直播】 UI")
     # 设置 按钮【结束直播】 可见状态
     if obs.obs_property_visible(GlobalVariableOfTheControl.stop_live_button) != GlobalVariableOfTheControl.stop_live_button_visible:
@@ -7020,10 +3523,10 @@ def update_ui_interface_data(is_script_properties=False):
     if obs.obs_property_enabled(GlobalVariableOfTheControl.stop_live_button) != GlobalVariableOfTheControl.stop_live_button_enabled:
         logSave(0, f"│按钮【结束直播】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.stop_live_button)}➡️{GlobalVariableOfTheControl.stop_live_button_enabled}")
         obs.obs_property_set_enabled(GlobalVariableOfTheControl.stop_live_button, GlobalVariableOfTheControl.stop_live_button_enabled)
-    logSave(0, f"└─────────────────────────────────────────────────────────────────────────────────────")
+    logSave(0, f"└──────────────────────────────────────────────────────────────")
 
-    logSave(0, "│由于[Script_properties]而被调用[updateTheUIInterfaceData]│")
-    logSave(0, "╲───────────────────────────────────────────────────────╱")
+    logSave(0, f"│由于[Script_properties]而被调用[updateTheUIInterfaceData]   │")
+    logSave(0, f"╲─────────────────────────────────────────────────────────╱")
 
 
 def button_function_login(props, prop, settings=GlobalVariableOfTheControl.script_settings):
@@ -7034,20 +3537,20 @@ def button_function_login(props, prop, settings=GlobalVariableOfTheControl.scrip
         prop:
     Returns:
     """
-    # ＝＝＝＝＝＝＝＝＝
-    # 　　　登录　　　＝
-    # ＝＝＝＝＝＝＝＝＝
+    # ＝＝＝＝＝＝＝＝＝＝＝
+    # ＝     登录      ＝
+    # ＝＝＝＝＝＝＝＝＝＝＝
     uid = obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'uid_comboBox')
     logSave(0, f"即将登录的账号：{uid}")
     if uid not in ["-1"]:
         logSave(0, f"将选定的账号：{uid}，在配置文件中转移到默认账号的位置")
-        logInTry(GlobalVariableOfData.scripts_config_filepath, int(uid))
+        login_try(GlobalVariableOfData.scripts_config_filepath, int(uid))
     else:
         logSave(2, "请添加或选择一个账号登录")
         return None
-    # ＝＝＝＝＝＝＝＝＝＝＝＝
-    # 　　　　更新     　　＝
-    # ＝＝＝＝＝＝＝＝＝＝＝＝
+    # ＝＝＝＝＝＝＝＝＝＝＝
+    # ＝     更新      ＝
+    # ＝＝＝＝＝＝＝＝＝＝＝
     # 调用script_defaults更新obs默认配置信息
     logSave(0, f"更新控件配置信息")
     script_defaults(GlobalVariableOfTheControl.script_settings)
@@ -7067,21 +3570,22 @@ def button_function_update_account_list(props=None, prop=None, settings=GlobalVa
     Returns:
     """
     # 创建用户配置文件实例
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
+    b_u_l_c = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
     # 获取 用户配置文件 中 每一个用户 导航栏用户信息 排除空值
-    userInterface_navByUid4Dict = {uid: BilibiliApiMaster(dict2cookie(BULC.getCookies(int(uid)))).interface_nav() for uid in [x for x in BULC.getUsers().values() if x]}
+    userInterface_navByUid4Dict = {uid: BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies(int(uid)))).interface_nav() for uid in [x for x in b_u_l_c.get_users().values() if x]}
     # 获取 用户配置文件 中 每一个 用户 的 昵称
     AllUnameByUid4Dict = {uid: userInterface_navByUid4Dict[uid]["uname"] for uid in userInterface_navByUid4Dict}
     logSave(0, f"载入账号：{str(AllUnameByUid4Dict)}")
     # 获取 '默认账户' 导航栏用户信息
-    DefaultUserInterfaceNav = BilibiliApiMaster(dict2cookie(BULC.getCookies())).interface_nav() if BULC.getCookies() else None
+    DefaultUserInterfaceNav = BilibiliApiMaster(dict2cookie(
+        b_u_l_c.get_cookies())).interface_nav() if b_u_l_c.get_cookies() else None
     # 获取默认账号的昵称
-    DefaultUname = DefaultUserInterfaceNav["uname"] if BULC.getCookies() else None
+    DefaultUname = DefaultUserInterfaceNav["uname"] if b_u_l_c.get_cookies() else None
     """
     默认用户config["DefaultUser"]的昵称
     没有则为None
     """
-    logSave(0, f"用户：{DefaultUname} 已登录" if BULC.getCookies() else f"未登录账号")
+    logSave(0, f"用户：{DefaultUname} 已登录" if b_u_l_c.get_cookies() else f"未登录账号")
 
     # 设置 只读文本框【登录状态】 可见状态
     GlobalVariableOfTheControl.login_status_textBox_visible = True
@@ -7090,11 +3594,11 @@ def button_function_update_account_list(props=None, prop=None, settings=GlobalVa
     GlobalVariableOfTheControl.login_status_textBox_enabled = True
     logSave(0, f"设置 只读文本框【登录状态】 可用状态：{str(GlobalVariableOfTheControl.login_status_textBox_enabled)}")
     # 设置 只读文本框【登录状态】 信息类型
-    GlobalVariableOfTheControl.login_status_textBox_type = obs.OBS_TEXT_INFO_NORMAL if BULC.getCookies() else obs.OBS_TEXT_INFO_WARNING
-    logSave(0, f"根据是否有账号登录：{bool(BULC.getCookies())} 设置 只读文本框【登录状态】 信息类型：{textBox_type_name4textBox_type[GlobalVariableOfTheControl.login_status_textBox_type]}")
+    GlobalVariableOfTheControl.login_status_textBox_type = obs.OBS_TEXT_INFO_NORMAL if b_u_l_c.get_cookies() else obs.OBS_TEXT_INFO_WARNING
+    logSave(0, f"根据是否有账号登录：{bool(b_u_l_c.get_cookies())} 设置 只读文本框【登录状态】 信息类型：{textBox_type_name4textBox_type[GlobalVariableOfTheControl.login_status_textBox_type]}")
     # 设置 只读文本框【登录状态】 内容
-    GlobalVariableOfTheControl.login_status_textBox_string = f'{DefaultUname} 已登录' if BULC.getCookies() else '未登录，请登录后点击【更新账号列表】'
-    logSave(0, f"根据是否有账号登录：{bool(BULC.getCookies())} 设置 只读文本框【登录状态】 内容：{GlobalVariableOfTheControl.login_status_textBox_string}")
+    GlobalVariableOfTheControl.login_status_textBox_string = f'{DefaultUname} 已登录' if b_u_l_c.get_cookies() else '未登录，请登录后点击【更新账号列表】'
+    logSave(0, f"根据是否有账号登录：{bool(b_u_l_c.get_cookies())} 设置 只读文本框【登录状态】 内容：{GlobalVariableOfTheControl.login_status_textBox_string}")
 
     # 设置 组合框【用户】 可见状态
     GlobalVariableOfTheControl.uid_comboBox_visible = True
@@ -7103,14 +3607,14 @@ def button_function_update_account_list(props=None, prop=None, settings=GlobalVa
     GlobalVariableOfTheControl.uid_comboBox_enabled = True
     logSave(0, f"设置 组合框【用户】 可用状态：{str(GlobalVariableOfTheControl.uid_comboBox_enabled)}")
     # 设置 组合框【用户】 的数据字典
-    GlobalVariableOfTheControl.uid_comboBox_dict = {uid or '-1': AllUnameByUid4Dict.get(uid, '添加或选择一个账号登录') for uid in BULC.getUsers().values()}
+    GlobalVariableOfTheControl.uid_comboBox_dict = {uid or '-1': AllUnameByUid4Dict.get(uid, '添加或选择一个账号登录') for uid in b_u_l_c.get_users().values()}
     logSave(0, f"设置 组合框【用户】 数据字典：{str(GlobalVariableOfTheControl.uid_comboBox_dict)}")
     # 设置 组合框【用户】 默认显示内容
-    GlobalVariableOfTheControl.uid_comboBox_string = DefaultUname if BULC.getCookies() else '添加或选择一个账号登录'
-    logSave(0, f"根据是否有账号登录：{bool(BULC.getCookies())} 设置 组合框【用户】 内容：{GlobalVariableOfTheControl.uid_comboBox_string}")
+    GlobalVariableOfTheControl.uid_comboBox_string = DefaultUname if b_u_l_c.get_cookies() else '添加或选择一个账号登录'
+    logSave(0, f"根据是否有账号登录：{bool(b_u_l_c.get_cookies())} 设置 组合框【用户】 内容：{GlobalVariableOfTheControl.uid_comboBox_string}")
     # 设置 组合框【用户】 默认显示内容 的 列表值
-    GlobalVariableOfTheControl.uid_comboBox_value = BULC.getUsers()[0] if BULC.getCookies() else '-1'
-    logSave(0, f"根据是否有账号登录：{bool(BULC.getCookies())} 设置 组合框【用户】 列表值：{GlobalVariableOfTheControl.uid_comboBox_value}")
+    GlobalVariableOfTheControl.uid_comboBox_value = b_u_l_c.get_users()[0] if b_u_l_c.get_cookies() else '-1'
+    logSave(0, f"根据是否有账号登录：{bool(b_u_l_c.get_cookies())} 设置 组合框【用户】 列表值：{GlobalVariableOfTheControl.uid_comboBox_value}")
 
     # 设置 按钮【登录账号】 可见状态
     GlobalVariableOfTheControl.login_button_visible = True if AllUnameByUid4Dict else False
@@ -7127,18 +3631,18 @@ def button_function_update_account_list(props=None, prop=None, settings=GlobalVa
     logSave(0, f"设置 按钮【更新账号列表】 可用状态：{str(GlobalVariableOfTheControl.update_account_list_button_enabled)}")
 
     # 设置 按钮【二维码添加账户】 可见状态
-    GlobalVariableOfTheControl.qr_code_add_account_button_visible = True
-    logSave(0, f"设置 按钮【二维码添加账户】 可见状态：{str(GlobalVariableOfTheControl.qr_code_add_account_button_visible)}")
+    GlobalVariableOfTheControl.qr_add_account_button_visible = True
+    logSave(0, f"设置 按钮【二维码添加账户】 可见状态：{str(GlobalVariableOfTheControl.qr_add_account_button_visible)}")
     # 设置 按钮【二维码添加账户】 可用状态
-    GlobalVariableOfTheControl.qr_code_add_account_button_enabled = True
-    logSave(0, f"设置 按钮【二维码添加账户】 可用状态：{str(GlobalVariableOfTheControl.qr_code_add_account_button_enabled)}")
+    GlobalVariableOfTheControl.qr_add_account_button_enabled = True
+    logSave(0, f"设置 按钮【二维码添加账户】 可用状态：{str(GlobalVariableOfTheControl.qr_add_account_button_enabled)}")
 
     # 设置 按钮【显示二维码图片】 可见状态
-    GlobalVariableOfTheControl.display_qr_code_picture_button_visible = True
-    logSave(0, f"设置 按钮【显示二维码图片】 可见状态：{str(GlobalVariableOfTheControl.display_qr_code_picture_button_visible)}")
+    GlobalVariableOfTheControl.display_qr_picture_button_visible = True
+    logSave(0, f"设置 按钮【显示二维码图片】 可见状态：{str(GlobalVariableOfTheControl.display_qr_picture_button_visible)}")
     # 设置 按钮【显示二维码图片】 可用状态
-    GlobalVariableOfTheControl.display_qr_code_picture_button_enabled = True
-    logSave(0, f"设置 按钮【显示二维码图片】 可用状态：{str(GlobalVariableOfTheControl.display_qr_code_picture_button_enabled)}")
+    GlobalVariableOfTheControl.display_qr_picture_button_enabled = True
+    logSave(0, f"设置 按钮【显示二维码图片】 可用状态：{str(GlobalVariableOfTheControl.display_qr_picture_button_enabled)}")
 
     # 设置 按钮【删除账户】 可见状态
     GlobalVariableOfTheControl.delete_account_button_visible = True if AllUnameByUid4Dict else False
@@ -7162,11 +3666,11 @@ def button_function_update_account_list(props=None, prop=None, settings=GlobalVa
     logSave(0, f"设置 按钮【恢复账户】 可用状态：{str(GlobalVariableOfTheControl.restore_account_button_enabled)}")
 
     # 设置 按钮【登出账号】 可见状态
-    GlobalVariableOfTheControl.logout_button_visible = True if AllUnameByUid4Dict and BULC.getCookies() else False
-    logSave(0, f"根据 是否有账户：{str(bool(AllUnameByUid4Dict))}，是否登录：{str(bool(BULC.getCookies()))}，设置 按钮【登出账号】 可见状态：{str(GlobalVariableOfTheControl.logout_button_visible)}")
+    GlobalVariableOfTheControl.logout_button_visible = True if AllUnameByUid4Dict and b_u_l_c.get_cookies() else False
+    logSave(0, f"根据 是否有账户：{str(bool(AllUnameByUid4Dict))}，是否登录：{str(bool(b_u_l_c.get_cookies()))}，设置 按钮【登出账号】 可见状态：{str(GlobalVariableOfTheControl.logout_button_visible)}")
     # 设置 按钮【登出账号】 可用状态
-    GlobalVariableOfTheControl.logout_button_enabled = True if AllUnameByUid4Dict and BULC.getCookies() else False
-    logSave(0, f"根据 是否有账户：{str(bool(AllUnameByUid4Dict))}，是否登录：{str(bool(BULC.getCookies()))}，设置 按钮【登出账号】 可用状态：{str(GlobalVariableOfTheControl.logout_button_enabled)}")
+    GlobalVariableOfTheControl.logout_button_enabled = True if AllUnameByUid4Dict and b_u_l_c.get_cookies() else False
+    logSave(0, f"根据 是否有账户：{str(bool(AllUnameByUid4Dict))}，是否登录：{str(bool(b_u_l_c.get_cookies()))}，设置 按钮【登出账号】 可用状态：{str(GlobalVariableOfTheControl.logout_button_enabled)}")
 
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # 设置 只读文本框【登录状态】 信息类型
@@ -7201,18 +3705,18 @@ def button_function_update_account_list(props=None, prop=None, settings=GlobalVa
     obs.obs_property_modified(GlobalVariableOfTheControl.login_button, GlobalVariableOfTheControl.script_settings)
 
     # 设置 按钮【二维码添加账户】 可见状态
-    obs.obs_property_set_visible(GlobalVariableOfTheControl.qr_code_add_account_button, GlobalVariableOfTheControl.qr_code_add_account_button_visible)
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.qr_add_account_button, GlobalVariableOfTheControl.qr_add_account_button_visible)
     # 设置 按钮【二维码添加账户】 可用状态
-    obs.obs_property_set_enabled(GlobalVariableOfTheControl.qr_code_add_account_button, GlobalVariableOfTheControl.qr_code_add_account_button_enabled)
+    obs.obs_property_set_enabled(GlobalVariableOfTheControl.qr_add_account_button, GlobalVariableOfTheControl.qr_add_account_button_enabled)
     # 更新 按钮【二维码添加账户】 显示
-    obs.obs_property_modified(GlobalVariableOfTheControl.qr_code_add_account_button, GlobalVariableOfTheControl.script_settings)
+    obs.obs_property_modified(GlobalVariableOfTheControl.qr_add_account_button, GlobalVariableOfTheControl.script_settings)
 
     # 设置 按钮【显示二维码图片】 可见状态
-    obs.obs_property_set_visible(GlobalVariableOfTheControl.display_qr_code_picture_button, GlobalVariableOfTheControl.display_qr_code_picture_button_visible)
+    obs.obs_property_set_visible(GlobalVariableOfTheControl.display_qr_picture_button, GlobalVariableOfTheControl.display_qr_picture_button_visible)
     # 设置 按钮【显示二维码图片】 可用状态
-    obs.obs_property_set_enabled(GlobalVariableOfTheControl.display_qr_code_picture_button, GlobalVariableOfTheControl.display_qr_code_picture_button_enabled)
+    obs.obs_property_set_enabled(GlobalVariableOfTheControl.display_qr_picture_button, GlobalVariableOfTheControl.display_qr_picture_button_enabled)
     # 更新 按钮[显示二维码图片】 显示
-    obs.obs_property_modified(GlobalVariableOfTheControl.display_qr_code_picture_button, GlobalVariableOfTheControl.script_settings)
+    obs.obs_property_modified(GlobalVariableOfTheControl.display_qr_picture_button, GlobalVariableOfTheControl.script_settings)
 
     # 设置 按钮【删除账户】 可见状态
     obs.obs_property_set_visible(GlobalVariableOfTheControl.delete_account_button, GlobalVariableOfTheControl.delete_account_button_visible)
@@ -7245,7 +3749,7 @@ def button_function_update_account_list(props=None, prop=None, settings=GlobalVa
     return True
 
 
-def button_function_qr_code_add_account(props, prop):
+def button_function_qr_add_account(props, prop):
     """
     二维码添加账号
     Args:
@@ -7253,11 +3757,11 @@ def button_function_qr_code_add_account(props, prop):
         prop:
     Returns:
     """
-    qrAddUser()
+    qr_add_user()
     return True
 
 
-def button_function_show_qr_code_picture(props, prop):
+def button_function_show_qr_picture(props, prop):
     """
     显示二维码图片
     Args:
@@ -7283,8 +3787,8 @@ def button_function_del_user(props, prop):
     """
     uid = obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'uid_comboBox')
     if uid not in ["-1"]:
-        BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
-        BULC.deleteUser(uid)
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
+        b_u_l_c.delete_user(uid)
     else:
         logSave(2, "请选择一个账号")
         return None
@@ -7331,8 +3835,8 @@ def button_function_logout(props, prop):
     # 　　　　登出        ＝
     # ＝＝＝＝＝＝＝＝＝＝＝＝
     # 如果添加账户 移除默认账户
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
-    BULC.updateUser(None)
+    b_u_l_c = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
+    b_u_l_c.update_ser(None)
     # ＝＝＝＝＝＝＝＝＝＝＝＝
     # 　　　　更新     　　＝
     # ＝＝＝＝＝＝＝＝＝＝＝＝
@@ -7359,24 +3863,26 @@ def button_function_update_room_cover(props, prop):
     if GlobalVariableOfTheControl.room_cover_fileDialogBox_string:
         PIL_Image = Image.open(GlobalVariableOfTheControl.room_cover_fileDialogBox_string)
         logSave(0, f"图片文件PIL_Image实例化，当前文件大小(宽X高)：{PIL_Image.size}")
-        PIL_Image1609 = PIL_Image2CentralProportionCutting(PIL_Image, 16 / 9)
+        PIL_Image1609 = pil_image2central_proportion_cutting(PIL_Image, 16 / 9)
         PIL_Image1609_w, PIL_Image1609_h = PIL_Image1609.size
         logSave(0, f"图片16:9裁切后大小(宽X高)：{PIL_Image1609.size}")
-        PIL_Image1609ZoomingWidth1020 = PIL_Image1609 if PIL_Image1609_w < 1020 else PIL_Image2Zooming(PIL_Image1609, 4, target_width=1020)
+        PIL_Image1609ZoomingWidth1020 = PIL_Image1609 if PIL_Image1609_w < 1020 else pil_image2zooming(PIL_Image1609, 4,
+                                                                                                       target_width=1020)
         logSave(0, f"限制宽<1020，进行缩放，缩放后大小：{PIL_Image1609ZoomingWidth1020.size}")
-        PIL_Image1609 = PIL_Image2CentralProportionCutting(PIL_Image1609ZoomingWidth1020, 16 / 9)
+        PIL_Image1609 = pil_image2central_proportion_cutting(PIL_Image1609ZoomingWidth1020, 16 / 9)
         logSave(0, f"缩放后图片16:9裁切后大小(宽X高)：{PIL_Image1609.size}")
-        PIL_Image0403 = PIL_Image2CentralProportionCutting(PIL_Image1609ZoomingWidth1020, 4 / 3)
+        PIL_Image0403 = pil_image2central_proportion_cutting(PIL_Image1609ZoomingWidth1020, 4 / 3)
         logSave(0, f"缩放后图片4:3裁切后大小(宽X高)：{PIL_Image0403.size}")
         logSave(0, f"展示图片")
         PIL_Image0403.show()
         PIL_Image1609.show()
-        PIL_Image1609ZoomingWidth1020Binary = PIL_Image2Binary(PIL_Image1609ZoomingWidth1020, ImgFormat="JPEG", compress_level=0)
+        PIL_Image1609ZoomingWidth1020Binary = pil_image2binary(PIL_Image1609ZoomingWidth1020, img_format="JPEG",
+                                                               compress_level=0)
         logSave(0, f"图片二进制化")
         # 创建用户配置文件实例
-        BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
         # 获取 '默认账户' cookies
-        DefaultUserCookies = BULC.getCookies()
+        DefaultUserCookies = b_u_l_c.get_cookies()
         coverUrl = BilibiliApiCsrfAuthentication(dict2cookie(DefaultUserCookies)).upload_cover(PIL_Image1609ZoomingWidth1020Binary)['data']['location']
         logSave(0, f"上传二进制图片，获得图片链接：{coverUrl}")
         BilibiliApiCsrfAuthentication(dict2cookie(DefaultUserCookies)).update_cover(coverUrl)
@@ -7395,12 +3901,12 @@ def button_function_check_room_cover(props, prop):
     Returns:
     """
     # 创建用户配置文件实例
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
+    b_u_l_c = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
     # 获取'默认账户'获取用户对应的直播间 状态
-    RoomInfoOld = BilibiliApiGeneric().get_room_info_old(int(BULC.getUsers()[0])) if BULC.getCookies() else {}
-    logSave(0, f"根据是否有账号登录：{bool(BULC.getCookies())} 获取 登录账户 对应的直播间 状态：数据长度为{len(RoomInfoOld)}")
+    RoomInfoOld = BilibiliApiGeneric().get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else {}
+    logSave(0, f"根据是否有账号登录：{bool(b_u_l_c.get_cookies())} 获取 登录账户 对应的直播间 状态：数据长度为{len(RoomInfoOld)}")
     # 获取 默认用户 的 直播间 状态
-    DefaultRoomStatus = RoomInfoOld["roomStatus"] if BULC.getCookies() else None
+    DefaultRoomStatus = RoomInfoOld["roomStatus"] if b_u_l_c.get_cookies() else None
     # 获取默认用户的 直播间id
     DefaultRoomid = RoomInfoOld["roomid"] if bool(DefaultRoomStatus) else 0
     # 获取'默认账户'直播间的基础信息
@@ -7411,7 +3917,7 @@ def button_function_check_room_cover(props, prop):
     直播间封面URL
     """
     # # 获取'默认账户'直播间的基础信息
-    roomCover_pillowImg = url2pillowImage(LiveRoomCover_url)
+    roomCover_pillowImg = url2pillow_image(LiveRoomCover_url)
     logSave(0, f"现在的直播间封面URL：{LiveRoomCover_url}")
     if roomCover_pillowImg:
         logSave(0, f"封面已显示，格式: {roomCover_pillowImg.format}，尺寸: {roomCover_pillowImg.size}")
@@ -7432,8 +3938,8 @@ def button_function_change_live_room_title(props, prop):
         GlobalVariableOfTheControl.liveRoom_title_textBox_string = liveRoom_title_textBox_string
         logSave(0, "直播间标题改变")
         # 获取 '默认账户' cookie
-        BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
-        cookies = BULC.getCookies()
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
+        cookies = b_u_l_c.get_cookies()
         turn_title_return = BilibiliApiCsrfAuthentication(dict2cookie(cookies)).room_v1_Room_update(liveRoom_title_textBox_string)
         logSave(0, f"更改直播间标题返回消息：{turn_title_return}")
     else:
@@ -7453,8 +3959,8 @@ def button_function_change_live_room_news(props, prop):
     if GlobalVariableOfTheControl.liveRoom_news_textBox_string != liveRoom_news_textBox_string:
         GlobalVariableOfTheControl.liveRoom_news_textBox_string = liveRoom_news_textBox_string
         logSave(0, "直播间公告已改变")
-        BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
-        cookies = BULC.getCookies()
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
+        cookies = b_u_l_c.get_cookies()
         turn_news_return = BilibiliApiCsrfAuthentication(dict2cookie(cookies)).updateRoomNews(liveRoom_news_textBox_string)
         logSave(0, f'更改直播间公告返回消息：{turn_news_return}')
     else:
@@ -7511,8 +4017,8 @@ def button_function_start_area():
     if subLiveArea_comboBox_value != GlobalVariableOfTheControl.subLiveArea_comboBox_value:
         logSave(0, f"子分区有变化{subLiveArea_comboBox_value}")
         # 获取默认账户
-        BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
-        cookies = BULC.getCookies()
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
+        cookies = b_u_l_c.get_cookies()
         # 获取二级分区id
         area2_id = obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'subLiveArea_comboBox')
         ChangeRoomArea = BilibiliApiCsrfAuthentication(dict2cookie(cookies)).AnchorChangeRoomArea(int(area2_id))
@@ -7550,8 +4056,8 @@ def button_function_start_live(props, prop):
     """
     logSave(0, 'start_live')
     # 获取默认账户
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
-    cookies = BULC.getCookies()
+    b_u_l_c = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
+    cookies = b_u_l_c.get_cookies()
     # 开播
     if cookies:
         # 获取二级分区id
@@ -7645,8 +4151,8 @@ def button_function_rtmp_address_copy(props, prop):
     Returns:
     """
     # 获取默认账户
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
-    cookies = BULC.getCookies()
+    b_u_l_c = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
+    cookies = b_u_l_c.get_cookies()
     StreamAddr = BilibiliApiCsrfAuthentication(dict2cookie(cookies)).FetchWebUpStreamAddr()
     cb.copy(StreamAddr['data']['addr']['addr'])
     logSave(0, f"已将 直播服务器 复制到剪贴板：【{StreamAddr['data']['addr']['addr']}】")
@@ -7662,8 +4168,8 @@ def button_function_rtmp_stream_code_copy(props, prop):
     Returns:
     """
     # 获取默认账户
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
-    cookies = BULC.getCookies()
+    b_u_l_c = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
+    cookies = b_u_l_c.get_cookies()
     StreamAddr = BilibiliApiCsrfAuthentication(dict2cookie(cookies)).FetchWebUpStreamAddr()
     cb.copy(StreamAddr['data']['addr']['code'])
     logSave(0, f"已将 直播推流码 复制到剪贴板：【{StreamAddr['data']['addr']['code']}】")
@@ -7679,8 +4185,8 @@ def button_function_rtmp_stream_code_update(props, prop):
     Returns:
     """
     # 获取默认账户
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
-    cookies = BULC.getCookies()
+    b_u_l_c = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
+    cookies = b_u_l_c.get_cookies()
     StreamAddr = BilibiliApiCsrfAuthentication(dict2cookie(cookies)).FetchWebUpStreamAddr(True)
     cb.copy(StreamAddr['data']['addr']['code'])
     logSave(0, f"已更新推流码 并将 直播推流码 复制到剪贴板：【{StreamAddr['data']['addr']['code']}】")
@@ -7698,8 +4204,8 @@ def button_function_stop_live(props, prop, settings=GlobalVariableOfTheControl.s
     """
     logSave(0, 'stop_live')
     # 获取默认账户
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
-    cookies = BULC.getCookies()
+    b_u_l_c = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
+    cookies = b_u_l_c.get_cookies()
     # 停播
     if cookies:
         stopLive = BilibiliApiCsrfAuthentication(dict2cookie(cookies)).stopLive()
@@ -7709,16 +4215,16 @@ def button_function_stop_live(props, prop, settings=GlobalVariableOfTheControl.s
 
     # 默认值-=-=-=-==-=-=-=-=-=-=-==-=-=-=-=-=-=-==-=-=-=-=-=-=-==-=-=-=-=-=-=-==-=-=-=-=-=-=-==-=-=-=-=-=-=-==-=-=-=-=-=-=-==-=-=-=
     # 创建用户配置文件实例
-    BULC = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
+    b_u_l_c = BilibiliUserLogsIn2ConfigFile(configPath=GlobalVariableOfData.scripts_config_filepath)
     # 获取'默认账户'获取用户对应的直播间 状态
-    RoomInfoOld = BilibiliApiGeneric().get_room_info_old(int(BULC.getUsers()[0])) if BULC.getCookies() else {}
-    logSave(0, f"根据是否有账号登录：{bool(BULC.getCookies())} 获取 登录账户 对应的直播间 状态：数据长度为{len(RoomInfoOld)}")
+    RoomInfoOld = BilibiliApiGeneric().get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else {}
+    logSave(0, f"根据是否有账号登录：{bool(b_u_l_c.get_cookies())} 获取 登录账户 对应的直播间 状态：数据长度为{len(RoomInfoOld)}")
     # 获取 默认用户 的 直播间 状态
-    DefaultRoomStatus = RoomInfoOld["roomStatus"] if BULC.getCookies() else None
+    DefaultRoomStatus = RoomInfoOld["roomStatus"] if b_u_l_c.get_cookies() else None
     """
     登录的用户的直播间存在状态
     """
-    logSave(0, f"根据是否有账号登录：{bool(BULC.getCookies())} 获取 登录账户 是否有直播间：{DefaultRoomStatus}")
+    logSave(0, f"根据是否有账号登录：{bool(b_u_l_c.get_cookies())} 获取 登录账户 是否有直播间：{DefaultRoomStatus}")
     # 获取默认用户的 直播状态
     DefaultLiveStatus = RoomInfoOld["liveStatus"] if bool(DefaultRoomStatus) else None
     """
@@ -7833,24 +4339,24 @@ def script_unload():
     在脚本被卸载时调用。
     """
     # """注销事件回调"""
-    logSave(0, "╭─────────────╮")
-    logSave(0, "│停止监视obs事件│")
-    logSave(0, "╰─────────────╯")
+    logSave(0, "╭—————————————————╮")
+    logSave(0, "│　 停止监视obs事件  │")
+    logSave(0, "╰—————————————————╯")
     obs.obs_frontend_remove_event_callback(on_event)
-    logSave(0, "╔════════════════════╗")
-    logSave(0, "║已卸载: bilibili-live║")
-    logSave(0, "╚════════════════════╝")
+    logSave(0, "╔════════════════════════╗")
+    logSave(0, "║  已卸载: bilibili-live  ║")
+    logSave(0, "╚════════════════════════╝")
     with open(Path(GlobalVariableOfData.scripts_data_dirpath) / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.log", "w", encoding="utf-8") as f:
         f.write(str(GlobalVariableOfData.logRecording))
 
 
 def test(t=""):
-    if GlobalVariableOfTheControl.isScript_propertiesOne:
-        logSave(0, f"┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓")
-        logSave(0, f"┃UI变动事件测试函数被调用,但是 是由于 第一次调用Script_properties┃{t}")
-        logSave(0, f"┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛")
+    if GlobalVariableOfTheControl.isScript_propertiesNum == 1:
+        logSave(0, f"┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓")
+        logSave(0, f"┃　UI变动事件测试函数被调用（Script_properties）┃{t}")
+        logSave(0, f"┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛")
         return False
-    logSave(0, f"┏━━━━━━━━━━━━━━━━━━━━┓")
-    logSave(0, f"┃UI变动事件测试函数被调用┃{t}")
-    logSave(0, f"┗━━━━━━━━━━━━━━━━━━━━┛")
+    logSave(0, f"┏━━━━━━━━━━━━━━━━━━━━━━━┓")
+    logSave(0, f"┃　UI变动事件测试函数被调用  ┃{t}")
+    logSave(0, f"┗━━━━━━━━━━━━━━━━━━━━━━━┛")
     return True

@@ -1,9 +1,9 @@
 <div style="display: flex; justify-content: center;">
 <div align="center">
 
-| [![OBS](https://obsproject.com/assets/images/new_icon_small-r.png)](https://obsproject.com/) | <h1 align="center">OBSscripts<br>bilibili-live<br>【Anchor】</h1> | [![Python](https://www.python.org/static/img/python-logo-large.c36dccadd999.png)](https://www.python.org/) |
-|:--------------------------------------------------------------------------------------------:|:---------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------:|
-|                                                                                              |      <div align="center">[![img.png](doc/img/img.png)](https://live.bilibili.com/)</div>      |                                                                                                            |
+| [![OBS](https://obsproject.com/assets/images/new_icon_small-r.png)](https://obsproject.com/) |           <h1 align="center">OBSscripts<br>bilibili-live<br>【Anchor】</h1>           | [![Python](https://www.python.org/static/img/python-logo-large.c36dccadd999.png)](https://www.python.org/) |
+|:--------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------:|
+|                                                                                              | <div align="center">[![img.png](doc/img/img.png)](https://live.bilibili.com/)</div> |                                                                                                            |
 
 </div>
 </div>
