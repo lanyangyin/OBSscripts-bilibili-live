@@ -4118,9 +4118,7 @@ def button_function_qr_add_account(props, prop):
     Returns:
     """
     if GlobalVariableOfData.loginQRCodePillowImg:
-        log_save(0, f"有可展示的登录二维码图片，展示登录二维码图片")
-        GlobalVariableOfData.loginQRCodePillowImg.show()
-        return True
+        button_function_show_qr_picture(props, prop)
     # 申请登录二维码
     url8qrkey = BilibiliApiGeneric().generate()
     # 获取二维码url
