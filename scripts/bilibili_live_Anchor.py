@@ -4607,6 +4607,8 @@ def button_function_start_live(props, prop):
     button_function_change_live_room_title(props, prop)
     # 执行更改直播间公告
     button_function_change_live_room_news(props, prop)
+    # 执行更改直播间分区
+    button_function_start_sub_area()
     # 获取默认账户
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
     # 获取二级分区id
