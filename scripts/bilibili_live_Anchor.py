@@ -2711,10 +2711,10 @@ def script_defaults(settings):  # 设置其默认值
     log_save(0, f"║║║设置 按钮【二维码添加账户】 可用状态：{str(GlobalVariableOfTheControl.qr_add_account_button_enabled)}")
 
     # 设置 按钮【显示二维码图片】 可见状态
-    GlobalVariableOfTheControl.display_qr_picture_button_visible = True
+    GlobalVariableOfTheControl.display_qr_picture_button_visible = False
     log_save(0, f"║║║设置 按钮【显示二维码图片】 可见状态：{str(GlobalVariableOfTheControl.display_qr_picture_button_visible)}")
     # 设置 按钮【显示二维码图片】 可用状态
-    GlobalVariableOfTheControl.display_qr_picture_button_enabled = True
+    GlobalVariableOfTheControl.display_qr_picture_button_enabled = False
     log_save(0, f"║║║设置 按钮【显示二维码图片】 可用状态：{str(GlobalVariableOfTheControl.display_qr_picture_button_enabled)}")
 
     # 设置 按钮【删除账户】 可见状态
@@ -4117,6 +4117,10 @@ def button_function_qr_add_account(props, prop):
         prop:
     Returns:
     """
+    if GlobalVariableOfData.loginQRCodePillowImg:
+        log_save(0, f"有可展示的登录二维码图片，展示登录二维码图片")
+        GlobalVariableOfData.loginQRCodePillowImg.show()
+        return True
     # 申请登录二维码
     url8qrkey = BilibiliApiGeneric().generate()
     # 获取二维码url
@@ -4185,11 +4189,12 @@ def button_function_show_qr_picture(props, prop):
     Returns:
     """
     if GlobalVariableOfData.loginQRCodePillowImg:
-        log_save(0, f"展示登录二维码图片")
+        log_save(0, f"有可展示的登录二维码图片，展示登录二维码图片")
         GlobalVariableOfData.loginQRCodePillowImg.show()
+        return True
     else:
         log_save(2, f"没有可展示的登录二维码图片，请点击按钮 【二维码添加账号】创建")
-    pass
+        return False
 
 
 def button_function_del_user(props, prop):
