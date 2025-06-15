@@ -282,6 +282,19 @@ class GlobalVariableOfTheControl:
     room_cover_update_button_visible = False
     room_cover_update_button_enabled = False
 
+    # ##可编辑组合框【常用标题】的实例
+    common_liveRoom_title_comboBox = None
+    common_liveRoom_title_comboBox_visible = False
+    common_liveRoom_title_comboBox_enabled = False
+    common_liveRoom_title_comboBox_string = ""
+    common_liveRoom_title_comboBox_value = ""
+    common_liveRoom_title_comboBox_dict = {}
+
+    # ##按钮【确认标题】的实例
+    common_liveRoom_title_true_button = None
+    common_liveRoom_title_true_button_visible = False
+    common_liveRoom_title_true_button_enabled = False
+
     # ##普通文本框【直播间标题】的实例
     liveRoom_title_textBox = None
     liveRoom_title_textBox_visible = False
@@ -304,31 +317,44 @@ class GlobalVariableOfTheControl:
     change_liveRoom_news_button_visible = False  # ###按钮【更改直播间公告】的实例的【可见】
     change_liveRoom_news_button_enabled = False  # ###按钮【更改直播间公告】的实例的【可用】
 
+    # ##可编辑组合框【常用分区】的实例
+    common_LiveArea_comboBox = None
+    common_LiveArea_comboBox_visible = False
+    common_LiveArea_comboBox_enabled = False
+    common_LiveArea_comboBox_string = ""
+    common_LiveArea_comboBox_value = ""
+    common_LiveArea_comboBox_dict = {}
+
+    # ##按钮【确认分区】的实例
+    common_LiveArea_true_button = None
+    common_LiveArea_true_button_visible = False
+    common_LiveArea_true_button_enabled = False
+
     # ##组合框【一级分区】的实例
-    parentLiveArea_comboBox = None
-    parentLiveArea_comboBox_visible = False
-    parentLiveArea_comboBox_enabled = False
-    parentLiveArea_comboBox_string = ""
-    parentLiveArea_comboBox_value = ""
-    parentLiveArea_comboBox_dict = {}
+    liveRoom_parentArea_comboBox = None
+    liveRoom_parentArea_comboBox_visible = False
+    liveRoom_parentArea_comboBox_enabled = False
+    liveRoom_parentArea_comboBox_string = ""
+    liveRoom_parentArea_comboBox_value = ""
+    liveRoom_parentArea_comboBox_dict = {}
 
     # ##按钮【确认一级分区】的实例
-    parentLiveArea_true_button = None
-    parentLiveArea_true_button_visible = False
-    parentLiveArea_true_button_enabled = False
+    liveRoom_parentArea_true_button = None
+    liveRoom_parentArea_true_button_visible = False
+    liveRoom_parentArea_true_button_enabled = False
 
     # ##组合框【二级分区】的实例
-    subLiveArea_comboBox = None
-    subLiveArea_comboBox_visible = False
-    subLiveArea_comboBox_enabled = False
-    subLiveArea_comboBox_string = ""
-    subLiveArea_comboBox_value = ""
-    subLiveArea_comboBox_dict = {}
+    liveRoom_subArea_comboBox = None
+    liveRoom_subArea_comboBox_visible = False
+    liveRoom_subArea_comboBox_enabled = False
+    liveRoom_subArea_comboBox_string = ""
+    liveRoom_subArea_comboBox_value = ""
+    liveRoom_subArea_comboBox_dict = {}
 
     # ##按钮【「确认分区」】的实例
-    subLiveArea_true_button = None
-    subLiveArea_true_button_visible = False
-    subLiveArea_true_button_enabled = False
+    liveRoom_subArea_true_button = None
+    liveRoom_subArea_true_button_visible = False
+    liveRoom_subArea_true_button_enabled = False
 
     # ##普通文本框【直播间标签】的实例
     liveRoom_Tags_textBox = None
@@ -2830,50 +2856,50 @@ def script_defaults(settings):  # 设置其默认值
     log_save(0, f"║║║设置 按钮【更改直播间公告】 可用状态：{str(GlobalVariableOfTheControl.change_liveRoom_news_button_enabled)}")
 
     # 设置 组合框【一级分区】 可见状态
-    GlobalVariableOfTheControl.parentLiveArea_comboBox_visible = bool(default_room_status)
-    log_save(0, f"║║║设置 组合框【一级分区】 可见状态：{str(GlobalVariableOfTheControl.parentLiveArea_comboBox_visible)}")
+    GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_visible = bool(default_room_status)
+    log_save(0, f"║║║设置 组合框【一级分区】 可见状态：{str(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_visible)}")
     # 设置 组合框【一级分区】 可用状态
-    GlobalVariableOfTheControl.parentLiveArea_comboBox_enabled = bool(default_room_status)
-    log_save(0, f"║║║设置 组合框【一级分区】 可用状态：{str(GlobalVariableOfTheControl.parentLiveArea_comboBox_enabled)}")
+    GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_enabled = bool(default_room_status)
+    log_save(0, f"║║║设置 组合框【一级分区】 可用状态：{str(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_enabled)}")
     # 设置 组合框【一级分区】 的数据字典
-    GlobalVariableOfTheControl.parentLiveArea_comboBox_dict = parent_live_area_name4parent_live_area_id
-    log_save(0, f"║║║设置 组合框【一级分区】 数据字典：{str(GlobalVariableOfTheControl.parentLiveArea_comboBox_dict)}")
+    GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_dict = parent_live_area_name4parent_live_area_id
+    log_save(0, f"║║║设置 组合框【一级分区】 数据字典：{str(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_dict)}")
     # 设置 组合框【一级分区】 默认显示内容
-    GlobalVariableOfTheControl.parentLiveArea_comboBox_string = str(default_area["name"]) if bool(default_area) else "请选择一级分区"
-    log_save(0, f"║║║设置 组合框【一级分区】 默认显示内容：{str(GlobalVariableOfTheControl.parentLiveArea_comboBox_string)}")
+    GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_string = str(default_area["name"]) if bool(default_area) else "请选择一级分区"
+    log_save(0, f"║║║设置 组合框【一级分区】 默认显示内容：{str(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_string)}")
     # 设置 组合框【一级分区】 默认显示内容 的 列表值
-    GlobalVariableOfTheControl.parentLiveArea_comboBox_value = str(default_area["id"]) if bool(default_area) else "-1"
-    log_save(0, f"║║║设置 组合框【一级分区】 默认显示内容 的 列表值：{str(GlobalVariableOfTheControl.parentLiveArea_comboBox_value)}")
+    GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_value = str(default_area["id"]) if bool(default_area) else "-1"
+    log_save(0, f"║║║设置 组合框【一级分区】 默认显示内容 的 列表值：{str(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_value)}")
 
     # 设置 按钮【确认一级分区】 可见状态
-    GlobalVariableOfTheControl.parentLiveArea_true_button_visible = False  # bool(default_room_status)
-    log_save(0, f"║║║设置 按钮【确认一级分区】 可见状态：{str(GlobalVariableOfTheControl.parentLiveArea_true_button_visible)}")
+    GlobalVariableOfTheControl.liveRoom_parentArea_true_button_visible = False  # bool(default_room_status)
+    log_save(0, f"║║║设置 按钮【确认一级分区】 可见状态：{str(GlobalVariableOfTheControl.liveRoom_parentArea_true_button_visible)}")
     # 设置 按钮【确认一级分区】 可用状态
-    GlobalVariableOfTheControl.parentLiveArea_true_button_enabled = False  # bool(default_room_status)
-    log_save(0, f"║║║设置 按钮【确认一级分区】 可用状态：{str(GlobalVariableOfTheControl.parentLiveArea_true_button_enabled)}")
+    GlobalVariableOfTheControl.liveRoom_parentArea_true_button_enabled = False  # bool(default_room_status)
+    log_save(0, f"║║║设置 按钮【确认一级分区】 可用状态：{str(GlobalVariableOfTheControl.liveRoom_parentArea_true_button_enabled)}")
 
     # 设置 组合框【二级分区】 可见状态
-    GlobalVariableOfTheControl.subLiveArea_comboBox_visible = bool(default_room_status)
-    log_save(0, f"║║║设置 组合框【二级分区】 可见状态：{str(GlobalVariableOfTheControl.subLiveArea_comboBox_visible)}")
+    GlobalVariableOfTheControl.liveRoom_subArea_comboBox_visible = bool(default_room_status)
+    log_save(0, f"║║║设置 组合框【二级分区】 可见状态：{str(GlobalVariableOfTheControl.liveRoom_subArea_comboBox_visible)}")
     # 设置 组合框【二级分区】 可用状态
-    GlobalVariableOfTheControl.subLiveArea_comboBox_enabled = bool(default_room_status)
-    log_save(0, f"║║║设置 组合框【二级分区】 可用状态：{str(GlobalVariableOfTheControl.subLiveArea_comboBox_enabled)}")
+    GlobalVariableOfTheControl.liveRoom_subArea_comboBox_enabled = bool(default_room_status)
+    log_save(0, f"║║║设置 组合框【二级分区】 可用状态：{str(GlobalVariableOfTheControl.liveRoom_subArea_comboBox_enabled)}")
     # 设置 组合框【二级分区】 数据字典
-    GlobalVariableOfTheControl.subLiveArea_comboBox_dict = sub_live_area_name4sub_live_area_id
-    log_save(0, f"║║║设置 组合框【二级分区】 数据字典：{str(GlobalVariableOfTheControl.subLiveArea_comboBox_dict)}")
+    GlobalVariableOfTheControl.liveRoom_subArea_comboBox_dict = sub_live_area_name4sub_live_area_id
+    log_save(0, f"║║║设置 组合框【二级分区】 数据字典：{str(GlobalVariableOfTheControl.liveRoom_subArea_comboBox_dict)}")
     # 设置 组合框【二级分区】 默认显示内容
-    GlobalVariableOfTheControl.subLiveArea_comboBox_string = str(default_area["data"]["name"]) if bool(default_area) else "请确认一级分区"
-    log_save(0, f"║║║设置 组合框【二级分区】 默认显示内容：{str(GlobalVariableOfTheControl.subLiveArea_comboBox_string)}")
+    GlobalVariableOfTheControl.liveRoom_subArea_comboBox_string = str(default_area["data"]["name"]) if bool(default_area) else "请确认一级分区"
+    log_save(0, f"║║║设置 组合框【二级分区】 默认显示内容：{str(GlobalVariableOfTheControl.liveRoom_subArea_comboBox_string)}")
     # 设置 组合框【二级分区】 默认显示内容 的 列表值
-    GlobalVariableOfTheControl.subLiveArea_comboBox_value = str(default_area["data"]["id"]) if bool(default_area) else "-1"
-    log_save(0, f"║║║设置 组合框【二级分区】 默认显示内容 的 列表值：{str(GlobalVariableOfTheControl.subLiveArea_comboBox_value)}")
+    GlobalVariableOfTheControl.liveRoom_subArea_comboBox_value = str(default_area["data"]["id"]) if bool(default_area) else "-1"
+    log_save(0, f"║║║设置 组合框【二级分区】 默认显示内容 的 列表值：{str(GlobalVariableOfTheControl.liveRoom_subArea_comboBox_value)}")
 
     # 设置 按钮【「确认分区」】 可见状态
-    GlobalVariableOfTheControl.subLiveArea_true_button_visible = bool(default_room_status)
-    log_save(0, f"║║║设置 按钮【确认分区】 可见状态：{str(bool(GlobalVariableOfTheControl.subLiveArea_true_button_visible))}")
+    GlobalVariableOfTheControl.liveRoom_subArea_true_button_visible = bool(default_room_status)
+    log_save(0, f"║║║设置 按钮【确认分区】 可见状态：{str(bool(GlobalVariableOfTheControl.liveRoom_subArea_true_button_visible))}")
     # 设置 按钮【「确认分区」】 可用状态
-    GlobalVariableOfTheControl.subLiveArea_true_button_enabled = bool(default_room_status)
-    log_save(0, f"║║║设置 按钮【确认分区】 可见状态：{str(bool(GlobalVariableOfTheControl.subLiveArea_true_button_enabled))}")
+    GlobalVariableOfTheControl.liveRoom_subArea_true_button_enabled = bool(default_room_status)
+    log_save(0, f"║║║设置 按钮【确认分区】 可见状态：{str(bool(GlobalVariableOfTheControl.liveRoom_subArea_true_button_enabled))}")
 
     # 设置 url按钮【跳转直播间后台网页】 可见状态
     GlobalVariableOfTheControl.jump_blive_web_button_visible = True
@@ -3113,22 +3139,22 @@ def script_properties():  # 建立控件
     GlobalVariableOfTheControl.change_liveRoom_news_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, "change_liveRoom_news_button", "更改直播间公告", button_function_change_live_room_news)
 
     # 添加 组合框【一级分区】
-    GlobalVariableOfTheControl.parentLiveArea_comboBox = obs.obs_properties_add_list(GlobalVariableOfTheControl.liveRoom_props, 'parentLiveArea_comboBox', '一级分区：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING)
+    GlobalVariableOfTheControl.liveRoom_parentArea_comboBox = obs.obs_properties_add_list(GlobalVariableOfTheControl.liveRoom_props, 'liveRoom_parentArea_comboBox', '一级分区：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING)
     # 添加 组合框【一级分区】变动后事件
-    obs.obs_property_set_modified_callback(GlobalVariableOfTheControl.parentLiveArea_comboBox, lambda ps, p, st: property_modified(
+    obs.obs_property_set_modified_callback(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox, lambda ps, p, st: property_modified(
         "组合框【一级分区】"))
 
     # 添加 按钮【确认一级分区】
-    GlobalVariableOfTheControl.parentLiveArea_true_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, "parentLiveArea_true_button", "确认一级分区", lambda ps, p: button_function_start_parent_area())
+    GlobalVariableOfTheControl.liveRoom_parentArea_true_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, "liveRoom_parentArea_true_button", "确认一级分区", lambda ps, p: button_function_start_parent_area())
 
     # 添加 组合框【二级分区】
-    GlobalVariableOfTheControl.subLiveArea_comboBox = obs.obs_properties_add_list(GlobalVariableOfTheControl.liveRoom_props, 'subLiveArea_comboBox', '二级分区：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING)
+    GlobalVariableOfTheControl.liveRoom_subArea_comboBox = obs.obs_properties_add_list(GlobalVariableOfTheControl.liveRoom_props, 'liveRoom_subArea_comboBox', '二级分区：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING)
     # 添加 组合框【二级分区】变动后事件
-    obs.obs_property_set_modified_callback(GlobalVariableOfTheControl.subLiveArea_comboBox, lambda ps, p, st: property_modified(
+    obs.obs_property_set_modified_callback(GlobalVariableOfTheControl.liveRoom_subArea_comboBox, lambda ps, p, st: property_modified(
         "组合框【二级分区】"))
 
     # 添加 按钮【「确认分区」】
-    GlobalVariableOfTheControl.subLiveArea_true_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, "subLiveArea_true_button", "「确认分区」", lambda ps, p: button_function_start_sub_area())
+    GlobalVariableOfTheControl.liveRoom_subArea_true_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, "liveRoom_subArea_true_button", "「确认分区」", lambda ps, p: button_function_start_sub_area())
 
     # 添加 url按钮【跳转直播间后台网页】
     GlobalVariableOfTheControl.jump_blive_web_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.liveRoom_props, 'jump_blive_web_button', f'跳转直播间后台网页', button_function_jump_blive_web)
@@ -3527,88 +3553,88 @@ def update_ui_interface_data(is_script_properties=False):
     log_save(0, f"　│┌─────────────────────────────────────────────────────────")
     log_save(0, f"　││组合框【一级分区】 UI")
     # 设置 组合框【一级分区】 可见状态
-    if obs.obs_property_visible(GlobalVariableOfTheControl.parentLiveArea_comboBox) != GlobalVariableOfTheControl.parentLiveArea_comboBox_visible:
+    if obs.obs_property_visible(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox) != GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_visible:
         log_save(0,
-                 f"　││组合框【一级分区】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.parentLiveArea_comboBox)}➡️{GlobalVariableOfTheControl.parentLiveArea_comboBox_visible}")
-        obs.obs_property_set_visible(GlobalVariableOfTheControl.parentLiveArea_comboBox, GlobalVariableOfTheControl.parentLiveArea_comboBox_visible)
+                 f"　││组合框【一级分区】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox)}➡️{GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_visible}")
+        obs.obs_property_set_visible(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox, GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_visible)
     # 设置 组合框【一级分区】 可用状态
-    if obs.obs_property_enabled(GlobalVariableOfTheControl.parentLiveArea_comboBox) != GlobalVariableOfTheControl.parentLiveArea_comboBox_enabled:
+    if obs.obs_property_enabled(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox) != GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_enabled:
         log_save(0,
-                 f"　││组合框【一级分区】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.parentLiveArea_comboBox)}➡️{GlobalVariableOfTheControl.parentLiveArea_comboBox_enabled}")
-        obs.obs_property_set_enabled(GlobalVariableOfTheControl.parentLiveArea_comboBox, GlobalVariableOfTheControl.parentLiveArea_comboBox_enabled)
+                 f"　││组合框【一级分区】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox)}➡️{GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_enabled}")
+        obs.obs_property_set_enabled(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox, GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_enabled)
     # 判断 组合框【一级分区】字典数据 和 当前数据是否有变化
-    if GlobalVariableOfTheControl.parentLiveArea_comboBox_dict != {obs.obs_property_list_item_string(GlobalVariableOfTheControl.parentLiveArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.parentLiveArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.parentLiveArea_comboBox))}:
+    if GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_dict != {obs.obs_property_list_item_string(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox))}:
         log_save(0,
-                 f"　││组合框【一级分区】数据发生变动：{len({obs.obs_property_list_item_string(GlobalVariableOfTheControl.parentLiveArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.parentLiveArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.parentLiveArea_comboBox))})}个元素➡️{len(GlobalVariableOfTheControl.parentLiveArea_comboBox_dict)}个元素")
+                 f"　││组合框【一级分区】数据发生变动：{len({obs.obs_property_list_item_string(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox))})}个元素➡️{len(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_dict)}个元素")
         # 清空 组合框【一级分区】
         log_save(0, f"　││更新 组合框【一级分区】数据 第一步：清空 组合框【一级分区】")
-        obs.obs_property_list_clear(GlobalVariableOfTheControl.parentLiveArea_comboBox)
+        obs.obs_property_list_clear(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox)
         # 添加 组合框【一级分区】 列表选项  默认值会被设置在第一位
         log_save(0, f"　││更新 组合框【一级分区】数据 第二步：添加 组合框【一级分区】 列表选项  如果有默认值，会被设置在第一位")
-        for parentLiveAreaId in GlobalVariableOfTheControl.parentLiveArea_comboBox_dict:
-            obs.obs_property_list_add_string(GlobalVariableOfTheControl.parentLiveArea_comboBox, GlobalVariableOfTheControl.parentLiveArea_comboBox_dict[parentLiveAreaId], parentLiveAreaId) if parentLiveAreaId != GlobalVariableOfTheControl.parentLiveArea_comboBox_value else obs.obs_property_list_insert_string(GlobalVariableOfTheControl.parentLiveArea_comboBox, 0, GlobalVariableOfTheControl.parentLiveArea_comboBox_string, GlobalVariableOfTheControl.parentLiveArea_comboBox_value)
+        for parentLiveAreaId in GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_dict:
+            obs.obs_property_list_add_string(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox, GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_dict[parentLiveAreaId], parentLiveAreaId) if parentLiveAreaId != GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_value else obs.obs_property_list_insert_string(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox, 0, GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_string, GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_value)
         # 设置 组合框【一级分区】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
         log_save(0, f"　││更新 组合框【一级分区】数据 第三步：更新 组合框【一级分区】 文本")
-        obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, 'parentLiveArea_comboBox', obs.obs_property_list_item_string(GlobalVariableOfTheControl.parentLiveArea_comboBox, 0))
+        obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, 'liveRoom_parentArea_comboBox', obs.obs_property_list_item_string(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox, 0))
     log_save(0, f"　│└─────────────────────────────────────────────────────────")
 
     # 按钮【确认一级分区】 UI
     log_save(0, f"　│┌─────────────────────────────────────────────────────────")
     log_save(0, f"　││按钮【确认一级分区】 UI")
     # 设置 按钮【确认一级分区】 可见状态
-    if obs.obs_property_visible(GlobalVariableOfTheControl.parentLiveArea_true_button) != GlobalVariableOfTheControl.parentLiveArea_true_button_visible:
+    if obs.obs_property_visible(GlobalVariableOfTheControl.liveRoom_parentArea_true_button) != GlobalVariableOfTheControl.liveRoom_parentArea_true_button_visible:
         log_save(0,
-                 f"　││按钮【确认一级分区】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.parentLiveArea_true_button)}➡️{GlobalVariableOfTheControl.parentLiveArea_true_button_visible}")
-        obs.obs_property_set_visible(GlobalVariableOfTheControl.parentLiveArea_true_button, GlobalVariableOfTheControl.parentLiveArea_true_button_visible)
+                 f"　││按钮【确认一级分区】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.liveRoom_parentArea_true_button)}➡️{GlobalVariableOfTheControl.liveRoom_parentArea_true_button_visible}")
+        obs.obs_property_set_visible(GlobalVariableOfTheControl.liveRoom_parentArea_true_button, GlobalVariableOfTheControl.liveRoom_parentArea_true_button_visible)
     # 设置 按钮【确认一级分区】 可用状态
-    if obs.obs_property_enabled(GlobalVariableOfTheControl.parentLiveArea_true_button) != GlobalVariableOfTheControl.parentLiveArea_true_button_enabled:
+    if obs.obs_property_enabled(GlobalVariableOfTheControl.liveRoom_parentArea_true_button) != GlobalVariableOfTheControl.liveRoom_parentArea_true_button_enabled:
         log_save(0,
-                 f"　││按钮【确认一级分区】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.parentLiveArea_true_button)}➡️{GlobalVariableOfTheControl.parentLiveArea_true_button_enabled}")
-        obs.obs_property_set_enabled(GlobalVariableOfTheControl.parentLiveArea_true_button, GlobalVariableOfTheControl.parentLiveArea_true_button_enabled)
+                 f"　││按钮【确认一级分区】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.liveRoom_parentArea_true_button)}➡️{GlobalVariableOfTheControl.liveRoom_parentArea_true_button_enabled}")
+        obs.obs_property_set_enabled(GlobalVariableOfTheControl.liveRoom_parentArea_true_button, GlobalVariableOfTheControl.liveRoom_parentArea_true_button_enabled)
     log_save(0, f"　│└─────────────────────────────────────────────────────────")
 
     # 组合框【二级分区】 UI
     log_save(0, f"　│┌─────────────────────────────────────────────────────────")
     log_save(0, f"　││组合框【二级分区】 UI")
     # 设置 组合框【二级分区】 可见状态
-    if obs.obs_property_visible(GlobalVariableOfTheControl.subLiveArea_comboBox) != GlobalVariableOfTheControl.subLiveArea_comboBox_visible:
+    if obs.obs_property_visible(GlobalVariableOfTheControl.liveRoom_subArea_comboBox) != GlobalVariableOfTheControl.liveRoom_subArea_comboBox_visible:
         log_save(0,
-                 f"　││组合框【二级分区】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.subLiveArea_comboBox)}➡️{GlobalVariableOfTheControl.subLiveArea_comboBox_visible}")
-        obs.obs_property_set_visible(GlobalVariableOfTheControl.subLiveArea_comboBox, GlobalVariableOfTheControl.subLiveArea_comboBox_visible)
+                 f"　││组合框【二级分区】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.liveRoom_subArea_comboBox)}➡️{GlobalVariableOfTheControl.liveRoom_subArea_comboBox_visible}")
+        obs.obs_property_set_visible(GlobalVariableOfTheControl.liveRoom_subArea_comboBox, GlobalVariableOfTheControl.liveRoom_subArea_comboBox_visible)
     # 设置 组合框【二级分区】 可用状态
-    if obs.obs_property_enabled(GlobalVariableOfTheControl.subLiveArea_comboBox) != GlobalVariableOfTheControl.subLiveArea_comboBox_enabled:
+    if obs.obs_property_enabled(GlobalVariableOfTheControl.liveRoom_subArea_comboBox) != GlobalVariableOfTheControl.liveRoom_subArea_comboBox_enabled:
         log_save(0,
-                 f"　││组合框【二级分区】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.subLiveArea_comboBox)}➡️{GlobalVariableOfTheControl.subLiveArea_comboBox_enabled}")
-        obs.obs_property_set_enabled(GlobalVariableOfTheControl.subLiveArea_comboBox, GlobalVariableOfTheControl.subLiveArea_comboBox_enabled)
+                 f"　││组合框【二级分区】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.liveRoom_subArea_comboBox)}➡️{GlobalVariableOfTheControl.liveRoom_subArea_comboBox_enabled}")
+        obs.obs_property_set_enabled(GlobalVariableOfTheControl.liveRoom_subArea_comboBox, GlobalVariableOfTheControl.liveRoom_subArea_comboBox_enabled)
     # 判断 组合框【二级分区】字典数据 和 当前数据是否有变化
-    if GlobalVariableOfTheControl.subLiveArea_comboBox_dict != {obs.obs_property_list_item_string(GlobalVariableOfTheControl.subLiveArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.subLiveArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.subLiveArea_comboBox))}:
+    if GlobalVariableOfTheControl.liveRoom_subArea_comboBox_dict != {obs.obs_property_list_item_string(GlobalVariableOfTheControl.liveRoom_subArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.liveRoom_subArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.liveRoom_subArea_comboBox))}:
         log_save(0,
-                 f"　││组合框【二级分区】数据发生变动：{len({obs.obs_property_list_item_string(GlobalVariableOfTheControl.subLiveArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.subLiveArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.subLiveArea_comboBox))})}个元素➡️{len(GlobalVariableOfTheControl.subLiveArea_comboBox_dict)}个元素")
+                 f"　││组合框【二级分区】数据发生变动：{len({obs.obs_property_list_item_string(GlobalVariableOfTheControl.liveRoom_subArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.liveRoom_subArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.liveRoom_subArea_comboBox))})}个元素➡️{len(GlobalVariableOfTheControl.liveRoom_subArea_comboBox_dict)}个元素")
         # 清空 组合框【二级分区】
         log_save(0, f"　││更新 组合框【二级分区】数据 第一步：清空 组合框【二级分区】")
-        obs.obs_property_list_clear(GlobalVariableOfTheControl.subLiveArea_comboBox)
+        obs.obs_property_list_clear(GlobalVariableOfTheControl.liveRoom_subArea_comboBox)
         # 添加 组合框【二级分区】 列表选项  默认值会被设置在第一位
         log_save(0, f"　││更新 组合框【二级分区】数据 第二步：添加 组合框【二级分区】 列表选项  如果有默认值，会被设置在第一位")
-        for subLiveAreaId in GlobalVariableOfTheControl.subLiveArea_comboBox_dict:
-            obs.obs_property_list_add_string(GlobalVariableOfTheControl.subLiveArea_comboBox, GlobalVariableOfTheControl.subLiveArea_comboBox_dict[subLiveAreaId], subLiveAreaId) if subLiveAreaId != GlobalVariableOfTheControl.subLiveArea_comboBox_value else obs.obs_property_list_insert_string(GlobalVariableOfTheControl.subLiveArea_comboBox, 0, GlobalVariableOfTheControl.subLiveArea_comboBox_string, GlobalVariableOfTheControl.subLiveArea_comboBox_value)
+        for subLiveAreaId in GlobalVariableOfTheControl.liveRoom_subArea_comboBox_dict:
+            obs.obs_property_list_add_string(GlobalVariableOfTheControl.liveRoom_subArea_comboBox, GlobalVariableOfTheControl.liveRoom_subArea_comboBox_dict[subLiveAreaId], subLiveAreaId) if subLiveAreaId != GlobalVariableOfTheControl.liveRoom_subArea_comboBox_value else obs.obs_property_list_insert_string(GlobalVariableOfTheControl.liveRoom_subArea_comboBox, 0, GlobalVariableOfTheControl.liveRoom_subArea_comboBox_string, GlobalVariableOfTheControl.liveRoom_subArea_comboBox_value)
         # 设置 组合框【二级分区】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
         log_save(0, f"　││更新 组合框【二级分区】数据 第三步：更新 组合框【二级分区】 文本")
-        obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, 'subLiveArea_comboBox', obs.obs_property_list_item_string(GlobalVariableOfTheControl.subLiveArea_comboBox, 0))
+        obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, 'liveRoom_subArea_comboBox', obs.obs_property_list_item_string(GlobalVariableOfTheControl.liveRoom_subArea_comboBox, 0))
     log_save(0, f"　│└─────────────────────────────────────────────────────────")
 
     # 按钮【「确认分区」】 UI
     log_save(0, f"　│┌─────────────────────────────────────────────────────────")
     log_save(0, f"　││按钮【「确认分区」】 UI")
     # 设置 按钮【「确认分区」】 可见状态
-    if obs.obs_property_visible(GlobalVariableOfTheControl.subLiveArea_true_button) != GlobalVariableOfTheControl.subLiveArea_true_button_visible:
+    if obs.obs_property_visible(GlobalVariableOfTheControl.liveRoom_subArea_true_button) != GlobalVariableOfTheControl.liveRoom_subArea_true_button_visible:
         log_save(0,
-                 f"　││按钮【「确认分区」】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.subLiveArea_true_button)}➡️{GlobalVariableOfTheControl.subLiveArea_true_button_visible}")
-        obs.obs_property_set_visible(GlobalVariableOfTheControl.subLiveArea_true_button, GlobalVariableOfTheControl.subLiveArea_true_button_visible)
+                 f"　││按钮【「确认分区」】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.liveRoom_subArea_true_button)}➡️{GlobalVariableOfTheControl.liveRoom_subArea_true_button_visible}")
+        obs.obs_property_set_visible(GlobalVariableOfTheControl.liveRoom_subArea_true_button, GlobalVariableOfTheControl.liveRoom_subArea_true_button_visible)
     # 设置 按钮【「确认分区」】 可用状态
-    if obs.obs_property_enabled(GlobalVariableOfTheControl.subLiveArea_true_button) != GlobalVariableOfTheControl.subLiveArea_true_button_enabled:
+    if obs.obs_property_enabled(GlobalVariableOfTheControl.liveRoom_subArea_true_button) != GlobalVariableOfTheControl.liveRoom_subArea_true_button_enabled:
         log_save(0,
-                 f"　││按钮【「确认分区」】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.subLiveArea_true_button)}➡️{GlobalVariableOfTheControl.subLiveArea_true_button_enabled}")
-        obs.obs_property_set_enabled(GlobalVariableOfTheControl.subLiveArea_true_button, GlobalVariableOfTheControl.subLiveArea_true_button_enabled)
+                 f"　││按钮【「确认分区」】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.liveRoom_subArea_true_button)}➡️{GlobalVariableOfTheControl.liveRoom_subArea_true_button_enabled}")
+        obs.obs_property_set_enabled(GlobalVariableOfTheControl.liveRoom_subArea_true_button, GlobalVariableOfTheControl.liveRoom_subArea_true_button_enabled)
     log_save(0, f"　│└─────────────────────────────────────────────────────────")
 
     # url按钮【跳转直播间后台网页】 UI
@@ -4475,45 +4501,45 @@ def button_function_start_parent_area():
     确认一级分区
     """
     # #获取 组合框【一级分区】 当前选项的值
-    parent_live_area_combobox_value = obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'parentLiveArea_comboBox')
+    parent_live_area_combobox_value = obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'liveRoom_parentArea_comboBox')
     log_save(0, f"获取 组合框【一级分区】 当前选项的值{parent_live_area_combobox_value}")
     if parent_live_area_combobox_value in ["-1"]:
         log_save(2, "请选择一级分区")
         return False
-    sub_live_area_name4sub_live_area_id_old = GlobalVariableOfTheControl.subLiveArea_comboBox_dict
+    sub_live_area_name4sub_live_area_id_old = GlobalVariableOfTheControl.liveRoom_subArea_comboBox_dict
     # 获取B站直播分区信息
     area_obj_list = BilibiliApiGeneric().get_area_obj_list()
     # 设置 组合框【二级分区】 数据字典
     sub_live_area_name4sub_live_area_id = {str(subAreaObj["id"]): subAreaObj["name"] for subAreaObj in [AreaObj["list"] for AreaObj in area_obj_list["data"] if str(parent_live_area_combobox_value) == str(AreaObj["id"])][0]}
     log_save(0,  f"获取 当前父分区对应的子分区数据{sub_live_area_name4sub_live_area_id}")
-    GlobalVariableOfTheControl.subLiveArea_comboBox_dict = sub_live_area_name4sub_live_area_id
+    GlobalVariableOfTheControl.liveRoom_subArea_comboBox_dict = sub_live_area_name4sub_live_area_id
 
     # 组合框【二级分区】 UI
     log_save(0, f"　│┌─────────────────────────────────────────────────────────")
     log_save(0, f"　││组合框【二级分区】 UI")
     # 判断 组合框【二级分区】字典数据 和 当前数据是否有变化
-    if GlobalVariableOfTheControl.subLiveArea_comboBox_dict != {obs.obs_property_list_item_string(GlobalVariableOfTheControl.subLiveArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.subLiveArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.subLiveArea_comboBox))}:
-        log_save(0, f"　││组合框【二级分区】数据发生变动：{len({obs.obs_property_list_item_string(GlobalVariableOfTheControl.subLiveArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.subLiveArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.subLiveArea_comboBox))})}个元素➡️{len(GlobalVariableOfTheControl.subLiveArea_comboBox_dict)}个元素")
+    if GlobalVariableOfTheControl.liveRoom_subArea_comboBox_dict != {obs.obs_property_list_item_string(GlobalVariableOfTheControl.liveRoom_subArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.liveRoom_subArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.liveRoom_subArea_comboBox))}:
+        log_save(0, f"　││组合框【二级分区】数据发生变动：{len({obs.obs_property_list_item_string(GlobalVariableOfTheControl.liveRoom_subArea_comboBox, idx): obs.obs_property_list_item_name(GlobalVariableOfTheControl.liveRoom_subArea_comboBox, idx) for idx in range(obs.obs_property_list_item_count(GlobalVariableOfTheControl.liveRoom_subArea_comboBox))})}个元素➡️{len(GlobalVariableOfTheControl.liveRoom_subArea_comboBox_dict)}个元素")
         # 清空 组合框【二级分区】
         log_save(0, f"　││更新 组合框【二级分区】数据 第一步：清空 组合框【二级分区】")
-        obs.obs_property_list_clear(GlobalVariableOfTheControl.subLiveArea_comboBox)
+        obs.obs_property_list_clear(GlobalVariableOfTheControl.liveRoom_subArea_comboBox)
         # 添加 组合框【二级分区】 列表选项  默认值会被设置在第一位
         log_save(0, f"　││更新 组合框【二级分区】数据 第二步：添加 组合框【二级分区】 列表选项  如果有默认值，会被设置在第一位")
-        for subLiveAreaId in GlobalVariableOfTheControl.subLiveArea_comboBox_dict:
-            obs.obs_property_list_add_string(GlobalVariableOfTheControl.subLiveArea_comboBox, GlobalVariableOfTheControl.subLiveArea_comboBox_dict[subLiveAreaId], subLiveAreaId) if subLiveAreaId != GlobalVariableOfTheControl.subLiveArea_comboBox_value else obs.obs_property_list_insert_string(GlobalVariableOfTheControl.subLiveArea_comboBox, 0, GlobalVariableOfTheControl.subLiveArea_comboBox_string, GlobalVariableOfTheControl.subLiveArea_comboBox_value)
+        for subLiveAreaId in GlobalVariableOfTheControl.liveRoom_subArea_comboBox_dict:
+            obs.obs_property_list_add_string(GlobalVariableOfTheControl.liveRoom_subArea_comboBox, GlobalVariableOfTheControl.liveRoom_subArea_comboBox_dict[subLiveAreaId], subLiveAreaId) if subLiveAreaId != GlobalVariableOfTheControl.liveRoom_subArea_comboBox_value else obs.obs_property_list_insert_string(GlobalVariableOfTheControl.liveRoom_subArea_comboBox, 0, GlobalVariableOfTheControl.liveRoom_subArea_comboBox_string, GlobalVariableOfTheControl.liveRoom_subArea_comboBox_value)
         # 设置 组合框【二级分区】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
         log_save(0, f"　││更新 组合框【二级分区】数据 第三步：更新 组合框【二级分区】 文本")
-        obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, 'subLiveArea_comboBox', obs.obs_property_list_item_string(GlobalVariableOfTheControl.subLiveArea_comboBox, 0))
+        obs.obs_data_set_string(GlobalVariableOfTheControl.script_settings, 'liveRoom_subArea_comboBox', obs.obs_property_list_item_string(GlobalVariableOfTheControl.liveRoom_subArea_comboBox, 0))
     log_save(0, f"　│└─────────────────────────────────────────────────────────")
 
-    GlobalVariableOfTheControl.subLiveArea_comboBox_dict = sub_live_area_name4sub_live_area_id_old
+    GlobalVariableOfTheControl.liveRoom_subArea_comboBox_dict = sub_live_area_name4sub_live_area_id_old
     return True
 
 
 def button_function_start_sub_area():
     # #获取 组合框【二级分区】 当前选项的值
-    sub_live_area_combobox_value = obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'subLiveArea_comboBox')
-    if sub_live_area_combobox_value == GlobalVariableOfTheControl.subLiveArea_comboBox_value:
+    sub_live_area_combobox_value = obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'liveRoom_subArea_comboBox')
+    if sub_live_area_combobox_value == GlobalVariableOfTheControl.liveRoom_subArea_comboBox_value:
         log_save(0, "子分区没变化")
         return False
     # 获取默认账户
@@ -4563,20 +4589,20 @@ def button_function_start_sub_area():
     log_save(0, f"║║设置 分组框【直播间】 中 控件属性")
     log_save(0, f"║║╔{7*'═'}设置 分组框【直播间】 中控件属性{7*'═'}╗")
     # 设置 组合框【一级分区】 默认显示内容
-    GlobalVariableOfTheControl.parentLiveArea_comboBox_string = str(default_area["name"]) if bool(default_area) else "请选择一级分区"
-    log_save(0, f"║║║设置 组合框【一级分区】 默认显示内容：{str(GlobalVariableOfTheControl.parentLiveArea_comboBox_string)}")
+    GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_string = str(default_area["name"]) if bool(default_area) else "请选择一级分区"
+    log_save(0, f"║║║设置 组合框【一级分区】 默认显示内容：{str(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_string)}")
     # 设置 组合框【一级分区】 默认显示内容 的 列表值
-    GlobalVariableOfTheControl.parentLiveArea_comboBox_value = str(default_area["id"]) if bool(default_area) else "-1"
-    log_save(0, f"║║║设置 组合框【一级分区】 默认显示内容 的 列表值：{str(GlobalVariableOfTheControl.parentLiveArea_comboBox_value)}")
+    GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_value = str(default_area["id"]) if bool(default_area) else "-1"
+    log_save(0, f"║║║设置 组合框【一级分区】 默认显示内容 的 列表值：{str(GlobalVariableOfTheControl.liveRoom_parentArea_comboBox_value)}")
     # 设置 组合框【二级分区】 数据字典
-    GlobalVariableOfTheControl.subLiveArea_comboBox_dict = sub_live_area_name4sub_live_area_id
-    log_save(0, f"║║║设置 组合框【二级分区】 数据字典：{str(GlobalVariableOfTheControl.subLiveArea_comboBox_dict)}")
+    GlobalVariableOfTheControl.liveRoom_subArea_comboBox_dict = sub_live_area_name4sub_live_area_id
+    log_save(0, f"║║║设置 组合框【二级分区】 数据字典：{str(GlobalVariableOfTheControl.liveRoom_subArea_comboBox_dict)}")
     # 设置 组合框【二级分区】 默认显示内容
-    GlobalVariableOfTheControl.subLiveArea_comboBox_string = str(default_area["data"]["name"]) if bool(default_area) else "请确认一级分区"
-    log_save(0, f"║║║设置 组合框【二级分区】 默认显示内容：{str(GlobalVariableOfTheControl.subLiveArea_comboBox_string)}")
+    GlobalVariableOfTheControl.liveRoom_subArea_comboBox_string = str(default_area["data"]["name"]) if bool(default_area) else "请确认一级分区"
+    log_save(0, f"║║║设置 组合框【二级分区】 默认显示内容：{str(GlobalVariableOfTheControl.liveRoom_subArea_comboBox_string)}")
     # 设置 组合框【二级分区】 默认显示内容 的 列表值
-    GlobalVariableOfTheControl.subLiveArea_comboBox_value = str(default_area["data"]["id"]) if bool(default_area) else "-1"
-    log_save(0, f"║║║设置 组合框【二级分区】 默认显示内容 的 列表值：{str(GlobalVariableOfTheControl.subLiveArea_comboBox_value)}")
+    GlobalVariableOfTheControl.liveRoom_subArea_comboBox_value = str(default_area["data"]["id"]) if bool(default_area) else "-1"
+    log_save(0, f"║║║设置 组合框【二级分区】 默认显示内容 的 列表值：{str(GlobalVariableOfTheControl.liveRoom_subArea_comboBox_value)}")
     log_save(0, f"║║╚{7*'═'}设置 分组框【直播间】 中控件属性{7*'═'}╝")
     log_save(0, f"║╚{15*'═'}设置 控件属性{15*'═'}╝")
     return True
@@ -4612,7 +4638,7 @@ def button_function_start_live(props, prop):
     # 获取默认账户
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
     # 获取二级分区id
-    sub_live_area_combobox_value = obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'subLiveArea_comboBox')
+    sub_live_area_combobox_value = obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'liveRoom_subArea_comboBox')
     log_save(0, f"在【{sub_live_area_combobox_value}】分区 开播")
     # 获取开播平台
     live_streaming_platform = obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'live_streaming_platform_comboBox')
