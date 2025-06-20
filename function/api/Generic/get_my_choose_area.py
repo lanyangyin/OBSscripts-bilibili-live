@@ -1,3 +1,5 @@
+import json
+
 import requests
 from typing import Dict, Any, List, Union, Optional
 
@@ -106,7 +108,7 @@ if __name__ == "__main__":
         # 获取主播常用分区
         room_id = 25322725
         result = api.get_anchor_common_areas(room_id)
-
+        print(json.dumps(result, ensure_ascii=False, indent=2))
         # 处理结果
         print(f"主播房间 {room_id} 的常用分区:")
         for area in result["data"]:
@@ -118,5 +120,8 @@ if __name__ == "__main__":
         # - 无畏契约 (ID: 329, 父分区: 网游)
         # - 聊天电台 (ID: 192, 父分区: 电台)
         print({area['id']: f"⭐{area['name']}" for area in BilibiliApiGeneric().get_anchor_common_areas(room_id)["data"]})
+        print({json.dumps({area['parent_id']: area['id']}, ensure_ascii=False): json.dumps({area['parent_name']: area['name']}, ensure_ascii=False) for area in BilibiliApiGeneric().get_anchor_common_areas(room_id)["data"]})
+        for key in {json.dumps({area['parent_id']: area['id']}, ensure_ascii=False): json.dumps({area['parent_name']: area['name']}, ensure_ascii=False) for area in BilibiliApiGeneric().get_anchor_common_areas(room_id)["data"]}:
+            print(json.loads(key))
     except Exception as e:
         print(f"错误: {e}")
