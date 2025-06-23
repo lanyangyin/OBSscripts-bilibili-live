@@ -24,11 +24,10 @@ python版本：3.9-3.12
 
 obs_studio版本：30+
 
-## 使用方法
-### Windows
-[Windows.md](doc/Windows.md)
-### MacOS
-[MacOS.md](doc/MacOS.md)
+## 配置方法
+* [Windows配置方法](doc/Windows.md)
+* [MacOS配置方法](doc/MacOS.md)
+* [Ubuntu配置方法](doc/Ubuntu.md)
 
 ## 功能
 >☑ 为已实现
