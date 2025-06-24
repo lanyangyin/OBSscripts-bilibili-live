@@ -22,6 +22,7 @@ import os
 # import os
 import pathlib
 import random
+import ssl
 import string
 # import pprint
 import sys
@@ -38,7 +39,9 @@ import socket
 import urllib.request
 from urllib.error import URLError
 
+import urllib3
 from PIL.ImageFile import ImageFile
+from requests.exceptions import SSLError
 
 import obspython as obs
 # import pypinyin
@@ -612,7 +615,8 @@ class GlobalVariableOfData:
     """日志记录的文本"""
     networkConnectionStatus = False  # #网络连接状态
     """网络连接状态"""
-
+    sslVerification = True
+    """SSL验证"""
     # 文件配置类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     scriptsDataDirpath = None  # #脚本所在目录，末尾带/
     """脚本所在目录，末尾带/"""
@@ -1118,6 +1122,63 @@ def check_network_connection():
         return False
 
 
+def check_ssl_verification(test_url="https://api.bilibili.com", timeout=5):
+    """
+    检测 SSL 证书验证是否可用
+
+    参数:
+    test_url (str): 用于测试的 URL（默认为 Bilibili API）
+    timeout (int): 测试请求的超时时间（秒）
+
+    返回:
+    tuple: (verify_ssl: bool, warning: str)
+        verify_ssl: 是否启用 SSL 验证
+        warning: 警告信息（如果存在问题）
+    """
+    # 默认启用 SSL 验证
+    verify_ssl = True
+    warning = "✅ "
+
+    try:
+        # 尝试使用 SSL 验证进行请求
+        response = requests.head(
+            test_url,
+            timeout=timeout,
+            verify=True  # 强制启用验证
+        )
+
+        # 检查响应状态
+        if response.status_code >= 400:
+            warning = f"❌ 测试请求返回错误状态: {response.status_code}"
+
+    except SSLError as e:
+        # 捕获 SSL 验证错误
+        verify_ssl = False
+        warning = f"❌ SSL 验证失败: {e}】已禁用 SSL 证书验证（可能存在安全风险）"
+
+        # 禁用 SSL 验证警告
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+    except requests.exceptions.RequestException as e:
+        # 其他网络错误
+        verify_ssl = False
+        warning = f"❌ 网络请求错误: {e}】已禁用 SSL 证书验证（可能存在安全风险）"
+
+    except Exception as e:
+        # 其他未知错误
+        verify_ssl = False
+        warning = f"❌ 未知错误: {e}】已禁用 SSL 证书验证（可能存在安全风险）"
+
+    # 如果验证失败，配置全局 SSL 上下文
+    if not verify_ssl:
+        try:
+            ssl._create_default_https_context = ssl._create_unverified_context
+        except Exception as e:
+            warning += f"】配置全局 SSL 上下文失败: {e}"
+
+    return verify_ssl, warning
+
+
 def get_future_timestamp(days=0, hours=0, minutes=0):
     """
     获取当前时间加上指定天数、小时、分钟后的10位Unix时间戳
@@ -1149,7 +1210,7 @@ def get_future_timestamp(days=0, hours=0, minutes=0):
     return timestamp
 
 
-def url2pillow_image(url) -> Optional[ImageFile]:
+def url2pillow_image(url, ssl_verification: bool = True) -> Optional[ImageFile]:
     """
     将url图片转换为pillow_image实例
     Args:
@@ -1164,7 +1225,7 @@ def url2pillow_image(url) -> Optional[ImageFile]:
                           '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
         }
         # 发送 GET 请求
-        response = requests.get(url, headers=headers, stream=True)
+        response = requests.get(verify=ssl_verification, url = url, headers=headers, stream=True)
         response.raise_for_status()  # 检查 HTTP 错误
         # 将响应内容转为字节流
         image_data = io.BytesIO(response.content)
@@ -1702,11 +1763,12 @@ class BilibiliApiGeneric:
     """
     不登录也能用的api
     """
-    def __init__(self):
+    def __init__(self, ssl_verification: bool = True):
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\
             (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0",
         }
+        self.sslVerification = ssl_verification
 
     def get_bilibili_user_card(self, mid, photo=False) -> dict:
         """
@@ -1730,12 +1792,7 @@ class BilibiliApiGeneric:
 
         try:
             # 发送GET请求
-            response = requests.get(
-                url,
-                params=params,
-                headers=self.headers,
-                timeout=10  # 添加超时设置
-            )
+            response = requests.get(verify=self.sslVerification, url = url, params=params,  headers=self.headers, timeout=10)
             response.raise_for_status()  # 检查HTTP错误
 
             # 解析JSON响应
@@ -1859,12 +1916,7 @@ class BilibiliApiGeneric:
 
         try:
             # 发送API请求
-            response = requests.get(
-                api_url,
-                headers=self.headers,
-                params=params,
-                timeout=10
-            )
+            response = requests.get(verify=self.sslVerification, url = api_url, headers=self.headers, params=params, timeout=10)
             response.raise_for_status()  # 检查HTTP错误
 
             # 解析JSON响应
@@ -1937,7 +1989,7 @@ class BilibiliApiGeneric:
 
         try:
             # 发送API请求
-            response = requests.get(api_url, headers=self.headers, timeout=10)
+            response = requests.get(verify=self.sslVerification, url = api_url, headers=self.headers, timeout=10)
             response.raise_for_status()  # 检查HTTP错误状态
 
             # 解析JSON响应
@@ -2006,12 +2058,7 @@ class BilibiliApiGeneric:
 
         try:
             # 发送API请求
-            response = requests.get(
-                api_url,
-                headers=self.headers,
-                params=params,
-                timeout=10
-            )
+            response = requests.get(verify=self.sslVerification, url = api_url, headers=self.headers, params=params, timeout=10)
             response.raise_for_status()  # 检查HTTP错误
 
             # 解析JSON响应
@@ -2078,7 +2125,7 @@ class BilibiliApiGeneric:
         live_user_v1_master_info_data = {
             "uid": uid
         }
-        live_user_v1_master_info = requests.get(api, headers=self.headers, params=live_user_v1_master_info_data).json()
+        live_user_v1_master_info = requests.get(verify=self.sslVerification, url = api, headers=self.headers, params=live_user_v1_master_info_data).json()
         return live_user_v1_master_info
 
     def get_room_info_old(self, mid: int) -> Dict[str, Any]:
@@ -2113,12 +2160,7 @@ class BilibiliApiGeneric:
 
         try:
             # 设置合理的超时时间
-            response = requests.get(
-                api,
-                headers=self.headers,
-                params=params,
-                timeout=5.0  # 连接超时 + 读取超时
-            )
+            response = requests.get(verify=self.sslVerification, url = api, headers=self.headers, params=params, timeout=5.0)
             response.raise_for_status()  # 检查HTTP状态码
         except requests.exceptions.RequestException as e:
             raise ConnectionError(f"请求直播间信息失败: {e}") from e
@@ -2160,7 +2202,7 @@ class BilibiliApiGeneric:
         @return: {'url': 二维码文本, 'qrcode_key': 扫描秘钥}
         """
         api = 'https://passport.bilibili.com/x/passport-login/web/qrcode/generate'
-        url8qrcode_key = requests.get(api, headers=self.headers).json()
+        url8qrcode_key = requests.get(verify=self.sslVerification, url = api, headers=self.headers).json()
         # print(url8qrcode_key)
         generate_data = url8qrcode_key['data']
         url = generate_data['url']
@@ -2175,7 +2217,7 @@ class BilibiliApiGeneric:
         @rtype: Dict
         """
         api = f'https://passport.bilibili.com/x/passport-login/web/qrcode/poll?qrcode_key={qrcode_key}'
-        poll_return = requests.get(api, data=qrcode_key, headers=self.headers).json()
+        poll_return = requests.get(verify=self.sslVerification, url = api, data=qrcode_key, headers=self.headers).json()
         data = poll_return['data']
         cookies = {}
         """
@@ -2198,7 +2240,7 @@ class BilibiliApiGeneric:
             cookies["SESSDATA"] = data_dict['SESSDATA']
             cookies["bili_jct"] = data_dict['bili_jct']
             # 补充 cookie
-            buvid3 = requests.get(f'https://www.bilibili.com/video/', headers=self.headers)
+            buvid3 = requests.get(verify=self.sslVerification, url = f'https://www.bilibili.com/video/', headers=self.headers)
             cookies.update(buvid3.cookies.get_dict())
         return {'code': code, 'cookies': cookies}
 # end
@@ -2208,10 +2250,11 @@ class BilibiliApiGeneric:
 class BilibiliApiMaster:
     """登陆后才能用的函数"""
 
-    def __init__(self, cookie: str):
+    def __init__(self, cookie: str, ssl_verification: bool = True):
         """
         完善 浏览器headers
         @param cookie: B站cookie
+        @param sslVerification: 是否SSL验证
         """
         user_agent = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
                       "Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0")
@@ -2222,6 +2265,7 @@ class BilibiliApiMaster:
         self.cookies = cookie2dict(cookie)
         self.cookie = cookie
         self.csrf = self.cookies.get("bili_jct", "")
+        self.sslVerification = ssl_verification
 
     def get_nav_info(self) -> Dict[str, Any]:
         """
@@ -2260,11 +2304,7 @@ class BilibiliApiMaster:
 
         try:
             # 发送API请求
-            response = requests.get(
-                api_url,
-                headers=self.headers,
-                timeout=10
-            )
+            response = requests.get(verify=self.sslVerification, url = api_url, headers=self.headers, timeout=10)
             response.raise_for_status()  # 检查HTTP错误
 
             # 解析JSON响应
@@ -2285,7 +2325,7 @@ class BilibiliApiMaster:
         """
         api = "https://api.live.bilibili.com/xlive/app-blink/v1/highlight/getRoomHighlightState"
         headers = self.headers
-        room_id = requests.get(api, headers=headers).json()["data"]["room_id"]
+        room_id = requests.get(verify=self.sslVerification, url = api, headers=headers).json()["data"]["room_id"]
         return room_id
 
     def get_room_news(self) -> str:
@@ -2296,7 +2336,7 @@ class BilibiliApiMaster:
             'room_id': self.get_room_highlight_state(),
             'uid': cookie2dict(self.headers["cookie"])["DedeUserID"]
         }
-        room_news = requests.get(api, headers=headers, params=params).json()
+        room_news = requests.get(verify=self.sslVerification, url = api, headers=headers, params=params).json()
         return room_news["data"]["content"]
 
     def get_reserve_list(self) -> List[Dict[str, Any]]:
@@ -2333,11 +2373,7 @@ class BilibiliApiMaster:
 
         try:
             # 发送API请求
-            response = requests.get(
-                api_url,
-                headers=self.headers,
-                timeout=10
-            )
+            response = requests.get(verify=self.sslVerification, url = api_url, headers=self.headers, timeout=10)
             response.raise_for_status()  # 检查HTTP错误
 
             # 解析JSON响应
@@ -2393,8 +2429,7 @@ class BilibiliApiMaster:
 
         try:
             # 发送POST请求
-            response = requests.post(
-                api_url,
+            response = requests.post(verify=self.sslVerification, url = api_url,
                 data=data,
                 headers=self.headers,
                 timeout=10
@@ -2426,7 +2461,7 @@ class BilibiliApiMaster:
             "csrf": csrf,
             "csrf_token": csrf,
         }
-        ChangeRoomArea_ReturnValue = requests.post(api, headers=headers, params=AnchorChangeRoomArea_data).json()
+        ChangeRoomArea_ReturnValue = requests.post(verify=self.sslVerification, url = api, headers=headers, params=AnchorChangeRoomArea_data).json()
         return ChangeRoomArea_ReturnValue
 
     def start_live(self, area_id: int,  platform: Literal["pc_link", "web_link", "android_link"]):
@@ -2448,10 +2483,10 @@ class BilibiliApiMaster:
             "csrf": csrf,
             "csrf_token": csrf,
         }
-        startLive_ReturnValue = requests.post(api, headers=headers, params=startLivedata).json()
+        startLive_ReturnValue = requests.post(verify=self.sslVerification, url = api, headers=headers, params=startLivedata).json()
         return startLive_ReturnValue
 
-    def stop_live(self):
+    def stop_live(self,  platform: Literal["pc_link", "web_link", "android_link"]):
         """
         结束直播
         @return:
@@ -2460,12 +2495,12 @@ class BilibiliApiMaster:
         headers = self.headers
         csrf = self.csrf
         stopLive_data = {
-            "platform": "pc",
+            "platform": platform,
             "room_id": self.get_room_highlight_state(),
             "csrf": csrf,
             "csrf_token": csrf,
         }
-        stopLive_ReturnValue = requests.post(api, headers=headers, params=stopLive_data).json()
+        stopLive_ReturnValue = requests.post(verify=self.sslVerification, url = api, headers=headers, params=stopLive_data).json()
         return stopLive_ReturnValue
 
     def create_reserve(self, title: str, live_plan_start_time: int, create_dynamic: bool = False, business_type: int = 10) -> Dict[str, Any]:
@@ -2515,8 +2550,7 @@ class BilibiliApiMaster:
         api_url = "https://api.live.bilibili.com/xlive/app-ucenter/v2/schedule/CreateReserve"
 
         try:
-            response = requests.post(
-                api_url,
+            response = requests.post(verify=self.sslVerification, url = api_url,
                 headers=self.headers,
                 data=payload,
                 timeout=10
@@ -2572,8 +2606,7 @@ class BilibiliApiMaster:
 
         try:
             # 发送POST请求
-            response = requests.post(
-                "https://api.live.bilibili.com/xlive/app-ucenter/v2/schedule/CancelReserve",
+            response = requests.post(verify=self.sslVerification, url = "https://api.live.bilibili.com/xlive/app-ucenter/v2/schedule/CancelReserve",
                 headers=self.headers,
                 data=payload,
                 timeout=10
@@ -2588,40 +2621,84 @@ class BilibiliApiMaster:
         except json.JSONDecodeError as e:
             raise ValueError(f"解析响应失败: {e}") from e
 
-    def fetch_stream_addr(self, reset_key: bool = False):
+    def get_live_stream_info(self) -> Dict[str, Any]:
+        """
+        获取直播间推流信息
+
+        Returns:
+            包含推流信息的字典，结构:
+            {
+                "code": int,        # API状态码(0:成功)
+                "message": str,      # API消息
+                "data": {
+                    "rtmp": {
+                        "addr": str,     # RTMP服务器地址
+                        "code": str      # 推流代码(包含streamkey)
+                    },
+                    "stream_line": [    # 可用线路列表
+                        {
+                            "cdn_name": str,  # CDN名称
+                            "checked": int,   # 是否选中(0/1)
+                            "name": str,      # 线路名称
+                            "src": int        # 线路标识
+                        }
+                    ]
+                }
+            }
+
+            如果请求失败，返回:
+            {
+                "code": -1,
+                "error": "错误信息"
+            }
+        """
+        api_url = "https://api.live.bilibili.com/live_stream/v1/StreamList/get_stream_by_roomId"
+        params = {"room_id": self.get_room_highlight_state()}
+
+        try:
+            # 发送API请求
+            response = requests.get(verify=self.sslVerification, url = api_url,headers=self.headers,params=params,timeout=10)
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "code": -1,
+                    "error": f"HTTP错误: {response.status_code}"
+                }
+
+            # 解析JSON响应
+            data = response.json()
+            return data
+
+        except requests.exceptions.RequestException as e:
+            return {
+                "code": -1,
+                "error": f"网络请求失败: {str(e)}"
+            }
+        except ValueError as e:
+            return {
+                "code": -1,
+                "error": f"JSON解析失败: {str(e)}"
+            }
+
+    def fetch_stream_addr(self, platform: Literal["pc_link", "web_link", "android_link"], reset_key: bool = False):
         """
         推流码信息
-        @param reset_key: 布尔值，是否更新
+        @param reset_key: 布尔值，是否更新推流码
         @return:
         """
         api = "https://api.live.bilibili.com/xlive/app-blink/v1/live/FetchWebUpStreamAddr"
         headers = self.headers
         csrf = self.csrf
         FetchWebUpStreamAddr_data = {
-            "platform": "pc",
+            "platform": platform,
             "backup_stream": 0,
             "reset_key": reset_key,
             "csrf": csrf,
             "csrf_token": csrf,
         }
-        FetchWebUpStreamAddre_ReturnValue = requests.post(api, headers=headers, params=FetchWebUpStreamAddr_data).json()
+        FetchWebUpStreamAddre_ReturnValue = requests.post(verify=self.sslVerification, url = api, headers=headers, params=FetchWebUpStreamAddr_data).json()
         return FetchWebUpStreamAddre_ReturnValue
-
-    def send(self, roomid: int, msg: str):
-        api = "https://api.live.bilibili.com/msg/send"
-        headers = self.headers
-        csrf = self.csrf
-        send_data = {
-            'msg': msg,
-            'color': 16777215,
-            'fontsize': 25,
-            'rnd': str(time.time())[:8],
-            'roomid': roomid,
-            'csrf': csrf,
-            'csrf_token': csrf
-        }
-        send_ReturnValue = requests.post(api, headers=headers, params=send_data).json()
-        return send_ReturnValue
 
     def change_room_title(self, title: str):
         """
@@ -2637,7 +2714,7 @@ class BilibiliApiMaster:
             'csrf_token': csrf,
             'csrf': csrf
         }
-        room_v1_Room_update_ReturnValue = requests.post(api, headers=headers, data=room_v1_Room_update_data).json()
+        room_v1_Room_update_ReturnValue = requests.post(verify=self.sslVerification, url = api, headers=headers, data=room_v1_Room_update_data).json()
         return room_v1_Room_update_ReturnValue
 
     def change_room_news(self, content: str):
@@ -2655,7 +2732,7 @@ class BilibiliApiMaster:
             'csrf_token': csrf,
             'csrf': csrf
         }
-        updateRoomNews_ReturnValue = requests.post(api, headers=headers, data=updateRoomNews_data).json()
+        updateRoomNews_ReturnValue = requests.post(verify=self.sslVerification, url = api, headers=headers, data=updateRoomNews_data).json()
         return updateRoomNews_ReturnValue
 
     def upload_cover(self, image_binary: bytes):
@@ -2703,7 +2780,7 @@ class BilibiliApiMaster:
             else:
                 body += part
         # 发送请求
-        response = requests.post(url=api_url, headers=headers, data=body).json()
+        response = requests.post(verify=self.sslVerification, url = api_url, headers=headers, data=body).json()
         # 处理响应
         result = response
         return result
@@ -2727,7 +2804,7 @@ class BilibiliApiMaster:
             "csrf_token": self.cookies["bili_jct"],
             "csrf": self.cookies["bili_jct"],
         }
-        return requests.post(api_url, headers=headers, params=update_cover_data).json()
+        return requests.post(verify=self.sslVerification, url = api_url, headers=headers, params=update_cover_data).json()
 # end
 
 # ====================================================================================================================
@@ -2856,6 +2933,13 @@ def script_defaults(settings):  # 设置其默认值
         log_save(3, f"⚠️检查网络连接: 网络不可用❌")
         return None
 
+    # 执行 SSL 检测
+    verify_ssl, ssl_warning = check_ssl_verification()
+    GlobalVariableOfData.sslVerification = verify_ssl
+    if not verify_ssl:
+        log_save(3, f"[SSL 警告] {ssl_warning}")
+    else:
+        log_save(0, f"[SSL 正常] {ssl_warning}")
     # 调整控件数据
     log_save(0, f"")
     log_save(0, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
@@ -2898,18 +2982,18 @@ def script_defaults(settings):  # 设置其默认值
         # 创建用户配置文件实例
         b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
         # 获取 用户配置文件 中 每一个用户 导航栏用户信息 排除空值
-        user_interface_nav4uid = {uid: BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies(int(uid)))).get_nav_info() for uid in [x for x in b_u_l_c.get_users().values() if x]}
+        user_interface_nav4uid = {uid: BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=dict2cookie(b_u_l_c.get_cookies(int(uid))), ).get_nav_info() for uid in [x for x in b_u_l_c.get_users().values() if x]}
         log_save(1, f"║║║账号导航栏用户信息：{user_interface_nav4uid}")
         # 获取 用户配置文件 中 每一个 用户 的 可用性
         user_is_login4uid = {uid: user_interface_nav4uid[uid]["isLogin"] for uid in user_interface_nav4uid}
         log_save(1, f"║║║账号可用性：{user_is_login4uid}")
         # 删除 用户配置文件 中 不可用 用户
         [b_u_l_c.delete_user(int(uid)) for uid in user_is_login4uid if user_is_login4uid[uid] == False]
-        [log_save(1, f"║║║账号：【{BilibiliApiGeneric().get_bilibili_user_card(uid)['basic_info']['name']}】 账号{'可用，保留账号' if user_is_login4uid[uid] else '不可用，已删除账号'}") for uid in user_is_login4uid]
+        [log_save(1, f"║║║账号：【{BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_bilibili_user_card(uid)['basic_info']['name']}】 账号{'可用，保留账号' if user_is_login4uid[uid] else '不可用，已删除账号'}") for uid in user_is_login4uid]
         # 创建用户常用直播间标题实例
         c_t_m = CommonTitlesManager(directory=Path(GlobalVariableOfData.scriptsDataDirpath))
         [c_t_m.clear_user_titles(uid) for uid in user_is_login4uid if user_is_login4uid[uid] == False]
-        [log_save(1, f"║║║账号：【{BilibiliApiGeneric().get_bilibili_user_card(uid)['basic_info']['name']}】 账号{'可用，保留用户常用直播间标题' if user_is_login4uid[uid] else '不可用，已删除用户常用直播间标题'}") for uid in user_is_login4uid]
+        [log_save(1, f"║║║账号：【{BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_bilibili_user_card(uid)['basic_info']['name']}】 账号{'可用，保留用户常用直播间标题' if user_is_login4uid[uid] else '不可用，已删除用户常用直播间标题'}") for uid in user_is_login4uid]
         # 获取 用户配置文件 中 每一个 可用 用户 的 昵称
         all_uname4uid = {uid: user_interface_nav4uid[uid]["uname"] for uid in user_is_login4uid if user_is_login4uid[uid]}
         """全部账户的昵称字典】{uid: uname,}"""
@@ -2922,7 +3006,7 @@ def script_defaults(settings):  # 设置其默认值
     # 创建用户配置文件实例
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
     # 获取 用户配置文件 中 每一个用户 导航栏用户信息 排除空值
-    user_interface_nav4uid = {uid: BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies(int(uid)))).get_nav_info() for uid in [x for x in b_u_l_c.get_users().values() if x]}
+    user_interface_nav4uid = {uid: BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=dict2cookie(b_u_l_c.get_cookies(int(uid))), ).get_nav_info() for uid in [x for x in b_u_l_c.get_users().values() if x]}
     """账号导航栏用户信息"""
     log_save(1, f"║║账号导航栏用户信息：{user_interface_nav4uid}")
     # 获取 用户配置文件 中 每一个 用户 的 昵称
@@ -2934,7 +3018,7 @@ def script_defaults(settings):  # 设置其默认值
     """登录用户的昵称，没有登录则为None"""
     log_save(0, f"║║用户：{(uname + ' 已登录') if b_u_l_c.get_cookies() else '⚠️未登录账号'}")
     # 获取 '登录用户' 对应的直播间基础信息
-    room_info_old = BilibiliApiGeneric().get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
+    room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
     """直播间基础信息"""
     log_save(0, f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 的 直播间状态
@@ -2946,7 +3030,8 @@ def script_defaults(settings):  # 设置其默认值
     """登录用户的直播间id"""
     log_save(0, f"║║登录账户 的 直播间id：{(room_id if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 直播间基本信息
-    room_base_info = (BilibiliApiGeneric().get_room_base_info(room_id) if room_status else None) if b_u_l_c.get_cookies() else None
+    room_base_info = (
+        BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_base_info(room_id) if room_status else None) if b_u_l_c.get_cookies() else None
     """直播间基本信息"""
     log_save(0, f"║║登录账户 的 直播间基本信息：{room_base_info if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 直播间封面链接
@@ -2966,7 +3051,8 @@ def script_defaults(settings):  # 设置其默认值
     """常用直播间标题】{'0': 't1', '1': 't2', '2': 't3',}"""
     log_save(0, f"║║登录账户 的 常用直播间标题：{(common_title4number if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 直播间公告
-    room_news = (BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies())).get_room_news() if room_status else None) if b_u_l_c.get_cookies() else None
+    room_news = (BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=
+        dict2cookie(b_u_l_c.get_cookies()), ).get_room_news() if room_status else None) if b_u_l_c.get_cookies() else None
     """直播间公告"""
     log_save(0, f"║║登录账户 的 直播间公告：{(room_news if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 直播间的分区
@@ -2974,7 +3060,8 @@ def script_defaults(settings):  # 设置其默认值
     """登录用户的直播间分区】{"parent_area_id": 3, "parent_area_name": "手游", "area_id": 255, "area_name": "明日方舟"}"""
     log_save(0, f"║║登录账户 的 直播间分区数据：{(area if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 直播间 常用分区信息
-    common_areas = (BilibiliApiGeneric().get_anchor_common_areas(room_id)["data"] if room_status else None) if b_u_l_c.get_cookies() else None
+    common_areas = (
+        BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_anchor_common_areas(room_id)["data"] if room_status else None) if b_u_l_c.get_cookies() else None
     """获取 '登录用户' 直播间 常用分区信息】[{"id": "255", "name": "明日方舟", "parent_id": "3", "parent_name": "手游",}, ]"""
     log_save(0, f"║║登录账户 的 常用分区信息：{(common_areas if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 常用直播间分区字典
@@ -2982,7 +3069,7 @@ def script_defaults(settings):  # 设置其默认值
     """登录用户的常用直播间分区字典】{'{parent_id: id}': '{parent_name: name}', }"""
     log_save(0, f"║║登录账户 的 常用直播间分区：{(list(common_area_id_dict_str4common_area_name_dict_str.values()) if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 B站直播分区信息
-    area_obj_list = BilibiliApiGeneric().get_area_obj_list() if b_u_l_c.get_cookies() else None
+    area_obj_list = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_area_obj_list() if b_u_l_c.get_cookies() else None
     """B站直播分区信息"""
     log_save(0, f"║║获取B站直播分区信息：{area_obj_list if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 直播间父分区数据
@@ -2998,7 +3085,8 @@ def script_defaults(settings):  # 设置其默认值
     """登录用户的直播状态】0：未开播 1：直播中"""
     log_save(0, f"║║登录账户 的 直播状态：{(('直播中' if live_status else '未开播') if room_status else '⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 登录用户的直播预约列表信息
-    reserve_list = (BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies())).get_reserve_list() if room_status else None) if b_u_l_c.get_cookies() else None
+    reserve_list = (BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=
+        dict2cookie(b_u_l_c.get_cookies()), ).get_reserve_list() if room_status else None) if b_u_l_c.get_cookies() else None
     """获取 '登录用户' 的 直播预约列表信息"""
     log_save(0, f"║║登录账户 的 直播预约列表信息：{(reserve_list if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 登录用户的直播预约字典
@@ -5026,7 +5114,7 @@ def button_function_update_account_list(props=None, prop=None, settings=GlobalVa
     # 创建用户配置文件实例
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
     # 获取 用户配置文件 中 每一个用户 导航栏用户信息 排除空值
-    user_interface_nav4uid = {uid: BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies(int(uid)))).get_nav_info() for uid in [x for x in b_u_l_c.get_users().values() if x]}
+    user_interface_nav4uid = {uid: BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=dict2cookie(b_u_l_c.get_cookies(int(uid))), ).get_nav_info() for uid in [x for x in b_u_l_c.get_users().values() if x]}
     log_save(1, f"║║账号导航栏用户信息：{user_interface_nav4uid}")
     # 获取 用户配置文件 中 每一个 用户 的 昵称
     all_uname4uid = {uid: user_interface_nav4uid[uid]["uname"] for uid in user_interface_nav4uid}
@@ -5367,7 +5455,7 @@ def button_function_qr_add_account(props, prop):
         return button_function_show_qr_picture()
 
     # 申请登录二维码
-    url8qrkey = BilibiliApiGeneric().generate()
+    url8qrkey = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).generate()
     # 获取二维码url
     url = url8qrkey['url']
     log_save(0, f"获取登录二维码链接{url}")
@@ -5382,7 +5470,7 @@ def button_function_qr_add_account(props, prop):
     log_save(0, f"\n\n{qr['str']}")
     log_save(0, f"字符串二维码已输出，如果乱码或者扫描不上，建议点击 按钮【显示登录二维码图片】")
     # 获取二维码扫描登陆状态
-    GlobalVariableOfData.loginQrCodeReturn = BilibiliApiGeneric().poll(GlobalVariableOfData.loginQrCode_key)
+    GlobalVariableOfData.loginQrCodeReturn = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).poll(GlobalVariableOfData.loginQrCode_key)
     log_save(0, f"开始轮询登录状态")
     # 轮询登录状态
     log_save(2, str(information4login_qr_return_code[GlobalVariableOfData.loginQrCodeReturn['code']]))
@@ -5396,7 +5484,7 @@ def button_function_qr_add_account(props, prop):
         b_u_l_c = BilibiliUserLogsIn2ConfigFile(GlobalVariableOfData.scriptsUsersConfigFilepath)
         user_list_dict = b_u_l_c.get_users()
         code_old = GlobalVariableOfData.loginQrCodeReturn['code']
-        GlobalVariableOfData.loginQrCodeReturn = BilibiliApiGeneric().poll(GlobalVariableOfData.loginQrCode_key)
+        GlobalVariableOfData.loginQrCodeReturn = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).poll(GlobalVariableOfData.loginQrCode_key)
         # 二维码扫描登陆状态改变时，输出改变后状态
         log_save(2, str(information4login_qr_return_code[GlobalVariableOfData.loginQrCodeReturn['code']])) if code_old != GlobalVariableOfData.loginQrCodeReturn['code'] else None
         if GlobalVariableOfData.loginQrCodeReturn['code'] == 0 or GlobalVariableOfData.loginQrCodeReturn['code'] == 86038:
@@ -5526,7 +5614,7 @@ def button_function_opened_room(props, prop):
     # 创建用户配置文件实例
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
     # 开通直播间
-    create_live_room_return = BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies())).create_live_room()
+    create_live_room_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=dict2cookie(b_u_l_c.get_cookies()), ).create_live_room()
     log_save(0, f"开通直播间返回值: {create_live_room_return}")
     # 处理API响应
     code = create_live_room_return.get("code", -1)
@@ -5565,7 +5653,7 @@ def button_function_check_room_cover(props, prop):
     # 创建用户配置文件实例
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
     # 获取 '登录用户' 对应的直播间基础信息
-    room_info_old = BilibiliApiGeneric().get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
+    room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
     """直播间基础信息"""
     log_save(0, f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 的 直播间状态
@@ -5577,7 +5665,8 @@ def button_function_check_room_cover(props, prop):
     """登录用户的直播间id"""
     log_save(0, f"║║登录账户 的 直播间id：{(room_id if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 直播间基本信息
-    room_base_info = (BilibiliApiGeneric().get_room_base_info(room_id) if room_status else None) if b_u_l_c.get_cookies() else None
+    room_base_info = (
+        BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_base_info(room_id) if room_status else None) if b_u_l_c.get_cookies() else None
     """直播间基本信息"""
     log_save(0, f"║║登录账户 的 直播间基本信息：{room_base_info if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 直播间封面链接
@@ -5591,7 +5680,7 @@ def button_function_check_room_cover(props, prop):
     log_save(0, f"")
 
     # # 获取'默认账户'直播间的基础信息
-    room_cover_pillow_img = url2pillow_image(room_cover_url)
+    room_cover_pillow_img = url2pillow_image(room_cover_url, GlobalVariableOfData.sslVerification)
     if room_cover_pillow_img:
         log_save(0, f"显示16:9封面，格式: {room_cover_pillow_img.format}，尺寸: {room_cover_pillow_img.size}")
         room_cover_pillow_img.show()
@@ -5623,7 +5712,7 @@ def button_function_update_room_cover():
         pil_image1609zooming_width1020_binary = pil_image2binary(pil_image1609zooming_width1020, img_format="JPEG", compress_level=0)
         # 创建用户配置文件实例
         b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-        b_a_c_authentication = BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies()))
+        b_a_c_authentication = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=dict2cookie(b_u_l_c.get_cookies()), )
         # 上传封面图片返回
         upload_cover_return = b_a_c_authentication.upload_cover(pil_image1609zooming_width1020_binary)
         log_save(0, f"上传封面返回：{upload_cover_return}")
@@ -5683,7 +5772,7 @@ def button_function_change_live_room_title():
     # 获取 '默认账户' cookie
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
     # 获取 '登录用户' 对应的直播间基础信息
-    room_info_old = BilibiliApiGeneric().get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
+    room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
     log_save(0, f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 的 直播间状态
     room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
@@ -5692,7 +5781,8 @@ def button_function_change_live_room_title():
     room_id = (room_info_old["roomid"] if room_status else None) if b_u_l_c.get_cookies() else None
     log_save(0, f"║║登录账户 的 直播间id：{(room_id if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 直播间基本信息
-    room_base_info = (BilibiliApiGeneric().get_room_base_info(room_id) if room_status else None) if b_u_l_c.get_cookies() else None
+    room_base_info = (
+        BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_base_info(room_id) if room_status else None) if b_u_l_c.get_cookies() else None
     log_save(0, f"║║登录账户 的 直播间基本信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 直播间标题
     room_title = (room_base_info["title"] if room_status else None) if b_u_l_c.get_cookies() else None
@@ -5721,7 +5811,7 @@ def button_function_change_live_room_title():
     if room_title == live_room_title_textbox_string:
         log_save(0, f"直播间标题未更改")
         return False
-    turn_title_return = BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies())).change_room_title(
+    turn_title_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=dict2cookie(b_u_l_c.get_cookies()), ).change_room_title(
         live_room_title_textbox_string)
     log_save(0, f"更改直播间标题返回消息：{turn_title_return}")
     if turn_title_return['code'] == 0:
@@ -5742,7 +5832,7 @@ def button_function_change_live_room_title():
     # 获取 '默认账户' cookie
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
     # 获取 '登录用户' 对应的直播间基础信息
-    room_info_old = BilibiliApiGeneric().get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
+    room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
     log_save(0, f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 的 直播间状态
     room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
@@ -5751,7 +5841,8 @@ def button_function_change_live_room_title():
     room_id = (room_info_old["roomid"] if room_status else None) if b_u_l_c.get_cookies() else None
     log_save(0, f"║║登录账户 的 直播间id：{(room_id if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 直播间基本信息
-    room_base_info = (BilibiliApiGeneric().get_room_base_info(room_id) if room_status else None) if b_u_l_c.get_cookies() else None
+    room_base_info = (
+        BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_base_info(room_id) if room_status else None) if b_u_l_c.get_cookies() else None
     log_save(0, f"║║登录账户 的 直播间基本信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 直播间标题
     room_title = (room_base_info["title"] if room_status else None) if b_u_l_c.get_cookies() else None
@@ -5901,7 +5992,7 @@ def button_function_change_live_room_news():
     # 创建用户配置文件实例
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
     # 获取 '登录用户' 对应的直播间基础信息
-    room_info_old = BilibiliApiGeneric().get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
+    room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
     """直播间基础信息"""
     log_save(0, f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 的 直播间状态
@@ -5913,11 +6004,13 @@ def button_function_change_live_room_news():
     """登录用户的直播间id"""
     log_save(0, f"║║登录账户 的 直播间id：{(room_id if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 直播间基本信息
-    room_base_info = (BilibiliApiGeneric().get_room_base_info(room_id) if room_status else None) if b_u_l_c.get_cookies() else None
+    room_base_info = (
+        BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_base_info(room_id) if room_status else None) if b_u_l_c.get_cookies() else None
     """直播间基本信息"""
     log_save(0, f"║║登录账户 的 直播间基本信息：{room_base_info if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 直播间公告
-    room_news = (BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies())).get_room_news() if room_status else None) if b_u_l_c.get_cookies() else None
+    room_news = (BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=
+        dict2cookie(b_u_l_c.get_cookies()), ).get_room_news() if room_status else None) if b_u_l_c.get_cookies() else None
     """直播间公告"""
     log_save(0, f"║║登录账户 的 直播间公告：{(room_news if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 设置控件前准备（获取数据）结束
@@ -5933,7 +6026,7 @@ def button_function_change_live_room_news():
     # 获取 '默认账户' cookie
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
     cookies = b_u_l_c.get_cookies()
-    turn_news_return = BilibiliApiMaster(dict2cookie(cookies)).change_room_news(
+    turn_news_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=dict2cookie(cookies), ).change_room_news(
         live_room_news_textbox_string)
     log_save(0, f'更改直播间公告返回消息：{turn_news_return}')
     if turn_news_return['code'] == 0:
@@ -5954,7 +6047,7 @@ def button_function_change_live_room_news():
     # 创建用户配置文件实例
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
     # 获取 '登录用户' 对应的直播间基础信息
-    room_info_old = BilibiliApiGeneric().get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
+    room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
     """直播间基础信息"""
     log_save(0, f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 的 直播间状态
@@ -5966,11 +6059,13 @@ def button_function_change_live_room_news():
     """登录用户的直播间id"""
     log_save(0, f"║║登录账户 的 直播间id：{(room_id if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 直播间基本信息
-    room_base_info = (BilibiliApiGeneric().get_room_base_info(room_id) if room_status else None) if b_u_l_c.get_cookies() else None
+    room_base_info = (
+        BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_base_info(room_id) if room_status else None) if b_u_l_c.get_cookies() else None
     """直播间基本信息"""
     log_save(0, f"║║登录账户 的 直播间基本信息：{room_base_info if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 直播间公告
-    room_news = (BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies())).get_room_news() if room_status else None) if b_u_l_c.get_cookies() else None
+    room_news = (BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=
+        dict2cookie(b_u_l_c.get_cookies()), ).get_room_news() if room_status else None) if b_u_l_c.get_cookies() else None
     """直播间公告"""
     log_save(0, f"║║登录账户 的 直播间公告：{(room_news if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 设置控件前准备（获取数据）结束
@@ -6064,7 +6159,7 @@ def button_function_start_parent_area():
     # 记录旧的 组合框【二级分区】 数据字典
     sub_live_area_name4sub_live_area_id_old = GlobalVariableOfTheControl.room_subArea_comboBox_dict
     # 获取B站直播分区信息
-    area_obj_list = BilibiliApiGeneric().get_area_obj_list()
+    area_obj_list = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_area_obj_list()
     # 获取 组合框【二级分区】 数据字典
     sub_live_area_name4sub_live_area_id = {str(subAreaObj["id"]): subAreaObj["name"] for subAreaObj in [AreaObj["list"] for AreaObj in area_obj_list["data"] if str(parent_live_area_combobox_value) == str(AreaObj["id"])][0]}
     log_save(0,  f"获取 当前父分区对应的子分区数据{sub_live_area_name4sub_live_area_id}")
@@ -6108,7 +6203,7 @@ def button_function_start_sub_area():
     # 创建用户配置文件实例
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
     # 获取 '登录用户' 对应的直播间基础信息
-    room_info_old = BilibiliApiGeneric().get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
+    room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
     """直播间基础信息"""
     log_save(0, f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 的 直播间状态
@@ -6120,7 +6215,8 @@ def button_function_start_sub_area():
     """登录用户的直播间id"""
     log_save(0, f"║║登录账户 的 直播间id：{(room_id if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 直播间基本信息
-    room_base_info = (BilibiliApiGeneric().get_room_base_info(room_id) if room_status else None) if b_u_l_c.get_cookies() else None
+    room_base_info = (
+        BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_base_info(room_id) if room_status else None) if b_u_l_c.get_cookies() else None
     """直播间基本信息"""
     log_save(0, f"║║登录账户 的 直播间基本信息：{room_base_info if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 直播间的分区
@@ -6140,7 +6236,7 @@ def button_function_start_sub_area():
         return False
     # 获取默认账户
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    change_room_area_return = BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies())).change_room_area(
+    change_room_area_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=dict2cookie(b_u_l_c.get_cookies()), ).change_room_area(
         int(sub_live_area_combobox_value))
     log_save(0, f"更新直播间分区返回：{change_room_area_return}")
     if change_room_area_return["code"] == 0:
@@ -6158,7 +6254,7 @@ def button_function_start_sub_area():
     # 创建用户配置文件实例
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
     # 获取 '登录用户' 对应的直播间基础信息
-    room_info_old = BilibiliApiGeneric().get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
+    room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
     """直播间基础信息"""
     log_save(0, f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 的 直播间状态
@@ -6170,7 +6266,8 @@ def button_function_start_sub_area():
     """登录用户的直播间id"""
     log_save(0, f"║║登录账户 的 直播间id：{(room_id if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 直播间基本信息
-    room_base_info = (BilibiliApiGeneric().get_room_base_info(room_id) if room_status else None) if b_u_l_c.get_cookies() else None
+    room_base_info = (
+        BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_base_info(room_id) if room_status else None) if b_u_l_c.get_cookies() else None
     """直播间基本信息"""
     log_save(0, f"║║登录账户 的 直播间基本信息：{room_base_info if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 直播间的分区
@@ -6178,7 +6275,7 @@ def button_function_start_sub_area():
     """登录用户的直播间分区】{"parent_area_id": 3, "parent_area_name": "手游", "area_id": 255, "area_name": "明日方舟"}"""
     log_save(0, f"║║登录账户 的 直播间分区数据：{(area if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 直播间 常用分区信息
-    common_areas = BilibiliApiGeneric().get_anchor_common_areas(room_id)["data"]
+    common_areas = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_anchor_common_areas(room_id)["data"]
     """获取 '登录用户' 直播间 常用分区信息】[{"id": "255", "name": "明日方舟", "parent_id": "3", "parent_name": "手游",}, ]"""
     log_save(0, f"║║登录账户 的 常用分区信息：{(common_areas if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 常用直播间分区
@@ -6186,7 +6283,7 @@ def button_function_start_sub_area():
     """登录用户的常用直播间分区字典】{'{parent_id: id}': '{parent_name: name}', }"""
     log_save(0, f"║║登录账户 的 常用直播间分区：{(common_area_id_dict_str4common_area_name_dict_str.values() if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 B站直播分区信息
-    area_obj_list = BilibiliApiGeneric().get_area_obj_list()
+    area_obj_list = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_area_obj_list()
     """B站直播分区信息"""
     log_save(0, f"║║获取B站直播分区信息：{area_obj_list if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 直播间父分区数据
@@ -6395,7 +6492,7 @@ def button_function_start_live():
     # 获取开播平台
     live_streaming_platform = obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'live_streaming_platform_comboBox')
     log_save(0, f"使用【{live_streaming_platform}】平台 开播")
-    start_live = BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies())).start_live(int(sub_live_area_combobox_value), live_streaming_platform)
+    start_live = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=dict2cookie(b_u_l_c.get_cookies()), ).start_live(int(sub_live_area_combobox_value), live_streaming_platform)
     log_save(0, f"开播返回：{start_live}")
     if start_live["code"] == 0:
         log_save(0, f"开播成功。")
@@ -6424,7 +6521,7 @@ def button_function_start_live():
     currently_rtmp_push_code = obs.obs_data_get_string(streaming_service_settings, "key")
     log_save(0, f"目前rtmp推流码：【{currently_rtmp_push_code}】")
     log_save(0, f"obs推流状态：{obs.obs_frontend_streaming_active()}")
-    if currently_service_string == "" and currently_rtmp_server == rtmp_server and currently_rtmp_push_code == rtmp_push_code:
+    if currently_rtmp_push_code == rtmp_push_code and currently_rtmp_server == "rtmp://live-push.bilivideo.com/live-bvc/" :  # and currently_service_string == "Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP" :
         log_save(0, f"推流信息未发生变化")
         if obs.obs_frontend_streaming_active():
             log_save(0, f"正处于推流状态中。。。")
@@ -6434,12 +6531,12 @@ def button_function_start_live():
             obs.obs_frontend_streaming_start()
     else:
         log_save(0, f"推流信息发生变化")
-        # 写入推流服务
-        obs.obs_data_set_string(streaming_service_settings, "service", "")
-        log_save(0, f"向obs写入推流服务：【】")
+        # # 写入推流服务
+        # obs.obs_data_set_string(streaming_service_settings, "service", "Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP")
+        # log_save(0, f"向obs写入推流服务：【Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP】")
         # 写入推流地址
-        obs.obs_data_set_string(streaming_service_settings, "server", rtmp_server)
-        log_save(0, f"向obs写入推流地址：【{rtmp_server}】")
+        obs.obs_data_set_string(streaming_service_settings, "server", "rtmp://live-push.bilivideo.com/live-bvc/")
+        log_save(0, f"向obs写入推流地址：【rtmp://live-push.bilivideo.com/live-bvc/】")
         # 写入rtmp推流码
         obs.obs_data_set_string(streaming_service_settings, "key", rtmp_push_code)
         log_save(0, f"向obs写入rtmp推流码：【{rtmp_push_code}】")
@@ -6481,7 +6578,7 @@ def button_function_start_live():
     log_save(0, f"║╔{6*'═'}设置控件前准备（获取数据）{6*'═'}╗")
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
     # 获取 '登录用户' 对应的直播间基础信息
-    room_info_old = BilibiliApiGeneric().get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
+    room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
     """直播间基础信息"""
     log_save(0, f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 的 直播间状态
@@ -6735,15 +6832,15 @@ def button_function_rtmp_address_copy(props, prop):
     """
     # 获取默认账户
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    stream_addr = BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies())).fetch_stream_addr()
+    stream_addr = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=dict2cookie(b_u_l_c.get_cookies()), ).get_live_stream_info()
     log_save(0, f"获取直播服务器返回：{stream_addr}")
     if stream_addr["code"] == 0:
         log_save(0, f"获取直播服务器成功")
-        log_save(0, f"直播服务器：【{stream_addr['data']['addr']['addr']}】")
-        cb.copy(stream_addr['data']['addr']['addr'])
+        log_save(0, f"直播服务器：【{stream_addr['data']['rtmp']['addr']}】")
+        cb.copy(stream_addr['data']['rtmp']['addr'])
         log_save(0, f"已将 直播服务器 复制到剪贴板")
     else:
-        log_save(3, f"获取直播服务器失败：{stream_addr['message']}")
+        log_save(3, f"获取直播服务器失败：{stream_addr['error']}")
     return True
 
 
@@ -6757,12 +6854,12 @@ def button_function_rtmp_stream_code_copy(props, prop):
     """
     # 获取默认账户
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    stream_addr = BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies())).fetch_stream_addr()
+    stream_addr = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=dict2cookie(b_u_l_c.get_cookies()), ).get_live_stream_info()
     log_save(0, f"获取直播推流码返回：{stream_addr}")
     if stream_addr["code"] == 0:
         log_save(0, f"获取直播推流码成功")
-        log_save(0, f"直播推流码：【{stream_addr['data']['addr']['code']}】")
-        cb.copy(stream_addr['data']['addr']['code'])
+        log_save(0, f"直播推流码：【{stream_addr['data']['rtmp']['code']}】")
+        cb.copy(stream_addr['data']['rtmp']['code'])
         log_save(0, f"已将 直播推流码 复制到剪贴板")
     else:
         log_save(3, f"获取直播推流码失败：{stream_addr['message']}")
@@ -6778,9 +6875,12 @@ def button_function_rtmp_stream_code_update(props, prop):
         prop:
     Returns:
     """
+    # 获取开播平台
+    live_streaming_platform = obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'live_streaming_platform_comboBox')
+    log_save(0, f"使用【{live_streaming_platform}】平台 开播")
     # 获取默认账户
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    stream_addr = BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies())).fetch_stream_addr(True)
+    stream_addr = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=dict2cookie(b_u_l_c.get_cookies()), ).fetch_stream_addr(live_streaming_platform, True)
     log_save(0, f"更新直播推流码返回：{stream_addr}")
     if stream_addr["code"] == 0:
         log_save(0, f"更新直播推流码成功")
@@ -6804,8 +6904,13 @@ def button_function_stop_live():
         log_save(0, f"停止推流")
         obs.obs_frontend_streaming_stop()
 
+    # 获取开播平台
+    live_streaming_platform = obs.obs_data_get_string(GlobalVariableOfTheControl.script_settings, 'live_streaming_platform_comboBox')
+    log_save(0, f"使用【{live_streaming_platform}】平台 开播")
+
+
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    stop_live = BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies())).stop_live()
+    stop_live = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=dict2cookie(b_u_l_c.get_cookies()), ).stop_live(live_streaming_platform)
     log_save(0, f"停播返回：{stop_live}")
     if stop_live["code"] == 0:
         log_save(0, f"停播成功。")
@@ -6823,7 +6928,7 @@ def button_function_stop_live():
     log_save(0, f"║╔{6*'═'}设置控件前准备（获取数据）{6*'═'}╗")
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
     # 获取 '登录用户' 对应的直播间基础信息
-    room_info_old = BilibiliApiGeneric().get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
+    room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
     """直播间基础信息"""
     log_save(0, f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 的 直播间状态
@@ -7140,7 +7245,8 @@ def button_function_creat_live_appointment(props, prop):
     # 获取默认账户
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
     # 创建直播预约
-    create_reserve_return = BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies())).create_reserve(title = live_bookings_title, live_plan_start_time = get_future_timestamp(live_bookings_day, live_bookings_hour, live_bookings_minute), create_dynamic = live_bookings_dynamic_is)
+    create_reserve_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=
+        dict2cookie(b_u_l_c.get_cookies()), ).create_reserve(title = live_bookings_title, live_plan_start_time = get_future_timestamp(live_bookings_day, live_bookings_hour, live_bookings_minute), create_dynamic = live_bookings_dynamic_is)
     log_save(0, f"创建直播预约返回: {create_reserve_return}")
     if create_reserve_return['code'] == 0:
         log_save(0, f"创建直播预约成功")
@@ -7162,7 +7268,7 @@ def button_function_creat_live_appointment(props, prop):
     # 获取默认账户
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
     # 获取 '登录用户' 对应的直播间基础信息
-    room_info_old = BilibiliApiGeneric().get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
+    room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
     """直播间基础信息"""
     log_save(0, f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 的 直播间状态
@@ -7170,7 +7276,7 @@ def button_function_creat_live_appointment(props, prop):
     """登录用户的直播间存在状态"""
     log_save(0, f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 登录用户的直播预约列表信息
-    reserve_list = BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies())).get_reserve_list()
+    reserve_list = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=dict2cookie(b_u_l_c.get_cookies()), ).get_reserve_list()
     """获取 '登录用户' 的 直播预约列表信息"""
     log_save(0, f"║║登录账户 的 直播预约列表信息：{(reserve_list if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 登录用户的直播预约字典
@@ -7493,7 +7599,7 @@ def button_function_cancel_live_appointment(props, prop):
         return False
     # 获取默认账户
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    cancel_reserve_return = BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies())).cancel_reserve(live_bookings_sid)
+    cancel_reserve_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=dict2cookie(b_u_l_c.get_cookies()), ).cancel_reserve(live_bookings_sid)
     log_save(0, f"取消直播预约返回: {cancel_reserve_return}")
     if cancel_reserve_return['code'] == 0:
         log_save(0, f"取消直播预约成功")
@@ -7513,7 +7619,7 @@ def button_function_cancel_live_appointment(props, prop):
     # 获取默认账户
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
     # 获取 '登录用户' 对应的直播间基础信息
-    room_info_old = BilibiliApiGeneric().get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
+    room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
     """直播间基础信息"""
     log_save(0, f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 的 直播间状态
@@ -7521,7 +7627,7 @@ def button_function_cancel_live_appointment(props, prop):
     """登录用户的直播间存在状态"""
     log_save(0, f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 登录用户的直播预约列表信息
-    reserve_list = BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies())).get_reserve_list()
+    reserve_list = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=dict2cookie(b_u_l_c.get_cookies()), ).get_reserve_list()
     """获取 '登录用户' 的 直播预约列表信息"""
     log_save(0, f"║║登录账户 的 直播预约列表信息：{(reserve_list if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 登录用户的直播预约字典
