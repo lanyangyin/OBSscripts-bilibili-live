@@ -149,7 +149,7 @@ information4frontend_event = {
 
 
 class GlobalVariableOfTheControl:
-    isScript_propertiesNum = 0  # Script_properties()被调用的次数
+    isScript_propertiesIs = False  # Script_properties()被调用的次数
     """Script_properties()被调用的次数"""
     streaming_active = None  # OBS推流状态
     """OBS推流状态"""
@@ -165,6 +165,14 @@ class GlobalVariableOfTheControl:
     """【直播】分组框中的控件属性集"""  
     manage_props = None  # ##【管理】分组框中的控件属性集
     """【管理】分组框中的控件属性集"""
+
+    # #不在分组框中的控件-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    top_button = None  # ##按钮【顶部】对象
+    """按钮【顶部】对象"""
+    top_button_visible = False  # ###按钮【顶部】对象的【可见】
+    """按钮【顶部】对象的【可见】"""
+    top_button_enabled = False  # ###按钮【顶部】对象的【可用】
+    """按钮【顶部】对象的【可用】"""
 
     # #【账号】分组框中的控件-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     account_group = None  # ##分组框【账号】对象
@@ -613,6 +621,14 @@ class GlobalVariableOfTheControl:
     """按钮【取消直播预约】对象的【可见】"""
     live_bookings_cancel_button_enabled = False  # ###按钮【取消直播预约】对象的【可用】
     """按钮【取消直播预约】对象的【可用】"""
+
+    # #不在分组框中的控件-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    bottom_button = None  # ##按钮【底部】对象
+    """按钮【底部】对象"""
+    bottom_button_visible = False  # ###按钮【底部】对象的【可见】
+    """按钮【底部】对象的【可见】"""
+    bottom_button_enabled = False  # ###按钮【底部】对象的【可用】
+    """按钮【底部】对象的【可用】"""
 
 
 class GlobalVariableOfData:
@@ -2918,30 +2934,34 @@ def trigger_frontend_event(event):
 
 
 def property_modified(t=""):
-    if GlobalVariableOfTheControl.isScript_propertiesNum == 1:
-        log_save(0, f"┏━UI变动事件测试函数被调用（Script_properties）━┓")
-        log_save(0, f"┃　UI变动事件测试函数被调用（Script_properties）　┃{t}")
-        log_save(0, f"┗━UI变动事件测试函数被调用（Script_properties）━┛")
-        return False
-    if t == "只读文本框【登录状态】":
-        GlobalVariableOfTheControl.isScript_propertiesNum += 1
-    elif t == "组合框【一级分区】":
-        return button_function_start_parent_area()
-    elif t == "文件对话框【直播间封面】":
-        return button_function_update_room_cover()
-    elif t == "可编辑组合框【常用标题】":
-        return button_function_true_live_room_title()
-    elif t == "组合框【常用分区】":
-        return button_function_true_live_room_area()
-    elif t == "数字滑块【预约天】":
-        return button_function_true_live_appointment_day()
-    elif t == "数字滑块【预约时】":
-        return button_function_true_live_appointment_hour()
-    elif t == "数字滑块【预约分】":
-        return button_function_true_live_appointment_minute()
-    log_save(0, f"┏━UI变动事件测试函数被调用━┓")
-    log_save(0, f"┃　UI变动事件测试函数被调用　┃{t}")
-    log_save(0, f"┗━UI变动事件测试函数被调用━┛")
+    if t == "按钮【底部】":
+        log_save(0, f"┏━UI变动事件测试函数被调用（Script_properties）开始━┓")
+        log_save(0, f"┃　UI变动事件测试函数被调用（Script_properties）开始　┃")
+        log_save(0, f"┗━UI变动事件测试函数被调用（Script_properties）开始━┛")
+        GlobalVariableOfTheControl.isScript_propertiesIs = True
+    if not GlobalVariableOfTheControl.isScript_propertiesIs:
+        if t == "组合框【一级分区】":
+            return button_function_start_parent_area()
+        elif t == "文件对话框【直播间封面】":
+            return button_function_update_room_cover()
+        elif t == "可编辑组合框【常用标题】":
+            return button_function_true_live_room_title()
+        elif t == "组合框【常用分区】":
+            return button_function_true_live_room_area()
+        elif t == "数字滑块【预约天】":
+            return button_function_true_live_appointment_day()
+        elif t == "数字滑块【预约时】":
+            return button_function_true_live_appointment_hour()
+        elif t == "数字滑块【预约分】":
+            return button_function_true_live_appointment_minute()
+        log_save(0, f"┏━UI变动事件测试函数被调用━┓")
+        log_save(0, f"┃　UI变动事件测试函数被调用　┃{t}")
+        log_save(0, f"┗━UI变动事件测试函数被调用━┛")
+    if t == "按钮【顶部】":
+        log_save(0, f"┏━UI变动事件测试函数被调用（Script_properties）结束━┓")
+        log_save(0, f"┃　UI变动事件测试函数被调用（Script_properties）结束　┃")
+        log_save(0, f"┗━UI变动事件测试函数被调用（Script_properties）结束━┛")
+        GlobalVariableOfTheControl.isScript_propertiesIs = False
     return False
 
 
@@ -3193,6 +3213,12 @@ def script_defaults(settings):  # 设置其默认值
     # 设置控件属性
     log_save(0, f"║")
     log_save(0, f"║╔{15*'═'}设置 控件属性{15*'═'}╗")
+    # 设置 按钮【顶部】 可见状态
+    GlobalVariableOfTheControl.top_button_visible = False
+    log_save(0, f"║║设置 按钮【顶部】 可见状态：{str(GlobalVariableOfTheControl.top_button_visible)}")
+    # 设置 按钮【顶部】 可用状态
+    GlobalVariableOfTheControl.top_button_enabled = False
+    log_save(0, f"║║设置 按钮【顶部】 可用状态：{str(GlobalVariableOfTheControl.top_button_enabled)}")
     # 分组框【账号】
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     log_save(0, f"║║")
@@ -3686,6 +3712,12 @@ def script_defaults(settings):  # 设置其默认值
 
     # 设置 分组框【直播】 中控件属性 结束
     log_save(0, f"║║╚{7*'═'}设置 分组框【直播】 中控件属性{7*'═'}╝")
+    # 设置 按钮【底部】 可见状态
+    GlobalVariableOfTheControl.bottom_button_visible = False
+    log_save(0, f"║║设置 按钮【底部】 可见状态：{str(GlobalVariableOfTheControl.bottom_button_visible)}")
+    # 设置 按钮【底部】 可用状态
+    GlobalVariableOfTheControl.bottom_button_enabled = False
+    log_save(0, f"║║设置 按钮【底部】 可用状态：{str(GlobalVariableOfTheControl.bottom_button_enabled)}")
     # 设置 控件属性 结束
     log_save(0, f"║╚{15*'═'}设置 控件属性{15*'═'}╝")
     # 调整控件数据 结束
@@ -3766,6 +3798,11 @@ def script_properties():  # 建立控件
     GlobalVariableOfTheControl.liveRoom_props = obs.obs_properties_create()
     # 为 分组框【直播】 建立属性集
     GlobalVariableOfTheControl.live_props = obs.obs_properties_create()
+
+    # 添加 按钮【顶部】
+    GlobalVariableOfTheControl.top_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.props, "top_button", "顶部", lambda ps, p: button_function_test("顶部"))
+    # 添加 按钮【顶部】变动后事件
+    obs.obs_property_set_modified_callback(GlobalVariableOfTheControl.top_button, lambda ps, p, st: property_modified("按钮【顶部】"))
 
     # —————————————————————————————————————————————————————————————————————————————————————————————————————
     # 添加 分组框【配置】
@@ -3960,17 +3997,13 @@ def script_properties():  # 建立控件
     GlobalVariableOfTheControl.live_bookings_cancel_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.live_props, "live_bookings_cancel_button", "取消直播预约", button_function_cancel_live_appointment)
 
     # ————————————————————————————————————————————————————————————————————————————————
+    # 添加 按钮【底部】
+    GlobalVariableOfTheControl.bottom_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.props, "bottom_button", "底部", lambda ps, p: button_function_test("底部"))
+    # 添加 按钮【底部】变动后事件
+    obs.obs_property_set_modified_callback(GlobalVariableOfTheControl.bottom_button, lambda ps, p, st: property_modified("按钮【底部】"))
+
     # 更新UI界面数据#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
-    GlobalVariableOfTheControl.isScript_propertiesNum += 1
-    log_save(0,
-             f"╒{'═' * 30}{'创建初始控件' if GlobalVariableOfTheControl.isScript_propertiesNum <= 1 else '载入控件UI数据'}{'═' * 30}╕")
-    log_save(0,
-             f"│{' ' * 30}{'创建初始控件' if GlobalVariableOfTheControl.isScript_propertiesNum <= 1 else '载入控件UI数据'}{' ' * 30}│")
     update_ui_interface_data(is_script_properties=True)
-    log_save(0,
-             f"│{' ' * 30}{'创建初始控件' if GlobalVariableOfTheControl.isScript_propertiesNum <= 1 else '载入控件UI数据'}{' ' * 30}│")
-    log_save(0,
-             f"╘{'═' * 30}{'创建初始控件' if GlobalVariableOfTheControl.isScript_propertiesNum <= 1 else '载入控件UI数据'}{'═' * 30}╛")
     log_save(0, f"║{' ' * 20}调用内置函数script_properties调整脚本控件{' ' * 20}║")
     log_save(0, f"╚{'═' * 20}调用内置函数script_properties调整脚本控件{'═' * 20}╝")
     log_save(0, f"")
