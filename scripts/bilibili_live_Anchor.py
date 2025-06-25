@@ -448,6 +448,13 @@ class GlobalVariableOfTheControl:
     live_group_enabled = False  # ##分组框【直播】对象的【可用】
     """分组框【直播】对象的【可用】"""
 
+    live_face_auth_button = None  # ##按钮【人脸认证】对象
+    """按钮【人脸认证】对象"""
+    live_face_auth_button_visible = False  # ###按钮【人脸认证】对象的【可见】
+    """按钮【人脸认证】对象的【可见】"""
+    live_face_auth_button_enabled = False  # ###按钮【人脸认证】对象的【可用】
+    """按钮【人脸认证】对象的【可用】"""
+
     live_streaming_platform_comboBox = None  # ##组合框【直播平台】对象
     """组合框【直播平台】对象"""
     live_streaming_platform_comboBox_visible = False  # ##组合框【直播平台】对象的【可见】
@@ -3417,8 +3424,15 @@ def script_defaults(settings):  # 设置其默认值
     GlobalVariableOfTheControl.live_group_enabled = bool(room_status)
     log_save(0, f"║║║设置 分组框【直播】 可用状态：{GlobalVariableOfTheControl.live_group_enabled}")
 
+    # 设置 按钮【人脸认证】 可见状态
+    GlobalVariableOfTheControl.live_face_auth_button_visible = bool(room_status)
+    log_save(0, f"║║║设置 按钮【人脸认证】 可见状态：{str(GlobalVariableOfTheControl.live_face_auth_button_visible)}")
+    # 设置 按钮【人脸认证】 可用状态
+    GlobalVariableOfTheControl.live_face_auth_button_enabled = bool(room_status)
+    log_save(0, f"║║║设置 按钮【人脸认证】 可用状态：{str(GlobalVariableOfTheControl.live_face_auth_button_enabled)}")
+
     # 设置 组合框【直播平台】 可见状态
-    GlobalVariableOfTheControl.live_streaming_platform_comboBox_visible = True if ((not live_status) and room_status) else False
+    GlobalVariableOfTheControl.live_streaming_platform_comboBox_visible = bool(room_status)
     log_save(0, f"║║║设置 组合框【直播平台】 可见状态：{str(GlobalVariableOfTheControl.blive_web_jump_button_visible)}")
     # 设置 组合框【直播平台】 可用状态
     GlobalVariableOfTheControl.live_streaming_platform_comboBox_enabled = True if ((not live_status) and room_status) else False
@@ -3796,6 +3810,9 @@ def script_properties():  # 建立控件
     # ————————————————————————————————————————————————————————————————
     # 添加 分组框【直播】
     GlobalVariableOfTheControl.live_group = obs.obs_properties_add_group(GlobalVariableOfTheControl.props, 'live_group', '【直播】', obs.OBS_GROUP_NORMAL, GlobalVariableOfTheControl.live_props)
+
+    # 添加 按钮【人脸认证】
+    GlobalVariableOfTheControl.live_face_auth_button = obs.obs_properties_add_button(GlobalVariableOfTheControl.live_props, "live_face_auth_button", "人脸认证", lambda ps, p: button_function_face_auth())
 
     # 添加 组合框【直播平台】
     GlobalVariableOfTheControl.live_streaming_platform_comboBox = obs.obs_properties_add_list(GlobalVariableOfTheControl.live_props, 'live_streaming_platform_comboBox', '直播平台：', obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING)
@@ -4823,6 +4840,22 @@ def update_ui_interface_data(is_script_properties=False):
     # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
     log_save(0, f"　│┌{'─'*60}┐")
     log_save(0, f"　││▶️分组框【直播】")
+    # 按钮【人脸认证】 UI
+    log_save(0, f"　││┌{'─'*55}")
+    log_save(0, f"　│││⚛️按钮【人脸认证】 UI")
+    # 设置 按钮【人脸认证】 可见状态
+    if obs.obs_property_visible(GlobalVariableOfTheControl.live_face_auth_button) != GlobalVariableOfTheControl.live_face_auth_button_visible:
+        log_save(0, f"　│││✏️ 按钮【人脸认证】 可见状态 发生变动: {obs.obs_property_visible(GlobalVariableOfTheControl.live_face_auth_button)}➡️{GlobalVariableOfTheControl.live_face_auth_button_visible}")
+        obs.obs_property_set_visible(GlobalVariableOfTheControl.live_face_auth_button, GlobalVariableOfTheControl.live_face_auth_button_visible)
+    else:
+        log_save(0, f"　│││🧩 按钮【人脸认证】 可见状态 未 发生变动")
+    # 设置 按钮【人脸认证】 可用状态
+    if obs.obs_property_enabled(GlobalVariableOfTheControl.live_face_auth_button) != GlobalVariableOfTheControl.live_face_auth_button_enabled:
+        log_save(0, f"　│││✏️ 按钮【人脸认证】 可用状态 发生变动: {obs.obs_property_enabled(GlobalVariableOfTheControl.live_face_auth_button)}➡️{GlobalVariableOfTheControl.live_face_auth_button_enabled}")
+        obs.obs_property_set_enabled(GlobalVariableOfTheControl.live_face_auth_button, GlobalVariableOfTheControl.live_face_auth_button_enabled)
+    else:
+        log_save(0, f"　│││🧩 按钮【人脸认证】 可用状态 未 发生变动")
+    log_save(0, f"　││└{'─'*55}")
     # 按钮【开始直播并复制推流码】 UI
     log_save(0, f"　││┌{'─'*55}")
     log_save(0, f"　│││⚛️按钮【开始直播并复制推流码】 UI")
@@ -5741,6 +5774,24 @@ def button_function_update_room_cover():
     return True
 
 
+def button_function_face_auth():
+    """展示人脸认证的二维码"""
+    # 创建用户配置文件实例
+    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+    # 获取登录用户的uid
+    uid = b_u_l_c.get_users()[0]
+    log_save(0, f"获取登录用户的uid：{uid}")
+    # 获取人脸认证的链接
+    qr_url = f"https://www.bilibili.com/blackboard/live/face-auth-middle.html?source_event=400&mid={uid}"
+    log_save(0, f"获取人脸认证的链接：{qr_url}")
+    if uid:
+        # 获取二维码对象
+        qr = qr_text8pil_img(qr_url)
+        qr['img'].show()
+    else:
+        log_save(3, f"未登录")
+
+
 def button_function_true_live_room_title():
     """将可 可编辑组合框【常用标题】 中的文本 复制到 普通文本框【直播间标题】 """
     # 获取 可编辑组合框【常用标题】 当前 显示文本
@@ -6215,8 +6266,7 @@ def button_function_start_sub_area():
     """登录用户的直播间id"""
     log_save(0, f"║║登录账户 的 直播间id：{(room_id if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 直播间基本信息
-    room_base_info = (
-        BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_base_info(room_id) if room_status else None) if b_u_l_c.get_cookies() else None
+    room_base_info = (BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_base_info(room_id) if room_status else None) if b_u_l_c.get_cookies() else None
     """直播间基本信息"""
     log_save(0, f"║║登录账户 的 直播间基本信息：{room_base_info if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
     # 获取 '登录用户' 直播间的分区
@@ -6236,13 +6286,15 @@ def button_function_start_sub_area():
         return False
     # 获取默认账户
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    change_room_area_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=dict2cookie(b_u_l_c.get_cookies()), ).change_room_area(
-        int(sub_live_area_combobox_value))
+    change_room_area_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=dict2cookie(b_u_l_c.get_cookies()), ).change_room_area(int(sub_live_area_combobox_value))
     log_save(0, f"更新直播间分区返回：{change_room_area_return}")
     if change_room_area_return["code"] == 0:
         log_save(0, "直播间分区更改成功")
     else:
+        if change_room_area_return["code"] == 60024:
+            button_function_face_auth()
         log_save(2, f"直播间分区更改失败：{change_room_area_return['message']}")
+        return False
 
     # 调整控件数据
     log_save(0, f"")
@@ -6497,8 +6549,10 @@ def button_function_start_live():
     if start_live["code"] == 0:
         log_save(0, f"开播成功。")
     else:
+        if start_live["code"] == 60024:
+            button_function_face_auth()
         log_save(3, f"开播失败：【{start_live['message']}】。")
-        return False
+        return True
 
     # 推流地址
     rtmp_server = start_live["data"]["rtmp"]["addr"]
@@ -6608,7 +6662,7 @@ def button_function_start_live():
     log_save(0, f"║║║设置 分组框【直播】 可用状态：{GlobalVariableOfTheControl.live_group_enabled}")
 
     # 设置 组合框【直播平台】 可见状态
-    GlobalVariableOfTheControl.live_streaming_platform_comboBox_visible = True if ((not live_status) and room_status) else False
+    GlobalVariableOfTheControl.live_streaming_platform_comboBox_visible = bool(room_status)
     log_save(0, f"║║║设置 组合框【直播平台】 可见状态：{str(GlobalVariableOfTheControl.blive_web_jump_button_visible)}")
     # 设置 组合框【直播平台】 可用状态
     GlobalVariableOfTheControl.live_streaming_platform_comboBox_enabled = True if ((not live_status) and room_status) else False
@@ -6958,7 +7012,7 @@ def button_function_stop_live():
     log_save(0, f"║║║设置 分组框【直播】 可用状态：{GlobalVariableOfTheControl.live_group_enabled}")
 
     # 设置 组合框【直播平台】 可见状态
-    GlobalVariableOfTheControl.live_streaming_platform_comboBox_visible = True if ((not live_status) and room_status) else False
+    GlobalVariableOfTheControl.live_streaming_platform_comboBox_visible = bool(room_status)
     log_save(0, f"║║║设置 组合框【直播平台】 可见状态：{str(GlobalVariableOfTheControl.blive_web_jump_button_visible)}")
     # 设置 组合框【直播平台】 可用状态
     GlobalVariableOfTheControl.live_streaming_platform_comboBox_enabled = True if ((not live_status) and room_status) else False
