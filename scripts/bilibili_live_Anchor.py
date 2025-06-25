@@ -2471,6 +2471,78 @@ class BilibiliApiMaster:
         ChangeRoomArea_ReturnValue = requests.post(verify=self.sslVerification, url = api, headers=headers, params=AnchorChangeRoomArea_data).json()
         return ChangeRoomArea_ReturnValue
 
+    def rename_fans_medal(self, medal_name: str) -> dict:
+        """
+        修改粉丝勋章名称
+
+        Args:
+            medal_name: 新的粉丝勋章名称
+
+        Returns:
+            包含操作结果的字典，结构:
+            {
+                "code": int,      # 返回代码 (0表示成功)
+                "message": str,    # 操作结果消息
+                "msg": str,        # 操作结果消息(同message)
+                "data": dict       # 附加数据
+            }
+
+            常见错误代码:
+            - 5200012: 勋章名称不可含有特殊字符
+            - 其他错误代码参考B站API文档
+        """
+        api_url = "https://api.live.bilibili.com/fans_medal/v1/medal/rename"
+
+        # 准备请求参数
+        params = {
+            "uid": self.cookies.get("DedeUserID", ""),
+            "source": "1",
+            "medal_name": medal_name,
+            "platform": "pc",
+            "csrf_token": self.csrf,
+            "csrf": self.csrf
+        }
+
+        # 准备请求头
+        headers = {
+            **self.headers,
+            "origin": "https://link.bilibili.com",
+            "referer": "https://link.bilibili.com/p/center/index",
+            "content-type": "application/x-www-form-urlencoded",
+            "priority": "u=1, i"
+        }
+
+        try:
+            # 发送POST请求
+            response = requests.post(
+                api_url,
+                headers=headers,
+                data=params,
+                timeout=10
+            )
+
+            # 尝试解析JSON响应
+            try:
+                result = response.json()
+                return result
+            except ValueError:
+                # JSON解析失败时返回原始文本
+                return {
+                    "code": -1,
+                    "message": f"响应解析失败: {response.text[:100]}...",
+                    "msg": f"响应解析失败: {response.text[:100]}...",
+                    "data": {}
+                }
+
+        except requests.exceptions.RequestException as e:
+            # 网络请求异常
+            return {
+                "code": -1,
+                "message": f"网络请求失败: {str(e)}",
+                "msg": f"网络请求失败: {str(e)}",
+                "data": {}
+            }
+
     def start_live(self, area_id: int,  platform: Literal["pc_link", "web_link", "android_link"]):
         """
         开始直播
@@ -2851,7 +2923,9 @@ def property_modified(t=""):
         log_save(0, f"┃　UI变动事件测试函数被调用（Script_properties）　┃{t}")
         log_save(0, f"┗━UI变动事件测试函数被调用（Script_properties）━┛")
         return False
-    if t == "组合框【一级分区】":
+    if t == "只读文本框【登录状态】":
+        GlobalVariableOfTheControl.isScript_propertiesNum += 1
+    elif t == "组合框【一级分区】":
         return button_function_start_parent_area()
     elif t == "文件对话框【直播间封面】":
         return button_function_update_room_cover()
