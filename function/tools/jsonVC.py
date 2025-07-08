@@ -1,15 +1,15 @@
 from typing import Union, Optional, Callable, Any, Dict, List, Iterator
 
-# 控件默认属性
+# 控件默认属性（首字母大写）
 DefaultPropertiesOfTheControl: Dict[str, Optional[Union[int, str, bool, Any]]] = {
-    "obj": None,  # 控件脚本对象
-    "props": None,  # 隶属属性集
-    "number": 0,  # 载入次序
-    "name": "",  # 唯一名称
-    "description": "",  # 说明文本
-    "visible": False,  # 可见状态
-    "enabled": False,  # 可用状态
-    "modified_is": False,  # 是否监听
+    "Obj": None,  # 控件脚本对象
+    "Props": None,  # 隶属属性集
+    "Number": 0,  # 载入次序
+    "Name": "",  # 唯一名称
+    "Description": "",  # 说明文本
+    "Visible": False,  # 可见状态
+    "Enabled": False,  # 可用状态
+    "ModifiedIs": False,  # 是否监听
 }
 
 # ️复选框控件
@@ -31,7 +31,7 @@ class CheckBoxP:
                 setattr(self, key, value)
 
     def __repr__(self) -> str:
-        return f"<CheckBoxP name='{self.name}' number={self.number} Bool={self.Bool}>"
+        return f"<CheckBoxP Name='{self.Name}' Number={self.Number} Bool={self.Bool}>"
 
 
 class CheckBoxPs:
@@ -45,7 +45,10 @@ class CheckBoxPs:
         """添加复选框控件"""
         if name in self._controls:
             raise ValueError(f"复选框 '{name}' 已存在")
-        control = CheckBoxP(name=name, **kwargs)
+        # 确保Name属性设置正确
+        if "Name" not in kwargs:
+            kwargs["Name"] = name
+        control = CheckBoxP(**kwargs)
         self._controls[name] = control
         self._loading_order.append(control)
         setattr(self, name, control)
@@ -80,7 +83,7 @@ class CheckBoxPs:
 
     def get_loading_order(self) -> List[CheckBoxP]:
         """获取按载入次序排序的复选框控件列表"""
-        return sorted(self._loading_order, key=lambda c: c.number)
+        return sorted(self._loading_order, key=lambda c: c.Number)
 
 
 # ️数字框控件
@@ -105,7 +108,7 @@ class DigitalDisplayP:
                 setattr(self, key, value)
 
     def __repr__(self) -> str:
-        return f"<DigitalDisplayP name='{self.name}' number={self.number} Min={self.Min} Max={self.Max}>"
+        return f"<DigitalDisplayP Name='{self.Name}' Number={self.Number} Min={self.Min} Max={self.Max}>"
 
 
 class DigitalDisplayPs:
@@ -119,7 +122,10 @@ class DigitalDisplayPs:
         """添加数字框控件"""
         if name in self._controls:
             raise ValueError(f"数字框 '{name}' 已存在")
-        control = DigitalDisplayP(name=name, **kwargs)
+        # 确保Name属性设置正确
+        if "Name" not in kwargs:
+            kwargs["Name"] = name
+        control = DigitalDisplayP(**kwargs)
         self._controls[name] = control
         self._loading_order.append(control)
         setattr(self, name, control)
@@ -154,7 +160,7 @@ class DigitalDisplayPs:
 
     def get_loading_order(self) -> List[DigitalDisplayP]:
         """获取按载入次序排序的数字框控件列表"""
-        return sorted(self._loading_order, key=lambda c: c.number)
+        return sorted(self._loading_order, key=lambda c: c.Number)
 
 
 # 文本框控件
@@ -178,7 +184,7 @@ class TextBoxP:
                 setattr(self, key, value)
 
     def __repr__(self) -> str:
-        return f"<TextBoxP name='{self.name}' number={self.number} Text='{self.Text}'>"
+        return f"<TextBoxP Name='{self.Name}' Number={self.Number} Text='{self.Text}'>"
 
 
 class TextBoxPs:
@@ -192,7 +198,10 @@ class TextBoxPs:
         """添加文本框控件"""
         if name in self._controls:
             raise ValueError(f"文本框 '{name}' 已存在")
-        control = TextBoxP(name=name, **kwargs)
+        # 确保Name属性设置正确
+        if "Name" not in kwargs:
+            kwargs["Name"] = name
+        control = TextBoxP(**kwargs)
         self._controls[name] = control
         self._loading_order.append(control)
         setattr(self, name, control)
@@ -227,7 +236,7 @@ class TextBoxPs:
 
     def get_loading_order(self) -> List[TextBoxP]:
         """获取按载入次序排序的文本框控件列表"""
-        return sorted(self._loading_order, key=lambda c: c.number)
+        return sorted(self._loading_order, key=lambda c: c.Number)
 
 
 # ️按钮控件
@@ -251,7 +260,7 @@ class ButtonP:
                 setattr(self, key, value)
 
     def __repr__(self) -> str:
-        return f"<ButtonP name='{self.name}' number={self.number} Callback={self.Callback is not None}>"
+        return f"<ButtonP Name='{self.Name}' Number={self.Number} Callback={self.Callback is not None}>"
 
 
 class ButtonPs:
@@ -265,7 +274,10 @@ class ButtonPs:
         """添加按钮控件"""
         if name in self._controls:
             raise ValueError(f"按钮 '{name}' 已存在")
-        control = ButtonP(name=name, **kwargs)
+        # 确保Name属性设置正确
+        if "Name" not in kwargs:
+            kwargs["Name"] = name
+        control = ButtonP(**kwargs)
         self._controls[name] = control
         self._loading_order.append(control)
         setattr(self, name, control)
@@ -300,7 +312,7 @@ class ButtonPs:
 
     def get_loading_order(self) -> List[ButtonP]:
         """获取按载入次序排序的按钮控件列表"""
-        return sorted(self._loading_order, key=lambda c: c.number)
+        return sorted(self._loading_order, key=lambda c: c.Number)
 
 
 # 组合框控件
@@ -308,7 +320,7 @@ ComboBox: Dict[str, Optional[Union[int, str, bool, Any]]] = {
     "Type": None,  # 组合框类型
     "Text": "",  # 显示文本
     "Value": "",  # 显示文本对应的选项值
-    "dictionary": {},  # 数据字典
+    "Dictionary": {},  # 数据字典
     **DefaultPropertiesOfTheControl,
 }
 
@@ -325,7 +337,7 @@ class ComboBoxP:
                 setattr(self, key, value)
 
     def __repr__(self) -> str:
-        return f"<ComboBoxP name='{self.name}' number={self.number} Text='{self.Text}'>"
+        return f"<ComboBoxP Name='{self.Name}' Number={self.Number} Text='{self.Text}'>"
 
 
 class ComboBoxPs:
@@ -339,7 +351,10 @@ class ComboBoxPs:
         """添加组合框控件"""
         if name in self._controls:
             raise ValueError(f"组合框 '{name}' 已存在")
-        control = ComboBoxP(name=name, **kwargs)
+        # 确保Name属性设置正确
+        if "Name" not in kwargs:
+            kwargs["Name"] = name
+        control = ComboBoxP(**kwargs)
         self._controls[name] = control
         self._loading_order.append(control)
         setattr(self, name, control)
@@ -374,7 +389,7 @@ class ComboBoxPs:
 
     def get_loading_order(self) -> List[ComboBoxP]:
         """获取按载入次序排序的组合框控件列表"""
-        return sorted(self._loading_order, key=lambda c: c.number)
+        return sorted(self._loading_order, key=lambda c: c.Number)
 
 
 # ️文件对话框控件
@@ -397,7 +412,7 @@ class FileDialogBoxP:
                 setattr(self, key, value)
 
     def __repr__(self) -> str:
-        return f"<FileDialogBoxP name='{self.name}' number={self.number} Filter='{self.Filter}'>"
+        return f"<FileDialogBoxP Name='{self.Name}' Number={self.Number} Filter='{self.Filter}'>"
 
 
 class FileDialogBoxPs:
@@ -411,7 +426,10 @@ class FileDialogBoxPs:
         """添加文件对话框控件"""
         if name in self._controls:
             raise ValueError(f"文件对话框 '{name}' 已存在")
-        control = FileDialogBoxP(name=name, **kwargs)
+        # 确保Name属性设置正确
+        if "Name" not in kwargs:
+            kwargs["Name"] = name
+        control = FileDialogBoxP(**kwargs)
         self._controls[name] = control
         self._loading_order.append(control)
         setattr(self, name, control)
@@ -446,7 +464,7 @@ class FileDialogBoxPs:
 
     def get_loading_order(self) -> List[FileDialogBoxP]:
         """获取按载入次序排序的文件对话框控件列表"""
-        return sorted(self._loading_order, key=lambda c: c.number)
+        return sorted(self._loading_order, key=lambda c: c.Number)
 
 
 # ️文件夹对话框控件
@@ -468,7 +486,7 @@ class DirDialogBoxP:
                 setattr(self, key, value)
 
     def __repr__(self) -> str:
-        return f"<DirDialogBoxP name='{self.name}' number={self.number} Text='{self.Text}'>"
+        return f"<DirDialogBoxP Name='{self.Name}' Number={self.Number} Text='{self.Text}'>"
 
 
 class DirDialogBoxPs:
@@ -482,7 +500,10 @@ class DirDialogBoxPs:
         """添加文件夹对话框控件"""
         if name in self._controls:
             raise ValueError(f"文件夹对话框 '{name}' 已存在")
-        control = DirDialogBoxP(name=name, **kwargs)
+        # 确保Name属性设置正确
+        if "Name" not in kwargs:
+            kwargs["Name"] = name
+        control = DirDialogBoxP(**kwargs)
         self._controls[name] = control
         self._loading_order.append(control)
         setattr(self, name, control)
@@ -517,10 +538,10 @@ class DirDialogBoxPs:
 
     def get_loading_order(self) -> List[DirDialogBoxP]:
         """获取按载入次序排序的文件夹对话框控件列表"""
-        return sorted(self._loading_order, key=lambda c: c.number)
+        return sorted(self._loading_order, key=lambda c: c.Number)
 
 
-# 分组框控件（不再管理子控件）
+# 分组框控件（独立控件）
 Group: Dict[str, Optional[Union[int, str, bool, Any]]] = {
     "GroupProps": None,  # 统辖属性集
     **DefaultPropertiesOfTheControl,
@@ -539,7 +560,7 @@ class GroupP:
                 setattr(self, key, value)
 
     def __repr__(self) -> str:
-        return f"<GroupP name='{self.name}' number={self.number}>"
+        return f"<GroupP Name='{self.Name}' Number={self.Number}>"
 
 
 class GroupPs:
@@ -553,7 +574,10 @@ class GroupPs:
         """添加分组框控件"""
         if name in self._groups:
             raise ValueError(f"分组框 '{name}' 已存在")
-        group = GroupP(name=name, **kwargs)
+        # 确保Name属性设置正确
+        if "Name" not in kwargs:
+            kwargs["Name"] = name
+        group = GroupP(**kwargs)
         self._groups[name] = group
         self._loading_order.append(group)
         setattr(self, name, group)
@@ -588,7 +612,7 @@ class GroupPs:
 
     def get_loading_order(self) -> List[GroupP]:
         """获取按载入次序排序的分组框控件列表"""
-        return sorted(self._loading_order, key=lambda c: c.number)
+        return sorted(self._loading_order, key=lambda c: c.Number)
 
 
 class Widget:
@@ -623,20 +647,20 @@ class Widget:
     def loading(self):
         """按载入次序排序所有控件"""
         self._update_all_controls()
-        # 按number属性排序
-        sorted_controls = sorted(self._all_controls, key=lambda c: c.number)
+        # 按Number属性排序
+        sorted_controls = sorted(self._all_controls, key=lambda c: c.Number)
 
         # 创建载入次序字典
         self._loading_dict = {}
         for control in sorted_controls:
-            if control.number in self._loading_dict:
-                existing_control = self._loading_dict[control.number]
+            if control.Number in self._loading_dict:
+                existing_control = self._loading_dict[control.Number]
                 raise ValueError(
-                    f"载入次序冲突: 控件 '{control.name}' (类型: {type(control).__name__}) 和 "
-                    f"'{existing_control.name}' (类型: {type(existing_control).__name__}) "
-                    f"使用相同的number值 {control.number}"
+                    f"载入次序冲突: 控件 '{control.Name}' (类型: {type(control).__name__}) 和 "
+                    f"'{existing_control.Name}' (类型: {type(existing_control).__name__}) "
+                    f"使用相同的Number值 {control.Number}"
                 )
-            self._loading_dict[control.number] = control
+            self._loading_dict[control.Number] = control
 
     def get_control_by_number(self, number: int) -> Optional[Any]:
         """通过载入次序获取控件"""
@@ -670,13 +694,24 @@ if __name__ == "__main__":
     widget = Widget()
 
     # 添加复选框
-    widget.CheckBox.add("global_checkbox", Bool=True, number=1, description="全局复选框")
+    widget.CheckBox.add("GlobalCheckbox",
+                        Bool=True,
+                        Number=1,
+                        Description="全局复选框")
 
     # 添加数字框
-    widget.DigitalDisplay.add("global_display", Min=0, Max=100, Step=5, number=2)
+    widget.DigitalDisplay.add("GlobalDisplay",
+                              Min=0,
+                              Max=100,
+                              Step=5,
+                              Number=2,
+                              Description="音量控制")
 
     # 添加文本框
-    widget.TextBox.add("global_text", Text="示例文本", number=3)
+    widget.TextBox.add("GlobalText",
+                       Text="示例文本",
+                       Number=3,
+                       Description="用户名")
 
 
     # 添加按钮
@@ -684,23 +719,37 @@ if __name__ == "__main__":
         print("按钮被点击!")
 
 
-    widget.Button.add("global_button", Callback=button_callback, number=4)
+    widget.Button.add("GlobalButton",
+                      Callback=button_callback,
+                      Number=4,
+                      Description="保存设置")
 
     # 添加组合框
-    widget.ComboBox.add("global_combo", dictionary={"opt1": "选项1", "opt2": "选项2"}, number=5)
+    widget.ComboBox.add("GlobalCombo",
+                        Dictionary={
+                            "light": "明亮主题",
+                            "dark": "暗黑主题",
+                            "blue": "蓝色主题"
+                        },
+                        Value="dark",
+                        Number=5,
+                        Description="界面主题")
 
-    # 添加分组框（独立控件）
-    widget.Group.add("group1", number=6, description="第一组控件")
-
-    # 添加分组内的控件（独立控件）
-    widget.CheckBox.add("group_checkbox", Bool=False, number=7)
-    widget.DigitalDisplay.add("group_slider", SliderIs=True, Min=0, Max=50, Step=1, number=8)
+    # 添加分组框
+    widget.Group.add("AppearanceGroup",
+                     Number=6,
+                     Description="外观设置")
 
     # 添加文件对话框
-    widget.FileDialogBox.add("file_dialog", Filter="图片(*.jpg *.png)", Text="选择图片", number=9)
+    widget.FileDialogBox.add("LogoFile",
+                             Filter="图片文件(*.jpg *.png);矢量图(*.svg)",
+                             Text="选择Logo文件",
+                             Number=7)
 
     # 添加文件夹对话框
-    widget.DirDialogBox.add("dir_dialog", Text="选择目录", number=10)
+    widget.DirDialogBox.add("OutputDir",
+                            Text="选择输出目录",
+                            Number=8)
 
     # 输出表单信息
     print("表单结构:")
@@ -708,28 +757,43 @@ if __name__ == "__main__":
 
     print("\n按载入次序排序的控件:")
     for control in widget.get_sorted_controls():
-        print(f"{control.number}: {control}")
+        print(f"{control.Number}: {control.Name} ({type(control).__name__})")
 
-    # 查找控件示例
-    print("\n查找控件:")
-    print("通过名称查找 'global_button':", widget.get_control_by_name("global_button"))
-    print("通过载入次序查找 3:", widget.get_control_by_number(3))
-
-    # 访问控件属性示例
+    # 访问控件属性
     print("\n访问控件属性:")
-    print("全局复选框状态:", widget.CheckBox.global_checkbox.Bool)
-    print("全局数字框最大值:", widget.DigitalDisplay.global_display.Max)
-    print("分组复选框状态:", widget.CheckBox.group_checkbox.Bool)
+    print(f"全局复选框状态: {widget.CheckBox.GlobalCheckbox.Bool}")
+    print(f"全局数字框最大值: {widget.DigitalDisplay.GlobalDisplay.Max}")
+    print(f"组合框当前值: {widget.ComboBox.GlobalCombo.Value}")
 
     # 修改控件属性
-    widget.CheckBox.global_checkbox.Bool = False
-    widget.DigitalDisplay.global_display.Max = 200
-    widget.TextBox.global_text.Text = "修改后的文本"
+    widget.CheckBox.GlobalCheckbox.Bool = False
+    widget.DigitalDisplay.GlobalDisplay.Max = 200
+    widget.TextBox.GlobalText.Text = "修改后的文本"
 
     print("\n修改后的属性:")
-    print("全局复选框状态:", widget.CheckBox.global_checkbox.Bool)
-    print("全局数字框最大值:", widget.DigitalDisplay.global_display.Max)
-    print("全局文本框内容:", widget.TextBox.global_text.Text)
+    print(f"全局复选框状态: {widget.CheckBox.GlobalCheckbox.Bool}")
+    print(f"全局数字框最大值: {widget.DigitalDisplay.GlobalDisplay.Max}")
+    print(f"全局文本框内容: {widget.TextBox.GlobalText.Text}")
 
+    # 通过名称查找控件
+    print("\n通过名称查找控件:")
+    found_control = widget.get_control_by_name("GlobalCombo")
+    if found_control:
+        print(f"找到控件: {found_control.Name}, 类型: {type(found_control).__name__}")
 
+    # 通过载入次序查找控件
+    print("\n通过载入次序查找控件:")
+    control_by_number = widget.get_control_by_number(3)
+    if control_by_number:
+        print(f"载入次序3的控件: {control_by_number.Name}, 文本: {control_by_number.Text}")
 
+    # 移除控件
+    print("\n移除控件:")
+    if widget.Button.remove("GlobalButton"):
+        print("已移除全局按钮")
+
+    # 尝试访问已移除的控件
+    try:
+        print(widget.Button.GlobalButton)
+    except AttributeError:
+        print("无法访问已移除的控件")
