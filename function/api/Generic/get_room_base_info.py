@@ -75,7 +75,7 @@ class BilibiliApiGeneric:
                 raise ValueError(f"API错误: {error_msg}")
 
             # 提取房间信息
-            by_room_ids = data.get("data", {}).get("by_room_ids", {})
+            by_room_ids = data.get("data").get("by_room_ids")
             if not by_room_ids:
                 raise ValueError("未找到房间信息")
 

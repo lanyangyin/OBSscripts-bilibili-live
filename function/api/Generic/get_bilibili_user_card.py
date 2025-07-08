@@ -47,38 +47,38 @@ def get_bilibili_user_card(mid, photo=False) -> dict:
                 'error': True,
                 'code': data['code'],
                 'message': data['message'],
-                'ttl': data.get('ttl', 1)
+                'ttl': data.get('ttl')
             }
 
         # 提取主要数据
         result = {
             'basic_info': {
-                'mid': data['data']['card'].get('mid', ''),
-                'name': data['data']['card'].get('name', ''),
-                'sex': data['data']['card'].get('sex', '保密'),
-                'avatar': data['data']['card'].get('face', ''),
-                'sign': data['data']['card'].get('sign', ''),
+                'mid': data['data']['card'].get('mid'),
+                'name': data['data']['card'].get('name'),
+                'sex': data['data']['card'].get('sex'),
+                'avatar': data['data']['card'].get('face'),
+                'sign': data['data']['card'].get('sign'),
                 'level': data['data']['card']['level_info']['current_level'] if 'level_info' in data['data'][
                     'card'] else 0,
-                'status': '正常' if data['data']['card'].get('spacesta', 0) == 0 else '封禁'
+                'status': '正常' if data['data']['card'].get('spacesta') == 0 else '封禁'
             },
             'stats': {
-                'following': data['data'].get('following', False),
-                'archive_count': data['data'].get('archive_count', 0),
-                'follower': data['data'].get('follower', 0),
-                'like_num': data['data'].get('like_num', 0),
-                'attention': data['data']['card'].get('attention', 0)  # 关注数
+                'following': data['data'].get('following'),
+                'archive_count': data['data'].get('archive_count'),
+                'follower': data['data'].get('follower'),
+                'like_num': data['data'].get('like_num'),
+                'attention': data['data']['card'].get('attention')  # 关注数
             },
             'verification': {
-                'role': data['data']['card']['Official'].get('role', -1) if 'Official' in data['data']['card'] else -1,
-                'title': data['data']['card']['Official'].get('title', '') if 'Official' in data['data'][
+                'role': data['data']['card']['Official'].get('role') if 'Official' in data['data']['card'] else -1,
+                'title': data['data']['card']['Official'].get('title') if 'Official' in data['data'][
                     'card'] else '',
-                'type': data['data']['card']['Official'].get('type', -1) if 'Official' in data['data']['card'] else -1
+                'type': data['data']['card']['Official'].get('type') if 'Official' in data['data']['card'] else -1
             },
             'vip_info': {
-                'type': data['data']['card']['vip'].get('vipType', 0) if 'vip' in data['data']['card'] else 0,
-                'status': data['data']['card']['vip'].get('vipStatus', 0) if 'vip' in data['data']['card'] else 0,
-                'label': data['data']['card']['vip']['label'].get('text', '') if 'vip' in data['data'][
+                'type': data['data']['card']['vip'].get('vipType') if 'vip' in data['data']['card'] else 0,
+                'status': data['data']['card']['vip'].get('vipStatus') if 'vip' in data['data']['card'] else 0,
+                'label': data['data']['card']['vip']['label'].get('text') if 'vip' in data['data'][
                     'card'] and 'label' in data['data']['card']['vip'] else ''
             }
         }
@@ -86,25 +86,25 @@ def get_bilibili_user_card(mid, photo=False) -> dict:
         # 如果请求了头图
         if photo and 'space' in data['data']:
             result['space_image'] = {
-                'small': data['data']['space'].get('s_img', ''),
-                'large': data['data']['space'].get('l_img', '')
+                'small': data['data']['space'].get('s_img'),
+                'large': data['data']['space'].get('l_img')
             }
 
         # 添加勋章信息（如果存在）
         if 'nameplate' in data['data']['card']:
             result['nameplate'] = {
-                'id': data['data']['card']['nameplate'].get('nid', 0),
-                'name': data['data']['card']['nameplate'].get('name', ''),
-                'image': data['data']['card']['nameplate'].get('image', ''),
-                'level': data['data']['card']['nameplate'].get('level', '')
+                'id': data['data']['card']['nameplate'].get('nid'),
+                'name': data['data']['card']['nameplate'].get('name'),
+                'image': data['data']['card']['nameplate'].get('image'),
+                'level': data['data']['card']['nameplate'].get('level')
             }
 
         # 添加挂件信息（如果存在）
         if 'pendant' in data['data']['card']:
             result['pendant'] = {
-                'id': data['data']['card']['pendant'].get('pid', 0),
-                'name': data['data']['card']['pendant'].get('name', ''),
-                'image': data['data']['card']['pendant'].get('image', '')
+                'id': data['data']['card']['pendant'].get('pid'),
+                'name': data['data']['card']['pendant'].get('name'),
+                'image': data['data']['card']['pendant'].get('image')
             }
 
         return result
