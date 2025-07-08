@@ -1821,40 +1821,40 @@ class BilibiliApiGeneric:
                     'error': True,
                     'code': data['code'],
                     'message': data['message'],
-                    'ttl': data.get('ttl', 1)
+                    'ttl': data.get('ttl')
                 }
 
             # 提取主要数据
             result = {
                 'basic_info': {
-                    'mid': data['data']['card'].get('mid', ''),
-                    'name': data['data']['card'].get('name', ''),
-                    'sex': data['data']['card'].get('sex', '保密'),
-                    'avatar': data['data']['card'].get('face', ''),
-                    'sign': data['data']['card'].get('sign', ''),
+                    'mid': data['data']['card'].get('mid'),
+                    'name': data['data']['card'].get('name'),
+                    'sex': data['data']['card'].get('sex'),
+                    'avatar': data['data']['card'].get('face'),
+                    'sign': data['data']['card'].get('sign'),
                     'level': data['data']['card']['level_info']['current_level'] if 'level_info' in data['data'][
                         'card'] else 0,
-                    'status': '正常' if data['data']['card'].get('spacesta', 0) == 0 else '封禁'
+                    'status': '正常' if data['data']['card'].get('spacesta') == 0 else '封禁'
                 },
                 'stats': {
-                    'following': data['data'].get('following', False),
-                    'archive_count': data['data'].get('archive_count', 0),
-                    'follower': data['data'].get('follower', 0),
-                    'like_num': data['data'].get('like_num', 0),
-                    'attention': data['data']['card'].get('attention', 0)  # 关注数
+                    'following': data['data'].get('following'),
+                    'archive_count': data['data'].get('archive_count'),
+                    'follower': data['data'].get('follower'),
+                    'like_num': data['data'].get('like_num'),
+                    'attention': data['data']['card'].get('attention')  # 关注数
                 },
                 'verification': {
-                    'role': data['data']['card']['Official'].get('role', -1) if 'Official' in data['data'][
+                    'role': data['data']['card']['Official'].get('role') if 'Official' in data['data'][
                         'card'] else -1,
-                    'title': data['data']['card']['Official'].get('title', '') if 'Official' in data['data'][
+                    'title': data['data']['card']['Official'].get('title') if 'Official' in data['data'][
                         'card'] else '',
-                    'type': data['data']['card']['Official'].get('type', -1) if 'Official' in data['data'][
+                    'type': data['data']['card']['Official'].get('type') if 'Official' in data['data'][
                         'card'] else -1
                 },
                 'vip_info': {
-                    'type': data['data']['card']['vip'].get('vipType', 0) if 'vip' in data['data']['card'] else 0,
-                    'status': data['data']['card']['vip'].get('vipStatus', 0) if 'vip' in data['data']['card'] else 0,
-                    'label': data['data']['card']['vip']['label'].get('text', '') if 'vip' in data['data'][
+                    'type': data['data']['card']['vip'].get('vipType') if 'vip' in data['data']['card'] else 0,
+                    'status': data['data']['card']['vip'].get('vipStatus') if 'vip' in data['data']['card'] else 0,
+                    'label': data['data']['card']['vip']['label'].get('text') if 'vip' in data['data'][
                         'card'] and 'label' in data['data']['card']['vip'] else ''
                 }
             }
@@ -1862,25 +1862,25 @@ class BilibiliApiGeneric:
             # 如果请求了头图
             if photo and 'space' in data['data']:
                 result['space_image'] = {
-                    'small': data['data']['space'].get('s_img', ''),
-                    'large': data['data']['space'].get('l_img', '')
+                    'small': data['data']['space'].get('s_img'),
+                    'large': data['data']['space'].get('l_img')
                 }
 
             # 添加勋章信息（如果存在）
             if 'nameplate' in data['data']['card']:
                 result['nameplate'] = {
-                    'id': data['data']['card']['nameplate'].get('nid', 0),
-                    'name': data['data']['card']['nameplate'].get('name', ''),
-                    'image': data['data']['card']['nameplate'].get('image', ''),
-                    'level': data['data']['card']['nameplate'].get('level', '')
+                    'id': data['data']['card']['nameplate'].get('nid'),
+                    'name': data['data']['card']['nameplate'].get('name'),
+                    'image': data['data']['card']['nameplate'].get('image'),
+                    'level': data['data']['card']['nameplate'].get('level')
                 }
 
             # 添加挂件信息（如果存在）
             if 'pendant' in data['data']['card']:
                 result['pendant'] = {
-                    'id': data['data']['card']['pendant'].get('pid', 0),
-                    'name': data['data']['card']['pendant'].get('name', ''),
-                    'image': data['data']['card']['pendant'].get('image', '')
+                    'id': data['data']['card']['pendant'].get('pid'),
+                    'name': data['data']['card']['pendant'].get('name'),
+                    'image': data['data']['card']['pendant'].get('image')
                 }
 
             return result
@@ -1945,7 +1945,7 @@ class BilibiliApiGeneric:
                 raise ValueError(f"API错误: {error_msg}")
 
             # 提取房间信息
-            by_room_ids = data.get("data", {}).get("by_room_ids", {})
+            by_room_ids = data.get("data").get("by_room_ids")
             if not by_room_ids:
                 raise ValueError("未找到房间信息")
 
@@ -2190,7 +2190,7 @@ class BilibiliApiGeneric:
 
         # 检查API返回状态码
         if data.get("code") != 0:
-            error_msg = data.get("message", "未知错误")
+            error_msg = data.get("message")
             raise RuntimeError(f"API返回错误: {error_msg} (code: {data['code']})")
 
         # 检查数据是否存在
@@ -2200,16 +2200,16 @@ class BilibiliApiGeneric:
 
         # 确保返回完整字段结构
         return {
-            "roomStatus": result.get("roomStatus", 0),
-            "roundStatus": result.get("roundStatus", 0),
-            "liveStatus": result.get("liveStatus", 0),
-            "url": result.get("url", ""),
-            "title": result.get("title", ""),
-            "cover": result.get("cover", ""),
-            "online": result.get("online", 0),
-            "roomid": result.get("roomid", 0),
-            "broadcast_type": result.get("broadcast_type", 0),
-            "online_hidden": result.get("online_hidden", 0),
+            "roomStatus": result.get("roomStatus"),
+            "roundStatus": result.get("roundStatus"),
+            "liveStatus": result.get("liveStatus"),
+            "url": result.get("url"),
+            "title": result.get("title"),
+            "cover": result.get("cover"),
+            "online": result.get("online"),
+            "roomid": result.get("roomid"),
+            "broadcast_type": result.get("broadcast_type"),
+            "online_hidden": result.get("online_hidden"),
         }
 
     # 登陆用函数
@@ -2328,7 +2328,7 @@ class BilibiliApiMaster:
             data = response.json()
 
             # 返回用户信息
-            return data.get("data", {})
+            return data.get("data")
 
         except requests.exceptions.RequestException as e:
             raise requests.exceptions.RequestException(f"网络请求失败: {e}") from e
@@ -2398,11 +2398,11 @@ class BilibiliApiMaster:
 
             # 验证API响应
             if data.get("code") != 0:
-                error_msg = data.get("message", "未知错误")
+                error_msg = data.get("message")
                 raise ValueError(f"API错误: {error_msg}")
 
             # 提取预约列表
-            reserve_list = data.get("data", {}).get("list", []) if data.get("data", {}).get("list", []) else []
+            reserve_list = data.get("data").get("list") if data.get("data").get("list") else []
             if not isinstance(reserve_list, list):
                 raise ValueError("返回数据格式异常，缺少预约列表")
 
@@ -3852,7 +3852,7 @@ def script_properties():  # 建立控件
     GlobalVariableOfTheControl.room_cover_view_button = obs.obs_properties_add_button(room_props, 'room_cover_view_button', f'查看直播间封面', button_function_check_room_cover)
 
     # 添加 文件对话框【直播间封面】
-    GlobalVariableOfTheControl.room_cover_fileDialogBox = obs.obs_properties_add_path(room_props, 'room_cover_fileDialogBox', f'直播间封面', obs.OBS_PATH_FILE, '*jpg *jpeg *.png', None)
+    GlobalVariableOfTheControl.room_cover_fileDialogBox = obs.obs_properties_add_path(room_props, 'room_cover_fileDialogBox', f'直播间封面', obs.OBS_PATH_FILE, '图片(*.jpg *.jpeg *.png)', None)
     # 添加 文件对话框【直播间封面】变动后事件
     obs.obs_property_set_modified_callback(GlobalVariableOfTheControl.room_cover_fileDialogBox, lambda ps, p, st: property_modified("文件对话框【直播间封面】"))
 
