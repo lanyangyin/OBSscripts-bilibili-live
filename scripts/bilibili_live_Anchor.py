@@ -31,7 +31,7 @@ import sys
 import time
 import urllib
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Literal, Union, List, Any
+from typing import Optional, Dict, Literal, Union, List, Any, Callable, Iterator
 # import zlib
 from urllib.parse import quote, unquote, parse_qs, urlparse
 from pathlib import Path
@@ -52,6 +52,682 @@ import pyperclip as cb
 from PIL import Image, ImageOps
 
 # import websockets
+
+
+# 控件默认属性（首字母大写）
+DefaultPropertiesOfTheControl: Dict[str, Optional[Union[int, str, bool, Any]]] = {
+    "ControlType": "Base",  # 添加类型标识
+    "Obj": None,  # 控件脚本对象
+    "Props": None,  # 隶属属性集
+    "Number": 0,  # 载入次序
+    "Name": "",  # 唯一名称
+    "Description": "",  # 说明文本
+    "Visible": False,  # 可见状态
+    "Enabled": False,  # 可用状态
+    "ModifiedIs": False,  # 是否监听
+}
+
+# ️复选框控件
+CheckBox: Dict[str, Optional[Union[int, str, bool, Any]]] = {
+    **DefaultPropertiesOfTheControl,
+    "ControlType": "CheckBox",  # 设置具体类型
+    "Bool": False,  # 复选框是否选中
+}
+
+
+# ️数字框控件
+DigitalDisplay: Dict[str, Optional[Union[int, str, bool, Any]]] = {
+    **DefaultPropertiesOfTheControl,
+    "ControlType": "DigitalDisplay",  # 设置具体类型
+    "SliderIs": False,  # 数字框是否有滑块
+    "Value": 0,  # 显示文本对应的选项值
+    "Suffix": "",
+    "Min": 0,  # 数字显示框或滑块控件的最小值
+    "Max": 0,  # 数字显示框或滑块控件的最大值
+    "Step": 0,  # 数字显示框或滑块控件的步长
+}
+
+
+# 文本框控件
+TextBox: Dict[str, Optional[Union[int, str, bool, Any]]] = {
+    **DefaultPropertiesOfTheControl,
+    "ControlType": "TextBox",  # 设置具体类型
+    "Type": None,  # 文本框类型
+    # - obs.OBS_TEXT_DEFAULT        表示单行文本框，
+    # - obs.OBS_TEXT_PASSWORD       表示单行密码文本框，
+    # - obs.OBS_TEXT_MULTILINE      表示多行文本框，
+    # - obs.OBS_TEXT_INFO           表示不可编辑的只读文本框，效果类似于标签。
+    "Text": "",  # 显示文本
+    "InfoType": None,  # 信息类型
+    # - obs.OBS_TEXT_INFO_NORMAL    表示正常信息，
+    # - obs.OBS_TEXT_INFO_WARNING   表示警告信息，
+    # - obs.OBS_TEXT_INFO_ERROR     表示错误信息
+}
+
+
+# ️按钮控件
+Button: Dict[str, Optional[Union[int, str, bool, Any, Callable]]] = {
+    **DefaultPropertiesOfTheControl,
+    "ControlType": "Button",  # 设置具体类型
+    "Type": None,  # 按钮类型
+    # - obs.OBS_BUTTON_DEFAULT      表示标准普通按钮
+    # - obs.OBS_BUTTON_URL          表示可打开指定 URL 的链接按钮
+    "Callback": None,  # 回调函数
+    "Url": "",  # 需要打开的 URL
+}
+
+
+# 组合框控件
+ComboBox: Dict[str, Optional[Union[int, str, bool, Any]]] = {
+    **DefaultPropertiesOfTheControl,
+    "ControlType": "ComboBox",  # 设置具体类型
+    "Type": None,  # 组合框类型
+    # - obs.OBS_COMBO_TYPE_EDITABLE 表示可编辑组合框
+    # - obs.OBS_COMBO_TYPE_LIST     表示不可编辑组合框
+    "Text": "",  # 显示文本
+    "Value": "",  # 显示文本对应的选项值
+    "Dictionary": {},  # 数据字典
+}
+
+
+# ️ 路径对话框控件
+PathBox: Dict[str, Optional[Union[int, str, bool, Any]]] = {
+    **DefaultPropertiesOfTheControl,
+    "ControlType": "PathBox",  # 设置具体类型
+    "Type": None,  # 路径对话框类型
+    # OBS_PATH_FILE表示读取文件的对话框
+    # OBS_PATH_FILE_SAVE表示写入文件的对话框
+    # OBS_PATH_DIRECTORY表示选择文件夹的对话框
+    "Text": "",  # 显示文本
+    "Filter": "",  # 文件种类（筛选条件）
+    "StartPath": "", # 对话框起始路径
+}
+
+
+# 分组框控件（独立控件）
+Group: Dict[str, Optional[Union[int, str, bool, Any]]] = {
+    **DefaultPropertiesOfTheControl,
+    "ControlType": "Group",  # 设置具体类型
+    "Type": None,  # 分组框类型
+    # OBS_GROUP_NORMAL表示标准普通分组框
+    # OBS_GROUP_CHECKABLE表示拥有复选框的分组框
+    "GroupProps": None,  # 统辖属性集
+}
+
+
+# 复选框控件实例
+class CheckBoxP:
+    """复选框控件实例"""
+
+    def __init__(self, **kwargs):
+        for key, value in CheckBox.items():
+            setattr(self, key, value)
+        # 更新传入的自定义属性
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
+    def __repr__(self) -> str:
+        return f"<CheckBoxP Name='{self.Name}' Number={self.Number} Bool={self.Bool}>"
+
+
+class CheckBoxPs:
+    """复选框控件管理器"""
+
+    def __init__(self):
+        self._controls: Dict[str, CheckBoxP] = {}
+        self._loading_order: List[CheckBoxP] = []
+
+    def add(self, name: str, **kwargs) -> CheckBoxP:
+        """添加复选框控件"""
+        if name in self._controls:
+            raise ValueError(f"复选框 '{name}' 已存在")
+        # 确保Name属性设置正确
+        if "Name" not in kwargs:
+            kwargs["Name"] = name
+        control = CheckBoxP(**kwargs)
+        self._controls[name] = control
+        self._loading_order.append(control)
+        setattr(self, name, control)
+        return control
+
+    def get(self, name: str) -> Optional[CheckBoxP]:
+        """获取复选框控件"""
+        return self._controls.get(name)
+
+    def remove(self, name: str) -> bool:
+        """移除复选框控件"""
+        if name in self._controls:
+            control = self._controls.pop(name)
+            if hasattr(self, name):
+                delattr(self, name)
+            if control in self._loading_order:
+                self._loading_order.remove(control)
+            return True
+        return False
+
+    def __iter__(self) -> Iterator[CheckBoxP]:
+        """迭代所有复选框控件"""
+        return iter(self._controls.values())
+
+    def __len__(self) -> int:
+        """复选框控件数量"""
+        return len(self._controls)
+
+    def __contains__(self, name: str) -> bool:
+        """检查复选框控件是否存在"""
+        return name in self._controls
+
+    def get_loading_order(self) -> List[CheckBoxP]:
+        """获取按载入次序排序的复选框控件列表"""
+        return sorted(self._loading_order, key=lambda c: c.Number)
+
+
+# 数字框控件实例
+class DigitalDisplayP:
+    """数字框控件实例"""
+
+    def __init__(self, **kwargs):
+        for key, value in DigitalDisplay.items():
+            setattr(self, key, value)
+        # 更新传入的自定义属性
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
+    def __repr__(self) -> str:
+        return f"<DigitalDisplayP Name='{self.Name}' Number={self.Number} Min={self.Min} Max={self.Max}>"
+
+
+class DigitalDisplayPs:
+    """数字框控件管理器"""
+
+    def __init__(self):
+        self._controls: Dict[str, DigitalDisplayP] = {}
+        self._loading_order: List[DigitalDisplayP] = []
+
+    def add(self, name: str, **kwargs) -> DigitalDisplayP:
+        """添加数字框控件"""
+        if name in self._controls:
+            raise ValueError(f"数字框 '{name}' 已存在")
+        # 确保Name属性设置正确
+        if "Name" not in kwargs:
+            kwargs["Name"] = name
+        control = DigitalDisplayP(**kwargs)
+        self._controls[name] = control
+        self._loading_order.append(control)
+        setattr(self, name, control)
+        return control
+
+    def get(self, name: str) -> Optional[DigitalDisplayP]:
+        """获取数字框控件"""
+        return self._controls.get(name)
+
+    def remove(self, name: str) -> bool:
+        """移除数字框控件"""
+        if name in self._controls:
+            control = self._controls.pop(name)
+            if hasattr(self, name):
+                delattr(self, name)
+            if control in self._loading_order:
+                self._loading_order.remove(control)
+            return True
+        return False
+
+    def __iter__(self) -> Iterator[DigitalDisplayP]:
+        """迭代所有数字框控件"""
+        return iter(self._controls.values())
+
+    def __len__(self) -> int:
+        """数字框控件数量"""
+        return len(self._controls)
+
+    def __contains__(self, name: str) -> bool:
+        """检查数字框控件是否存在"""
+        return name in self._controls
+
+    def get_loading_order(self) -> List[DigitalDisplayP]:
+        """获取按载入次序排序的数字框控件列表"""
+        return sorted(self._loading_order, key=lambda c: c.Number)
+
+
+# 文本框控件实例
+class TextBoxP:
+    """文本框控件实例"""
+
+    def __init__(self, **kwargs):
+        for key, value in TextBox.items():
+            setattr(self, key, value)
+        # 更新传入的自定义属性
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
+    def __repr__(self) -> str:
+        return f"<TextBoxP Name='{self.Name}' Number={self.Number} Text='{self.Text}'>"
+
+
+class TextBoxPs:
+    """文本框控件管理器"""
+
+    def __init__(self):
+        self._controls: Dict[str, TextBoxP] = {}
+        self._loading_order: List[TextBoxP] = []
+
+    def add(self, name: str, **kwargs) -> TextBoxP:
+        """添加文本框控件"""
+        if name in self._controls:
+            raise ValueError(f"文本框 '{name}' 已存在")
+        # 确保Name属性设置正确
+        if "Name" not in kwargs:
+            kwargs["Name"] = name
+        control = TextBoxP(**kwargs)
+        self._controls[name] = control
+        self._loading_order.append(control)
+        setattr(self, name, control)
+        return control
+
+    def get(self, name: str) -> Optional[TextBoxP]:
+        """获取文本框控件"""
+        return self._controls.get(name)
+
+    def remove(self, name: str) -> bool:
+        """移除文本框控件"""
+        if name in self._controls:
+            control = self._controls.pop(name)
+            if hasattr(self, name):
+                delattr(self, name)
+            if control in self._loading_order:
+                self._loading_order.remove(control)
+            return True
+        return False
+
+    def __iter__(self) -> Iterator[TextBoxP]:
+        """迭代所有文本框控件"""
+        return iter(self._controls.values())
+
+    def __len__(self) -> int:
+        """文本框控件数量"""
+        return len(self._controls)
+
+    def __contains__(self, name: str) -> bool:
+        """检查文本框控件是否存在"""
+        return name in self._controls
+
+    def get_loading_order(self) -> List[TextBoxP]:
+        """获取按载入次序排序的文本框控件列表"""
+        return sorted(self._loading_order, key=lambda c: c.Number)
+
+
+# 按钮控件实例
+class ButtonP:
+    """按钮控件实例"""
+
+    def __init__(self, **kwargs):
+        for key, value in Button.items():
+            setattr(self, key, value)
+        # 更新传入的自定义属性
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
+    def __repr__(self) -> str:
+        return f"<ButtonP Name='{self.Name}' Number={self.Number} Callback={self.Callback is not None}>"
+
+
+class ButtonPs:
+    """按钮控件管理器"""
+
+    def __init__(self):
+        self._controls: Dict[str, ButtonP] = {}
+        self._loading_order: List[ButtonP] = []
+
+    def add(self, name: str, **kwargs) -> ButtonP:
+        """添加按钮控件"""
+        if name in self._controls:
+            raise ValueError(f"按钮 '{name}' 已存在")
+        # 确保Name属性设置正确
+        if "Name" not in kwargs:
+            kwargs["Name"] = name
+        control = ButtonP(**kwargs)
+        self._controls[name] = control
+        self._loading_order.append(control)
+        setattr(self, name, control)
+        return control
+
+    def get(self, name: str) -> Optional[ButtonP]:
+        """获取按钮控件"""
+        return self._controls.get(name)
+
+    def remove(self, name: str) -> bool:
+        """移除按钮控件"""
+        if name in self._controls:
+            control = self._controls.pop(name)
+            if hasattr(self, name):
+                delattr(self, name)
+            if control in self._loading_order:
+                self._loading_order.remove(control)
+            return True
+        return False
+
+    def __iter__(self) -> Iterator[ButtonP]:
+        """迭代所有按钮控件"""
+        return iter(self._controls.values())
+
+    def __len__(self) -> int:
+        """按钮控件数量"""
+        return len(self._controls)
+
+    def __contains__(self, name: str) -> bool:
+        """检查按钮控件是否存在"""
+        return name in self._controls
+
+    def get_loading_order(self) -> List[ButtonP]:
+        """获取按载入次序排序的按钮控件列表"""
+        return sorted(self._loading_order, key=lambda c: c.Number)
+
+
+# 组合框控件实例
+class ComboBoxP:
+    """组合框控件实例"""
+
+    def __init__(self, **kwargs):
+        for key, value in ComboBox.items():
+            setattr(self, key, value)
+        # 更新传入的自定义属性
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
+    def __repr__(self) -> str:
+        return f"<ComboBoxP Name='{self.Name}' Number={self.Number} Text='{self.Text}'>"
+
+
+class ComboBoxPs:
+    """组合框控件管理器"""
+
+    def __init__(self):
+        self._controls: Dict[str, ComboBoxP] = {}
+        self._loading_order: List[ComboBoxP] = []
+
+    def add(self, name: str, **kwargs) -> ComboBoxP:
+        """添加组合框控件"""
+        if name in self._controls:
+            raise ValueError(f"组合框 '{name}' 已存在")
+        # 确保Name属性设置正确
+        if "Name" not in kwargs:
+            kwargs["Name"] = name
+        control = ComboBoxP(**kwargs)
+        self._controls[name] = control
+        self._loading_order.append(control)
+        setattr(self, name, control)
+        return control
+
+    def get(self, name: str) -> Optional[ComboBoxP]:
+        """获取组合框控件"""
+        return self._controls.get(name)
+
+    def remove(self, name: str) -> bool:
+        """移除组合框控件"""
+        if name in self._controls:
+            control = self._controls.pop(name)
+            if hasattr(self, name):
+                delattr(self, name)
+            if control in self._loading_order:
+                self._loading_order.remove(control)
+            return True
+        return False
+
+    def __iter__(self) -> Iterator[ComboBoxP]:
+        """迭代所有组合框控件"""
+        return iter(self._controls.values())
+
+    def __len__(self) -> int:
+        """组合框控件数量"""
+        return len(self._controls)
+
+    def __contains__(self, name: str) -> bool:
+        """检查组合框控件是否存在"""
+        return name in self._controls
+
+    def get_loading_order(self) -> List[ComboBoxP]:
+        """获取按载入次序排序的组合框控件列表"""
+        return sorted(self._loading_order, key=lambda c: c.Number)
+
+
+# 路径对话框控件实例
+class PathBoxP:
+    """路径对话框控件实例"""
+
+    def __init__(self, **kwargs):
+        for key, value in PathBox.items():
+            setattr(self, key, value)
+        # 更新传入的自定义属性
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
+    def __repr__(self) -> str:
+        type_name = "未知类型"
+        if self.Type == obs.OBS_PATH_FILE:
+            type_name = "文件对话框"
+        elif self.Type == obs.OBS_PATH_FILE_SAVE:
+            type_name = "保存文件对话框"
+        elif self.Type == obs.OBS_PATH_DIRECTORY:
+            type_name = "文件夹对话框"
+
+        return (f"<PathBoxP Name='{self.Name}' Number={self.Number} "
+                f"Type='{type_name}' Text='{self.Text}'>")
+
+
+class PathBoxPs:
+    """路径对话框控件管理器"""
+
+    def __init__(self):
+        self._controls: Dict[str, PathBoxP] = {}
+        self._loading_order: List[PathBoxP] = []
+
+    def add(self, name: str, **kwargs) -> PathBoxP:
+        """添加路径对话框控件"""
+        if name in self._controls:
+            raise ValueError(f"路径对话框 '{name}' 已存在")
+        # 确保Name属性设置正确
+        if "Name" not in kwargs:
+            kwargs["Name"] = name
+        control = PathBoxP(**kwargs)
+        self._controls[name] = control
+        self._loading_order.append(control)
+        setattr(self, name, control)
+        return control
+
+    def get(self, name: str) -> Optional[PathBoxP]:
+        """获取路径对话框控件"""
+        return self._controls.get(name)
+
+    def remove(self, name: str) -> bool:
+        """移除路径对话框控件"""
+        if name in self._controls:
+            control = self._controls.pop(name)
+            if hasattr(self, name):
+                delattr(self, name)
+            if control in self._loading_order:
+                self._loading_order.remove(control)
+            return True
+        return False
+
+    def __iter__(self) -> Iterator[PathBoxP]:
+        """迭代所有路径对话框控件"""
+        return iter(self._controls.values())
+
+    def __len__(self) -> int:
+        """路径对话框控件数量"""
+        return len(self._controls)
+
+    def __contains__(self, name: str) -> bool:
+        """检查路径对话框控件是否存在"""
+        return name in self._controls
+
+    def get_loading_order(self) -> List[PathBoxP]:
+        """获取按载入次序排序的路径对话框控件列表"""
+        return sorted(self._loading_order, key=lambda c: c.Number)
+
+
+# 分组框控件实例
+class GroupP:
+    """分组框控件实例（独立控件）"""
+
+    def __init__(self, **kwargs):
+        for key, value in Group.items():
+            setattr(self, key, value)
+        # 更新传入的自定义属性
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
+    def __repr__(self) -> str:
+        return f"<GroupP Name='{self.Name}' Number={self.Number}>"
+
+
+class GroupPs:
+    """分组框控件管理器"""
+
+    def __init__(self):
+        self._groups: Dict[str, GroupP] = {}
+        self._loading_order: List[GroupP] = []
+
+    def add(self, name: str, **kwargs) -> GroupP:
+        """添加分组框控件"""
+        if name in self._groups:
+            raise ValueError(f"分组框 '{name}' 已存在")
+        # 确保Name属性设置正确
+        if "Name" not in kwargs:
+            kwargs["Name"] = name
+        group = GroupP(**kwargs)
+        self._groups[name] = group
+        self._loading_order.append(group)
+        setattr(self, name, group)
+        return group
+
+    def get(self, name: str) -> Optional[GroupP]:
+        """获取分组框控件"""
+        return self._groups.get(name)
+
+    def remove(self, name: str) -> bool:
+        """移除分组框控件"""
+        if name in self._groups:
+            group = self._groups.pop(name)
+            if hasattr(self, name):
+                delattr(self, name)
+            if group in self._loading_order:
+                self._loading_order.remove(group)
+            return True
+        return False
+
+    def __iter__(self) -> Iterator[GroupP]:
+        """迭代所有分组框控件"""
+        return iter(self._groups.values())
+
+    def __len__(self) -> int:
+        """分组框控件数量"""
+        return len(self._groups)
+
+    def __contains__(self, name: str) -> bool:
+        """检查分组框控件是否存在"""
+        return name in self._groups
+
+    def get_loading_order(self) -> List[GroupP]:
+        """获取按载入次序排序的分组框控件列表"""
+        return sorted(self._loading_order, key=lambda c: c.Number)
+
+
+# 表单管理器
+class Widget:
+    """表单管理器，管理所有控件"""
+
+    def __init__(self):
+        """初始化表单管理器"""
+        self.CheckBox = CheckBoxPs()
+        self.DigitalDisplay = DigitalDisplayPs()
+        self.TextBox = TextBoxPs()
+        self.Button = ButtonPs()
+        self.ComboBox = ComboBoxPs()
+        self.PathBox = PathBoxPs()
+        self.Group = GroupPs()
+        self._all_controls: List[Any] = []
+        self._loading_dict: Dict[int, Any] = {}
+
+    def _update_all_controls(self):
+        """更新所有控件列表"""
+        self._all_controls = []
+        # 收集所有类型的控件
+        self._all_controls.extend(self.CheckBox)
+        self._all_controls.extend(self.DigitalDisplay)
+        self._all_controls.extend(self.TextBox)
+        self._all_controls.extend(self.Button)
+        self._all_controls.extend(self.ComboBox)
+        self._all_controls.extend(self.PathBox)
+        self._all_controls.extend(self.Group)  # 分组框控件
+
+    def loading(self):
+        """按载入次序排序所有控件"""
+        self._update_all_controls()
+        # 按Number属性排序
+        sorted_controls = sorted(self._all_controls, key=lambda c: c.Number)
+        # ...收集所有控件...
+        name_dict = {}  # 用于检测名称冲突
+
+        # 创建载入次序字典
+        self._loading_dict = {}
+        for control in sorted_controls:
+            # 检查名称冲突
+            if control.Name in name_dict:
+                existing_control = name_dict[control.Name]
+                raise ValueError(
+                    f"控件名称冲突: 控件 '{control.Name}' "
+                    f"(类型: {type(control).__name__}, 载入次序: {control.Number}) 与 "
+                    f"'{existing_control.Name}' "
+                    f"(类型: {type(existing_control).__name__}, 载入次序: {existing_control.Number}) 重名"
+                )
+            else:
+                name_dict[control.Name] = control
+            if control.Number in self._loading_dict:
+                existing_control = self._loading_dict[control.Number]
+                raise ValueError(
+                    f"载入次序冲突: 控件 '{control.Name}' (类型: {type(control).__name__}) 和 "
+                    f"'{existing_control.Name}' (类型: {type(existing_control).__name__}) "
+                    f"使用相同的Number值 {control.Number}"
+                )
+            self._loading_dict[control.Number] = control
+
+    def get_control_by_number(self, number: int) -> Optional[Any]:
+        """通过载入次序获取控件"""
+        self.loading()  # 确保已排序
+        return self._loading_dict.get(number)
+
+    def get_control_by_name(self, name: str) -> Optional[Any]:
+        """通过名称获取控件"""
+        # 在顶级控件中查找
+        for manager in [self.CheckBox, self.DigitalDisplay, self.TextBox,
+                        self.Button, self.ComboBox, self.FileDialogBox,
+                        self.DirDialogBox, self.Group]:
+            if name in manager:
+                return manager.get(name)
+        return None
+
+    def get_sorted_controls(self) -> List[Any]:
+        """获取按载入次序排序的所有控件列表"""
+        self.loading()
+        return list(self._loading_dict.values())
+
+    def __repr__(self) -> str:
+        """返回表单的可读表示形式"""
+        self._update_all_controls()
+        return f"<Widget controls={len(self._all_controls)}>"
+
+
+# 创建控件表单
+widget = Widget()
+
 
 # 全局变量
 textBox_type_name4textBox_type = {
@@ -147,9 +823,6 @@ information4frontend_event = {
     obs.OBS_FRONTEND_EVENT_THEME_CHANGED: "主题已更改"
 }
 """obs前台事件文本"""
-
-
-
 
 
 class GlobalVariableOfTheControl:
@@ -619,6 +1292,8 @@ class GlobalVariableOfTheControl:
 
 
 class GlobalVariableOfData:
+    widget_loading_number = 0
+    """控件加载顺序"""
     isScript_propertiesIs = False  # Script_properties()被调用
     """Script_properties()被调用"""
     streaming_active = None  # OBS推流状态
@@ -2928,30 +3603,30 @@ def trigger_frontend_event(event):
 
 
 def property_modified(t=""):
-    if t == "按钮【底部】":
+    if t == "bottom_button":
         log_save(0, f"┏━UI变动事件测试函数被调用（Script_properties）开始━┓")
         log_save(0, f"┃　UI变动事件测试函数被调用（Script_properties）开始　┃")
         log_save(0, f"┗━UI变动事件测试函数被调用（Script_properties）开始━┛")
         GlobalVariableOfData.isScript_propertiesIs = True
     if not GlobalVariableOfData.isScript_propertiesIs:
-        if t == "组合框【一级分区】":
+        if t == "room_parentArea_comboBox":
             return button_function_start_parent_area()
-        elif t == "文件对话框【直播间封面】":
+        elif t == "room_cover_fileDialogBox":
             return button_function_update_room_cover()
-        elif t == "可编辑组合框【常用标题】":
+        elif t == "room_commonTitles_comboBox":
             return button_function_true_live_room_title()
-        elif t == "组合框【常用分区】":
+        elif t == "room_commonAreas_comboBox":
             return button_function_true_live_room_area()
-        elif t == "数字滑块【预约天】":
+        elif t == "live_bookings_day_digitalSlider":
             return button_function_true_live_appointment_day()
-        elif t == "数字滑块【预约时】":
+        elif t == "live_bookings_hour_digitalSlider":
             return button_function_true_live_appointment_hour()
-        elif t == "数字滑块【预约分】":
+        elif t == "live_bookings_minute_digitalSlider":
             return button_function_true_live_appointment_minute()
         log_save(0, f"┏━UI变动事件测试函数被调用━┓")
-        log_save(0, f"┃　UI变动事件测试函数被调用　┃{t}")
+        log_save(0, f"┃　UI变动事件测试函数被调用　┃ {t}")
         log_save(0, f"┗━UI变动事件测试函数被调用━┛")
-    if t == "按钮【顶部】":
+    if t == "top_button":
         log_save(0, f"┏━UI变动事件测试函数被调用（Script_properties）结束━┓")
         log_save(0, f"┃　UI变动事件测试函数被调用（Script_properties）结束　┃")
         log_save(0, f"┗━UI变动事件测试函数被调用（Script_properties）结束━┛")
@@ -2965,61 +3640,6 @@ def script_defaults(settings):  # 设置其默认值
     调用以设置与脚本关联的默认设置(如果有的话)。为了设置其默认值，您通常会调用默认值函数。
     :param settings:与脚本关联的设置。
     """
-    # # 调整控件数据
-    # log_save(0, f"")
-    # log_save(0, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
-    # log_save(0, f"║{25 * ' '}调整控件数据{25 * ' '}║")
-    # # 设置路径变量 开始
-    # log_save(0, f"║")
-    # log_save(0, f"║设置路径变量")
-    # log_save(0, f"║╔{4 * '═'}路径变量{4 * '═'}╗")
-    # # 设置路径变量 结束
-    # log_save(0, f"║╚{4 * '═'}路径变量{4 * '═'}╝")
-    # # 设置控件前准备（获取数据） 开始
-    # log_save(0, f"║")
-    # log_save(1, f"║设置控件前准备（获取数据）")
-    # log_save(0, f"║╔{6*'═'}设置控件前准备（获取数据）{6*'═'}╗")
-    # log_save(0, f"║║")
-    # # 账号可用性检测 开始
-    # log_save(1, f"║║╔{3 * '═'}账号可用性检测{3 * '═'}╗")
-    # log_save(1, f"║║║执行账号可用性检测")
-    # log_save(1, f"║║║关闭账号可用性检测")
-    # # 账号可用性检测 结束
-    # log_save(1, f"║║╚{3 * '═'}账号可用性检测{3 * '═'}╝")
-    # # 设置控件前准备（获取数据）结束
-    # log_save(0, f"║╚{6*'═'}设置控件前准备（获取数据）{6*'═'}╝")
-    # log_save(0, f"║")
-    # log_save(0, f"║获取脚本后端属性")
-    # log_save(0, f"║╔{8*'═'}脚本后端属性{8*'═'}╗")
-    # log_save(0, f"║║获取脚本属性集")
-    # log_save(0, f"║╚{8*'═'}脚本后端属性{8*'═'}╝")
-    # # 设置控件属性
-    # log_save(0, f"║")
-    # log_save(0, f"║╔{15*'═'}设置 控件属性{15*'═'}╗")
-    #
-    # log_save(0, f"║║")
-    # log_save(0, f"║║设置 分组框【账号】 中控件属性")
-    # log_save(0, f"║║╔{7*'═'}设置 分组框【账号】 中控件属性{7*'═'}╗")
-    # # 设置 分组框【账号】 中控件属性 结束
-    # log_save(0, f"║║╚{7*'═'}设置 分组框【账号】 中控件属性{7*'═'}╝")
-    #
-    # log_save(0, f"║║")
-    # log_save(0, f"║║设置 分组框【直播间】 中 控件属性")
-    # log_save(0, f"║║╔{7*'═'}设置 分组框【直播间】 中控件属性{7*'═'}╗")
-    # # 设置 分组框【直播间】 中控件属性结束
-    # log_save(0, f"║║╚{7*'═'}设置 分组框【直播间】 中控件属性{7*'═'}╝")
-    #
-    # log_save(0, f"║║")
-    # log_save(0, f"║║设置 分组框【直播】 中 控件属性")
-    # log_save(0, f"║║╔{7*'═'}设置 分组框【直播】 中控件属性{7*'═'}╗")
-    # # 设置 分组框【直播】 中控件属性 结束
-    # log_save(0, f"║║╚{7*'═'}设置 分组框【直播】 中控件属性{7*'═'}╝")
-    # # 设置 控件属性 结束
-    # log_save(0, f"║╚{15*'═'}设置 控件属性{15*'═'}╝")
-    # # 调整控件数据 结束
-    # log_save(0, f"╚{25 * '═'}调整控件数据{25 * '═'}╝")
-    # log_save(0, f"")
-
     # 检查网络连接
     GlobalVariableOfData.networkConnectionStatus = check_network_connection()
     if GlobalVariableOfData.networkConnectionStatus:
@@ -3213,6 +3833,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【顶部】 可用状态
     GlobalVariableOfTheControl.top_button_enabled = False
     log_save(0, f"║║设置 按钮【顶部】 可用状态：{str(GlobalVariableOfTheControl.top_button_enabled)}")
+    widget.Button.add(
+        "top",
+        Props = "props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "top_button",
+        Description = "Top",
+        Visible = False,
+        Enabled = False,
+        ModifiedIs = True,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = lambda ps, p: button_function_test("顶部"),
+    )
     # 分组框【账号】
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     log_save(0, f"║║")
@@ -3224,6 +3856,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 分组框【账号】 可用状态
     GlobalVariableOfTheControl.account_group_enabled = True
     log_save(0, f"║║║设置 分组框【账号】 可用状态：{str(GlobalVariableOfTheControl.account_group_enabled)}")
+    widget.Group.add(
+        "account",
+        Props = "props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "account_group",
+        Description = "账号",
+        Visible = True,
+        Enabled = True,
+        ModifiedIs = False,
+        Type = obs.OBS_GROUP_NORMAL,
+        GroupProps = "account_props",
+    )
 
     # 设置 只读文本框【登录状态】 可见状态
     GlobalVariableOfTheControl.login_status_textBox_visible = True
@@ -3237,6 +3881,19 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 只读文本框【登录状态】 内容
     GlobalVariableOfTheControl.login_status_textBox_string = f'{uname} 已登录' if b_u_l_c.get_cookies() else '未登录，请登录后点击【更新账号列表】'
     log_save(0, f"║║║设置 只读文本框【登录状态】 内容：{GlobalVariableOfTheControl.login_status_textBox_string}")
+    widget.TextBox.add(
+        "loginStatus",
+        Props = "account_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "login_status_textBox",
+        Description = "登录状态",
+        Visible = True,
+        Enabled = True,
+        ModifiedIs = True,
+        Type = obs.OBS_TEXT_INFO,
+        Text = f'{uname} 已登录' if b_u_l_c.get_cookies() else '未登录，请登录后点击【更新账号列表】',
+        InfoType = obs.OBS_TEXT_INFO_NORMAL if b_u_l_c.get_cookies() else obs.OBS_TEXT_INFO_WARNING,
+    )
 
     # 设置 组合框【用户】 可见状态
     GlobalVariableOfTheControl.uid_comboBox_visible = True
@@ -3253,6 +3910,20 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 组合框【用户】 默认显示内容 的 列表值
     GlobalVariableOfTheControl.uid_comboBox_value = b_u_l_c.get_users()[0] if b_u_l_c.get_cookies() else '-1'
     log_save(0, f"║║║设置 组合框【用户】 列表值：{GlobalVariableOfTheControl.uid_comboBox_value}")
+    widget.ComboBox.add(
+        "uid",
+        Props = "account_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "uid_comboBox",
+        Description = "用户",
+        Visible = True,
+        Enabled = True,
+        ModifiedIs = True,
+        Type = obs.OBS_COMBO_TYPE_LIST,
+        Text = uname if b_u_l_c.get_cookies() else '添加或选择一个账号登录',
+        Value = b_u_l_c.get_users()[0] if b_u_l_c.get_cookies() else '-1',
+        Dictionary = {uid or '-1': all_uname4uid.get(uid, '添加或选择一个账号登录') for uid in b_u_l_c.get_users().values()},
+    )
 
     # 设置 按钮【登录账号】 可见状态
     GlobalVariableOfTheControl.login_button_visible = True if all_uname4uid else False
@@ -3260,6 +3931,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【登录账号】 可用状态
     GlobalVariableOfTheControl.login_button_enabled = True if all_uname4uid else False
     log_save(0, f"║║║设置 按钮【登录账号】 可用状态：{str(GlobalVariableOfTheControl.login_button_enabled)}")
+    widget.Button.add(
+        "login",
+        Props = "account_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "login_button",
+        Description = "登录账号",
+        Visible = True if all_uname4uid else False,
+        Enabled = True if all_uname4uid else False,
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = button_function_login,
+    )
 
     # 设置 按钮【更新账号列表】 可见状态
     GlobalVariableOfTheControl.account_list_update_button_visible = True
@@ -3267,6 +3950,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【更新账号列表】 可用状态
     GlobalVariableOfTheControl.account_list_update_button_enabled = True
     log_save(0, f"║║║设置 按钮【更新账号列表】 可用状态：{str(GlobalVariableOfTheControl.account_list_update_button_enabled)}")
+    widget.Button.add(
+        "accountListUpdate",
+        Props = "account_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "account_list_update_button",
+        Description = "更新账号列表",
+        Visible = True,
+        Enabled = True,
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = button_function_update_account_list,
+    )
 
     # 设置 按钮【二维码添加账户】 可见状态
     GlobalVariableOfTheControl.qr_add_account_button_visible = True
@@ -3274,6 +3969,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【二维码添加账户】 可用状态
     GlobalVariableOfTheControl.qr_add_account_button_enabled = True
     log_save(0, f"║║║设置 按钮【二维码添加账户】 可用状态：{str(GlobalVariableOfTheControl.qr_add_account_button_enabled)}")
+    widget.Button.add(
+        "qrAddAccount",
+        Props = "account_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "qr_add_account_button",
+        Description = "二维码添加账户",
+        Visible = True,
+        Enabled = True,
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = button_function_qr_add_account,
+    )
 
     # 设置 按钮【显示二维码图片】 可见状态
     GlobalVariableOfTheControl.qr_picture_display_button_visible = False
@@ -3281,6 +3988,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【显示二维码图片】 可用状态
     GlobalVariableOfTheControl.qr_picture_display_button_enabled = False
     log_save(0, f"║║║设置 按钮【显示二维码图片】 可用状态：{str(GlobalVariableOfTheControl.qr_picture_display_button_enabled)}")
+    widget.Button.add(
+        "qrPictureDisplay",
+        Props = "account_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "qr_picture_display_button",
+        Description = "显示二维码图片",
+        Visible = False,
+        Enabled = False,
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = lambda ps, p: button_function_show_qr_picture(),
+    )
 
     # 设置 按钮【删除账户】 可见状态
     GlobalVariableOfTheControl.account_delete_button_visible = True if all_uname4uid else False
@@ -3288,6 +4007,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【删除账户】 可用状态
     GlobalVariableOfTheControl.account_delete_button_enabled = True if all_uname4uid else False
     log_save(0, f"║║║设置 按钮【删除账户】 可用状态：{str(GlobalVariableOfTheControl.account_delete_button_enabled)}")
+    widget.Button.add(
+        "accountDelete",
+        Props = "account_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "account_delete_button",
+        Description = "删除账户",
+        Visible = True if all_uname4uid else False,
+        Enabled = True if all_uname4uid else False,
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = button_function_del_user,
+    )
 
     # 设置 按钮【备份账户】 可见状态
     GlobalVariableOfTheControl.account_backup_button_visible = False
@@ -3295,6 +4026,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【备份账户】 可用状态
     GlobalVariableOfTheControl.account_backup_button_enabled = False
     log_save(0, f"║║║设置 按钮【备份账户】 可用状态：{str(GlobalVariableOfTheControl.account_backup_button_enabled)}")
+    widget.Button.add(
+        "accountBackup",
+        Props = "account_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "account_backup_button",
+        Description = "备份账户",
+        Visible = False,
+        Enabled = False,
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = button_function_backup_users,
+    )
 
     # 设置 按钮【恢复账户】 可见状态
     GlobalVariableOfTheControl.account_restore_button_visible = False
@@ -3302,6 +4045,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【恢复账户】 可用状态
     GlobalVariableOfTheControl.account_restore_button_enabled = False
     log_save(0, f"║║║设置 按钮【恢复账户】 可用状态：{str(GlobalVariableOfTheControl.account_restore_button_enabled)}")
+    widget.Button.add(
+        "accountRestore",
+        Props = "account_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "account_restore_button",
+        Description = "恢复账户",
+        Visible = False,
+        Enabled = False,
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = button_function_restore_user,
+    )
 
     # 设置 按钮【登出账号】 可见状态
     GlobalVariableOfTheControl.logout_button_visible = True if b_u_l_c.get_cookies() else False
@@ -3309,6 +4064,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【登出账号】 可用状态
     GlobalVariableOfTheControl.logout_button_enabled = True if b_u_l_c.get_cookies() else False
     log_save(0, f"║║║设置 按钮【登出账号】 可用状态：{str(GlobalVariableOfTheControl.logout_button_enabled)}")
+    widget.Button.add(
+        "logout",
+        Props = "account_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "logout_button",
+        Description = "登出账号",
+        Visible = True if b_u_l_c.get_cookies() else False,
+        Enabled = True if b_u_l_c.get_cookies() else False,
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = button_function_logout,
+    )
     # 设置 分组框【账号】 中控件属性 结束
     log_save(0, f"║║╚{7*'═'}设置 分组框【账号】 中控件属性{7*'═'}╝")
 
@@ -3323,6 +4090,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 分组框【直播间】 可用状态
     GlobalVariableOfTheControl.room_group_enabled = True
     log_save(0, f"║║║设置 分组框【直播间】 可用状态：{str(GlobalVariableOfTheControl.room_group_enabled)}")
+    widget.Group.add(
+        "room",
+        Props = "props",
+        Number =  (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "room_group",
+        Description = "直播间",
+        Visible = True,
+        Enabled = True,
+        ModifiedIs = False,
+        Type = obs.OBS_GROUP_NORMAL,
+        GroupProps = "room_props",
+    )
 
     # 设置 只读文本框【直播间状态】 可见状态
     GlobalVariableOfTheControl.room_status_textBox_visible = True
@@ -3336,6 +4115,19 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 只读文本框【直播间状态】 的内容
     GlobalVariableOfTheControl.room_status_textBox_string = (f"{str(room_id)}{'直播中' if live_status else '未开播'}" if room_status else "无直播间") if b_u_l_c.get_cookies() else "未登录"
     log_save(0, f"║║║设置 只读文本框【直播间状态】 的内容{GlobalVariableOfTheControl.room_status_textBox_string}")
+    widget.TextBox.add(
+        "roomStatus",
+        Props = "room_props",
+        Number =  (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "room_status_textBox",
+        Description = "查看直播间封面",
+        Visible = True,
+        Enabled = True,
+        ModifiedIs = False,
+        Type = obs.OBS_TEXT_INFO,
+        Text =  (f"{str(room_id)}{'直播中' if live_status else '未开播'}" if room_status else "无直播间") if b_u_l_c.get_cookies() else "未登录",
+        InfoType = (obs.OBS_TEXT_INFO_NORMAL if bool(room_status) else obs.OBS_TEXT_INFO_WARNING) if b_u_l_c.get_cookies() else obs.OBS_TEXT_INFO_ERROR,
+    )
 
     # 设置 按钮【开通直播间】 可见状态
     GlobalVariableOfTheControl.room_opened_button_visible = (not bool(room_status)) if b_u_l_c.get_cookies() else False
@@ -3343,6 +4135,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【查看直播间封面】 可用状态
     GlobalVariableOfTheControl.room_opened_button_enabled = (not bool(room_status)) if b_u_l_c.get_cookies() else False
     log_save(0, f"║║║设置 按钮【开通直播间】 可用状态：{str(GlobalVariableOfTheControl.room_opened_button_enabled)}")
+    widget.Button.add(
+        "roomOpened",
+        Props = "room_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "room_opened_button",
+        Description = "开通直播间",
+        Visible = (not bool(room_status)) if b_u_l_c.get_cookies() else False,
+        Enabled = (not bool(room_status)) if b_u_l_c.get_cookies() else False,
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = button_function_opened_room,
+    )
 
     # 设置 按钮【查看直播间封面】 可见状态
     GlobalVariableOfTheControl.room_cover_view_button_visible = bool(room_status)
@@ -3350,6 +4154,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【查看直播间封面】 可用状态
     GlobalVariableOfTheControl.room_cover_view_button_enabled = bool(room_status)
     log_save(0, f"║║║设置 按钮【查看直播间封面】 可用状态：{str(GlobalVariableOfTheControl.room_cover_view_button_enabled)}")
+    widget.Button.add(
+        "roomCoverView",
+        Props = "room_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "room_cover_view_button",
+        Description = "查看直播间封面",
+        Visible = bool(room_status),
+        Enabled = bool(room_status),
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = button_function_check_room_cover,
+    )
 
     # 设置 文件对话框【直播间封面】 可见状态
     GlobalVariableOfTheControl.room_cover_fileDialogBox_visible = bool(room_status)
@@ -3360,6 +4176,20 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 文件对话框【直播间封面】 内容
     GlobalVariableOfTheControl.room_cover_fileDialogBox_string = ""
     log_save(0, f"║║║设置 文件对话框【直播间封面】 内容：{str(GlobalVariableOfTheControl.room_cover_fileDialogBox_string)}")
+    widget.PathBox.add(
+        "roomCover",
+        Props = "room_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "room_cover_fileDialogBox",
+        Description = "直播间封面",
+        Visible = bool(room_status),
+        Enabled = bool(room_status),
+        ModifiedIs = False,
+        Type = obs.OBS_PATH_FILE,
+        Text = "",
+        Filter = "图片(*.jpg *.jpeg *.png)",
+        StartPath = "",
+    )
 
     # 设置 按钮【上传直播间封面】 可见状态
     GlobalVariableOfTheControl.room_cover_update_button_visible = False  # bool(room_status)
@@ -3367,6 +4197,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【上传直播间封面】 可用状态
     GlobalVariableOfTheControl.room_cover_update_button_enabled = False  # bool(room_status)
     log_save(0, f"║║║设置 按钮【上传直播间封面】 可用状态：{str(GlobalVariableOfTheControl.room_cover_update_button_enabled)}")
+    widget.Button.add(
+        "roomCoverUpdate",
+        Props = "room_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "room_cover_update_button",
+        Description = "上传直播间封面",
+        Visible = False,
+        Enabled = False,
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = lambda ps, p: button_function_update_room_cover(),
+    )
 
     # 设置 可编辑组合框【常用标题】 可见状态
     GlobalVariableOfTheControl.room_commonTitles_comboBox_visible = bool(room_status)
@@ -3383,6 +4225,20 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 可编辑组合框【常用标题】 默认显示内容 的 列表值
     GlobalVariableOfTheControl.room_commonTitles_comboBox_value = "0"
     log_save(0, f"║║║设置 可编辑组合框【常用标题】 默认显示内容 的 列表值：{str(GlobalVariableOfTheControl.room_commonTitles_comboBox_value)}")
+    widget.ComboBox.add(
+        "roomCommonTitles",
+        Props = "room_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "room_commonTitles_comboBox",
+        Description = "常用标题",
+        Visible = False,
+        Enabled = False,
+        ModifiedIs = False,
+        Type = obs.OBS_COMBO_TYPE_EDITABLE,
+        Text = room_title if bool(room_status) else "",
+        Value = "0",
+        Dictionary = common_title4number,
+    )
 
     # 设置 按钮【确认标题】 可见状态
     GlobalVariableOfTheControl.room_commonTitles_true_button_visible = False  # bool(room_status)
@@ -3390,6 +4246,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【确认标题】 可用状态
     GlobalVariableOfTheControl.room_commonTitles_true_button_enabled = False  # bool(room_status)
     log_save(0, f"║║║设置 按钮【确认标题】 可用状态：{str(GlobalVariableOfTheControl.room_commonTitles_true_button_enabled)}")
+    widget.Button.add(
+        "roomCommonTitlesTrue",
+        Props = "room_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "room_commonTitles_true_button",
+        Description = "确认标题",
+        Visible = False,
+        Enabled = False,
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = lambda ps, p: button_function_true_live_room_title(),
+    )
 
     # 设置 普通文本框【直播间标题】 可见状态
     GlobalVariableOfTheControl.room_title_textBox_visible = bool(room_status)
@@ -3400,6 +4268,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 普通文本框【直播间标题】 内容
     GlobalVariableOfTheControl.room_title_textBox_string = room_title if bool(room_status) else ""
     log_save(0, f"║║║设置 普通文本框【直播间标题】 内容：{str(GlobalVariableOfTheControl.room_title_textBox_string)}")
+    widget.TextBox.add(
+        "roomTitle",
+        Props = "room_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "room_title_textBox",
+        Description = "直播间标题",
+        Visible = bool(room_status),
+        Enabled = bool(room_status),
+        ModifiedIs = True,
+        Type = obs.OBS_TEXT_DEFAULT,
+        Text = room_title if bool(room_status) else ""
+    )
 
     # 设置 按钮【更改直播间标题】 可见状态
     GlobalVariableOfTheControl.room_title_change_button_visible = bool(room_status)
@@ -3407,6 +4287,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【更改直播间标题】 可用状态
     GlobalVariableOfTheControl.room_title_change_button_enabled = bool(room_status)
     log_save(0, f"║║║设置 按钮【更改直播间标题】 可用状态：{str(GlobalVariableOfTheControl.room_title_change_button_enabled)}")
+    widget.Button.add(
+        "roomTitleChange",
+        Props = "room_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "room_title_change_button",
+        Description = "更改直播间标题",
+        Visible = bool(room_status),
+        Enabled = bool(room_status),
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = lambda ps, p: button_function_change_live_room_title(),
+    )
 
     # 设置 普通文本框【直播间公告】 可见状态
     GlobalVariableOfTheControl.room_news_textBox_visible = bool(room_status)
@@ -3417,6 +4309,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 普通文本框【直播间公告】 内容
     GlobalVariableOfTheControl.room_news_textBox_string = room_news if bool(room_status) else ""
     log_save(0, f"║║║设置 普通文本框【直播间公告】 内容：{str(GlobalVariableOfTheControl.room_news_textBox_string)}")
+    widget.TextBox.add(
+        "roomNews",
+        Props = "room_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "room_news_textBox",
+        Description = "直播间公告",
+        Visible = bool(room_status),
+        Enabled = bool(room_status),
+        ModifiedIs = True,
+        Type = obs.OBS_TEXT_DEFAULT,
+        Text = room_news if bool(room_status) else ""
+    )
 
     # 设置 按钮【更改直播间公告】 可见状态
     GlobalVariableOfTheControl.room_news_change_button_visible = bool(room_status)
@@ -3424,6 +4328,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【更改直播间公告】 可用状态
     GlobalVariableOfTheControl.room_news_change_button_enabled = bool(room_status)
     log_save(0, f"║║║设置 按钮【更改直播间公告】 可用状态：{str(GlobalVariableOfTheControl.room_news_change_button_enabled)}")
+    widget.Button.add(
+        "roomNewsChange",
+        Props = "room_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "room_news_change_button",
+        Description = "更改直播间公告",
+        Visible = bool(room_status),
+        Enabled = bool(room_status),
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = lambda ps, p: button_function_change_live_room_news(),
+    )
 
     # 设置 组合框【常用分区】 可见状态
     GlobalVariableOfTheControl.room_commonAreas_comboBox_visible = bool(room_status)
@@ -3440,6 +4356,20 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 组合框【常用分区】 默认显示内容 的 列表值
     GlobalVariableOfTheControl.room_commonAreas_comboBox_value = json.dumps({area["parent_area_id"]: str(area["area_id"])}, ensure_ascii=False) if common_areas else "-1"
     log_save(0, f"║║║设置 组合框【常用分区】 默认显示内容 的 列表值：{str(GlobalVariableOfTheControl.room_commonAreas_comboBox_value)}")
+    widget.ComboBox.add(
+        "roomCommonAreas",
+        Props = "room_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "room_commonAreas_comboBox",
+        Description = "常用分区",
+        Visible = bool(room_status),
+        Enabled = bool(room_status),
+        ModifiedIs = True,
+        Type = obs.OBS_COMBO_TYPE_LIST,
+        Text = common_area_id_dict_str4common_area_name_dict_str[json.dumps({area["parent_area_id"]: str(area["area_id"])})] if common_areas else "无常用分区",
+        Value = json.dumps({area["parent_area_id"]: str(area["area_id"])}, ensure_ascii=False) if common_areas else "-1",
+        Dictionary = common_area_id_dict_str4common_area_name_dict_str,
+    )
 
     # 设置 按钮【确认分区】 可见状态
     GlobalVariableOfTheControl.room_commonAreas_true_button_visible = False  # bool(room_status)
@@ -3447,6 +4377,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【确认分区】 可用状态
     GlobalVariableOfTheControl.room_commonAreas_true_button_enabled = False  # bool(room_status)
     log_save(0, f"║║║设置 按钮【确认分区】 可用状态：{str(GlobalVariableOfTheControl.room_commonAreas_true_button_enabled)}")
+    widget.Button.add(
+        "roomCommonAreasTrue",
+        Props = "room_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "room_commonAreas_true_button",
+        Description = "确认分区",
+        Visible = False,
+        Enabled = False,
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = lambda ps, p: button_function_true_live_room_area(),
+    )
 
     # 设置 组合框【一级分区】 可见状态
     GlobalVariableOfTheControl.room_parentArea_comboBox_visible = bool(room_status)
@@ -3463,6 +4405,20 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 组合框【一级分区】 默认显示内容 的 列表值
     GlobalVariableOfTheControl.room_parentArea_comboBox_value = str(area["parent_area_id"]) if bool(area) else "-1"
     log_save(0, f"║║║设置 组合框【一级分区】 默认显示内容 的 列表值：{str(GlobalVariableOfTheControl.room_parentArea_comboBox_value)}")
+    widget.ComboBox.add(
+        "roomParentArea",
+        Props = "room_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "room_parentArea_comboBox",
+        Description = "一级分区",
+        Visible = bool(room_status),
+        Enabled = bool(room_status),
+        ModifiedIs = True,
+        Type = obs.OBS_COMBO_TYPE_LIST,
+        Text = str(area["parent_area_name"]) if bool(area) else "请选择一级分区",
+        Value = str(area["parent_area_id"]) if bool(area) else "-1",
+        Dictionary = parent_live_area_name4parent_live_area_id,
+    )
 
     # 设置 按钮【确认一级分区】 可见状态
     GlobalVariableOfTheControl.room_parentArea_true_button_visible = False  # bool(room_status)
@@ -3470,6 +4426,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【确认一级分区】 可用状态
     GlobalVariableOfTheControl.room_parentArea_true_button_enabled = False  # bool(room_status)
     log_save(0, f"║║║设置 按钮【确认一级分区】 可用状态：{str(GlobalVariableOfTheControl.room_parentArea_true_button_enabled)}")
+    widget.Button.add(
+        "roomParentAreaTrue",
+        Props = "room_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "room_parentArea_true_button",
+        Description = "确认一级分区",
+        Visible = False,
+        Enabled = False,
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = lambda ps, p: button_function_start_parent_area(),
+    )
 
     # 设置 组合框【二级分区】 可见状态
     GlobalVariableOfTheControl.room_subArea_comboBox_visible = bool(room_status)
@@ -3486,6 +4454,20 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 组合框【二级分区】 默认显示内容 的 列表值
     GlobalVariableOfTheControl.room_subArea_comboBox_value = str(area["area_id"]) if bool(area) else "-1"
     log_save(0, f"║║║设置 组合框【二级分区】 默认显示内容 的 列表值：{str(GlobalVariableOfTheControl.room_subArea_comboBox_value)}")
+    widget.ComboBox.add(
+        "roomSubArea",
+        Props = "room_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "room_subArea_comboBox",
+        Description = "二级分区",
+        Visible = bool(room_status),
+        Enabled = bool(room_status),
+        ModifiedIs = True,
+        Type = obs.OBS_COMBO_TYPE_LIST,
+        Text = str(area["area_name"]) if bool(area) else "请确认一级分区",
+        Value = str(area["area_id"]) if bool(area) else "-1",
+        Dictionary = sub_live_area_name4sub_live_area_id,
+    )
 
     # 设置 按钮【「确认分区」】 可见状态
     GlobalVariableOfTheControl.room_subArea_true_button_visible = bool(room_status)
@@ -3493,6 +4475,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【「确认分区」】 可用状态
     GlobalVariableOfTheControl.room_subArea_true_button_enabled = bool(room_status)
     log_save(0, f"║║║设置 按钮【确认分区】 可见状态：{str(bool(GlobalVariableOfTheControl.room_subArea_true_button_enabled))}")
+    widget.Button.add(
+        "roomSubAreaTrue",
+        Props = "room_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "room_subArea_true_button",
+        Description = "「确认分区」",
+        Visible = bool(room_status),
+        Enabled = bool(room_status),
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = lambda ps, p: button_function_start_sub_area(),
+    )
 
     # 设置 url按钮【跳转直播间后台网页】 可见状态
     GlobalVariableOfTheControl.blive_web_jump_button_visible = True if b_u_l_c.get_cookies() else False
@@ -3503,6 +4497,20 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 url按钮【跳转直播间后台网页】 链接
     GlobalVariableOfTheControl.blive_web_jump_button_url = "https://link.bilibili.com/p/center/index#/my-room/start-live"
     log_save(0, f"║║║设置 url按钮【跳转直播间后台网页】 链接：{GlobalVariableOfTheControl.blive_web_jump_button_url}")
+    widget.Button.add(
+        "bliveWebJump",
+        Props = "room_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "blive_web_jump_button",
+        Description = "跳转直播间后台网页",
+        Visible = True if b_u_l_c.get_cookies() else False,
+        Enabled = True if b_u_l_c.get_cookies() else False,
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_URL,
+        Callback = None,
+        Url = "https://link.bilibili.com/p/center/index#/my-room/start-live"
+    )
+
     # 设置 分组框【直播间】 中控件属性结束
     log_save(0, f"║║╚{7*'═'}设置 分组框【直播间】 中控件属性{7*'═'}╝")
 
@@ -3517,6 +4525,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 分组框【直播】 可用状态
     GlobalVariableOfTheControl.live_group_enabled = bool(room_status)
     log_save(0, f"║║║设置 分组框【直播】 可用状态：{GlobalVariableOfTheControl.live_group_enabled}")
+    widget.Group.add(
+        "live",
+        Props = "props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "live_group",
+        Description = "直播",
+        Visible = bool(room_status),
+        Enabled = bool(room_status),
+        ModifiedIs = False,
+        Type = obs.OBS_GROUP_NORMAL,
+        GroupProps = "live_props",
+    )
 
     # 设置 按钮【人脸认证】 可见状态
     GlobalVariableOfTheControl.live_face_auth_button_visible = bool(room_status)
@@ -3524,6 +4544,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【人脸认证】 可用状态
     GlobalVariableOfTheControl.live_face_auth_button_enabled = bool(room_status)
     log_save(0, f"║║║设置 按钮【人脸认证】 可用状态：{str(GlobalVariableOfTheControl.live_face_auth_button_enabled)}")
+    widget.Button.add(
+        "liveFaceAuth",
+        Props = "live_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "live_face_auth_button",
+        Description = "人脸认证",
+        Visible = bool(room_status),
+        Enabled = bool(room_status),
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = lambda ps, p: button_function_face_auth(),
+    )
 
     # 设置 组合框【直播平台】 可见状态
     GlobalVariableOfTheControl.live_streaming_platform_comboBox_visible = bool(room_status)
@@ -3540,6 +4572,20 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 组合框【直播平台】 的内容 的 列表值
     GlobalVariableOfTheControl.live_streaming_platform_comboBox_value = ""
     log_save(0, f"║║║设置 组合框【直播平台】 的内容 的 列表值：{str(GlobalVariableOfTheControl.live_streaming_platform_comboBox_value)}")
+    widget.ComboBox.add(
+        "liveStreamingPlatform",
+        Props = "live_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "live_streaming_platform_comboBox",
+        Description = "直播平台",
+        Visible = bool(room_status),
+        Enabled = bool(room_status),
+        ModifiedIs = True,
+        Type = obs.OBS_COMBO_TYPE_LIST,
+        Text = "",
+        Value = "",
+        Dictionary = {"pc_link": "直播姬（pc）", "web_link": "web在线直播", "android_link": "bililink"},
+    )
 
     # 设置 按钮【开始直播并复制推流码】 可见状态
     GlobalVariableOfTheControl.live_start_button_visible = True if ((not live_status) and room_status) else False
@@ -3547,6 +4593,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【开始直播并复制推流码】 可用状态
     GlobalVariableOfTheControl.live_start_button_enabled = True if ((not live_status) and room_status) else False
     log_save(0, f"║║║设置 按钮【开始直播并复制推流码】 可用状态：{str(GlobalVariableOfTheControl.live_start_button_enabled)}")
+    widget.Button.add(
+        "liveStart",
+        Props = "live_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "live_start_button",
+        Description = "开始直播并复制推流码",
+        Visible = True if ((not live_status) and room_status) else False,
+        Enabled = True if ((not live_status) and room_status) else False,
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = lambda ps, p: button_function_start_live(),
+    )
 
     # 设置 按钮【复制直播服务器】 可见状态
     GlobalVariableOfTheControl.live_rtmp_address_copy_button_visible = True if (live_status and room_status) else False
@@ -3554,6 +4612,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【复制直播服务器】 可用状态
     GlobalVariableOfTheControl.live_rtmp_address_copy_button_enabled = True if (live_status and room_status) else False
     log_save(0, f"║║║设置 按钮【复制直播服务器】 可用状态：{str(GlobalVariableOfTheControl.live_rtmp_address_copy_button_enabled)}")
+    widget.Button.add(
+        "liveRtmpAddressCopy",
+        Props = "live_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "live_rtmp_address_copy_button",
+        Description = "复制直播服务器",
+        Visible = True if (live_status and room_status) else False,
+        Enabled = True if (live_status and room_status) else False,
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = button_function_rtmp_address_copy,
+    )
 
     # 设置 按钮【复制直播推流码】 可见状态
     GlobalVariableOfTheControl.live_rtmp_code_copy_button_visible = True if (live_status and room_status) else False
@@ -3561,6 +4631,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【复制直播推流码】 可用状态
     GlobalVariableOfTheControl.live_rtmp_code_copy_button_enabled = True if (live_status and room_status) else False
     log_save(0, f"║║║设置 按钮【复制直播推流码】 可用状态：{str(GlobalVariableOfTheControl.live_rtmp_code_copy_button_enabled)}")
+    widget.Button.add(
+        "liveRtmpCodeCopy",
+        Props = "live_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "live_rtmp_code_copy_button",
+        Description = "复制直播推流码",
+        Visible = True if (live_status and room_status) else False,
+        Enabled = True if (live_status and room_status) else False,
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = button_function_rtmp_stream_code_copy,
+    )
 
     # 设置 按钮【更新推流码并复制】 可见状态
     GlobalVariableOfTheControl.live_rtmp_code_update_button_visible = True if (live_status and room_status) else False
@@ -3568,6 +4650,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【更新推流码并复制】 可用状态
     GlobalVariableOfTheControl.live_rtmp_code_update_button_enabled = True if (live_status and room_status) else False
     log_save(0, f"║║║设置 按钮【更新推流码并复制】 可用状态：{str(GlobalVariableOfTheControl.live_rtmp_code_update_button_enabled)}")
+    widget.Button.add(
+        "liveRtmpCodeUpdate",
+        Props = "live_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "live_rtmp_code_update_button",
+        Description = "更新推流码并复制",
+        Visible = True if (live_status and room_status) else False,
+        Enabled = True if (live_status and room_status) else False,
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = button_function_rtmp_stream_code_update,
+    )
 
     # 设置 按钮【结束直播】 可见状态
     GlobalVariableOfTheControl.live_stop_button_visible = True if (live_status and room_status) else False
@@ -3575,6 +4669,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【结束直播】 可用状态
     GlobalVariableOfTheControl.live_stop_button_enabled = True if (live_status and room_status) else False
     log_save(0, f"║║║设置 按钮【结束直播】 可用状态：{str(GlobalVariableOfTheControl.live_stop_button_enabled)}")
+    widget.Button.add(
+        "liveStop",
+        Props = "live_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "live_stop_button",
+        Description = "结束直播",
+        Visible = True if (live_status and room_status) else False,
+        Enabled = True if (live_status and room_status) else False,
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = lambda ps, p: button_function_stop_live(),
+    )
 
     # 设置 数字滑块【预约天】 可见状态
     GlobalVariableOfTheControl.live_bookings_day_digitalSlider_visible = bool(room_status)
@@ -3594,6 +4700,22 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 数字滑块【预约天】 步长
     GlobalVariableOfTheControl.live_bookings_day_digitalSlider_step = 1
     log_save(0, f"║║║设置 数字滑块【预约天】 步长：{str(GlobalVariableOfTheControl.live_bookings_day_digitalSlider_step)}")
+    widget.DigitalDisplay.add(
+        "liveBookingsDay",
+        Props = "live_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "live_bookings_day_digitalSlider",
+        Description = "预约天",
+        Visible = bool(room_status),
+        Enabled = bool(room_status),
+        ModifiedIs = True,
+        SliderIs = True,
+        Value = 0,
+        Suffix = "天",
+        Min = 0,
+        Max = 180,
+        Step = 1,
+    )
 
     # 设置 按钮【确认预约天】 可见状态
     GlobalVariableOfTheControl.live_bookings_day_true_button_visible = False  # bool(room_status)
@@ -3601,6 +4723,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【确认预约天】 可用状态
     GlobalVariableOfTheControl.live_bookings_day_true_button_enabled = False  # bool(room_status)
     log_save(0, f"║║║设置 按钮【确认预约天】 可用状态：{str(GlobalVariableOfTheControl.live_bookings_day_true_button_enabled)}")
+    widget.Button.add(
+        "liveBookingsDayTrue",
+        Props = "live_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "live_bookings_day_true_button",
+        Description = "确认预约天",
+        Visible = False,
+        Enabled = False,
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = lambda ps, p: button_function_true_live_appointment_day(),
+    )
 
     # 设置 数字滑块【预约时】 可见状态
     GlobalVariableOfTheControl.live_bookings_hour_digitalSlider_visible = bool(room_status)
@@ -3620,6 +4754,22 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 数字滑块【预约时】 步长
     GlobalVariableOfTheControl.live_bookings_hour_digitalSlider_step = 1
     log_save(0, f"║║║设置 数字滑块【预约时】 步长：{str(GlobalVariableOfTheControl.live_bookings_hour_digitalSlider_step)}")
+    widget.DigitalDisplay.add(
+        "liveBookingsHour",
+        Props = "live_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "live_bookings_hour_digitalSlider",
+        Description = "预约时",
+        Visible = bool(room_status),
+        Enabled = bool(room_status),
+        ModifiedIs = True,
+        SliderIs = True,
+        Value = 0,
+        Suffix = "时",
+        Min = 0,
+        Max = 23,
+        Step = 1,
+    )
 
     # 设置 按钮【确认预约时】 可见状态
     GlobalVariableOfTheControl.live_bookings_hour_true_button_visible = False  # bool(room_status)
@@ -3627,6 +4777,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【确认预约时】 可用状态
     GlobalVariableOfTheControl.live_bookings_hour_true_button_enabled = False  # bool(room_status)
     log_save(0, f"║║║设置 按钮【确认预约时】 可用状态：{str(GlobalVariableOfTheControl.live_bookings_hour_true_button_enabled)}")
+    widget.Button.add(
+        "liveBookingsHourTrue",
+        Props = "live_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "live_bookings_hour_true_button",
+        Description = "确认预约时",
+        Visible = False,
+        Enabled = False,
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = lambda ps, p: button_function_test("确认预约时"),
+    )
 
     # 设置 数字滑块【预约分】 可见状态
     GlobalVariableOfTheControl.live_bookings_minute_digitalSlider_visible = bool(room_status)
@@ -3646,6 +4808,22 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 数字滑块【预约分】 步长
     GlobalVariableOfTheControl.live_bookings_minute_digitalSlider_step = 1
     log_save(0, f"║║║设置 数字滑块【预约分】 步长：{str(GlobalVariableOfTheControl.live_bookings_minute_digitalSlider_step)}")
+    widget.DigitalDisplay.add(
+        "liveBookingsMinute",
+        Props = "live_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "live_bookings_minute_digitalSlider",
+        Description = "预约分",
+        Visible = bool(room_status),
+        Enabled = bool(room_status),
+        ModifiedIs = True,
+        SliderIs = True,
+        Value = 0,
+        Suffix = "分",
+        Min = 5,
+        Max = 59,
+        Step = 1,
+    )
 
     # 设置 按钮【确认预约分】 可见状态
     GlobalVariableOfTheControl.live_bookings_minute_true_button_visible = False  # bool(room_status)
@@ -3653,6 +4831,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【确认预约分】 可用状态
     GlobalVariableOfTheControl.live_bookings_minute_true_button_enabled = False  # bool(room_status)
     log_save(0, f"║║║设置 按钮【确认预约分】 可用状态：{str(GlobalVariableOfTheControl.live_bookings_minute_true_button_enabled)}")
+    widget.Button.add(
+        "liveBookingsMinuteTrue",
+        Props = "live_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "live_bookings_minute_true_button",
+        Description = "确认预约分",
+        Visible = False,
+        Enabled = False,
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = lambda ps, p: button_function_test("确认预约分"),
+    )
 
     # 设置 复选框【是否发直播预约动态】 可见状态
     GlobalVariableOfTheControl.live_bookings_dynamic_bool_visible =bool(room_status)
@@ -3663,6 +4853,17 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 普通文本框【是否发直播预约动态】 内容
     GlobalVariableOfTheControl.live_bookings_dynamic_bool_bool = False
     log_save(0, f"║║║设置 复选框【是否发直播预约动态】 选中状态：{str(GlobalVariableOfTheControl.live_bookings_dynamic_bool_bool)}")
+    widget.CheckBox.add(
+        "liveBookingsDynamic",
+        Props = "live_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "live_bookings_dynamic_checkBox",
+        Description = "是否发直播预约动态",
+        Visible = bool(room_status),
+        Enabled = bool(room_status),
+        ModifiedIs = True,
+        Bool = False,
+    )
 
     # 设置 普通文本框【直播预约标题】 可见状态
     GlobalVariableOfTheControl.live_bookings_title_textBox_visible = bool(room_status)
@@ -3673,6 +4874,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 普通文本框【直播预约标题】 内容
     GlobalVariableOfTheControl.live_bookings_title_textBox_string = ""
     log_save(0, f"║║║设置 普通文本框【直播预约标题】 内容：{str(GlobalVariableOfTheControl.live_bookings_title_textBox_string)}")
+    widget.TextBox.add(
+        "liveBookingsTitle",
+        Props = "live_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "live_bookings_title_textBox",
+        Description = "直播预约标题",
+        Visible = bool(room_status),
+        Enabled = bool(room_status),
+        ModifiedIs = True,
+        Type = obs.OBS_TEXT_DEFAULT,
+        Text = "",
+    )
 
     # 设置 按钮【发布直播预约】 可见状态
     GlobalVariableOfTheControl.live_bookings_create_button_visible = bool(room_status)
@@ -3680,6 +4893,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【发布直播预约】 可用状态
     GlobalVariableOfTheControl.live_bookings_create_button_enabled = bool(room_status)
     log_save(0, f"║║║设置 按钮【发布直播预约】 可用状态：{str(GlobalVariableOfTheControl.live_bookings_create_button_enabled)}")
+    widget.Button.add(
+        "liveBookingsCreate",
+        Props = "live_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "live_bookings_create_button",
+        Description = "发布直播预约",
+        Visible = bool(room_status),
+        Enabled = bool(room_status),
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = button_function_creat_live_appointment,
+    )
 
     # 设置 组合框【直播预约列表】 可见状态
     GlobalVariableOfTheControl.live_bookings_comboBox_visible = bool(room_status)
@@ -3696,6 +4921,20 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 组合框【直播预约列表】 的内容 的 列表值
     GlobalVariableOfTheControl.live_bookings_comboBox_value = ""
     log_save(0, f"║║║设置 组合框【直播预约列表】 的内容 的 列表值：{str(GlobalVariableOfTheControl.live_bookings_comboBox_value)}")
+    widget.ComboBox.add(
+        "liveBookings",
+        Props = "live_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "live_bookings_comboBox",
+        Description = "直播预约列表",
+        Visible = bool(room_status),
+        Enabled = bool(room_status),
+        ModifiedIs = True,
+        Type = obs.OBS_COMBO_TYPE_LIST,
+        Text = "",
+        Value = "",
+        Dictionary = reserve_name4reserve_sid,
+    )
 
     # 设置 按钮【取消直播预约】 可见状态
     GlobalVariableOfTheControl.live_bookings_cancel_button_visible = bool(room_status)
@@ -3703,6 +4942,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【取消直播预约】 可用状态
     GlobalVariableOfTheControl.live_bookings_cancel_button_enabled = bool(room_status)
     log_save(0, f"║║║设置 按钮【取消直播预约】 可用状态：{str(GlobalVariableOfTheControl.live_bookings_cancel_button_enabled)}")
+    widget.Button.add(
+        "liveBookingsCancel",
+        Props = "live_props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "live_bookings_cancel_button",
+        Description = "取消直播预约",
+        Visible = bool(room_status),
+        Enabled = bool(room_status),
+        ModifiedIs = False,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = button_function_cancel_live_appointment,
+    )
 
     # 设置 分组框【直播】 中控件属性 结束
     log_save(0, f"║║╚{7*'═'}设置 分组框【直播】 中控件属性{7*'═'}╝")
@@ -3712,6 +4963,18 @@ def script_defaults(settings):  # 设置其默认值
     # 设置 按钮【底部】 可用状态
     GlobalVariableOfTheControl.bottom_button_enabled = False
     log_save(0, f"║║设置 按钮【底部】 可用状态：{str(GlobalVariableOfTheControl.bottom_button_enabled)}")
+    widget.Button.add(
+        "bottom",
+        Props = "props",
+        Number = (lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1])(GlobalVariableOfData.widget_loading_number),
+        Name = "bottom_button",
+        Description = "Bottom",
+        Visible = False,
+        Enabled = False,
+        ModifiedIs = True,
+        Type = obs.OBS_BUTTON_DEFAULT,
+        Callback = lambda ps, p: button_function_test("底部"),
+    )
     # 设置 控件属性 结束
     log_save(0, f"║╚{15*'═'}设置 控件属性{15*'═'}╝")
     # 调整控件数据 结束
@@ -3792,6 +5055,43 @@ def script_properties():  # 建立控件
     room_props = obs.obs_properties_create()
     # 为 分组框【直播】 建立属性集
     live_props = obs.obs_properties_create()
+
+    props_dict = {
+        "props": props,
+        "account_props": account_props,
+        "room_props": room_props,
+        "live_props": live_props,
+    }
+
+    for w in widget.get_sorted_controls():
+        if w.ControlType == "CheckBox":
+            log_save(0, f"复选框控件: {w.Name} 【{w.Description}】")
+            obs.obs_properties_add_bool(props_dict[w.Props], w.Name, w.Description)
+        elif w.ControlType == "DigitalDisplay":
+            log_save(0, f"数字框控件: {w.Name} 【{w.Description}】")
+            if w.SliderIs:
+                w.Obj = obs.obs_properties_add_int_slider(props_dict[w.Props], w.Name, w.Description, w.Min, w.Max, w.Step)
+            else:
+                w.Obj = obs.obs_properties_add_int(props_dict[w.Props], w.Name, w.Description, w.Min, w.Max, w.Step)
+            obs.obs_property_int_set_suffix(w.Obj, w.Suffix)
+        elif w.ControlType == "TextBox":
+            log_save(0, f"文本框控件: {w.Name} 【{w.Description}】")
+            w.Obj = obs.obs_properties_add_text(props_dict[w.Props], w.Name, w.Description, w.Type)
+        elif w.ControlType == "Button":
+            log_save(0, f"按钮控件: {w.Name} 【{w.Description}】")
+            w.Obj = obs.obs_properties_add_button(props_dict[w.Props], w.Name, w.Description, w.Callback)
+        elif w.ControlType == "ComboBox":
+            log_save(0, f"组合框控件: {w.Name} 【{w.Description}】")
+            w.Obj = obs.obs_properties_add_list(props_dict[w.Props], w.Name, w.Description, w.Type, obs.OBS_COMBO_FORMAT_STRING)
+        elif w.ControlType == "PathBox":
+            log_save(0, f"路径对话框控件: {w.Name} 【{w.Description}】")
+            w.Obj = obs.obs_properties_add_path(props_dict[w.Props], w.Name, w.Description, w.Type, w.Filter, w.StartPath)
+        elif w.ControlType == "Group":
+            log_save(0, f"分组框控件: {w.Name} 【{w.Description}】")
+            w.Obj = obs.obs_properties_add_group(props_dict[w.Props], w.Name, w.Description, w.Type, props_dict[w.GroupProps])
+        if w.ModifiedIs:
+            obs.obs_property_set_modified_callback(w.Obj, lambda ps, p, st, name=w.Name: property_modified(name))
+    return props
 
     # 添加 按钮【顶部】
     GlobalVariableOfTheControl.top_button = obs.obs_properties_add_button(props, "top_button", "顶部", lambda ps, p: button_function_test("顶部"))
@@ -7364,6 +8664,7 @@ def button_function_stop_live():
 
 
 def button_function_true_live_appointment_day():
+    """确认预约天"""
     appointment_day_int = obs.obs_data_get_int(GlobalVariableOfData.script_settings, "live_bookings_day_digitalSlider")
     appointment_day_digital_slider_min = obs.obs_property_int_min(GlobalVariableOfTheControl.live_bookings_day_digitalSlider)
     appointment_day_digital_slider_max = obs.obs_property_int_max(GlobalVariableOfTheControl.live_bookings_day_digitalSlider)
