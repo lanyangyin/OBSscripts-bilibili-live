@@ -739,6 +739,8 @@ class GroupPs:
         return sorted(self._loading_order, key=lambda c: c.Number)
 
 
+# ... 之前的控件定义和类保持不变 ...
+
 # 表单管理器
 class Widget:
     """表单管理器，管理所有控件"""
@@ -750,8 +752,6 @@ class Widget:
         self.TextBox = TextBoxPs()
         self.Button = ButtonPs()
         self.ComboBox = ComboBoxPs()
-        self.FileDialogBox = FileDialogBoxPs()
-        self.DirDialogBox = DirDialogBoxPs()
         self.PathBox = PathBoxPs()
         self.Group = GroupPs()
         self._all_controls: List[Any] = []
@@ -766,17 +766,14 @@ class Widget:
         self._all_controls.extend(self.TextBox)
         self._all_controls.extend(self.Button)
         self._all_controls.extend(self.ComboBox)
-        self._all_controls.extend(self.FileDialogBox)
-        self._all_controls.extend(self.DirDialogBox)
         self._all_controls.extend(self.PathBox)
-        self._all_controls.extend(self.Group)  # 分组框控件
+        self._all_controls.extend(self.Group)
 
     def loading(self):
         """按载入次序排序所有控件"""
         self._update_all_controls()
         # 按Number属性排序
         sorted_controls = sorted(self._all_controls, key=lambda c: c.Number)
-        # ...收集所有控件...
         name_dict = {}  # 用于检测名称冲突
 
         # 创建载入次序字典
@@ -811,8 +808,8 @@ class Widget:
         """通过名称获取控件"""
         # 在顶级控件中查找
         for manager in [self.CheckBox, self.DigitalDisplay, self.TextBox,
-                        self.Button, self.ComboBox, self.FileDialogBox,
-                        self.DirDialogBox, self.Group]:
+                        self.Button, self.ComboBox, self.PathBox,
+                        self.Group]:
             if name in manager:
                 return manager.get(name)
         return None
@@ -822,11 +819,27 @@ class Widget:
         self.loading()
         return list(self._loading_dict.values())
 
+    def clean(self):
+        """清除所有控件并重置表单"""
+        # 重置所有控件管理器
+        self.CheckBox = CheckBoxPs()
+        self.DigitalDisplay = DigitalDisplayPs()
+        self.TextBox = TextBoxPs()
+        self.Button = ButtonPs()
+        self.ComboBox = ComboBoxPs()
+        self.PathBox = PathBoxPs()
+        self.Group = GroupPs()
+
+        # 清空内部存储
+        self._all_controls = []
+        self._loading_dict = {}
+
+        return self  # 支持链式调用
+
     def __repr__(self) -> str:
         """返回表单的可读表示形式"""
         self._update_all_controls()
         return f"<Widget controls={len(self._all_controls)}>"
-
 
 # 拓展示例使用代码
 if __name__ == "__main__":
