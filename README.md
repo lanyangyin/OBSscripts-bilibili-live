@@ -106,4 +106,5 @@ obs_studio版本：30+
 - 操作图片的python包：[pillow](https://github.com/python-pillow/Pillow)
 - 中文转拼音的python包：[pypinyin](https://github.com/mozillazg/python-pinyin)
 - 网络长连接用于连接弹幕的python包：[websockets](https://github.com/python-websockets/websockets)
+- 开始直播函数的参数：[BLiveWeb](https://github.com/ProgramRipper/BLiveWeb)
 - [OBS Python 脚本教程](https://learnscript.net/zh/obs-python-scripting/setup/)
