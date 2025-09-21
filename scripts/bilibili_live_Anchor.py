@@ -1255,7 +1255,7 @@ class CommonTitlesManager:
             directory: 文件存放目录
         """
         self.directory = Path(directory)
-        self.filepath = self.directory / "commonTitles.json"
+        self.filepath = self.directory / "commonData.json"
         self.data: Dict[str, List[str]] = {}
 
         # 确保目录存在
