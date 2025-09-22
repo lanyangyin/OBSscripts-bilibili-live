@@ -32,27 +32,25 @@
         - code：成功时为 HTTP 状态码，失败时为错误码
         - Message：描述性消息，成功时为 "Success"，失败时为错误信息
 """
-from typing import Optional, Dict, Union, Any
+from typing import Dict, Any
 
 import requests
 from PIL import Image
 from io import BytesIO
-
-from PIL.ImageFile import ImageFile
 
 # 自定义错误码
 NETWORK_ERROR = 0  # 表示没有HTTP响应的网络错误
 IMAGE_PROCESSING_ERROR = 1000  # 图像处理错误
 
 
-def url2pillow_image(url: str, headers: Dict[str, str], verify: bool = True) -> Dict[str, Any]:
+def url2pillow_image(url: str, headers: Dict[str, str], verify_ssl: bool = True) -> Dict[str, Any]:
     """
     将url图片转换为 pillow_image 实例
 
     Args:
         url: 图片的网络直链
         headers: 请求头
-        verify: 默认启用 SSL 验证
+        verify_ssl: 默认启用 SSL 验证
 
     Returns:
         字典包含:
@@ -61,7 +59,7 @@ def url2pillow_image(url: str, headers: Dict[str, str], verify: bool = True) -> 
         - 'Message': 成功时为"Success"，失败时为错误信息
     """
     try:
-        with requests.get(url, headers=headers, stream=True, verify=verify) as response:
+        with requests.get(url, headers=headers, stream=True, verify=verify_ssl) as response:
             response.raise_for_status()
             image_data = BytesIO()
             for chunk in response.iter_content(chunk_size=8192):
@@ -74,7 +72,6 @@ def url2pillow_image(url: str, headers: Dict[str, str], verify: bool = True) -> 
                 "code": response.status_code,
                 "Message": "Success"
             }
-
     except requests.exceptions.RequestException as e:
         # 如果有响应，则使用实际的状态码，否则使用自定义网络错误码
         if hasattr(e, 'response') and e.response is not None:
@@ -96,7 +93,7 @@ def url2pillow_image(url: str, headers: Dict[str, str], verify: bool = True) -> 
 
 # 使用示例
 if __name__ == "__main__":
-    ImageUrl = "https://static.deepseek.com/user-avatar/oNXXET5Sowcpcqd5EfiJ1qlW"
+    ImageUrl = "http://i0.hdslb.com/bfs/live/new_room_cover/d3ee7db19eb3e526a874b075e40383033bb0f4d1.jpg"
     Headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                       '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
@@ -109,4 +106,4 @@ if __name__ == "__main__":
         print(f"格式: {pillow_img.format}")
         print(f"尺寸: {pillow_img.size}")
         # pillow_img.show()  # 显示图像（可选）
-        pillow_img.save("./TestOutput/Url2PillowImg.jpg")
+        pillow_img.save("./TestOutput/url2pillow_image/Url2PillowImg.jpg")

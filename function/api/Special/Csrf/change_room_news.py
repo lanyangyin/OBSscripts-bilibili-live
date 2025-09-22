@@ -1,12 +1,12 @@
-# 更新 直播间封面
 from pathlib import Path
 from typing import Dict, Any
 
 import requests
 
-from function.tools.parse_cookie import parse_cookie
-from function.tools.dict_to_cookie_string import dict_to_cookie_string
 from function.tools.BilibiliUserConfigManager import BilibiliUserConfigManager
+from function.tools.dict_to_cookie_string import dict_to_cookie_string
+from function.tools.parse_cookie import parse_cookie
+from function.api.Special.Get.get_room_highlight_info import BilibiliRoomInfoManager as GetRoomHighlightInfo
 
 
 class BilibiliCSRFAuthenticator:
@@ -145,18 +145,19 @@ class BilibiliCSRFAuthenticator:
             "message": "用户信息获取成功"
         }
 
-    def update_cover(self, cover_url: str) -> Dict[str, Any]:
+    def change_room_news(self, room_id: int, content: str) -> Dict[str, Any]:
         """
-        更新直播间封面
+        更新直播公告
 
         Args:
-            cover_url: 通过上传接口获取的封面图片URL
+            room_id: 直播间ID
+            content: 公告内容
 
         Returns:
-            包含更新结果的字典：
+            包含操作结果的字典：
             - success: 操作是否成功
             - message: 结果描述信息
-            - data: 成功时的数据
+            - data: 成功时的数据（API返回的data字段）
             - error: 失败时的错误信息
             - status_code: HTTP状态码（如果有）
         """
@@ -165,39 +166,46 @@ class BilibiliCSRFAuthenticator:
             if not self.initialization_result["success"]:
                 return {
                     "success": False,
-                    "message": "更新封面失败",
+                    "message": "更新直播公告失败",
                     "error": "认证器未正确初始化",
                     "status_code": None
                 }
 
-            # 检查封面URL是否有效
-            if not cover_url or not cover_url.startswith(('http://', 'https://')):
+            # 验证输入参数
+            if not room_id or room_id <= 0:
                 return {
                     "success": False,
-                    "message": "更新封面失败",
-                    "error": "封面URL无效",
+                    "message": "更新直播公告失败",
+                    "error": "直播间ID无效",
                     "status_code": None
                 }
 
-            # 构建请求参数
-            api_url = "https://api.live.bilibili.com/xlive/app-blink/v1/preLive/UpdatePreLiveInfo"
-            update_cover_data = {
-                "platform": "web",
-                "mobi_app": "web",
-                "build": 1,
-                "cover": cover_url,
-                "coverVertical": "",
-                "liveDirectionType": 1,
-                "csrf_token": self.cookies["bili_jct"],
-                "csrf": self.cookies["bili_jct"],
+            if not content or len(content.strip()) == 0:
+                return {
+                    "success": False,
+                    "message": "更新直播公告失败",
+                    "error": "公告内容不能为空",
+                    "status_code": None
+                }
+
+            headers = self.headers.copy()
+            csrf = self.csrf
+
+            api = "https://api.live.bilibili.com/xlive/app-blink/v1/index/updateRoomNews"
+            updateRoomNews_data = {
+                'room_id': room_id,
+                'uid': self.cookies["DedeUserID"],
+                'content': content,
+                'csrf_token': csrf,
+                'csrf': csrf
             }
 
             # 发送请求
             response = requests.post(
-                api_url,
-                headers=self.headers,
-                data=update_cover_data,
                 verify=self.verify_ssl,
+                url=api,
+                headers=headers,
+                data=updateRoomNews_data,
                 timeout=30
             )
 
@@ -205,7 +213,7 @@ class BilibiliCSRFAuthenticator:
             if response.status_code != 200:
                 return {
                     "success": False,
-                    "message": "更新封面失败",
+                    "message": "更新直播公告失败",
                     "error": f"HTTP错误: {response.status_code}",
                     "status_code": response.status_code,
                     "response_text": response.text
@@ -227,36 +235,37 @@ class BilibiliCSRFAuthenticator:
             # 成功返回
             return {
                 "success": True,
-                "message": "直播间封面更新成功",
+                "message": "直播公告更新成功",
                 "data": result.get("data", {}),
-                "status_code": response.status_code
+                "status_code": response.status_code,
+                "api_response": result  # 包含完整的API响应
             }
 
         except requests.exceptions.Timeout:
             return {
                 "success": False,
-                "message": "更新封面失败",
+                "message": "更新直播公告失败",
                 "error": "请求超时",
                 "status_code": None
             }
         except requests.exceptions.ConnectionError:
             return {
                 "success": False,
-                "message": "更新封面失败",
+                "message": "更新直播公告失败",
                 "error": "网络连接错误",
                 "status_code": None
             }
         except requests.exceptions.RequestException as e:
             return {
                 "success": False,
-                "message": "更新封面失败",
+                "message": "更新直播公告失败",
                 "error": f"网络请求异常: {str(e)}",
                 "status_code": None
             }
         except Exception as e:
             return {
                 "success": False,
-                "message": "更新封面过程中发生未知错误",
+                "message": "更新直播公告过程中发生未知错误",
                 "error": str(e),
                 "status_code": None
             }
@@ -271,24 +280,33 @@ if __name__ == '__main__':
         'cookie': dict_to_cookie_string(cookies)
     }
 
-    jpg_url = "http://i0.hdslb.com/bfs/live/new_room_cover/d9272fcab18d330e1b872dc39e8b9e83ab9d6cfa.jpg"
-
-    # 创建认证器实例并更新封面
+    # 创建认证器实例
     authenticator = BilibiliCSRFAuthenticator(Headers)
 
-    # 检查认证器是否初始化成功
-    if not authenticator.initialization_result["success"]:
-        print(f"认证器初始化失败: {authenticator.initialization_result['error']}")
-    else:
-        # 更新封面
-        update_result = authenticator.update_cover(jpg_url)
+    # 创建房间信息管理器实例
+    room_manager = GetRoomHighlightInfo(Headers)
 
-        if update_result["success"]:
-            print("直播间封面更新成功")
-            print(f"审核信息: {update_result['data'].get('audit_info', {})}")
+    # 检查房间管理器是否初始化成功
+    if not room_manager.initialization_result["success"]:
+        print(f"房间管理器初始化失败: {room_manager.initialization_result['error']}")
+    else:
+        # 获取房间信息
+        room_info = room_manager.get_room_highlight_info()
+
+        if room_info["success"]:
+            room_id = room_info["data"]["room_id"]
+            # 使用有意义的公告内容，而不是初始化消息
+            content = "这是测试公告内容"
+
+            # 更新直播公告
+            result = authenticator.change_room_news(room_id, content)
+
+            if result["success"]:
+                print("直播公告更新成功")
+                print(f"API响应: {result.get('api_response', {})}")
+            else:
+                print(f"直播公告更新失败: {result['error']}")
+                if "status_code" in result and result["status_code"]:
+                    print(f"HTTP状态码: {result['status_code']}")
         else:
-            print(f"直播间封面更新失败: {update_result['error']}")
-            if "status_code" in update_result and update_result["status_code"]:
-                print(f"HTTP状态码: {update_result['status_code']}")
-            if "api_code" in update_result:
-                print(f"API错误码: {update_result['api_code']}")
+            print(f"获取房间信息失败: {room_info['error']}")

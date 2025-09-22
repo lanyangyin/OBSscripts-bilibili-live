@@ -1,8 +1,5 @@
-# 更新 直播间封面
 from pathlib import Path
 from typing import Dict, Any
-
-import requests
 
 from function.tools.parse_cookie import parse_cookie
 from function.tools.dict_to_cookie_string import dict_to_cookie_string
@@ -145,124 +142,10 @@ class BilibiliCSRFAuthenticator:
             "message": "用户信息获取成功"
         }
 
-    def update_cover(self, cover_url: str) -> Dict[str, Any]:
-        """
-        更新直播间封面
 
-        Args:
-            cover_url: 通过上传接口获取的封面图片URL
-
-        Returns:
-            包含更新结果的字典：
-            - success: 操作是否成功
-            - message: 结果描述信息
-            - data: 成功时的数据
-            - error: 失败时的错误信息
-            - status_code: HTTP状态码（如果有）
-        """
-        try:
-            # 检查认证器是否正常初始化
-            if not self.initialization_result["success"]:
-                return {
-                    "success": False,
-                    "message": "更新封面失败",
-                    "error": "认证器未正确初始化",
-                    "status_code": None
-                }
-
-            # 检查封面URL是否有效
-            if not cover_url or not cover_url.startswith(('http://', 'https://')):
-                return {
-                    "success": False,
-                    "message": "更新封面失败",
-                    "error": "封面URL无效",
-                    "status_code": None
-                }
-
-            # 构建请求参数
-            api_url = "https://api.live.bilibili.com/xlive/app-blink/v1/preLive/UpdatePreLiveInfo"
-            update_cover_data = {
-                "platform": "web",
-                "mobi_app": "web",
-                "build": 1,
-                "cover": cover_url,
-                "coverVertical": "",
-                "liveDirectionType": 1,
-                "csrf_token": self.cookies["bili_jct"],
-                "csrf": self.cookies["bili_jct"],
-            }
-
-            # 发送请求
-            response = requests.post(
-                api_url,
-                headers=self.headers,
-                data=update_cover_data,
-                verify=self.verify_ssl,
-                timeout=30
-            )
-
-            # 检查HTTP状态码
-            if response.status_code != 200:
-                return {
-                    "success": False,
-                    "message": "更新封面失败",
-                    "error": f"HTTP错误: {response.status_code}",
-                    "status_code": response.status_code,
-                    "response_text": response.text
-                }
-
-            # 解析响应
-            result = response.json()
-
-            # 检查B站API返回状态
-            if result.get("code") != 0:
-                return {
-                    "success": False,
-                    "message": "B站API返回错误",
-                    "error": result.get("message", "未知错误"),
-                    "status_code": response.status_code,
-                    "api_code": result.get("code")
-                }
-
-            # 成功返回
-            return {
-                "success": True,
-                "message": "直播间封面更新成功",
-                "data": result.get("data", {}),
-                "status_code": response.status_code
-            }
-
-        except requests.exceptions.Timeout:
-            return {
-                "success": False,
-                "message": "更新封面失败",
-                "error": "请求超时",
-                "status_code": None
-            }
-        except requests.exceptions.ConnectionError:
-            return {
-                "success": False,
-                "message": "更新封面失败",
-                "error": "网络连接错误",
-                "status_code": None
-            }
-        except requests.exceptions.RequestException as e:
-            return {
-                "success": False,
-                "message": "更新封面失败",
-                "error": f"网络请求异常: {str(e)}",
-                "status_code": None
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "message": "更新封面过程中发生未知错误",
-                "error": str(e),
-                "status_code": None
-            }
-
-
-if __name__ == '__main__':
+# 使用示例
+if __name__ == "__main__":
+    # 示例用法
     BULC = BilibiliUserConfigManager(Path('../../../../cookies/config.json'))
     cookies = BULC.get_user_cookies()
     Headers = {
@@ -271,24 +154,19 @@ if __name__ == '__main__':
         'cookie': dict_to_cookie_string(cookies)
     }
 
-    jpg_url = "http://i0.hdslb.com/bfs/live/new_room_cover/d9272fcab18d330e1b872dc39e8b9e83ab9d6cfa.jpg"
-
-    # 创建认证器实例并更新封面
+    # 创建认证器实例
     authenticator = BilibiliCSRFAuthenticator(Headers)
 
-    # 检查认证器是否初始化成功
-    if not authenticator.initialization_result["success"]:
-        print(f"认证器初始化失败: {authenticator.initialization_result['error']}")
-    else:
-        # 更新封面
-        update_result = authenticator.update_cover(jpg_url)
-
-        if update_result["success"]:
-            print("直播间封面更新成功")
-            print(f"审核信息: {update_result['data'].get('audit_info', {})}")
+    # 检查初始化结果
+    if authenticator.initialization_result["success"]:
+        # 获取用户信息
+        user_info = authenticator.get_user_info()
+        if user_info["success"]:
+            print("# 在这里处理成功的用户信息")
+            pass
         else:
-            print(f"直播间封面更新失败: {update_result['error']}")
-            if "status_code" in update_result and update_result["status_code"]:
-                print(f"HTTP状态码: {update_result['status_code']}")
-            if "api_code" in update_result:
-                print(f"API错误码: {update_result['api_code']}")
+            print("# 在这里处理获取用户信息失败的情况")
+            pass
+    else:
+        print("# 在这里处理初始化失败的情况")
+        pass
