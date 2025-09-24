@@ -412,7 +412,7 @@ class CommonDataManager:
 
 if __name__ == "__main__":
     # 创建管理器实例
-    manager = CommonDataManager(directory="CommonDataManager", maximum_quantity_of_elements=5)
+    manager = CommonDataManager(directory="TestOutput/CommonDataManager", maximum_quantity_of_elements=5)
 
     # 添加标题数据
     manager.add_data("143474500", "title", "常用标题1")
@@ -459,6 +459,10 @@ if __name__ == "__main__":
 
     manager.clear_user_data("223344")  # 清除所有数据
     print("清除所有数据后用户223344的数据:", manager.get_data("223344", "title"))
+
+    # 添加另一个用户的数据
+    manager.add_data("223344", "title", "用户2的标题")
+    manager.add_data("223344", "category", "娱乐")
 
     # 打印完整数据
     print("完整数据:")
