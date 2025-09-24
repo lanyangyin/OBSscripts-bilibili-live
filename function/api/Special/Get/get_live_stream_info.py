@@ -6,6 +6,7 @@ import requests
 from function.tools.parse_cookie import parse_cookie
 from function.tools.dict_to_cookie_string import dict_to_cookie_string
 from function.tools.BilibiliUserConfigManager import BilibiliUserConfigManager
+from function.api.Special.Get.get_room_highlight_info import BilibiliRoomInfoManager as GetRoomHighlightInfo
 
 
 class BilibiliRoomInfoManager:
@@ -80,15 +81,18 @@ class BilibiliRoomInfoManager:
                 "error": str(e)
             }
 
-    def get_room_highlight_info(self) -> Dict[str, Any]:
+    def get_live_stream_info(self, room_id: int) -> Dict[str, Any]:
         """
-        获取直播间高亮状态信息，包括房间ID
+        获取直播间推流信息
+
+        Args:
+            room_id: 直播间房间ID
 
         Returns:
-            包含房间信息的字典：
+            包含推流信息的字典：
             - success: 操作是否成功
             - message: 结果描述信息
-            - data: 成功时的数据（包含room_id等）
+            - data: 成功时的数据（包含推流地址等信息）
             - error: 失败时的错误信息
             - status_code: HTTP状态码（如果有）
         """
@@ -97,18 +101,29 @@ class BilibiliRoomInfoManager:
             if not self.initialization_result["success"]:
                 return {
                     "success": False,
-                    "message": "获取房间信息失败",
+                    "message": "获取推流信息失败",
                     "error": "管理器未正确初始化",
                     "status_code": None
                 }
 
+            # 检查房间ID是否有效
+            if not room_id or room_id <= 0:
+                return {
+                    "success": False,
+                    "message": "获取推流信息失败",
+                    "error": "房间ID无效",
+                    "status_code": None
+                }
+
             # 构建API请求
-            api_url = "https://api.live.bilibili.com/xlive/app-blink/v1/highlight/getRoomHighlightState"
+            api_url = "https://api.live.bilibili.com/live_stream/v1/StreamList/get_stream_by_roomId"
+            params = {"room_id": room_id}
 
             # 发送请求
             response = requests.get(
                 url=api_url,
                 headers=self.headers,
+                params=params,
                 verify=self.verify_ssl,
                 timeout=30
             )
@@ -117,7 +132,7 @@ class BilibiliRoomInfoManager:
             if response.status_code != 200:
                 return {
                     "success": False,
-                    "message": "获取房间信息失败",
+                    "message": "获取推流信息失败",
                     "error": f"HTTP错误: {response.status_code}",
                     "status_code": response.status_code,
                     "response_text": response.text
@@ -137,11 +152,11 @@ class BilibiliRoomInfoManager:
                 }
 
             # 检查数据是否存在
-            if "data" not in result or "room_id" not in result["data"]:
+            if "data" not in result:
                 return {
                     "success": False,
                     "message": "API响应格式异常",
-                    "error": "响应中缺少必要的房间信息字段",
+                    "error": "响应中缺少必要的数据字段",
                     "status_code": response.status_code,
                     "response_data": result
                 }
@@ -149,39 +164,36 @@ class BilibiliRoomInfoManager:
             # 成功返回
             return {
                 "success": True,
-                "message": "房间信息获取成功",
-                "data": {
-                    "room_id": result["data"]["room_id"],
-                    "highlight_info": result["data"]  # 包含所有高亮状态信息
-                },
+                "message": "推流信息获取成功",
+                "data": result["data"],
                 "status_code": response.status_code
             }
 
         except requests.exceptions.Timeout:
             return {
                 "success": False,
-                "message": "获取房间信息失败",
+                "message": "获取推流信息失败",
                 "error": "请求超时",
                 "status_code": None
             }
         except requests.exceptions.ConnectionError:
             return {
                 "success": False,
-                "message": "获取房间信息失败",
+                "message": "获取推流信息失败",
                 "error": "网络连接错误",
                 "status_code": None
             }
         except requests.exceptions.RequestException as e:
             return {
                 "success": False,
-                "message": "获取房间信息失败",
+                "message": "获取推流信息失败",
                 "error": f"网络请求异常: {str(e)}",
                 "status_code": None
             }
         except Exception as e:
             return {
                 "success": False,
-                "message": "获取房间信息过程中发生未知错误",
+                "message": "获取推流信息过程中发生未知错误",
                 "error": str(e),
                 "status_code": None
             }
@@ -200,20 +212,32 @@ if __name__ == '__main__':
     # 创建管理器实例
     room_manager = BilibiliRoomInfoManager(Headers)
 
+    # 创建房间信息管理器实例
+    ghi = GetRoomHighlightInfo(Headers)
+
     # 检查管理器是否初始化成功
     if not room_manager.initialization_result["success"]:
         print(f"管理器初始化失败: {room_manager.initialization_result['error']}")
+    elif not ghi.initialization_result["success"]:
+        print(f"高亮信息管理器初始化失败: {ghi.initialization_result['error']}")
     else:
-        # 获取房间信息
-        room_info = room_manager.get_room_highlight_info()
+        # 获取房间高亮信息
+        highlight_info = ghi.get_room_highlight_info()
 
-        if room_info["success"]:
-            print(f"房间ID: {room_info['data']['room_id']}")
-            print(f"完整高亮信息: {room_info['data']['highlight_info']}")
-            print(room_info)
+        if highlight_info["success"]:
+            room_id = highlight_info["data"]["room_id"]
+            stream_info = room_manager.get_live_stream_info(room_id)
+
+            if stream_info["success"]:
+                print("推流信息获取成功")
+                print(f"RTMP地址: {stream_info['data']['rtmp']['addr']}")
+                print(f"推流码: {stream_info['data']['rtmp']['code']}")
+                print(f"可用线路: {stream_info['data']['stream_line']}")
+            else:
+                print(f"获取推流信息失败: {stream_info['error']}")
+                if "status_code" in stream_info and stream_info["status_code"]:
+                    print(f"HTTP状态码: {stream_info['status_code']}")
+                if "api_code" in stream_info:
+                    print(f"API错误码: {stream_info['api_code']}")
         else:
-            print(f"获取房间信息失败: {room_info['error']}")
-            if "status_code" in room_info and room_info["status_code"]:
-                print(f"HTTP状态码: {room_info['status_code']}")
-            if "api_code" in room_info:
-                print(f"API错误码: {room_info['api_code']}")
+            print(f"获取房间信息失败: {highlight_info['error']}")

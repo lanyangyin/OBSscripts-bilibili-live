@@ -1,160 +1,162 @@
+import json
 import requests
+from typing import Dict, Any, List, Union, Optional
 
 
-def get_bilibili_user_card(mid, photo=False) -> dict:
+class BilibiliApiGeneric:
     """
-    获取Bilibili用户名片信息
+    不登录也能使用的Bilibili API集合
 
-    参数:
-    mid (int/str): 目标用户mid (必需)
-    photo (bool): 是否请求用户主页头图 (可选，默认为False)
-
-    返回:
-    dict: 解析后的用户信息字典，包含主要字段
+    提供不需要认证即可访问的Bilibili API功能
     """
-    # API地址
-    url = "https://api.bilibili.com/x/web-interface/card"
 
-    # 请求参数
-    params = {
-        'mid': mid,
-        'photo': 'true' if photo else 'false'
-    }
+    def __init__(self, headers, verify_ssl: bool = True):
+        self.headers = headers
+        self.verify_ssl = verify_ssl
 
-    # 添加浏览器头信息 - 解决412错误
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Referer': 'https://space.bilibili.com/',
-        'Origin': 'https://space.bilibili.com'
-    }
+    def get_bilibili_user_card(self, mid: Union[int, str], photo: bool = False) -> Dict[str, Any]:
+        """
+        获取Bilibili用户名片信息
 
-    try:
-        # 发送GET请求
-        response = requests.get(
-            url,
-            params=params,
-            headers=headers,
-            timeout=10  # 添加超时设置
-        )
-        response.raise_for_status()  # 检查HTTP错误
+        Args:
+            mid: 目标用户mid
+            photo: 是否请求用户主页头图 (可选，默认为False)
 
-        # 解析JSON响应
-        data = response.json()
+        Returns:
+            包含操作结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（用户信息）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的状态码
+        """
+        try:
+            # 验证输入参数
+            if not mid:
+                return {
+                    "success": False,
+                    "message": "获取用户信息失败",
+                    "error": "用户MID不能为空",
+                    "status_code": None,
+                    "api_code": None
+                }
 
-        # 检查API返回状态
-        if data['code'] != 0:
+            # API地址
+            url = "https://api.bilibili.com/x/web-interface/card"
+
+            # 请求参数
+            params = {
+                'mid': mid,
+                'photo': 'true' if photo else 'false'
+            }
+
+            # 发送GET请求
+            response = requests.get(
+                url,
+                params=params,
+                headers=self.headers,
+                timeout=10,
+                verify=self.verify_ssl
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取用户信息失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
+
+            # 解析JSON响应
+            data = response.json()
+
+            # 检查API返回状态
+            api_code = data.get('code', -1)
+            if api_code != 0:
+                error_msg = data.get('message', '未知错误')
+                return {
+                    "success": False,
+                    "message": "获取用户信息失败",
+                    "error": f"API错误: {error_msg}",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": data
+                }
+
+            # 返回完整的API响应数据
             return {
-                'error': True,
-                'code': data['code'],
-                'message': data['message'],
-                'ttl': data.get('ttl')
+                "success": True,
+                "message": "获取用户信息成功",
+                "data": data,  # 返回完整的API响应
+                "status_code": response.status_code,
+                "api_code": api_code
             }
 
-        # 提取主要数据
-        result = {
-            'basic_info': {
-                'mid': data['data']['card'].get('mid'),
-                'name': data['data']['card'].get('name'),
-                'sex': data['data']['card'].get('sex'),
-                'avatar': data['data']['card'].get('face'),
-                'sign': data['data']['card'].get('sign'),
-                'level': data['data']['card']['level_info']['current_level'] if 'level_info' in data['data'][
-                    'card'] else 0,
-                'status': '正常' if data['data']['card'].get('spacesta') == 0 else '封禁'
-            },
-            'stats': {
-                'following': data['data'].get('following'),
-                'archive_count': data['data'].get('archive_count'),
-                'follower': data['data'].get('follower'),
-                'like_num': data['data'].get('like_num'),
-                'attention': data['data']['card'].get('attention')  # 关注数
-            },
-            'verification': {
-                'role': data['data']['card']['Official'].get('role') if 'Official' in data['data']['card'] else -1,
-                'title': data['data']['card']['Official'].get('title') if 'Official' in data['data'][
-                    'card'] else '',
-                'type': data['data']['card']['Official'].get('type') if 'Official' in data['data']['card'] else -1
-            },
-            'vip_info': {
-                'type': data['data']['card']['vip'].get('vipType') if 'vip' in data['data']['card'] else 0,
-                'status': data['data']['card']['vip'].get('vipStatus') if 'vip' in data['data']['card'] else 0,
-                'label': data['data']['card']['vip']['label'].get('text') if 'vip' in data['data'][
-                    'card'] and 'label' in data['data']['card']['vip'] else ''
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取用户信息失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None
             }
-        }
-
-        # 如果请求了头图
-        if photo and 'space' in data['data']:
-            result['space_image'] = {
-                'small': data['data']['space'].get('s_img'),
-                'large': data['data']['space'].get('l_img')
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取用户信息失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None
             }
-
-        # 添加勋章信息（如果存在）
-        if 'nameplate' in data['data']['card']:
-            result['nameplate'] = {
-                'id': data['data']['card']['nameplate'].get('nid'),
-                'name': data['data']['card']['nameplate'].get('name'),
-                'image': data['data']['card']['nameplate'].get('image'),
-                'level': data['data']['card']['nameplate'].get('level')
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取用户信息失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None
             }
-
-        # 添加挂件信息（如果存在）
-        if 'pendant' in data['data']['card']:
-            result['pendant'] = {
-                'id': data['data']['card']['pendant'].get('pid'),
-                'name': data['data']['card']['pendant'].get('name'),
-                'image': data['data']['card']['pendant'].get('image')
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取用户信息过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
             }
-
-        return result
-
-    except requests.exceptions.RequestException as e:
-        return {'error': True, 'message': f'网络请求失败: {str(e)}'}
-    except ValueError as e:
-        return {'error': True, 'message': f'JSON解析失败: {str(e)}'}
-    except KeyError as e:
-        return {'error': True, 'message': f'响应数据缺少必要字段: {str(e)}'}
 
 
 # 使用示例
 if __name__ == "__main__":
-    # 获取用户mid=2的信息，并请求主页头图
-    user_info = get_bilibili_user_card(mid=143474500, photo=True)
+    Headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                      '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+    }
 
-    if 'error' in user_info and user_info['error']:
-        print(f"获取用户信息失败: {user_info.get('message', '未知错误')}")
+    # 创建API实例
+    api = BilibiliApiGeneric(Headers, verify_ssl=True)
+
+    # 获取用户mid=143474500的信息，并请求主页头图
+    result = api.get_bilibili_user_card(mid=143474500, photo=True)
+
+    if result["success"]:
+        user_data = result["data"]
+        print(json.dumps(user_data, ensure_ascii=False, indent=2))
+
+        # 提取基本信息（可选）
+        if 'data' in user_data and 'card' in user_data['data']:
+            card = user_data['data']['card']
+            print(f"\n用户基本信息:")
+            print(f"UID: {card.get('mid')}")
+            print(f"昵称: {card.get('name')}")
+            print(f"性别: {card.get('sex')}")
+            print(f"等级: LV{card.get('level_info', {}).get('current_level', 0)}")
+            print(f"签名: {card.get('sign')}")
     else:
-        print("用户基本信息:")
-        print(f"UID: {user_info['basic_info']['mid']}")
-        print(f"昵称: {user_info['basic_info']['name']}")
-        print(f"性别: {user_info['basic_info']['sex']}")
-        print(f"等级: LV{user_info['basic_info']['level']}")
-        print(f"签名: {user_info['basic_info']['sign']}")
-        print(f"状态: {user_info['basic_info']['status']}")
-
-        print("\n用户统计:")
-        print(f"粉丝数: {user_info['stats']['follower']}")
-        print(f"关注数: {user_info['stats']['attention']}")
-        print(f"稿件数: {user_info['stats']['archive_count']}")
-        print(f"点赞数: {user_info['stats']['like_num']}")
-        print(f"已关注: {'是' if user_info['stats']['following'] else '否'}")
-
-        if 'space_image' in user_info:
-            print(f"\n主页头图(大): {user_info['space_image']['large']}")
-            print(f"主页头图(小): {user_info['space_image']['small']}")
-
-        if user_info['verification']['role'] != -1:
-            print(f"\n认证信息: {user_info['verification']['title']}")
-
-        if user_info['vip_info']['status'] == 1:
-            vip_type = "月度大会员" if user_info['vip_info']['type'] == 1 else "年度大会员"
-            print(f"\n会员状态: {vip_type} - {user_info['vip_info']['label']}")
-
-        if 'nameplate' in user_info:
-            print(f"\n勋章: {user_info['nameplate']['name']} (等级: {user_info['nameplate']['level']})")
-            print(f"勋章图片: {user_info['nameplate']['image']}")
-
-        if 'pendant' in user_info:
-            print(f"\n挂件: {user_info['pendant']['name']}")
-            print(f"挂件图片: {user_info['pendant']['image']}")
+        print(f"获取用户信息失败: {result['error']}")
+        if "response_data" in result:
+            print(f"完整响应: {json.dumps(result['response_data'], ensure_ascii=False, indent=2)}")

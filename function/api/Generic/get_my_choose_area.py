@@ -1,5 +1,4 @@
 import json
-
 import requests
 from typing import Dict, Any, List, Union, Optional
 
@@ -11,117 +10,195 @@ class BilibiliApiGeneric:
     提供不需要认证即可访问的Bilibili API功能
     """
 
-    def __init__(self):
-        self.headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                          "(KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0",
-        }
+    def __init__(self, headers, verify_ssl: bool = True):
+        self.headers = headers
+        self.verify_ssl = verify_ssl
 
     def get_anchor_common_areas(self, room_id: Union[str, int]) -> Dict[str, Any]:
         """
         获取主播常用分区信息
 
-        该API返回主播设置的常用分区列表（通常为3个分区）
-
         参数:
             room_id: 直播间ID（整数或字符串）
 
-        返回数据结构:
-        {
-            "code": int,        # 0表示成功
-            "msg": str,         # 状态消息
-            "message": str,     # 状态消息（通常与msg相同）
-            "data": [           # 常用分区列表
-                {
-                    "id": str,             # 分区ID
-                    "pic": str,             # 分区图标URL
-                    "hot_status": str,      # 热门状态（0:非热门）
-                    "name": str,            # 分区名称
-                    "parent_id": str,       # 父分区ID
-                    "parent_name": str,     # 父分区名称
-                    "act_flag": int         # 活动标志（通常为0）
-                },
-                ...  # 更多分区（通常最多3个）
-            ]
-        }
-
-        Raises:
-            ValueError: 输入参数无效
-            requests.RequestException: 网络请求失败
-            RuntimeError: API返回错误或无效数据
+        返回:
+            包含操作结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（分区列表）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的状态码
         """
-        # 验证房间ID
-        if not room_id:
-            raise ValueError("房间ID不能为空")
-
-        # API配置
-        api_url = "https://api.live.bilibili.com/room/v1/Area/getMyChooseArea"
-        params = {"roomid": str(room_id)}
-
         try:
+            # 验证输入参数
+            if not room_id:
+                return {
+                    "success": False,
+                    "message": "获取分区信息失败",
+                    "error": "房间ID不能为空",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            # API配置
+            api_url = "https://api.live.bilibili.com/room/v1/Area/getMyChooseArea"
+            params = {"roomid": str(room_id)}
+
             # 发送API请求
             response = requests.get(
                 api_url,
                 headers=self.headers,
                 params=params,
-                timeout=10
+                timeout=10,
+                verify=self.verify_ssl
             )
-            response.raise_for_status()  # 检查HTTP错误
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取分区信息失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
 
             # 解析JSON响应
             result = response.json()
 
             # 验证基本结构
             if not isinstance(result, dict) or "code" not in result:
-                raise RuntimeError("API返回无效的响应格式")
+                return {
+                    "success": False,
+                    "message": "获取分区信息失败",
+                    "error": "API返回无效的响应格式",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_data": result
+                }
 
             # 检查API错误码
-            if result.get("code") != 0:
+            api_code = result.get("code", -1)
+            if api_code != 0:
                 error_msg = result.get("message") or result.get("msg") or "未知错误"
-                raise RuntimeError(f"API返回错误: {error_msg} (code: {result['code']})")
+                return {
+                    "success": False,
+                    "message": "获取分区信息失败",
+                    "error": f"API错误: {error_msg}",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
 
             # 验证数据格式
             if "data" not in result or not isinstance(result["data"], list):
-                raise RuntimeError("API返回数据格式无效")
+                return {
+                    "success": False,
+                    "message": "获取分区信息失败",
+                    "error": "API返回数据格式无效",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
 
             # 验证分区数据
             for area in result["data"]:
                 required_keys = {"id", "name", "parent_id", "parent_name"}
                 if not required_keys.issubset(area.keys()):
-                    raise RuntimeError("分区数据缺少必需字段")
+                    return {
+                        "success": False,
+                        "message": "获取分区信息失败",
+                        "error": "分区数据缺少必需字段",
+                        "status_code": response.status_code,
+                        "api_code": api_code,
+                        "response_data": result
+                    }
 
-            return result
+            return {
+                "success": True,
+                "message": "获取分区信息成功",
+                "data": result["data"],
+                "status_code": response.status_code,
+                "api_code": api_code
+            }
 
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取分区信息失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取分区信息失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None
+            }
         except requests.exceptions.RequestException as e:
-            raise requests.exceptions.RequestException(
-                f"获取主播分区信息失败: {e}"
-            ) from e
-        except (ValueError, TypeError) as e:
-            raise ValueError(f"数据处理失败: {e}") from e
+            return {
+                "success": False,
+                "message": "获取分区信息失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取分区信息过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
+            }
 
 
 if __name__ == "__main__":
+    Headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                      '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+    }
+
     # 创建API实例
-    api = BilibiliApiGeneric()
+    api = BilibiliApiGeneric(Headers, verify_ssl=True)
 
     try:
         # 获取主播常用分区
         room_id = 25322725
         result = api.get_anchor_common_areas(room_id)
-        print(json.dumps(result, ensure_ascii=False, indent=2))
-        # 处理结果
-        print(f"主播房间 {room_id} 的常用分区:")
-        for area in result["data"]:
-            print(f"- {area['name']} (ID: {area['id']}, 父分区: {area['parent_name']})")
 
-        # 示例输出:
-        # 主播房间 25322725 的常用分区:
-        # - 生活杂谈 (ID: 646, 父分区: 生活)
-        # - 无畏契约 (ID: 329, 父分区: 网游)
-        # - 聊天电台 (ID: 192, 父分区: 电台)
-        print({area['id']: f"⭐{area['name']}" for area in BilibiliApiGeneric().get_anchor_common_areas(room_id)["data"]})
-        print({json.dumps({area['parent_id']: area['id']}, ensure_ascii=False): json.dumps({area['parent_name']: area['name']}, ensure_ascii=False) for area in BilibiliApiGeneric().get_anchor_common_areas(room_id)["data"]})
-        for key in {json.dumps({area['parent_id']: area['id']}, ensure_ascii=False): json.dumps({area['parent_name']: area['name']}, ensure_ascii=False) for area in BilibiliApiGeneric().get_anchor_common_areas(room_id)["data"]}:
-            print(json.loads(key))
+        if result["success"]:
+            print(json.dumps(result["data"], ensure_ascii=False, indent=2))
+
+            # 处理结果
+            print(f"\n主播房间 {room_id} 的常用分区:")
+            for area in result["data"]:
+                print(f"- {area['name']} (ID: {area['id']}, 父分区: {area['parent_name']})")
+
+            # 生成分区映射
+            area_mapping = {area['id']: f"⭐{area['name']}" for area in result["data"]}
+            print(f"\n分区映射: {area_mapping}")
+
+            # 生成父分区到子分区的映射
+            parent_child_mapping = {}
+            for area in result["data"]:
+                parent_id = area['parent_id']
+                child_id = area['id']
+                if parent_id not in parent_child_mapping:
+                    parent_child_mapping[parent_id] = []
+                parent_child_mapping[parent_id].append(child_id)
+
+            print(f"父分区到子分区映射: {parent_child_mapping}")
+
+        else:
+            print(f"获取分区信息失败: {result['error']}")
+            if "response_data" in result:
+                print(f"完整响应: {json.dumps(result['response_data'], ensure_ascii=False, indent=2)}")
+
     except Exception as e:
         print(f"错误: {e}")

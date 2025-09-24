@@ -97,8 +97,9 @@ def qr_text8pil_img(
 
 
 if __name__ == "__main__":
+    t = "https://account.bilibili.com/h5/account-h5/auth/scan-web?navhide=1&callback=close&qrcode_key=a60221be32dc24d986208970ba129a19&from="
     # 示例用法
-    result = qr_text8pil_img("https://example.com", invert=True)
+    result = qr_text8pil_img(t, invert=True)
 
     # 获取ASCII表示
     print(result["str"])

@@ -2306,77 +2306,6 @@ class BilibiliApiGeneric:
         except (ValueError, KeyError, TypeError) as e:
             raise ValueError(f"数据处理失败: {e}") from e
 
-    def get_area_obj_list(self):
-        """
-        获取B站直播分区信息
-
-        返回数据结构:
-            {
-                "code": int,         # 0表示成功，非0表示错误\n
-                "msg": str,          # 错误信息（通常与message相同）\n
-                "message": str,      # 错误信息\n
-                "data": [            # 父分区列表\n
-                    {
-                        "id": int,   # 父分区ID\n
-                        "name": str, # 父分区名称\n
-                        "list": [    # 子分区列表\n
-                            {
-                                # 子分区核心字段\n
-                                "id": str,         # 子分区ID\n
-                                "parent_id": str,   # 父分区ID\n
-                                "old_area_id": str, # 旧分区ID\n
-                                "name": str,       # 子分区名称\n
-                                "hot_status": int,  # 是否热门分区(0:否, 1:是)\n
-                                "pic": str,        # 分区图标URL\n
-
-                                # 其他可选字段\n
-                                "act_id": str,      # 活动ID（作用不明）\n
-                                "pk_status": str,   # PK状态（作用不明）\n
-                                "lock_status": str, # 锁定状态（作用不明）\n
-                                "parent_name": str, # 父分区名称（冗余）\n
-                                "area_type": int    # 分区类型\n
-                            },
-                            ...  # 更多子分区\n
-                        ]
-                    },
-                    ...  # 更多父分区\n
-                ]
-            }
-
-        Raises:
-            requests.RequestException: 网络请求失败
-            ValueError: 返回数据结构异常或API返回错误
-        """
-        api_url = "https://api.live.bilibili.com/room/v1/Area/getList"
-
-        try:
-            # 发送API请求
-            response = requests.get(verify=self.sslVerification, url = api_url, headers=self.headers, timeout=10)
-            response.raise_for_status()  # 检查HTTP错误状态
-
-            # 解析JSON响应
-            data = response.json()
-
-            # 基本验证响应结构
-            if not isinstance(data, dict) or "code" not in data:
-                raise ValueError("返回数据结构异常")
-
-            # 检查API错误码
-            if data.get("code") != 0:
-                error_msg = data.get("message") or data.get("msg") or "未知错误"
-                raise ValueError(f"API返回错误: {error_msg}")
-
-            # 检查核心数据结构
-            if "data" not in data or not isinstance(data["data"], list):
-                raise ValueError("返回数据缺少分区列表")
-
-            return data
-
-        except requests.exceptions.RequestException as e:
-            raise requests.exceptions.RequestException(f"网络请求失败: {e}") from e
-        except ValueError as e:
-            raise ValueError(f"数据处理失败: {e}") from e
-
     def get_anchor_common_areas(self, room_id: Union[str, int]) -> Dict[str, Any]:
         """
         获取主播常用分区信息
@@ -2452,6 +2381,77 @@ class BilibiliApiGeneric:
                 f"获取主播分区信息失败: {e}"
             ) from e
         except (ValueError, TypeError) as e:
+            raise ValueError(f"数据处理失败: {e}") from e
+
+    def get_area_obj_list(self):
+        """
+        获取B站直播分区信息
+
+        返回数据结构:
+            {
+                "code": int,         # 0表示成功，非0表示错误\n
+                "msg": str,          # 错误信息（通常与message相同）\n
+                "message": str,      # 错误信息\n
+                "data": [            # 父分区列表\n
+                    {
+                        "id": int,   # 父分区ID\n
+                        "name": str, # 父分区名称\n
+                        "list": [    # 子分区列表\n
+                            {
+                                # 子分区核心字段\n
+                                "id": str,         # 子分区ID\n
+                                "parent_id": str,   # 父分区ID\n
+                                "old_area_id": str, # 旧分区ID\n
+                                "name": str,       # 子分区名称\n
+                                "hot_status": int,  # 是否热门分区(0:否, 1:是)\n
+                                "pic": str,        # 分区图标URL\n
+
+                                # 其他可选字段\n
+                                "act_id": str,      # 活动ID（作用不明）\n
+                                "pk_status": str,   # PK状态（作用不明）\n
+                                "lock_status": str, # 锁定状态（作用不明）\n
+                                "parent_name": str, # 父分区名称（冗余）\n
+                                "area_type": int    # 分区类型\n
+                            },
+                            ...  # 更多子分区\n
+                        ]
+                    },
+                    ...  # 更多父分区\n
+                ]
+            }
+
+        Raises:
+            requests.RequestException: 网络请求失败
+            ValueError: 返回数据结构异常或API返回错误
+        """
+        api_url = "https://api.live.bilibili.com/room/v1/Area/getList"
+
+        try:
+            # 发送API请求
+            response = requests.get(verify=self.sslVerification, url = api_url, headers=self.headers, timeout=10)
+            response.raise_for_status()  # 检查HTTP错误状态
+
+            # 解析JSON响应
+            data = response.json()
+
+            # 基本验证响应结构
+            if not isinstance(data, dict) or "code" not in data:
+                raise ValueError("返回数据结构异常")
+
+            # 检查API错误码
+            if data.get("code") != 0:
+                error_msg = data.get("message") or data.get("msg") or "未知错误"
+                raise ValueError(f"API返回错误: {error_msg}")
+
+            # 检查核心数据结构
+            if "data" not in data or not isinstance(data["data"], list):
+                raise ValueError("返回数据缺少分区列表")
+
+            return data
+
+        except requests.exceptions.RequestException as e:
+            raise requests.exceptions.RequestException(f"网络请求失败: {e}") from e
+        except ValueError as e:
             raise ValueError(f"数据处理失败: {e}") from e
 
     def live_user_v1_master_info(self, uid: int):
@@ -2558,7 +2558,7 @@ class BilibiliApiGeneric:
         }
 
     # 登陆用函数
-    def generate(self, ) -> Dict:
+    def generate(self) -> Dict:
         """
         申请登录二维码
         @return: {'url': 二维码文本, 'qrcode_key': 扫描秘钥}
@@ -2573,7 +2573,7 @@ class BilibiliApiGeneric:
 
     def poll(self, qrcode_key: str) -> Dict[str, Union[Dict[str, str], int]]:  # 3.Dict[str, Dict[str, str] | int]
         """
-        获取登陆状态，登陆成功获取 基础的 cookies
+        获取扫码登陆状态，登陆成功获取 基础的 cookies
         @param qrcode_key: 扫描秘钥
         @return: {'code', 'cookies'}
         @rtype: Dict
@@ -2758,7 +2758,157 @@ class BilibiliApiMaster:
         except (ValueError, KeyError, TypeError) as e:
             raise ValueError(f"数据处理失败: {e}") from e
 
+    def get_live_stream_info(self) -> Dict[str, Any]:
+        """
+        获取直播间推流信息
+
+        Returns:
+            包含推流信息的字典，结构:
+            {
+                "code": int,        # API状态码(0:成功)
+                "message": str,      # API消息
+                "data": {
+                    "rtmp": {
+                        "addr": str,     # RTMP服务器地址
+                        "code": str      # 推流代码(包含streamkey)
+                    },
+                    "stream_line": [    # 可用线路列表
+                        {
+                            "cdn_name": str,  # CDN名称
+                            "checked": int,   # 是否选中(0/1)
+                            "name": str,      # 线路名称
+                            "src": int        # 线路标识
+                        }
+                    ]
+                }
+            }
+
+            如果请求失败，返回:
+            {
+                "code": -1,
+                "error": "错误信息"
+            }
+        """
+        api_url = "https://api.live.bilibili.com/live_stream/v1/StreamList/get_stream_by_roomId"
+        params = {"room_id": self.get_room_highlight_state()}
+
+        try:
+            # 发送API请求
+            response = requests.get(verify=self.sslVerification, url = api_url,headers=self.headers,params=params,timeout=10)
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "code": -1,
+                    "error": f"HTTP错误: {response.status_code}"
+                }
+
+            # 解析JSON响应
+            data = response.json()
+            return data
+
+        except requests.exceptions.RequestException as e:
+            return {
+                "code": -1,
+                "error": f"网络请求失败: {str(e)}"
+            }
+        except ValueError as e:
+            return {
+                "code": -1,
+                "error": f"JSON解析失败: {str(e)}"
+            }
+
     # """需要Csrf鉴权的"""
+    def change_room_news(self, content: str):
+        """
+        更新直播公告
+        @return:
+        """
+        headers = self.headers
+        csrf = self.csrf
+        api = "https://api.live.bilibili.com/xlive/app-blink/v1/index/updateRoomNews"
+        updateRoomNews_data = {
+            'room_id': self.get_room_highlight_state(),
+            'uid': self.cookies["DedeUserID"],
+            'content': content,
+            'csrf_token': csrf,
+            'csrf': csrf
+        }
+        updateRoomNews_ReturnValue = requests.post(verify=self.sslVerification, url=api, headers=headers,
+                                                   data=updateRoomNews_data).json()
+        return updateRoomNews_ReturnValue
+
+    def upload_cover(self, image_binary: bytes):
+        """
+        上传直播间封面到B站(符合官方请求格式)
+        :param image_binary: png/jpeg图像的二进制格式数据
+        """
+        UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/"
+              "537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
+        # 构建请求参数
+        api_url = "https://api.bilibili.com/x/upload/web/image"
+        # 准备multipart/form-data数据
+        boundary = '----WebKitFormBoundary' + ''.join(random.choices(string.ascii_letters + string.digits, k=16))
+        headers = {
+            "User-Agent": UA,
+            "Cookie": self.cookie,
+            "Content-Type": f"multipart/form-data; boundary={boundary}"
+        }
+        # 构建multipart body
+        data_parts = []
+        # 添加普通字段
+        fields = {
+            "bucket": "live",
+            "dir": "new_room_cover",
+            "csrf": self.cookies["bili_jct"]
+        }
+        for name, value in fields.items():
+            data_parts.append(
+                f'--{boundary}\r\n'
+                f'Content-Disposition: form-data; name="{name}"\r\n\r\n'
+                f'{value}\r\n'
+            )
+        data_parts.append(
+            f'--{boundary}\r\n'
+            f'Content-Disposition: form-data; name="file"; filename="blob"\r\n'
+            f'Content-Type: image/jpeg\r\n\r\n'
+        )
+        data_parts.append(image_binary)
+        data_parts.append(f'\r\n--{boundary}--\r\n')
+        # 构建最终body
+        body = b''
+        for part in data_parts:
+            if isinstance(part, str):
+                body += part.encode('utf-8')
+            else:
+                body += part
+        # 发送请求
+        response = requests.post(verify=self.sslVerification, url=api_url, headers=headers, data=body).json()
+        # 处理响应
+        result = response
+        return result
+
+    def update_cover(self, cover_url: str):
+        ua = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/"
+              "537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
+        headers = {
+            "User-Agent": ua,
+            "cookie": self.cookie,
+        }
+        # 构建请求参数
+        api_url = "https://api.live.bilibili.com/xlive/app-blink/v1/preLive/UpdatePreLiveInfo"
+        update_cover_data = {
+            "platform": "web",
+            "mobi_app": "web",
+            "build": 1,
+            "cover": cover_url,
+            "coverVertical": "",
+            "liveDirectionType": 1,
+            "csrf_token": self.cookies["bili_jct"],
+            "csrf": self.cookies["bili_jct"],
+        }
+        return requests.post(verify=self.sslVerification, url=api_url, headers=headers, params=update_cover_data).json()
+
     def create_live_room(self) -> Dict[str, Any]:
         """
         开通直播间（创建直播间房间）
@@ -2807,6 +2957,23 @@ class BilibiliApiMaster:
         except (ValueError, KeyError) as e:
             raise RuntimeError(f"解析响应失败: {e}") from e
 
+    def change_room_title(self, title: str):
+        """
+        更新直播标题
+        @return:
+        """
+        headers = self.headers
+        csrf = self.csrf
+        api = "https://api.live.bilibili.com/room/v1/Room/update"
+        room_v1_Room_update_data = {
+            'room_id': self.get_room_highlight_state(),
+            'title': title,
+            'csrf_token': csrf,
+            'csrf': csrf
+        }
+        room_v1_Room_update_ReturnValue = requests.post(verify=self.sslVerification, url = api, headers=headers, data=room_v1_Room_update_data).json()
+        return room_v1_Room_update_ReturnValue
+
     def change_room_area(self, area_id: int):
         """
         更改直播分区
@@ -2825,6 +2992,62 @@ class BilibiliApiMaster:
         }
         ChangeRoomArea_ReturnValue = requests.post(verify=self.sslVerification, url = api, headers=headers, params=AnchorChangeRoomArea_data).json()
         return ChangeRoomArea_ReturnValue
+
+    def start_live(self, area_id: int,  platform: Literal["pc_link", "web_link", "android_link"]):
+        """
+        开始直播
+        Args:
+            area_id: 二级分区id
+            platform: 直播平台
+        Returns:
+        """
+        api = "https://api.live.bilibili.com/room/v1/Room/startLive"
+        headers = self.headers
+        csrf = self.csrf
+        startLivedata = {
+            "access_key": "",  # 留空
+            "appkey": "aae92bc66f3edfab",  # 固定应用密钥
+            "platform": platform,  # 直播姬（pc）：pc_link、web在线直播：web_link、bililink：android_link
+            "room_id": self.get_room_highlight_state(),
+            "area_v2": area_id,
+            "build": "9343",  # 客户端版本号
+            "backup_stream": 0,
+            "csrf": csrf,
+            "csrf_token": csrf,
+            "ts": str(int(time.time()))  # 当前UNIX时间戳
+        }
+
+        # 对参数按字典序排序
+        sorted_params = sorted(startLivedata.items(), key=lambda x: x[0])
+
+        # 生成签名字符串 (参数串 + 固定盐值)
+        query_string = "&".join(f"{k}={v}" for k, v in sorted_params)
+        sign_string = query_string + "af125a0d5279fd576c1b4418a3e8276d"
+
+        # 计算MD5签名
+        md5_sign = hashlib.md5(sign_string.encode('utf-8')).hexdigest()
+
+        # 添加签名到参数
+        startLivedata["sign"] = md5_sign
+        startLive_ReturnValue = requests.post(verify=self.sslVerification, url = api, headers=headers, params=startLivedata).json()
+        return startLive_ReturnValue
+
+    def stop_live(self,  platform: Literal["pc_link", "web_link", "android_link"]):
+        """
+        结束直播
+        @return:
+        """
+        api = "https://api.live.bilibili.com/room/v1/Room/stopLive"
+        headers = self.headers
+        csrf = self.csrf
+        stopLive_data = {
+            "platform": platform,
+            "room_id": self.get_room_highlight_state(),
+            "csrf": csrf,
+            "csrf_token": csrf,
+        }
+        stopLive_ReturnValue = requests.post(verify=self.sslVerification, url = api, headers=headers, params=stopLive_data).json()
+        return stopLive_ReturnValue
 
     def rename_fans_medal(self, medal_name: str) -> dict:
         """
@@ -2897,62 +3120,6 @@ class BilibiliApiMaster:
                 "msg": f"网络请求失败: {str(e)}",
                 "data": {}
             }
-
-    def start_live(self, area_id: int,  platform: Literal["pc_link", "web_link", "android_link"]):
-        """
-        开始直播
-        Args:
-            area_id: 二级分区id
-            platform: 直播平台
-        Returns:
-        """
-        api = "https://api.live.bilibili.com/room/v1/Room/startLive"
-        headers = self.headers
-        csrf = self.csrf
-        startLivedata = {
-            "access_key": "",  # 留空
-            "appkey": "aae92bc66f3edfab",  # 固定应用密钥
-            "platform": platform,  # 直播姬（pc）：pc_link、web在线直播：web_link、bililink：android_link
-            "room_id": self.get_room_highlight_state(),
-            "area_v2": area_id,
-            "build": "9343",  # 客户端版本号
-            "backup_stream": 0,
-            "csrf": csrf,
-            "csrf_token": csrf,
-            "ts": str(int(time.time()))  # 当前UNIX时间戳
-        }
-
-        # 对参数按字典序排序
-        sorted_params = sorted(startLivedata.items(), key=lambda x: x[0])
-
-        # 生成签名字符串 (参数串 + 固定盐值)
-        query_string = "&".join(f"{k}={v}" for k, v in sorted_params)
-        sign_string = query_string + "af125a0d5279fd576c1b4418a3e8276d"
-
-        # 计算MD5签名
-        md5_sign = hashlib.md5(sign_string.encode('utf-8')).hexdigest()
-
-        # 添加签名到参数
-        startLivedata["sign"] = md5_sign
-        startLive_ReturnValue = requests.post(verify=self.sslVerification, url = api, headers=headers, params=startLivedata).json()
-        return startLive_ReturnValue
-
-    def stop_live(self,  platform: Literal["pc_link", "web_link", "android_link"]):
-        """
-        结束直播
-        @return:
-        """
-        api = "https://api.live.bilibili.com/room/v1/Room/stopLive"
-        headers = self.headers
-        csrf = self.csrf
-        stopLive_data = {
-            "platform": platform,
-            "room_id": self.get_room_highlight_state(),
-            "csrf": csrf,
-            "csrf_token": csrf,
-        }
-        stopLive_ReturnValue = requests.post(verify=self.sslVerification, url = api, headers=headers, params=stopLive_data).json()
-        return stopLive_ReturnValue
 
     def create_reserve(self, title: str, live_plan_start_time: int, create_dynamic: bool = False, business_type: int = 10) -> Dict[str, Any]:
         """
@@ -3072,66 +3239,6 @@ class BilibiliApiMaster:
         except json.JSONDecodeError as e:
             raise ValueError(f"解析响应失败: {e}") from e
 
-    def get_live_stream_info(self) -> Dict[str, Any]:
-        """
-        获取直播间推流信息
-
-        Returns:
-            包含推流信息的字典，结构:
-            {
-                "code": int,        # API状态码(0:成功)
-                "message": str,      # API消息
-                "data": {
-                    "rtmp": {
-                        "addr": str,     # RTMP服务器地址
-                        "code": str      # 推流代码(包含streamkey)
-                    },
-                    "stream_line": [    # 可用线路列表
-                        {
-                            "cdn_name": str,  # CDN名称
-                            "checked": int,   # 是否选中(0/1)
-                            "name": str,      # 线路名称
-                            "src": int        # 线路标识
-                        }
-                    ]
-                }
-            }
-
-            如果请求失败，返回:
-            {
-                "code": -1,
-                "error": "错误信息"
-            }
-        """
-        api_url = "https://api.live.bilibili.com/live_stream/v1/StreamList/get_stream_by_roomId"
-        params = {"room_id": self.get_room_highlight_state()}
-
-        try:
-            # 发送API请求
-            response = requests.get(verify=self.sslVerification, url = api_url,headers=self.headers,params=params,timeout=10)
-
-            # 检查HTTP状态码
-            if response.status_code != 200:
-                return {
-                    "code": -1,
-                    "error": f"HTTP错误: {response.status_code}"
-                }
-
-            # 解析JSON响应
-            data = response.json()
-            return data
-
-        except requests.exceptions.RequestException as e:
-            return {
-                "code": -1,
-                "error": f"网络请求失败: {str(e)}"
-            }
-        except ValueError as e:
-            return {
-                "code": -1,
-                "error": f"JSON解析失败: {str(e)}"
-            }
-
     def fetch_stream_addr(self, platform: Literal["pc_link", "web_link", "android_link"], reset_key: bool = False):
         """
         推流码信息
@@ -3151,111 +3258,6 @@ class BilibiliApiMaster:
         FetchWebUpStreamAddre_ReturnValue = requests.post(verify=self.sslVerification, url = api, headers=headers, params=FetchWebUpStreamAddr_data).json()
         return FetchWebUpStreamAddre_ReturnValue
 
-    def change_room_title(self, title: str):
-        """
-        更新直播标题
-        @return:
-        """
-        headers = self.headers
-        csrf = self.csrf
-        api = "https://api.live.bilibili.com/room/v1/Room/update"
-        room_v1_Room_update_data = {
-            'room_id': self.get_room_highlight_state(),
-            'title': title,
-            'csrf_token': csrf,
-            'csrf': csrf
-        }
-        room_v1_Room_update_ReturnValue = requests.post(verify=self.sslVerification, url = api, headers=headers, data=room_v1_Room_update_data).json()
-        return room_v1_Room_update_ReturnValue
-
-    def change_room_news(self, content: str):
-        """
-        更新直播公告
-        @return:
-        """
-        headers = self.headers
-        csrf = self.csrf
-        api = "https://api.live.bilibili.com/xlive/app-blink/v1/index/updateRoomNews"
-        updateRoomNews_data = {
-            'room_id': self.get_room_highlight_state(),
-            'uid': self.cookies["DedeUserID"],
-            'content': content,
-            'csrf_token': csrf,
-            'csrf': csrf
-        }
-        updateRoomNews_ReturnValue = requests.post(verify=self.sslVerification, url = api, headers=headers, data=updateRoomNews_data).json()
-        return updateRoomNews_ReturnValue
-
-    def upload_cover(self, image_binary: bytes):
-        """
-        上传直播间封面到B站(符合官方请求格式)
-        :param image_binary: png/jpeg图像的二进制格式数据
-        """
-        UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/"
-              "537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
-        # 构建请求参数
-        api_url = "https://api.bilibili.com/x/upload/web/image"
-        # 准备multipart/form-data数据
-        boundary = '----WebKitFormBoundary' + ''.join(random.choices(string.ascii_letters + string.digits, k=16))
-        headers = {
-            "User-Agent": UA,
-            "Cookie": self.cookie,
-            "Content-Type": f"multipart/form-data; boundary={boundary}"
-        }
-        # 构建multipart body
-        data_parts = []
-        # 添加普通字段
-        fields = {
-            "bucket": "live",
-            "dir": "new_room_cover",
-            "csrf": self.cookies["bili_jct"]
-        }
-        for name, value in fields.items():
-            data_parts.append(
-                f'--{boundary}\r\n'
-                f'Content-Disposition: form-data; name="{name}"\r\n\r\n'
-                f'{value}\r\n'
-            )
-        data_parts.append(
-            f'--{boundary}\r\n'
-            f'Content-Disposition: form-data; name="file"; filename="blob"\r\n'
-            f'Content-Type: image/jpeg\r\n\r\n'
-        )
-        data_parts.append(image_binary)
-        data_parts.append(f'\r\n--{boundary}--\r\n')
-        # 构建最终body
-        body = b''
-        for part in data_parts:
-            if isinstance(part, str):
-                body += part.encode('utf-8')
-            else:
-                body += part
-        # 发送请求
-        response = requests.post(verify=self.sslVerification, url = api_url, headers=headers, data=body).json()
-        # 处理响应
-        result = response
-        return result
-
-    def update_cover(self, cover_url: str):
-        ua = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/"
-              "537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
-        headers = {
-            "User-Agent": ua,
-            "cookie": self.cookie,
-        }
-        # 构建请求参数
-        api_url = "https://api.live.bilibili.com/xlive/app-blink/v1/preLive/UpdatePreLiveInfo"
-        update_cover_data = {
-            "platform": "web",
-            "mobi_app": "web",
-            "build": 1,
-            "cover": cover_url,
-            "coverVertical": "",
-            "liveDirectionType": 1,
-            "csrf_token": self.cookies["bili_jct"],
-            "csrf": self.cookies["bili_jct"],
-        }
-        return requests.post(verify=self.sslVerification, url = api_url, headers=headers, params=update_cover_data).json()
 # end
 
 # ====================================================================================================================

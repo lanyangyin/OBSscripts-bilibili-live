@@ -80,15 +80,15 @@ class BilibiliRoomInfoManager:
                 "error": str(e)
             }
 
-    def get_room_highlight_info(self) -> Dict[str, Any]:
+    def get_nav_info(self) -> Dict[str, Any]:
         """
-        获取直播间高亮状态信息，包括房间ID
+        获取导航栏用户信息（需要登录）
 
         Returns:
-            包含房间信息的字典：
+            包含用户信息的字典：
             - success: 操作是否成功
             - message: 结果描述信息
-            - data: 成功时的数据（包含room_id等）
+            - data: 成功时的数据（包含用户信息）
             - error: 失败时的错误信息
             - status_code: HTTP状态码（如果有）
         """
@@ -97,13 +97,13 @@ class BilibiliRoomInfoManager:
             if not self.initialization_result["success"]:
                 return {
                     "success": False,
-                    "message": "获取房间信息失败",
+                    "message": "获取用户信息失败",
                     "error": "管理器未正确初始化",
                     "status_code": None
                 }
 
             # 构建API请求
-            api_url = "https://api.live.bilibili.com/xlive/app-blink/v1/highlight/getRoomHighlightState"
+            api_url = "https://api.bilibili.com/x/web-interface/nav"
 
             # 发送请求
             response = requests.get(
@@ -117,7 +117,7 @@ class BilibiliRoomInfoManager:
             if response.status_code != 200:
                 return {
                     "success": False,
-                    "message": "获取房间信息失败",
+                    "message": "获取用户信息失败",
                     "error": f"HTTP错误: {response.status_code}",
                     "status_code": response.status_code,
                     "response_text": response.text
@@ -136,12 +136,12 @@ class BilibiliRoomInfoManager:
                     "api_code": result.get("code")
                 }
 
-            # 检查数据是否存在
-            if "data" not in result or "room_id" not in result["data"]:
+            # 检查用户是否已登录
+            if not result.get("data", {}).get("isLogin", False):
                 return {
                     "success": False,
-                    "message": "API响应格式异常",
-                    "error": "响应中缺少必要的房间信息字段",
+                    "message": "获取用户信息失败",
+                    "error": "用户未登录",
                     "status_code": response.status_code,
                     "response_data": result
                 }
@@ -149,39 +149,36 @@ class BilibiliRoomInfoManager:
             # 成功返回
             return {
                 "success": True,
-                "message": "房间信息获取成功",
-                "data": {
-                    "room_id": result["data"]["room_id"],
-                    "highlight_info": result["data"]  # 包含所有高亮状态信息
-                },
+                "message": "用户信息获取成功",
+                "data": result.get("data", {}),
                 "status_code": response.status_code
             }
 
         except requests.exceptions.Timeout:
             return {
                 "success": False,
-                "message": "获取房间信息失败",
+                "message": "获取用户信息失败",
                 "error": "请求超时",
                 "status_code": None
             }
         except requests.exceptions.ConnectionError:
             return {
                 "success": False,
-                "message": "获取房间信息失败",
+                "message": "获取用户信息失败",
                 "error": "网络连接错误",
                 "status_code": None
             }
         except requests.exceptions.RequestException as e:
             return {
                 "success": False,
-                "message": "获取房间信息失败",
+                "message": "获取用户信息失败",
                 "error": f"网络请求异常: {str(e)}",
                 "status_code": None
             }
         except Exception as e:
             return {
                 "success": False,
-                "message": "获取房间信息过程中发生未知错误",
+                "message": "获取用户信息过程中发生未知错误",
                 "error": str(e),
                 "status_code": None
             }
@@ -204,16 +201,19 @@ if __name__ == '__main__':
     if not room_manager.initialization_result["success"]:
         print(f"管理器初始化失败: {room_manager.initialization_result['error']}")
     else:
-        # 获取房间信息
-        room_info = room_manager.get_room_highlight_info()
+        # 获取用户信息
+        nav_info = room_manager.get_nav_info()
 
-        if room_info["success"]:
-            print(f"房间ID: {room_info['data']['room_id']}")
-            print(f"完整高亮信息: {room_info['data']['highlight_info']}")
-            print(room_info)
+        if nav_info["success"]:
+            print("用户信息获取成功")
+            user_data = nav_info["data"]
+            print(f"用户名: {user_data.get('uname', '未知')}")
+            print(f"用户ID: {user_data.get('mid', '未知')}")
+            print(f"当前等级: {user_data.get('level_info', {}).get('current_level', '未知')}")
+            print(f"会员状态: {'是' if user_data.get('vipStatus', 0) else '否'}")
         else:
-            print(f"获取房间信息失败: {room_info['error']}")
-            if "status_code" in room_info and room_info["status_code"]:
-                print(f"HTTP状态码: {room_info['status_code']}")
-            if "api_code" in room_info:
-                print(f"API错误码: {room_info['api_code']}")
+            print(f"获取用户信息失败: {nav_info['error']}")
+            if "status_code" in nav_info and nav_info["status_code"]:
+                print(f"HTTP状态码: {nav_info['status_code']}")
+            if "api_code" in nav_info:
+                print(f"API错误码: {nav_info['api_code']}")

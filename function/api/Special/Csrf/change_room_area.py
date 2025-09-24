@@ -1,9 +1,13 @@
 from pathlib import Path
 from typing import Dict, Any
 
+import requests
+
 from function.tools.parse_cookie import parse_cookie
 from function.tools.dict_to_cookie_string import dict_to_cookie_string
 from function.tools.BilibiliUserConfigManager import BilibiliUserConfigManager
+from function.api.Special.Get.get_room_highlight_info import BilibiliRoomInfoManager as GetRoomHighlightInfo
+
 
 
 class BilibiliCSRFAuthenticator:
@@ -142,6 +146,124 @@ class BilibiliCSRFAuthenticator:
             "message": "用户信息获取成功"
         }
 
+    def change_room_area(self, room_id: int, area_id: int) -> Dict[str, Any]:
+        """
+        更改直播分区
+
+        Args:
+            room_id: 直播间ID
+            area_id: 二级分区ID
+
+        Returns:
+            包含操作结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（如sub_session_key）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的code
+        """
+        try:
+            # 检查认证器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "更改分区失败",
+                    "error": "认证器未正确初始化",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            # 构建API请求
+            api = "https://api.live.bilibili.com/xlive/app-blink/v2/room/AnchorChangeRoomArea"
+            headers = self.headers.copy()
+            csrf = self.csrf
+
+            params = {
+                "platform": "pc",
+                "room_id": room_id,
+                "area_id": area_id,
+                "csrf": csrf,
+                "csrf_token": csrf,
+            }
+
+            # 发送请求
+            response = requests.post(
+                url=api,
+                headers=headers,
+                params=params,
+                verify=self.verify_ssl,
+                timeout=30
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "更改分区失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            result = response.json()
+            api_code = result.get("code", -1)
+
+            # 根据API返回的code判断操作结果
+            if api_code == 0:
+                return {
+                    "success": True,
+                    "message": "分区更改成功",
+                    "data": result.get("data", {}),
+                    "status_code": response.status_code,
+                    "api_code": api_code
+                }
+            else:
+                error_message = result.get("message", "未知错误")
+                return {
+                    "success": False,
+                    "message": f"分区更改失败: {error_message}",
+                    "error": error_message,
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "更改分区失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "更改分区失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "更改分区失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "更改分区过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
+            }
+
 
 # 使用示例
 if __name__ == "__main__":
@@ -157,16 +279,33 @@ if __name__ == "__main__":
     # 创建认证器实例
     authenticator = BilibiliCSRFAuthenticator(Headers)
 
+    # 创建房间信息管理器实例
+    ghi = GetRoomHighlightInfo(Headers)
+
     # 检查初始化结果
     if authenticator.initialization_result["success"]:
         # 获取用户信息
         user_info = authenticator.get_user_info()
         if user_info["success"]:
-            print("# 在这里处理成功的用户信息",user_info)
-            pass
+            # 获取房间高亮信息
+            highlight_info = ghi.get_room_highlight_info()
+
+            if highlight_info["success"]:
+                room_id = highlight_info["data"]["room_id"]
+                # 更改分区（示例分区ID为255）
+                result = authenticator.change_room_area(room_id, 255)
+                print(result)
+
+                if result["success"]:
+                    print(f"分区更改成功: {result['message']}")
+                    print(f"子会话密钥: {result['data'].get('sub_session_key', '')}")
+                else:
+                    print(f"分区更改失败: {result['error']}")
+                    if result.get("api_code"):
+                        print(f"API错误码: {result['api_code']}")
+            else:
+                print(f"获取房间信息失败: {highlight_info['error']}")
         else:
-            print("# 在这里处理获取用户信息失败的情况")
-            pass
+            print("获取用户信息失败")
     else:
-        print("# 在这里处理初始化失败的情况")
-        pass
+        print("认证器初始化失败")

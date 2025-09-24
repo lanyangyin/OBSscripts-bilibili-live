@@ -1,6 +1,6 @@
-import json
-import requests
 from typing import Dict, Any
+
+import requests
 
 
 class BilibiliApiGeneric:
@@ -12,12 +12,12 @@ class BilibiliApiGeneric:
         self.headers = headers
         self.verify_ssl = verify_ssl
 
-    def get_room_base_info(self, room_id: int) -> Dict[str, Any]:
+    def get_room_info_old(self, mid: int) -> Dict[str, Any]:
         """
-        获取直播间基本信息
+        通过B站UID查询直播间基础信息
 
         Args:
-            room_id: 直播间短ID
+            mid: B站用户UID
 
         Returns:
             包含操作结果的字典：
@@ -29,27 +29,25 @@ class BilibiliApiGeneric:
             - api_code: B站API返回的状态码
         """
         try:
-            # 验证输入参数
-            if not room_id or room_id <= 0:
+            # 参数验证
+            if not isinstance(mid, int) or mid <= 0:
                 return {
                     "success": False,
                     "message": "获取房间信息失败",
-                    "error": "房间ID无效",
+                    "error": "mid 必须是正整数",
                     "status_code": None,
                     "api_code": None
                 }
 
-            api_url = "https://api.live.bilibili.com/xlive/web-room/v1/index/getRoomBaseInfo"
-            params = {
-                "req_biz": "web_room_componet",
-                "room_ids": room_id
-            }
+            api = "https://api.live.bilibili.com/room/v1/Room/getRoomInfoOld"
+            params = {"mid": mid}
 
-            # 发送API请求
+            # 发送请求
             response = requests.get(
-                api_url,
+                url=api,
                 headers=self.headers,
                 params=params,
+                timeout=5.0,
                 verify=self.verify_ssl
             )
 
@@ -65,9 +63,18 @@ class BilibiliApiGeneric:
                 }
 
             # 解析JSON响应
-            data = response.json()
+            try:
+                data = response.json()
+            except ValueError as e:
+                return {
+                    "success": False,
+                    "message": "获取房间信息失败",
+                    "error": f"解析API响应失败: {str(e)}",
+                    "status_code": response.status_code,
+                    "api_code": None
+                }
 
-            # 验证API响应
+            # 检查API返回状态码
             api_code = data.get("code", -1)
             if api_code != 0:
                 error_msg = data.get("message") or data.get("msg") or "未知错误"
@@ -80,29 +87,32 @@ class BilibiliApiGeneric:
                     "response_data": data
                 }
 
-            # 提取房间信息
-            by_room_ids = data.get("data", {}).get("by_room_ids", {})
-            if not by_room_ids:
+            # 检查数据是否存在
+            result = data.get("data")
+            if not result:
                 return {
                     "success": False,
                     "message": "获取房间信息失败",
-                    "error": "未找到房间信息",
+                    "error": "API返回数据为空",
                     "status_code": response.status_code,
                     "api_code": api_code,
                     "response_data": data
                 }
 
-            # 返回第一个房间信息（即使多个也取第一个）
-            room_info = next(iter(by_room_ids.values()), None)
-            if not room_info:
-                return {
-                    "success": False,
-                    "message": "获取房间信息失败",
-                    "error": "房间信息为空",
-                    "status_code": response.status_code,
-                    "api_code": api_code,
-                    "response_data": data
-                }
+            # 确保返回完整字段结构
+            room_info = {
+                "roomStatus": result.get("roomStatus"),
+                "roundStatus": result.get("roundStatus"),
+                "liveStatus": result.get("liveStatus"),
+                "url": result.get("url"),
+                "title": result.get("title"),
+                "cover": result.get("cover"),
+                "online": result.get("online"),
+                "roomid": result.get("roomid"),
+                "broadcast_type": result.get("broadcast_type"),
+                "online_hidden": result.get("online_hidden"),
+                "link": result.get("link")  # 添加link字段
+            }
 
             return {
                 "success": True,
@@ -147,27 +157,26 @@ class BilibiliApiGeneric:
 
 
 if __name__ == "__main__":
-    Headers = {
+    headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                       '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
     }
 
     # 创建API实例
-    api = BilibiliApiGeneric(Headers, verify_ssl=True)
+    api = BilibiliApiGeneric(headers, verify_ssl=True)
 
-    # 获取直播间信息（使用短ID）
-    result = api.get_room_base_info(25322725)
+    # 获取房间信息
+    result = api.get_room_info_old(143474500)
 
     if result["success"]:
-        room_info = result["data"]
-        print(json.dumps(room_info, ensure_ascii=False, indent=2))
-
-        # 打印基本信息
-        print(f"直播间标题: {room_info['title']}")
-        print(f"主播: {room_info['uname']}")
-        print(f"状态: {'直播中' if room_info['live_status'] == 1 else '未开播'}")
-        print(f"在线人数: {room_info['online']}")
+        print("获取房间信息成功:")
+        print(f"房间状态: {result['data']['roomStatus']}")
+        print(f"直播状态: {result['data']['liveStatus']}")
+        print(f"标题: {result['data']['title']}")
+        print(f"在线人数: {result['data']['online']}")
+        print(f"房间ID: {result['data']['roomid']}")
+        print(result)
     else:
-        print(f"获取直播间信息失败: {result['error']}")
+        print(f"获取房间信息失败: {result['error']}")
         if "response_data" in result:
-            print(f"完整响应: {json.dumps(result['response_data'], ensure_ascii=False, indent=2)}")
+            print(f"完整响应: {result['response_data']}")
