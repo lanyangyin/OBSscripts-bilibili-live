@@ -1,9 +1,6 @@
-import base64
-import struct
 from PIL import Image
 import io
 import zlib
-import os
 
 
 class StegoImageText:

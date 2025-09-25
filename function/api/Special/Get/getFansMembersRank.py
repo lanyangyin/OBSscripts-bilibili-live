@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 from typing import Dict, Any
 
@@ -144,142 +145,39 @@ class BilibiliCSRFAuthenticator:
             "message": "用户信息获取成功"
         }
 
-    def rename_fans_medal(self, medal_name: str) -> Dict[str, Any]:
+    def getFansMembersRank(self, uid: int) -> list:
         """
-        修改粉丝勋章名称
-
-        Args:
-            medal_name: 新的粉丝勋章名称
-
-        Returns:
-            包含操作结果的字典，固定键名：
-            - success: 操作是否成功（布尔值）
-            - message: 操作结果消息
-            - data: 附加数据（字典）
-            - error: 错误信息（失败时存在）
-            - status_code: HTTP状态码
-            - api_code: B站API返回的代码
+        通过用户的B站uid查看他的粉丝团成员列表
+        :param uid:B站uid
+        :return: list元素：[{face：头像url，guard_icon：舰队职位图标url，guard_level：舰队职位 1|2|3->总督|提督|舰长，honor_icon：""，level：粉丝牌等级，medal_color_border：粉丝牌描边颜色数值为 10 进制的 16 进制值，medal_color_start：勋章起始颜色，medal_color_end：勋章结束颜色，medal_name：勋章名，name：用户昵称，score：勋章经验值，special：""，target_id：up主mid，uid：用户mid，user_rank：在粉丝团的排名}]
         """
-        # 检查认证器是否正常初始化
-        if not self.initialization_result["success"]:
-            return {
-                "success": False,
-                "message": "操作失败",
-                "error": "认证器未正确初始化",
-                "status_code": None,
-                "api_code": None
+        api = "https://api.live.bilibili.com/xlive/general-interface/v1/rank/getFansMembersRank"
+        headers = self.headers
+        page = 0
+        # maxpage = 1
+        RankFans = []
+        FansMember = True
+        while FansMember:
+            # while page <= maxpage:
+            page += 1
+            data = {
+                "ruid": uid,
+                "page": page,
+                "page_size": 30,
             }
-
-        api_url = "https://api.live.bilibili.com/fans_medal/v1/medal/rename"
-
-        try:
-            # 准备请求参数
-            params = {
-                "uid": self.cookies.get("DedeUserID", ""),
-                "source": "1",
-                "medal_name": medal_name,
-                "platform": "pc",
-                "csrf_token": self.csrf,
-                "csrf": self.csrf
-            }
-
-            # 准备请求头
-            headers = {
-                **self.headers,
-                "origin": "https://link.bilibili.com",
-                "referer": "https://link.bilibili.com/p/center/index",
-                "content-type": "application/x-www-form-urlencoded",
-                "priority": "u=1, i"
-            }
-
-            # 发送POST请求
-            response = requests.post(
-                api_url,
-                headers=headers,
-                data=params,
-                timeout=10,
-                verify=self.verify_ssl
-            )
-
-            # 检查HTTP状态码
-            if response.status_code != 200:
-                return {
-                    "success": False,
-                    "message": "请求失败",
-                    "error": f"HTTP错误: {response.status_code}",
-                    "status_code": response.status_code,
-                    "api_code": None,
-                    "response_text": response.text
-                }
-
-            # 尝试解析JSON响应
             try:
-                result = response.json()
-            except ValueError:
-                return {
-                    "success": False,
-                    "message": "响应解析失败",
-                    "error": "无法解析JSON响应",
-                    "status_code": response.status_code,
-                    "api_code": None,
-                    "response_text": response.text
-                }
-
-            # 根据B站API返回的code判断操作结果
-            api_code = result.get("code", -1)
-            api_message = result.get("message", result.get("msg", "未知错误"))
-
-            if api_code == 0:
-                return {
-                    "success": True,
-                    "message": "粉丝勋章名称修改成功",
-                    "data": result.get("data", {}),
-                    "status_code": response.status_code,
-                    "api_code": api_code
-                }
-            else:
-                return {
-                    "success": False,
-                    "message": f"B站API返回错误: {api_message}",
-                    "error": api_message,
-                    "status_code": response.status_code,
-                    "api_code": api_code,
-                    "response_data": result
-                }
-
-        except requests.exceptions.Timeout:
-            return {
-                "success": False,
-                "message": "请求超时",
-                "error": "网络请求超时",
-                "status_code": None,
-                "api_code": None
-            }
-        except requests.exceptions.ConnectionError:
-            return {
-                "success": False,
-                "message": "网络连接错误",
-                "error": "无法连接到服务器",
-                "status_code": None,
-                "api_code": None
-            }
-        except requests.exceptions.RequestException as e:
-            return {
-                "success": False,
-                "message": "网络请求异常",
-                "error": f"请求失败: {str(e)}",
-                "status_code": None,
-                "api_code": None
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "message": "操作过程中发生未知错误",
-                "error": str(e),
-                "status_code": None,
-                "api_code": None
-            }
-
+                FansMembersRank = requests.get(api, headers=headers, params=data).json()
+            except:
+                time.sleep(5)
+                FansMembersRank = requests.get(api, headers=headers, params=data).json()
+            # num_FansMembersRank = FansMembersRank["data"]["num"]
+            # print(FansMembersRank)
+            FansMember = FansMembersRank["data"]["item"]
+            # RankFans.append(FansMember)
+            if FansMember:
+                RankFans += FansMember
+            # maxpage = math.ceil(num_FansMembersRank / 30) + 1
+        return RankFans
 
 
 # 使用示例
@@ -301,22 +199,13 @@ if __name__ == "__main__":
         # 获取用户信息
         user_info = authenticator.get_user_info()
         if user_info["success"]:
-            print("用户信息:", user_info["data"])
-
-            # 修改粉丝勋章名称
-            rename_result = authenticator.rename_fans_medal("睚眦t")
-            print(rename_result)
-
-            if rename_result["success"]:
-                print("粉丝勋章名称修改成功")
-                print("返回数据:", rename_result["data"])
-            else:
-                print(f"修改失败: {rename_result['message']}")
-                if rename_result.get("api_code"):
-                    print(f"API错误代码: {rename_result['api_code']}")
-                if rename_result.get("error"):
-                    print(f"错误详情: {rename_result['error']}")
+            print("# 在这里处理成功的用户信息",user_info)
+            fmr = authenticator.getFansMembersRank(1639389144)
+            print(len(fmr), fmr)
+            pass
         else:
-            print("获取用户信息失败:", user_info.get("error", "未知错误"))
+            print("# 在这里处理获取用户信息失败的情况")
+            pass
     else:
-        print("认证器初始化失败:", authenticator.initialization_result.get("error", "未知错误"))
+        print("# 在这里处理初始化失败的情况")
+        pass
