@@ -10,8 +10,7 @@ from function.tools.BilibiliUserConfigManager import BilibiliUserConfigManager
 class WbiSigna:
     def __init__(self, headers: dict, verify_ssl: bool = True):
         """
-        完善浏览器headers
-
+        wbi签名的api
         Args:
             headers: 包含Cookie等认证信息的请求头字典
             verify_ssl: 是否验证SSL证书（默认True，生产环境建议开启）
