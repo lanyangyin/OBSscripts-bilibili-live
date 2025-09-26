@@ -2,4 +2,5 @@ qrcode~=8.2
 requests~=2.32.4
 pyperclip~=1.9.0
 pillow~=11.2.1
-urllib3~=2.4.0
+urllib3~=2.5.0
+websockets~=15.0.1
