@@ -1,4 +1,3 @@
-import time
 from pathlib import Path
 from typing import Dict, Any
 
@@ -145,39 +144,125 @@ class BilibiliCSRFAuthenticator:
             "message": "用户信息获取成功"
         }
 
-    def getFansMembersRank(self, uid: int) -> list:
+    def get_emoticons(self, room_id: int) -> Dict[str, Any]:
         """
-        通过用户的B站uid查看他的粉丝团成员列表
-        :param uid:B站uid
-        :return: list元素：[{face：头像url，guard_icon：舰队职位图标url，guard_level：舰队职位 1|2|3->总督|提督|舰长，honor_icon：""，level：粉丝牌等级，medal_color_border：粉丝牌描边颜色数值为 10 进制的 16 进制值，medal_color_start：勋章起始颜色，medal_color_end：勋章结束颜色，medal_name：勋章名，name：用户昵称，score：勋章经验值，special：""，target_id：up主mid，uid：用户mid，user_rank：在粉丝团的排名}]
+        获取直播间表情列表
+
+        Args:
+            room_id: 直播间ID
+
+        Returns:
+            包含表情列表的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（表情列表）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码（如果有）
         """
-        api = "https://api.live.bilibili.com/xlive/general-interface/v1/rank/getFansMembersRank"
-        headers = self.headers
-        page = 0
-        # maxpage = 1
-        RankFans = []
-        FansMember = True
-        while FansMember:
-            # while page <= maxpage:
-            page += 1
-            data = {
-                "ruid": uid,
-                "page": page,
-                "page_size": 30,
+        try:
+            # 检查认证器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "获取表情列表失败",
+                    "error": "认证器未正确初始化",
+                    "status_code": None
+                }
+
+            # 检查房间ID是否有效
+            if not room_id or room_id <= 0:
+                return {
+                    "success": False,
+                    "message": "获取表情列表失败",
+                    "error": "房间ID无效",
+                    "status_code": None
+                }
+
+            # 构建API请求
+            api_url = "https://api.live.bilibili.com/xlive/web-ucenter/v2/emoticon/GetEmoticons"
+            params = {
+                "platform": "pc",
+                "room_id": room_id
             }
-            try:
-                FansMembersRank = requests.get(api, headers=headers, params=data).json()
-            except:
-                time.sleep(5)
-                FansMembersRank = requests.get(api, headers=headers, params=data).json()
-            # num_FansMembersRank = FansMembersRank["data"]["num"]
-            # print(FansMembersRank)
-            FansMember = FansMembersRank["data"]["item"]
-            # RankFans.append(FansMember)
-            if FansMember:
-                RankFans += FansMember
-            # maxpage = math.ceil(num_FansMembersRank / 30) + 1
-        return RankFans
+
+            # 发送请求
+            response = requests.get(
+                url=api_url,
+                headers=self.headers,
+                params=params,
+                verify=self.verify_ssl,
+                timeout=30
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取表情列表失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            result = response.json()
+
+            # 检查B站API返回状态
+            if result.get("code") != 0:
+                return {
+                    "success": False,
+                    "message": "B站API返回错误",
+                    "error": result.get("message", "未知错误"),
+                    "status_code": response.status_code,
+                    "api_code": result.get("code")
+                }
+
+            # 检查数据是否存在
+            if "data" not in result or "data" not in result["data"]:
+                return {
+                    "success": False,
+                    "message": "API响应格式异常",
+                    "error": "响应中缺少必要的数据字段",
+                    "status_code": response.status_code,
+                    "response_data": result
+                }
+
+            # 成功返回
+            return {
+                "success": True,
+                "message": "表情列表获取成功",
+                "data": result["data"]["data"],
+                "status_code": response.status_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取表情列表失败",
+                "error": "请求超时",
+                "status_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取表情列表失败",
+                "error": "网络连接错误",
+                "status_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取表情列表失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取表情列表过程中发生未知错误",
+                "error": str(e),
+                "status_code": None
+            }
 
 
 # 使用示例
@@ -199,13 +284,16 @@ if __name__ == "__main__":
         # 获取用户信息
         user_info = authenticator.get_user_info()
         if user_info["success"]:
-            print("# 在这里处理成功的用户信息",user_info)
-            fmr = authenticator.getFansMembersRank(1639389144)
-            print(len(fmr), fmr)
-            pass
+            print("# 在这里处理成功的用户信息", user_info)
+
+            # 获取表情列表
+            emoticons_result = authenticator.get_emoticons(203227)
+            if emoticons_result["success"]:
+                print("表情列表获取成功")
+                print(emoticons_result["data"])
+            else:
+                print(f"获取表情列表失败: {emoticons_result['error']}")
         else:
             print("# 在这里处理获取用户信息失败的情况")
-            pass
     else:
         print("# 在这里处理初始化失败的情况")
-        pass
