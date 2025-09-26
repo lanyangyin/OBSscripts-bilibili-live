@@ -55,6 +55,10 @@ from PIL import Image, ImageOps
 # import websockets
 
 
+script_version = "0.1.6"
+"""脚本版本"""
+
+
 # 控件默认属性（首字母大写）
 DefaultPropertiesOfTheControl: Dict[str, Optional[Union[int, str, bool, Any]]] = {
     "ControlType": "Base",  # 添加类型标识
@@ -1030,7 +1034,7 @@ def log_save(log_level: Literal[0, 1, 2, 3], log_str: str, print_is:bool = True)
     }
     now = datetime.now()
     formatted = now.strftime("%Y/%m/%d %H:%M:%S")
-    log_text = f"【{formatted}】【{log_type_str[log_level]}】{log_str}"
+    log_text = f"{script_version}【{formatted}】【{log_type_str[log_level]}】{log_str}"
     if print_is:
         obs.script_log(log_type[log_level], log_text)
     GlobalVariableOfData.logRecording += log_text + "\n"
@@ -5547,10 +5551,10 @@ def button_function_start_live():
 
     # 推流地址
     rtmp_server = start_live["data"]["rtmp"]["addr"]
-    log_save(0, f"rtmp推流地址：{rtmp_server}")
+    log_save(0, f"B站rtmp推流地址：{rtmp_server}")
     # 将 rtmp推流码
     rtmp_push_code = start_live["data"]["rtmp"]["code"]
-    log_save(0, f"rtmp推流码：{rtmp_push_code}")
+    log_save(0, f"B站rtmp推流码：{rtmp_push_code}")
     # 复制到剪贴板
     cb.copy(rtmp_push_code)
     log_save(0, f"已将rtmp推流码复制到剪贴板")
@@ -5560,13 +5564,13 @@ def button_function_start_live():
     # 获取当前流服务设置
     streaming_service_settings = obs.obs_service_get_settings(streaming_service)
     currently_service_string = obs.obs_data_get_string(streaming_service_settings, "service")
-    log_save(0, f"目前推流服务：【{currently_service_string}】")
+    log_save(0, f"目前obs的推流服务：【{currently_service_string}】")
     currently_rtmp_server = obs.obs_data_get_string(streaming_service_settings, "server")
-    log_save(0, f"目前rtmp推流地址：【{currently_rtmp_server}】")
+    log_save(0, f"目前obs的rtmp推流地址：【{currently_rtmp_server}】")
     currently_rtmp_push_code = obs.obs_data_get_string(streaming_service_settings, "key")
-    log_save(0, f"目前rtmp推流码：【{currently_rtmp_push_code}】")
+    log_save(0, f"目前obs的rtmp推流码：【{currently_rtmp_push_code}】")
     log_save(0, f"obs推流状态：{obs.obs_frontend_streaming_active()}")
-    if currently_rtmp_push_code == rtmp_push_code and currently_rtmp_server == "rtmp://live-push.bilivideo.com/live-bvc/" :  # and currently_service_string == "Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP" :
+    if currently_rtmp_push_code == rtmp_push_code and currently_rtmp_server == rtmp_server and currently_service_string == "Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP" :
         log_save(0, f"推流信息未发生变化")
         if obs.obs_frontend_streaming_active():
             log_save(0, f"正处于推流状态中。。。")
@@ -5576,12 +5580,12 @@ def button_function_start_live():
             obs.obs_frontend_streaming_start()
     else:
         log_save(0, f"推流信息发生变化")
-        # # 写入推流服务
-        # obs.obs_data_set_string(streaming_service_settings, "service", "Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP")
-        # log_save(0, f"向obs写入推流服务：【Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP】")
+        # 写入推流服务
+        obs.obs_data_set_string(streaming_service_settings, "service", "Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP")
+        log_save(0, f"向obs写入推流服务：【Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP】")
         # 写入推流地址
-        obs.obs_data_set_string(streaming_service_settings, "server", "rtmp://live-push.bilivideo.com/live-bvc/")
-        log_save(0, f"向obs写入推流地址：【rtmp://live-push.bilivideo.com/live-bvc/】")
+        obs.obs_data_set_string(streaming_service_settings, "server", rtmp_server)
+        log_save(0, f"向obs写入推流地址：【{rtmp_server}】")
         # 写入rtmp推流码
         obs.obs_data_set_string(streaming_service_settings, "key", rtmp_push_code)
         log_save(0, f"向obs写入rtmp推流码：【{rtmp_push_code}】")
@@ -5608,6 +5612,12 @@ def button_function_start_live():
         else:
             log_save(0, f"由于：当前并未正在推流】➡️直接开始推流")
             obs.obs_frontend_streaming_start()
+    currently_service_string = obs.obs_data_get_string(streaming_service_settings, "service")
+    log_save(0, f"目前obs的推流服务：【{currently_service_string}】")
+    currently_rtmp_server = obs.obs_data_get_string(streaming_service_settings, "server")
+    log_save(0, f"目前obs的rtmp推流地址：【{currently_rtmp_server}】")
+    currently_rtmp_push_code = obs.obs_data_get_string(streaming_service_settings, "key")
+    log_save(0, f"目前obs的rtmp推流码：【{currently_rtmp_push_code}】")
     # 释放流服务设置
     obs.obs_data_release(streaming_service_settings)
     # 保存到配置文件
@@ -5620,7 +5630,7 @@ def button_function_start_live():
     # 设置控件前准备（获取数据） 开始
     log_save(0, f"║")
     log_save(1, f"║设置控件前准备（获取数据）")
-    log_save(0, f"║╔{6*'═'}设置控件前准备（获取数据）{6*'═'}╗")
+    log_save(0, f"║╔{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╗")
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
     # 获取 '登录用户' 对应的直播间基础信息
     room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
