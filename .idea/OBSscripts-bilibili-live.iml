@@ -4,8 +4,8 @@
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
       <excludeFolder url="file://$MODULE_DIR$/cookies" />
-      <excludeFolder url="file://$MODULE_DIR$/function/api/TestOutput" />
       <excludeFolder url="file://$MODULE_DIR$/function/tools/TestOutput" />
+      <excludeFolder url="file://$MODULE_DIR$/function/Output" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.9 (OBSscripts-bilibili-live)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

@@ -9,6 +9,10 @@ from function.tools.parse_cookie import parse_cookie
 from function.api.Special.Get.get_user_live_info import BilibiliCSRFAuthenticator
 from function.tools.dict_to_cookie_string import dict_to_cookie_string
 from function.tools.BilibiliUserConfigManager import BilibiliUserConfigManager
+from function.tools.proto.InteractWordV2Decoder import InteractWordV2Decoder
+from function.tools.proto.OnlineRankV3Decoder import OnlineRankV3Decoder
+iwv_decoder = InteractWordV2Decoder()
+orv3decoder = OnlineRankV3Decoder()
 
 import websockets
 
@@ -109,6 +113,11 @@ class Danmu:
             opt_code = int.from_bytes(byte_buffer[8:12], 'big')
             """
             操作码 (封包类型)
+                - 2	心跳包
+                - 3	心跳包回复 (人气值)
+                - 5	普通包 (命令)
+                - 7	认证包
+                - 8	认证包回复
             """
             sequence = int.from_bytes(byte_buffer[12:16], 'big')
             """
@@ -121,6 +130,8 @@ class Danmu:
                 content_bytes = zlib.decompress(content_bytes)
                 self.unpack(content_bytes)
                 return
+            if prot_ver == 3:
+                print(3)
 
             content = content_bytes.decode('utf-8')
             if opt_code == 8:  # AUTH_REPLY
@@ -199,6 +210,7 @@ class Danmu:
                     tfo = f"🚢上舰：\t{contentdata['username']}\t购买{contentdata['num']}个\t【{contentdata['gift_name']}】"
                     print(f"{tfo}")
                     pass
+
                 elif json.loads(content)['cmd'] == "WIDGET_BANNER":
                     # # 顶部横幅 (WIDGET_BANNER)
                     # # 注: 网页端在直播间标题下面的横幅, 例如 限时任务 等
@@ -229,10 +241,10 @@ class Danmu:
                     # print(f"{tfo}：\t{wfo}{mfo}{ufo}")
                     pass
                 elif json.loads(content)['cmd'] == "INTERACT_WORD_V2":
-                    # # 用户交互消息【加密】
-                    # contentdata = json.loads(content)['data']
-                    # pb = contentdata['pb']
-                    # print("INTERACT_WORD_V2", pb)
+                    # 用户交互消息【加密】
+                    contentdata = json.loads(content)['data']
+                    pb = contentdata['pb']
+                    print("INTERACT_WORD_V2", iwv_decoder.decode_with_protobuf(pb))
                     pass
                 elif json.loads(content)['cmd'] == "VOICE_JOIN_ROOM_COUNT_INFO":
                     # # ?语音加入房间计数信息
@@ -291,10 +303,10 @@ class Danmu:
                     # print(high_energy_users_in_the_live_streaming_room_list, rank_type)
                     pass
                 elif json.loads(content)['cmd'] == "ONLINE_RANK_V3":
-                    # # 直播间高能用户相关【加密】
-                    # contentdata = json.loads(content)['data']
-                    # pb = contentdata['pb']
-                    # print("ONLINE_RANK_V3", pb)
+                    # 直播间高能用户相关【加密】
+                    contentdata = json.loads(content)['data']
+                    pb = contentdata['pb']
+                    print("ONLINE_RANK_V3", orv3decoder.decode_with_protobuf(pb))
                     pass
                 elif json.loads(content)['cmd'] == "RANK_CHANGED":
                     # # 榜单排名
@@ -403,5 +415,5 @@ if __name__ == "__main__":
         'cookie': dict_to_cookie_string(cookies)
     }
     dm = Danmu(Headers)
-    cdm = dm.connect_room(21646457)
+    cdm = dm.connect_room(2205689)
     cdm.start()

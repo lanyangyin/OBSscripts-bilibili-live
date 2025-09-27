@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package bilibili.live.rankdb.v1;
+
+import "bilibili/live/component/common_model/user_dagw.proto";
+
+// `ONLINE_RANK_V3` cmd
+message GoldRankBroadcast {
+    // 单个排行数据
+    message GoldRankBrodcastItem {
+        // 用户mid
+        int64 uid = 1;
+        // 头像
+        string face = 2;
+        // 贡献值
+        string score = 3;
+        // 用户名称
+        string uname = 4;
+        // 在榜单中的排名
+        int64 rank = 5;
+        //
+        int64 guard_level = 6;
+        //
+        bool is_mystery = 7;
+        // 用户信息
+        bilibili.live.component.common_model.user_dagw.UserInfo uinfo = 8;
+    }
+
+    /* 排行类型
+     * `gold-rank`: 高能用户(似乎不下发，记录缺失)
+     * `online_rank`: 在线用户
+     */
+    string rank_type = 1;
+    // 高能榜
+    repeated GoldRankBrodcastItem list = 2;
+    // 在线榜
+    repeated GoldRankBrodcastItem online_list = 3;
+}
