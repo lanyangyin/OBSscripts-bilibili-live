@@ -6,6 +6,7 @@
       <excludeFolder url="file://$MODULE_DIR$/cookies" />
       <excludeFolder url="file://$MODULE_DIR$/function/tools/TestOutput" />
       <excludeFolder url="file://$MODULE_DIR$/function/Output" />
+      <excludeFolder url="file://$MODULE_DIR$/function/Input" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.9 (OBSscripts-bilibili-live)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

@@ -1,6 +1,5 @@
 import asyncio
 import json
-import pprint
 import zlib
 from pathlib import Path
 from typing import Optional
@@ -241,10 +240,10 @@ class Danmu:
                     # print(f"{tfo}：\t{wfo}{mfo}{ufo}")
                     pass
                 elif json.loads(content)['cmd'] == "INTERACT_WORD_V2":
-                    # 用户交互消息【加密】
-                    contentdata = json.loads(content)['data']
-                    pb = contentdata['pb']
-                    print("INTERACT_WORD_V2", iwv_decoder.decode_with_protobuf(pb))
+                    # # 用户交互消息【加密】
+                    # contentdata = json.loads(content)['data']
+                    # pb = contentdata['pb']
+                    # print("INTERACT_WORD_V2", iwv_decoder.decode_with_protobuf(pb))
                     pass
                 elif json.loads(content)['cmd'] == "VOICE_JOIN_ROOM_COUNT_INFO":
                     # # ?语音加入房间计数信息
@@ -303,10 +302,10 @@ class Danmu:
                     # print(high_energy_users_in_the_live_streaming_room_list, rank_type)
                     pass
                 elif json.loads(content)['cmd'] == "ONLINE_RANK_V3":
-                    # 直播间高能用户相关【加密】
-                    contentdata = json.loads(content)['data']
-                    pb = contentdata['pb']
-                    print("ONLINE_RANK_V3", orv3decoder.decode_with_protobuf(pb))
+                    # # 直播间高能用户相关【加密】
+                    # contentdata = json.loads(content)['data']
+                    # pb = contentdata['pb']
+                    # print("ONLINE_RANK_V3", orv3decoder.decode_with_protobuf(pb))
                     pass
                 elif json.loads(content)['cmd'] == "RANK_CHANGED":
                     # # 榜单排名
@@ -407,6 +406,7 @@ class Danmu:
 
 if __name__ == "__main__":
     # 示例用法
+    from function.Input.Danmu import room_id
     BULC = BilibiliUserConfigManager(Path('../../cookies/config.json'))
     cookies = BULC.get_user_cookies()['data']
     Headers = {
@@ -415,5 +415,5 @@ if __name__ == "__main__":
         'cookie': dict_to_cookie_string(cookies)
     }
     dm = Danmu(Headers)
-    cdm = dm.connect_room(2205689)
+    cdm = dm.connect_room(room_id)
     cdm.start()
