@@ -394,7 +394,7 @@ class Danmu:
                 else:
                     # print("❌未收录：", json.loads(content)['cmd'])
                     # contentdata = json.loads(content)
-                    # pprint.pprint(contentdata)
+                    # print(contentdata)
                     pass
 
             if len(byte_buffer) > package_len:
@@ -406,7 +406,7 @@ class Danmu:
 
 if __name__ == "__main__":
     # 示例用法
-    from function.Input.Danmu import room_id
+    from function.Input.DanMu.Danmu import room_id
     BULC = BilibiliUserConfigManager(Path('../../cookies/config.json'))
     cookies = BULC.get_user_cookies()['data']
     Headers = {
