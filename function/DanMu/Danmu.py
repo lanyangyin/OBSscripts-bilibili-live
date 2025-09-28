@@ -7,7 +7,7 @@ from function.api.Authentication.Wbi.get_danmu_info import WbiSigna
 from function.tools.parse_cookie import parse_cookie
 from function.api.Special.Get.get_user_live_info import BilibiliCSRFAuthenticator
 from function.tools.dict_to_cookie_string import dict_to_cookie_string
-from function.tools.BilibiliUserConfigManager import BilibiliUserConfigManager
+from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
 from function.tools.proto.InteractWordV2Decoder import InteractWordV2Decoder
 from function.tools.proto.OnlineRankV3Decoder import OnlineRankV3Decoder
 iwv_decoder = InteractWordV2Decoder()

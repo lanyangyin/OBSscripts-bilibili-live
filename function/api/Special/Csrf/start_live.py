@@ -7,7 +7,7 @@ import requests
 
 from function.tools.parse_cookie import parse_cookie
 from function.tools.dict_to_cookie_string import dict_to_cookie_string
-from function.tools.BilibiliUserConfigManager import BilibiliUserConfigManager
+from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
 from function.api.Special.Get.get_room_highlight_info import BilibiliRoomInfoManager as GetRoomHighlightInfo
 
 

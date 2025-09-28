@@ -1,11 +1,7 @@
 from pathlib import Path
-from typing import Dict, Any
 
-import requests
-
-from function.tools.wbi import wbi
 from function.tools.dict_to_cookie_string import dict_to_cookie_string
-from function.tools.BilibiliUserConfigManager import BilibiliUserConfigManager
+from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
 
 
 class WbiSigna:
