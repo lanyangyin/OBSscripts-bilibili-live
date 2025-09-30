@@ -4,17 +4,13 @@ import zlib
 from pathlib import Path
 from typing import Optional
 from function.api.Authentication.Wbi.get_danmu_info import WbiSigna
-from function.tools.parse_cookie import parse_cookie
+from function.tools.EncodingConversion.parse_cookie import parse_cookie
 from function.api.Special.Get.get_user_live_info import BilibiliCSRFAuthenticator
-from function.tools.dict_to_cookie_string import dict_to_cookie_string
+from function.tools.EncodingConversion.dict_to_cookie_string import dict_to_cookie_string
 from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
-from function.tools.proto.InteractWordV2Decoder import InteractWordV2Decoder
-from function.tools.proto.OnlineRankV3Decoder import OnlineRankV3Decoder
-iwv_decoder = InteractWordV2Decoder()
-orv3decoder = OnlineRankV3Decoder()
+from function.tools.EncodingConversion.DanmuProtoDecoder import DanmuProtoDecoder
 
 import websockets
-
 
 class Danmu:
 
@@ -297,10 +293,10 @@ class Danmu:
                     # print(f"{tfo}：\t{wfo}{mfo}{ufo}")
                     pass
                 elif json.loads(content)['cmd'] == "INTERACT_WORD_V2":
-                    # # 用户交互消息【加密】
-                    # contentdata = json.loads(content)['data']
-                    # pb = contentdata['pb']
-                    # print("INTERACT_WORD_V2", iwv_decoder.decode_with_protobuf(pb))
+                    # 用户交互消息【加密】
+                    contentdata = json.loads(content)['data']
+                    pb = contentdata['pb']
+                    print("INTERACT_WORD_V2", DanmuProtoDecoder().decode_interact_word_v2_protobuf(pb))
                     pass
                 elif json.loads(content)['cmd'] == "VOICE_JOIN_ROOM_COUNT_INFO":
                     # # ?语音加入房间计数信息
@@ -359,10 +355,10 @@ class Danmu:
                     # print(high_energy_users_in_the_live_streaming_room_list, rank_type)
                     pass
                 elif json.loads(content)['cmd'] == "ONLINE_RANK_V3":
-                    # # 直播间高能用户相关【加密】
-                    # contentdata = json.loads(content)['data']
-                    # pb = contentdata['pb']
-                    # print("ONLINE_RANK_V3", orv3decoder.decode_with_protobuf(pb))
+                    # 直播间高能用户相关【加密】
+                    contentdata = json.loads(content)['data']
+                    pb = contentdata['pb']
+                    print("ONLINE_RANK_V3", DanmuProtoDecoder().decode_online_rank_v3_protobuf(pb))
                     pass
                 elif json.loads(content)['cmd'] == "RANK_CHANGED":
                     # # 榜单排名
@@ -475,7 +471,7 @@ class Danmu:
 
 
 if __name__ == "__main__":
-    from function.Input.DanMu.Danmu import room_id
+    from _Input.DanMu.Danmu import room_id
 
     BULC = BilibiliUserConfigManager(Path('../../cookies/config.json'))
     cookies = BULC.get_user_cookies()['data']

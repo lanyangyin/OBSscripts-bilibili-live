@@ -7,9 +7,9 @@ from typing import Dict, Any
 import requests
 from PIL import Image
 
-from function.tools.parse_cookie import parse_cookie
-from function.tools.dict_to_cookie_string import dict_to_cookie_string
-from function.tools.convert_pil_image_to_bytes import convert_pil_image_to_bytes
+from function.tools.EncodingConversion.parse_cookie import parse_cookie
+from function.tools.EncodingConversion.dict_to_cookie_string import dict_to_cookie_string
+from function.tools.ImageProcessing.convert_pil_image_to_bytes import convert_pil_image_to_bytes
 from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
 
 

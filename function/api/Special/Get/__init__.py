@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import Dict, Any
 
-from function.tools.parse_cookie import parse_cookie
-from function.tools.dict_to_cookie_string import dict_to_cookie_string
+from function.tools.EncodingConversion.parse_cookie import parse_cookie
+from function.tools.EncodingConversion.dict_to_cookie_string import dict_to_cookie_string
 from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
 
 
