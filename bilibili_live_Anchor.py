@@ -4062,34 +4062,43 @@ def script_properties():  # 建立控件
         "room_props": room_props,
         "live_props": live_props,
     }
+    """控件属性集的字典，仅在这里赋值一次，避免重复赋值导致溢出或者obs崩溃"""
 
     for w in widget.get_sorted_controls():
+        # 获取按载入次序排序的所有控件列表
         if w.ControlType == "CheckBox":
+            # 添加复选框控件
             log_save(0, f"复选框控件: {w.Name} 【{w.Description}】")
             obs.obs_properties_add_bool(props_dict[w.Props], w.Name, w.Description)
         elif w.ControlType == "DigitalDisplay":
+            # 添加数字控件
             log_save(0, f"数字框控件: {w.Name} 【{w.Description}】")
-            if w.SliderIs:
+            if w.SliderIs:  # 是否为数字控件添加滑动条
                 w.Obj = obs.obs_properties_add_int_slider(props_dict[w.Props], w.Name, w.Description, w.Min, w.Max, w.Step)
             else:
                 w.Obj = obs.obs_properties_add_int(props_dict[w.Props], w.Name, w.Description, w.Min, w.Max, w.Step)
             obs.obs_property_int_set_suffix(w.Obj, w.Suffix)
         elif w.ControlType == "TextBox":
+            # 添加文本框控件
             log_save(0, f"文本框控件: {w.Name} 【{w.Description}】")
             w.Obj = obs.obs_properties_add_text(props_dict[w.Props], w.Name, w.Description, w.Type)
         elif w.ControlType == "Button":
+            # 添加按钮控件
             log_save(0, f"按钮控件: {w.Name} 【{w.Description}】")
             w.Obj = obs.obs_properties_add_button(props_dict[w.Props], w.Name, w.Description, w.Callback)
             obs.obs_property_button_set_type(w.Obj, w.Type)
-            if w.Type == obs.OBS_BUTTON_URL:
+            if w.Type == obs.OBS_BUTTON_URL:  # 是否为链接跳转按钮
                 obs.obs_property_button_set_url(w.Obj, w.Url)
         elif w.ControlType == "ComboBox":
+            # 添加组合框控件
             log_save(0, f"组合框控件: {w.Name} 【{w.Description}】")
             w.Obj = obs.obs_properties_add_list(props_dict[w.Props], w.Name, w.Description, w.Type, obs.OBS_COMBO_FORMAT_STRING)
         elif w.ControlType == "PathBox":
+            # 添加路径对话框控件
             log_save(0, f"路径对话框控件: {w.Name} 【{w.Description}】")
             w.Obj = obs.obs_properties_add_path(props_dict[w.Props], w.Name, w.Description, w.Type, w.Filter, w.StartPath)
         elif w.ControlType == "Group":
+            # 分组框控件
             log_save(0, f"分组框控件: {w.Name} 【{w.Description}】")
             w.Obj = obs.obs_properties_add_group(props_dict[w.Props], w.Name, w.Description, w.Type, props_dict[w.GroupProps])
         if w.ModifiedIs:
