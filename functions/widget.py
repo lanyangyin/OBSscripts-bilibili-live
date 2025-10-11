@@ -1,3 +1,7 @@
+"""
+控件管理器
+"""
+
 # 控件默认属性（首字母大写）
 from typing import Optional, Union, Any, Dict, List, Iterator, Callable
 
@@ -116,7 +120,8 @@ class CheckBoxP:
                 setattr(self, key, value)
 
     def __repr__(self) -> str:
-        return f"<CheckBoxP Name='{self.Name}' Number={self.Number} Bool={self.Bool}>"
+        type_name = "未知类复选框"
+        return f"<CheckBoxP Name='{self.Name}' Number={self.Number} Type='{type_name}' Bool={self.Bool}>"
 
 
 class CheckBoxPs:
@@ -184,7 +189,11 @@ class DigitalDisplayP:
                 setattr(self, key, value)
 
     def __repr__(self) -> str:
-        return f"<DigitalDisplayP Name='{self.Name}' Number={self.Number} Min={self.Min} Max={self.Max}>"
+        if self.SliderIs:
+            type_name = "滑块数字框"
+        else:
+            type_name = "普通数字框"
+        return f"<DigitalDisplayP Name='{self.Name}' Number={self.Number} Type='{type_name}' Min={self.Min} Max={self.Max}>"
 
 
 class DigitalDisplayPs:
@@ -252,7 +261,16 @@ class TextBoxP:
                 setattr(self, key, value)
 
     def __repr__(self) -> str:
-        return f"<TextBoxP Name='{self.Name}' Number={self.Number} Text='{self.Text}'>"
+        type_name = "未知类文本框"
+        if self.Type == obs.OBS_TEXT_DEFAULT:
+            type_name = "单行文本"
+        elif self.Type == obs.OBS_TEXT_PASSWORD:
+            type_name = "单行文本（带密码）"
+        if self.Type == obs.OBS_TEXT_MULTILINE:
+            type_name = "多行文本"
+        elif self.Type == obs.OBS_TEXT_INFO:
+            type_name = "只读信息文本"
+        return f"<TextBoxP Name='{self.Name}' Number={self.Number} Type='{type_name}' Text='{self.Text}'>"
 
 
 class TextBoxPs:
@@ -320,7 +338,12 @@ class ButtonP:
                 setattr(self, key, value)
 
     def __repr__(self) -> str:
-        return f"<ButtonP Name='{self.Name}' Number={self.Number} Callback={self.Callback is not None}>"
+        type_name = "未知类按钮"
+        if self.Type == obs.OBS_BUTTON_DEFAULT:
+            type_name = "标准按钮"
+        elif self.Type == obs.OBS_BUTTON_URL:
+            type_name = "打开 URL 的按钮"
+        return f"<ButtonP Name='{self.Name}' Number={self.Number} Type='{type_name}' Callback={self.Callback is not None}>"
 
 
 class ButtonPs:
@@ -388,7 +411,15 @@ class ComboBoxP:
                 setattr(self, key, value)
 
     def __repr__(self) -> str:
-        return f"<ComboBoxP Name='{self.Name}' Number={self.Number} Text='{self.Text}'>"
+        type_name = "未知类组合框"
+        if self.Type == obs.OBS_COMBO_TYPE_EDITABLE:
+            type_name = "可以编辑。 仅与字符串列表一起使用"
+        elif self.Type == obs.OBS_COMBO_TYPE_LIST:
+            type_name = "不可编辑。显示为组合框"
+        elif self.Type == obs.OBS_COMBO_TYPE_RADIO:
+            type_name = "不可编辑。显示为单选按钮"
+
+        return f"<ComboBoxP Name='{self.Name}' Number={self.Number} Type='{type_name}' Text='{self.Text}'>"
 
 
 class ComboBoxPs:
@@ -456,7 +487,7 @@ class PathBoxP:
                 setattr(self, key, value)
 
     def __repr__(self) -> str:
-        type_name = "未知类型"
+        type_name = "未知类型路径对话框"
         if self.Type == obs.OBS_PATH_FILE:
             type_name = "文件对话框"
         elif self.Type == obs.OBS_PATH_FILE_SAVE:
@@ -464,8 +495,7 @@ class PathBoxP:
         elif self.Type == obs.OBS_PATH_DIRECTORY:
             type_name = "文件夹对话框"
 
-        return (f"<PathBoxP Name='{self.Name}' Number={self.Number} "
-                f"Type='{type_name}' Text='{self.Text}'>")
+        return f"<PathBoxP Name='{self.Name}' Number={self.Number} Type='{type_name}' Text='{self.Text}'>"
 
 
 class PathBoxPs:
@@ -533,7 +563,13 @@ class GroupP:
                 setattr(self, key, value)
 
     def __repr__(self) -> str:
-        return f"<GroupP Name='{self.Name}' Number={self.Number}>"
+        type_name = "未知类分组框"
+        if self.Type == obs.OBS_GROUP_NORMAL:
+            type_name = "只有名称和内容的普通组"
+        elif self.Type == obs.OBS_GROUP_CHECKABLE:
+            type_name = "具有复选框、名称和内容的可选组"
+
+        return f"<GroupP Name='{self.Name}' Number={self.Number} Type='{type_name}'>"
 
 
 class GroupPs:
@@ -595,12 +631,19 @@ class Widget:
     def __init__(self):
         """初始化表单管理器"""
         self.CheckBox = CheckBoxPs()
+        """复选框"""
         self.DigitalDisplay = DigitalDisplayPs()
+        """数字框"""
         self.TextBox = TextBoxPs()
+        """文本框"""
         self.Button = ButtonPs()
+        """按钮"""
         self.ComboBox = ComboBoxPs()
+        """组合框"""
         self.PathBox = PathBoxPs()
+        """路径对话框"""
         self.Group = GroupPs()
+        """分组框"""
         self._all_controls: List[Any] = []
         self._loading_dict: Dict[int, Any] = {}
 
