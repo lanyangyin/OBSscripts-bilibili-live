@@ -1,741 +1,641 @@
-"""
-控件管理器
-"""
-
-# 控件默认属性（首字母大写）
-from typing import Optional, Union, Any, Dict, List, Iterator, Callable
-
-import obspython as obs
-
-DefaultPropertiesOfTheControl: Dict[str, Optional[Union[int, str, bool, Any]]] = {
-    "ControlType": "Base",  # 添加类型标识
-    "Obj": None,  # 控件脚本对象
-    "Props": None,  # 隶属属性集
-    "Number": 0,  # 载入次序
-    "Name": "",  # 唯一名称
-    "Description": "",  # 说明文本
-    "Visible": False,  # 可见状态
-    "Enabled": False,  # 可用状态
-    "ModifiedIs": False,  # 是否监听
-}
-
-# ️复选框控件
-CheckBox: Dict[str, Optional[Union[int, str, bool, Any]]] = {
-    **DefaultPropertiesOfTheControl,
-    "ControlType": "CheckBox",  # 设置具体类型
-    "Bool": False,  # 复选框是否选中
-}
-
-
-# ️数字框控件
-DigitalDisplay: Dict[str, Optional[Union[int, str, bool, Any]]] = {
-    **DefaultPropertiesOfTheControl,
-    "ControlType": "DigitalDisplay",  # 设置具体类型
-    "SliderIs": False,  # 数字框是否有滑块
-    "Value": 0,  # 显示文本对应的选项值
-    "Suffix": "",
-    "Min": 0,  # 数字显示框或滑块控件的最小值
-    "Max": 0,  # 数字显示框或滑块控件的最大值
-    "Step": 0,  # 数字显示框或滑块控件的步长
-}
-
-
-# 文本框控件
-TextBox: Dict[str, Optional[Union[int, str, bool, Any]]] = {
-    **DefaultPropertiesOfTheControl,
-    "ControlType": "TextBox",  # 设置具体类型
-    "Type": None,  # 文本框类型
-    # - obs.OBS_TEXT_DEFAULT        表示单行文本框，
-    # - obs.OBS_TEXT_PASSWORD       表示单行密码文本框，
-    # - obs.OBS_TEXT_MULTILINE      表示多行文本框，
-    # - obs.OBS_TEXT_INFO           表示不可编辑的只读文本框，效果类似于标签。
-    "Text": "",  # 显示文本
-    "InfoType": None,  # 信息类型
-    # - obs.OBS_TEXT_INFO_NORMAL    表示正常信息，
-    # - obs.OBS_TEXT_INFO_WARNING   表示警告信息，
-    # - obs.OBS_TEXT_INFO_ERROR     表示错误信息
-}
-
-
-# ️按钮控件
-Button: Dict[str, Optional[Union[int, str, bool, Any, Callable]]] = {
-    **DefaultPropertiesOfTheControl,
-    "ControlType": "Button",  # 设置具体类型
-    "Type": None,  # 按钮类型
-    # - obs.OBS_BUTTON_DEFAULT      表示标准普通按钮
-    # - obs.OBS_BUTTON_URL          表示可打开指定 URL 的链接按钮
-    "Callback": None,  # 回调函数
-    "Url": "",  # 需要打开的 URL
-}
-
-
-# 组合框控件
-ComboBox: Dict[str, Optional[Union[int, str, bool, Any]]] = {
-    **DefaultPropertiesOfTheControl,
-    "ControlType": "ComboBox",  # 设置具体类型
-    "Type": None,  # 组合框类型
-    # - obs.OBS_COMBO_TYPE_EDITABLE 表示可编辑组合框
-    # - obs.OBS_COMBO_TYPE_LIST     表示不可编辑组合框
-    "Text": "",  # 显示文本
-    "Value": "",  # 显示文本对应的选项值
-    "Dictionary": {},  # 数据字典
-}
-
-
-# ️ 路径对话框控件
-PathBox: Dict[str, Optional[Union[int, str, bool, Any]]] = {
-    **DefaultPropertiesOfTheControl,
-    "ControlType": "PathBox",  # 设置具体类型
-    "Type": None,  # 路径对话框类型
-    # OBS_PATH_FILE         表示读取文件的对话框
-    # OBS_PATH_FILE_SAVE    表示写入文件的对话框
-    # OBS_PATH_DIRECTORY    表示选择文件夹的对话框
-    "Text": "",  # 显示文本
-    "Filter": "",  # 文件种类（筛选条件）
-    "StartPath": "", # 对话框起始路径
-}
-
-
-# 分组框控件（独立控件）
-Group: Dict[str, Optional[Union[int, str, bool, Any]]] = {
-    **DefaultPropertiesOfTheControl,
-    "ControlType": "Group",  # 设置具体类型
-    "Type": None,  # 分组框类型
-    # OBS_GROUP_NORMAL      表示标准普通分组框
-    # OBS_GROUP_CHECKABLE   表示拥有复选框的分组框
-    "GroupProps": None,  # 统辖属性集
-}
-
-
-# 复选框控件实例
-class CheckBoxP:
-    """复选框控件实例"""
-
-    def __init__(self, **kwargs):
-        for key, value in CheckBox.items():
-            setattr(self, key, value)
-        # 更新传入的自定义属性
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-
-    def __repr__(self) -> str:
-        type_name = "未知类复选框"
-        return f"<CheckBoxP Name='{self.Name}' Number={self.Number} Type='{type_name}' Bool={self.Bool}>"
-
-
-class CheckBoxPs:
-    """复选框控件管理器"""
-
-    def __init__(self):
-        self._controls: Dict[str, CheckBoxP] = {}
-        self._loading_order: List[CheckBoxP] = []
-
-    def add(self, name: str, **kwargs) -> CheckBoxP:
-        """添加复选框控件"""
-        if name in self._controls:
-            raise ValueError(f"复选框 '{name}' 已存在")
-        # 确保Name属性设置正确
-        if "Name" not in kwargs:
-            kwargs["Name"] = name
-        control = CheckBoxP(**kwargs)
-        self._controls[name] = control
-        self._loading_order.append(control)
-        setattr(self, name, control)
-        return control
-
-    def get(self, name: str) -> Optional[CheckBoxP]:
-        """获取复选框控件"""
-        return self._controls.get(name)
-
-    def remove(self, name: str) -> bool:
-        """移除复选框控件"""
-        if name in self._controls:
-            control = self._controls.pop(name)
-            if hasattr(self, name):
-                delattr(self, name)
-            if control in self._loading_order:
-                self._loading_order.remove(control)
-            return True
-        return False
-
-    def __iter__(self) -> Iterator[CheckBoxP]:
-        """迭代所有复选框控件"""
-        return iter(self._controls.values())
-
-    def __len__(self) -> int:
-        """复选框控件数量"""
-        return len(self._controls)
-
-    def __contains__(self, name: str) -> bool:
-        """检查复选框控件是否存在"""
-        return name in self._controls
-
-    def get_loading_order(self) -> List[CheckBoxP]:
-        """获取按载入次序排序的复选框控件列表"""
-        return sorted(self._loading_order, key=lambda c: c.Number)
-
-
-# 数字框控件实例
-class DigitalDisplayP:
-    """数字框控件实例"""
-
-    def __init__(self, **kwargs):
-        for key, value in DigitalDisplay.items():
-            setattr(self, key, value)
-        # 更新传入的自定义属性
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-
-    def __repr__(self) -> str:
-        if self.SliderIs:
-            type_name = "滑块数字框"
-        else:
-            type_name = "普通数字框"
-        return f"<DigitalDisplayP Name='{self.Name}' Number={self.Number} Type='{type_name}' Min={self.Min} Max={self.Max}>"
-
-
-class DigitalDisplayPs:
-    """数字框控件管理器"""
-
-    def __init__(self):
-        self._controls: Dict[str, DigitalDisplayP] = {}
-        self._loading_order: List[DigitalDisplayP] = []
-
-    def add(self, name: str, **kwargs) -> DigitalDisplayP:
-        """添加数字框控件"""
-        if name in self._controls:
-            raise ValueError(f"数字框 '{name}' 已存在")
-        # 确保Name属性设置正确
-        if "Name" not in kwargs:
-            kwargs["Name"] = name
-        control = DigitalDisplayP(**kwargs)
-        self._controls[name] = control
-        self._loading_order.append(control)
-        setattr(self, name, control)
-        return control
-
-    def get(self, name: str) -> Optional[DigitalDisplayP]:
-        """获取数字框控件"""
-        return self._controls.get(name)
-
-    def remove(self, name: str) -> bool:
-        """移除数字框控件"""
-        if name in self._controls:
-            control = self._controls.pop(name)
-            if hasattr(self, name):
-                delattr(self, name)
-            if control in self._loading_order:
-                self._loading_order.remove(control)
-            return True
-        return False
-
-    def __iter__(self) -> Iterator[DigitalDisplayP]:
-        """迭代所有数字框控件"""
-        return iter(self._controls.values())
-
-    def __len__(self) -> int:
-        """数字框控件数量"""
-        return len(self._controls)
-
-    def __contains__(self, name: str) -> bool:
-        """检查数字框控件是否存在"""
-        return name in self._controls
-
-    def get_loading_order(self) -> List[DigitalDisplayP]:
-        """获取按载入次序排序的数字框控件列表"""
-        return sorted(self._loading_order, key=lambda c: c.Number)
-
-
-# 文本框控件实例
-class TextBoxP:
-    """文本框控件实例"""
-
-    def __init__(self, **kwargs):
-        for key, value in TextBox.items():
-            setattr(self, key, value)
-        # 更新传入的自定义属性
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-
-    def __repr__(self) -> str:
-        type_name = "未知类文本框"
-        if self.Type == obs.OBS_TEXT_DEFAULT:
-            type_name = "单行文本"
-        elif self.Type == obs.OBS_TEXT_PASSWORD:
-            type_name = "单行文本（带密码）"
-        if self.Type == obs.OBS_TEXT_MULTILINE:
-            type_name = "多行文本"
-        elif self.Type == obs.OBS_TEXT_INFO:
-            type_name = "只读信息文本"
-        return f"<TextBoxP Name='{self.Name}' Number={self.Number} Type='{type_name}' Text='{self.Text}'>"
-
-
-class TextBoxPs:
-    """文本框控件管理器"""
-
-    def __init__(self):
-        self._controls: Dict[str, TextBoxP] = {}
-        self._loading_order: List[TextBoxP] = []
-
-    def add(self, name: str, **kwargs) -> TextBoxP:
-        """添加文本框控件"""
-        if name in self._controls:
-            raise ValueError(f"文本框 '{name}' 已存在")
-        # 确保Name属性设置正确
-        if "Name" not in kwargs:
-            kwargs["Name"] = name
-        control = TextBoxP(**kwargs)
-        self._controls[name] = control
-        self._loading_order.append(control)
-        setattr(self, name, control)
-        return control
-
-    def get(self, name: str) -> Optional[TextBoxP]:
-        """获取文本框控件"""
-        return self._controls.get(name)
-
-    def remove(self, name: str) -> bool:
-        """移除文本框控件"""
-        if name in self._controls:
-            control = self._controls.pop(name)
-            if hasattr(self, name):
-                delattr(self, name)
-            if control in self._loading_order:
-                self._loading_order.remove(control)
-            return True
-        return False
-
-    def __iter__(self) -> Iterator[TextBoxP]:
-        """迭代所有文本框控件"""
-        return iter(self._controls.values())
-
-    def __len__(self) -> int:
-        """文本框控件数量"""
-        return len(self._controls)
-
-    def __contains__(self, name: str) -> bool:
-        """检查文本框控件是否存在"""
-        return name in self._controls
-
-    def get_loading_order(self) -> List[TextBoxP]:
-        """获取按载入次序排序的文本框控件列表"""
-        return sorted(self._loading_order, key=lambda c: c.Number)
-
-
-# 按钮控件实例
-class ButtonP:
-    """按钮控件实例"""
-
-    def __init__(self, **kwargs):
-        for key, value in Button.items():
-            setattr(self, key, value)
-        # 更新传入的自定义属性
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-
-    def __repr__(self) -> str:
-        type_name = "未知类按钮"
-        if self.Type == obs.OBS_BUTTON_DEFAULT:
-            type_name = "标准按钮"
-        elif self.Type == obs.OBS_BUTTON_URL:
-            type_name = "打开 URL 的按钮"
-        return f"<ButtonP Name='{self.Name}' Number={self.Number} Type='{type_name}' Callback={self.Callback is not None}>"
-
-
-class ButtonPs:
-    """按钮控件管理器"""
-
-    def __init__(self):
-        self._controls: Dict[str, ButtonP] = {}
-        self._loading_order: List[ButtonP] = []
-
-    def add(self, name: str, **kwargs) -> ButtonP:
-        """添加按钮控件"""
-        if name in self._controls:
-            raise ValueError(f"按钮 '{name}' 已存在")
-        # 确保Name属性设置正确
-        if "Name" not in kwargs:
-            kwargs["Name"] = name
-        control = ButtonP(**kwargs)
-        self._controls[name] = control
-        self._loading_order.append(control)
-        setattr(self, name, control)
-        return control
-
-    def get(self, name: str) -> Optional[ButtonP]:
-        """获取按钮控件"""
-        return self._controls.get(name)
-
-    def remove(self, name: str) -> bool:
-        """移除按钮控件"""
-        if name in self._controls:
-            control = self._controls.pop(name)
-            if hasattr(self, name):
-                delattr(self, name)
-            if control in self._loading_order:
-                self._loading_order.remove(control)
-            return True
-        return False
-
-    def __iter__(self) -> Iterator[ButtonP]:
-        """迭代所有按钮控件"""
-        return iter(self._controls.values())
-
-    def __len__(self) -> int:
-        """按钮控件数量"""
-        return len(self._controls)
-
-    def __contains__(self, name: str) -> bool:
-        """检查按钮控件是否存在"""
-        return name in self._controls
-
-    def get_loading_order(self) -> List[ButtonP]:
-        """获取按载入次序排序的按钮控件列表"""
-        return sorted(self._loading_order, key=lambda c: c.Number)
-
-
-# 组合框控件实例
-class ComboBoxP:
-    """组合框控件实例"""
-
-    def __init__(self, **kwargs):
-        for key, value in ComboBox.items():
-            setattr(self, key, value)
-        # 更新传入的自定义属性
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-
-    def __repr__(self) -> str:
-        type_name = "未知类组合框"
-        if self.Type == obs.OBS_COMBO_TYPE_EDITABLE:
-            type_name = "可以编辑。 仅与字符串列表一起使用"
-        elif self.Type == obs.OBS_COMBO_TYPE_LIST:
-            type_name = "不可编辑。显示为组合框"
-        elif self.Type == obs.OBS_COMBO_TYPE_RADIO:
-            type_name = "不可编辑。显示为单选按钮"
-
-        return f"<ComboBoxP Name='{self.Name}' Number={self.Number} Type='{type_name}' Text='{self.Text}'>"
-
-
-class ComboBoxPs:
-    """组合框控件管理器"""
-
-    def __init__(self):
-        self._controls: Dict[str, ComboBoxP] = {}
-        self._loading_order: List[ComboBoxP] = []
-
-    def add(self, name: str, **kwargs) -> ComboBoxP:
-        """添加组合框控件"""
-        if name in self._controls:
-            raise ValueError(f"组合框 '{name}' 已存在")
-        # 确保Name属性设置正确
-        if "Name" not in kwargs:
-            kwargs["Name"] = name
-        control = ComboBoxP(**kwargs)
-        self._controls[name] = control
-        self._loading_order.append(control)
-        setattr(self, name, control)
-        return control
-
-    def get(self, name: str) -> Optional[ComboBoxP]:
-        """获取组合框控件"""
-        return self._controls.get(name)
-
-    def remove(self, name: str) -> bool:
-        """移除组合框控件"""
-        if name in self._controls:
-            control = self._controls.pop(name)
-            if hasattr(self, name):
-                delattr(self, name)
-            if control in self._loading_order:
-                self._loading_order.remove(control)
-            return True
-        return False
-
-    def __iter__(self) -> Iterator[ComboBoxP]:
-        """迭代所有组合框控件"""
-        return iter(self._controls.values())
-
-    def __len__(self) -> int:
-        """组合框控件数量"""
-        return len(self._controls)
-
-    def __contains__(self, name: str) -> bool:
-        """检查组合框控件是否存在"""
-        return name in self._controls
-
-    def get_loading_order(self) -> List[ComboBoxP]:
-        """获取按载入次序排序的组合框控件列表"""
-        return sorted(self._loading_order, key=lambda c: c.Number)
-
-
-# 路径对话框控件实例
-class PathBoxP:
-    """路径对话框控件实例"""
-
-    def __init__(self, **kwargs):
-        for key, value in PathBox.items():
-            setattr(self, key, value)
-        # 更新传入的自定义属性
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-
-    def __repr__(self) -> str:
-        type_name = "未知类型路径对话框"
-        if self.Type == obs.OBS_PATH_FILE:
-            type_name = "文件对话框"
-        elif self.Type == obs.OBS_PATH_FILE_SAVE:
-            type_name = "保存文件对话框"
-        elif self.Type == obs.OBS_PATH_DIRECTORY:
-            type_name = "文件夹对话框"
-
-        return f"<PathBoxP Name='{self.Name}' Number={self.Number} Type='{type_name}' Text='{self.Text}'>"
-
-
-class PathBoxPs:
-    """路径对话框控件管理器"""
-
-    def __init__(self):
-        self._controls: Dict[str, PathBoxP] = {}
-        self._loading_order: List[PathBoxP] = []
-
-    def add(self, name: str, **kwargs) -> PathBoxP:
-        """添加路径对话框控件"""
-        if name in self._controls:
-            raise ValueError(f"路径对话框 '{name}' 已存在")
-        # 确保Name属性设置正确
-        if "Name" not in kwargs:
-            kwargs["Name"] = name
-        control = PathBoxP(**kwargs)
-        self._controls[name] = control
-        self._loading_order.append(control)
-        setattr(self, name, control)
-        return control
-
-    def get(self, name: str) -> Optional[PathBoxP]:
-        """获取路径对话框控件"""
-        return self._controls.get(name)
-
-    def remove(self, name: str) -> bool:
-        """移除路径对话框控件"""
-        if name in self._controls:
-            control = self._controls.pop(name)
-            if hasattr(self, name):
-                delattr(self, name)
-            if control in self._loading_order:
-                self._loading_order.remove(control)
-            return True
-        return False
-
-    def __iter__(self) -> Iterator[PathBoxP]:
-        """迭代所有路径对话框控件"""
-        return iter(self._controls.values())
-
-    def __len__(self) -> int:
-        """路径对话框控件数量"""
-        return len(self._controls)
-
-    def __contains__(self, name: str) -> bool:
-        """检查路径对话框控件是否存在"""
-        return name in self._controls
-
-    def get_loading_order(self) -> List[PathBoxP]:
-        """获取按载入次序排序的路径对话框控件列表"""
-        return sorted(self._loading_order, key=lambda c: c.Number)
-
-
-# 分组框控件实例
-class GroupP:
-    """分组框控件实例（独立控件）"""
-
-    def __init__(self, **kwargs):
-        for key, value in Group.items():
-            setattr(self, key, value)
-        # 更新传入的自定义属性
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-
-    def __repr__(self) -> str:
-        type_name = "未知类分组框"
-        if self.Type == obs.OBS_GROUP_NORMAL:
-            type_name = "只有名称和内容的普通组"
-        elif self.Type == obs.OBS_GROUP_CHECKABLE:
-            type_name = "具有复选框、名称和内容的可选组"
-
-        return f"<GroupP Name='{self.Name}' Number={self.Number} Type='{type_name}'>"
-
-
-class GroupPs:
-    """分组框控件管理器"""
-
-    def __init__(self):
-        self._groups: Dict[str, GroupP] = {}
-        self._loading_order: List[GroupP] = []
-
-    def add(self, name: str, **kwargs) -> GroupP:
-        """添加分组框控件"""
-        if name in self._groups:
-            raise ValueError(f"分组框 '{name}' 已存在")
-        # 确保Name属性设置正确
-        if "Name" not in kwargs:
-            kwargs["Name"] = name
-        group = GroupP(**kwargs)
-        self._groups[name] = group
-        self._loading_order.append(group)
-        setattr(self, name, group)
-        return group
-
-    def get(self, name: str) -> Optional[GroupP]:
-        """获取分组框控件"""
-        return self._groups.get(name)
-
-    def remove(self, name: str) -> bool:
-        """移除分组框控件"""
-        if name in self._groups:
-            group = self._groups.pop(name)
-            if hasattr(self, name):
-                delattr(self, name)
-            if group in self._loading_order:
-                self._loading_order.remove(group)
-            return True
-        return False
-
-    def __iter__(self) -> Iterator[GroupP]:
-        """迭代所有分组框控件"""
-        return iter(self._groups.values())
-
-    def __len__(self) -> int:
-        """分组框控件数量"""
-        return len(self._groups)
-
-    def __contains__(self, name: str) -> bool:
-        """检查分组框控件是否存在"""
-        return name in self._groups
-
-    def get_loading_order(self) -> List[GroupP]:
-        """获取按载入次序排序的分组框控件列表"""
-        return sorted(self._loading_order, key=lambda c: c.Number)
-
-
-# 表单管理器
+# widget.py 开头部分
+"""控件管理器 - 修复版本"""
+
+import logging
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Optional, Union, Any, Dict, List, Iterator, Callable, Literal
+
+# 动态导入OBS模块，提供降级方案
+try:
+    import obspython as obs
+
+    script_version = "0.1.6"
+
+
+    class GlobalVariableOfData:
+        logRecording = ""  # #日志记录的文本
+
+
+    def log_save(log_level: Literal[0, 1, 2, 3], log_str: str, print_is: bool = True) -> None:
+        """
+        输出并保存日志
+        Args:
+            print_is: 是否输出
+            log_level: 日志等级
+
+                0: "INFO",
+                1: "DEBUG",
+                2: "WARNING",
+                3: "ERROR",
+            log_str: 日志内容
+        Returns: None
+        """
+        log_type = {
+            0: obs.LOG_INFO,
+            1: obs.LOG_DEBUG,
+            2: obs.LOG_WARNING,
+            3: obs.LOG_ERROR,
+        }
+        log_type_str = {
+            0: "INFO",
+            1: "DEBUG",
+            2: "WARNING",
+            3: "ERROR",
+        }
+        now = datetime.now()
+        formatted = now.strftime("%Y/%m/%d %H:%M:%S")
+        log_text = f"{script_version}【{formatted}】【{log_type_str[log_level]}】{log_str}"
+        if print_is:
+            obs.script_log(log_type[log_level], log_text)
+        GlobalVariableOfData.logRecording += log_text + "\n"
+
+
+    OBS_AVAILABLE = True
+except ImportError:
+    # 开发/测试环境下的模拟
+    class obs:
+        OBS_GROUP_CHECKABLE = 1
+        OBS_GROUP_NORMAL = 0
+        OBS_PATH_DIRECTORY = 0
+        OBS_PATH_FILE_SAVE = 1
+        OBS_PATH_FILE = 2
+        OBS_COMBO_TYPE_RADIO = 2
+        OBS_COMBO_TYPE_LIST = 1
+        OBS_COMBO_TYPE_EDITABLE = 0
+        OBS_BUTTON_URL = 1
+        OBS_BUTTON_DEFAULT = 0
+        OBS_TEXT_INFO = 3
+        OBS_TEXT_MULTILINE = 2
+        OBS_TEXT_PASSWORD = 1
+        OBS_TEXT_DEFAULT = 0
+        OBS_TEXT_INFO_NORMAL = 0
+        OBS_TEXT_INFO_WARNING = 1
+        OBS_TEXT_INFO_ERROR = 2
+
+
+    def log_save(log_level: Literal[0, 1, 2, 3], log_str: str, print_is: bool = True) -> None:
+        print(log_str)
+
+
+    OBS_AVAILABLE = False
+    logging.warning("obspython模块不可用，使用模拟模式")
+
+
+# 配置日志
+# logger = logging.getLogger("WidgetManager")
+
+from __future__ import annotations
+from dataclasses import dataclass, field, asdict
+from typing import Optional, Union, Any, Callable, Dict, List, Iterator, Set
+from functools import wraps
+import time
+
+
+# 假设这些是 OBS 的常量
+class obs:
+    OBS_TEXT_DEFAULT = 0
+    OBS_TEXT_PASSWORD = 1
+    OBS_TEXT_MULTILINE = 2
+    OBS_TEXT_INFO = 3
+    OBS_TEXT_INFO_NORMAL = 0
+    OBS_TEXT_INFO_WARNING = 1
+    OBS_TEXT_INFO_ERROR = 2
+    OBS_BUTTON_DEFAULT = 0
+    OBS_BUTTON_URL = 1
+    OBS_COMBO_TYPE_EDITABLE = 0
+    OBS_COMBO_TYPE_LIST = 1
+    OBS_COMBO_TYPE_RADIO = 2
+    OBS_PATH_FILE = 0
+    OBS_PATH_FILE_SAVE = 1
+    OBS_PATH_DIRECTORY = 2
+    OBS_GROUP_NORMAL = 0
+    OBS_GROUP_CHECKABLE = 1
+
+
+def validate_control_name(func: Callable) -> Callable:
+    """验证控件名称的装饰器"""
+
+    @wraps(func)
+    def wrapper(self, name: str, *args, **kwargs):
+        if not name or not isinstance(name, str):
+            raise ValueError("控件名称必须是非空字符串")
+        if not name.replace('_', '').isalnum():
+            raise ValueError("控件名称只能包含字母、数字和下划线")
+        if hasattr(self, name) and name not in ['add', 'get', 'remove']:
+            raise ValueError(f"名称 '{name}' 与现有属性冲突")
+        return func(self, name, *args, **kwargs)
+
+    return wrapper
+
+
+def cache_loading_result(func: Callable) -> Callable:
+    """缓存载入结果的装饰器"""
+
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        force_refresh = kwargs.get('force', False)
+        if not force_refresh and hasattr(self, '_cached_loading'):
+            return self._cached_loading
+
+        result = func(self, *args, **kwargs)
+        self._cached_loading = result
+        return result
+
+    return wrapper
+
+
+@dataclass
+class ControlBase:
+    """控件基类"""
+    ControlType: str = "Base"
+    Obj: Any = None
+    Props: Any = None
+    Number: int = 0
+    Name: str = ""
+    Description: str = ""
+    Visible: bool = False
+    Enabled: bool = False
+    ModifiedIs: bool = False
+
+    def to_dict(self) -> Dict[str, Any]:
+        """将控件转换为字典"""
+        return asdict(self)
+
+    def validate(self) -> List[str]:
+        """验证控件数据的有效性，返回错误信息列表"""
+        errors = []
+        if not self.Name.strip():
+            errors.append("控件名称不能为空")
+        if self.Number < 0:
+            errors.append("载入次序不能为负数")
+        return errors
+
+
 class Widget:
     """表单管理器，管理所有控件"""
 
+    class ControlManagerBase:
+        """控件管理器基类（内部使用）"""
+
+        def __init__(self, control_class: type):
+            self._control_class = control_class
+            self._controls: Dict[str, Any] = {}
+            self._loading_order: List[Any] = []
+            self._used_numbers: Set[int] = set()
+
+        @validate_control_name
+        def add(self, name: str, **kwargs) -> Any:
+            """添加控件的通用实现"""
+            if name in self._controls:
+                existing = self._controls[name]
+                raise ValueError(
+                    f"控件 '{name}' 已存在 "
+                    f"(类型: {type(existing).__name__}, 载入次序: {existing.Number})"
+                )
+
+            # 验证 Number 唯一性
+            number = kwargs.get('Number', 0)
+            if number in self._used_numbers:
+                raise ValueError(f"载入次序 {number} 已被使用")
+
+            if "Name" not in kwargs:
+                kwargs["Name"] = name
+
+            control = self._control_class(**kwargs)
+
+            # 数据验证
+            if errors := control.validate():
+                raise ValueError(f"控件数据无效: {', '.join(errors)}")
+
+            self._controls[name] = control
+            self._loading_order.append(control)
+            self._used_numbers.add(number)
+            setattr(self, name, control)
+
+            # 触发事件
+            if hasattr(self, '_parent_widget'):
+                self._parent_widget._trigger_event('control_added', control)
+
+            return control
+
+        def get(self, name: str) -> Optional[Any]:
+            """获取控件"""
+            return self._controls.get(name)
+
+        def remove(self, name: str) -> bool:
+            """移除控件"""
+            if name in self._controls:
+                control = self._controls.pop(name)
+                if hasattr(self, name):
+                    delattr(self, name)
+                if control in self._loading_order:
+                    self._loading_order.remove(control)
+                if control.Number in self._used_numbers:
+                    self._used_numbers.remove(control.Number)
+
+                # 触发事件
+                if hasattr(self, '_parent_widget'):
+                    self._parent_widget._trigger_event('control_removed', control)
+
+                return True
+            return False
+
+        def __iter__(self) -> Iterator[Any]:
+            return iter(self._controls.values())
+
+        def __len__(self) -> int:
+            return len(self._controls)
+
+        def __contains__(self, name: str) -> bool:
+            return name in self._controls
+
+        def get_loading_order(self) -> List[Any]:
+            return sorted(self._loading_order, key=lambda c: c.Number)
+
+        def add_multiple(self, controls_config: List[Dict]) -> List[Any]:
+            """批量添加控件"""
+            results = []
+            for config in controls_config:
+                name = config.pop('name')
+                results.append(self.add(name, **config))
+            return results
+
+        def remove_multiple(self, names: List[str]) -> List[bool]:
+            """批量移除控件"""
+            return [self.remove(name) for name in names]
+
+        def find(self, **filters) -> List[Any]:
+            """根据属性值查找控件"""
+            results = []
+            for control in self._controls.values():
+                match = True
+                for key, value in filters.items():
+                    if not hasattr(control, key) or getattr(control, key) != value:
+                        match = False
+                        break
+                if match:
+                    results.append(control)
+            return results
+
+        def to_dict(self) -> Dict[str, Any]:
+            """将管理器状态序列化"""
+            return {name: control.to_dict() for name, control in self._controls.items()}
+
+    class CheckBoxPs(ControlManagerBase):
+        """复选框控件管理器"""
+
+        @dataclass
+        class CheckBoxP(ControlBase):
+            """复选框控件实例"""
+            ControlType: str = "CheckBox"
+            Bool: bool = False
+
+            def __repr__(self) -> str:
+                type_name = "未知类复选框"
+                return f"<CheckBoxP Name='{self.Name}' Number={self.Number} Type='{type_name}' Bool={self.Bool}>"
+
+        def __init__(self, parent_widget: Widget = None):
+            super().__init__(Widget.CheckBoxPs.CheckBoxP)
+            self._parent_widget = parent_widget
+
+    class DigitalDisplayPs(ControlManagerBase):
+        """数字框控件管理器"""
+
+        @dataclass
+        class DigitalDisplayP(ControlBase):
+            """数字框控件实例"""
+            ControlType: str = "DigitalDisplay"
+            SliderIs: bool = False
+            Value: int = 0
+            Suffix: str = ""
+            Min: int = 0
+            Max: int = 0
+            Step: int = 0
+
+            def __repr__(self) -> str:
+                type_name = "滑块数字框" if self.SliderIs else "普通数字框"
+                return f"<DigitalDisplayP Name='{self.Name}' Number={self.Number} Type='{type_name}' Min={self.Min} Max={self.Max}>"
+
+            def validate(self) -> List[str]:
+                errors = super().validate()
+                if self.Min > self.Max:
+                    errors.append("最小值不能大于最大值")
+                if self.Value < self.Min or self.Value > self.Max:
+                    errors.append("当前值必须在最小值和最大值之间")
+                if self.Step <= 0:
+                    errors.append("步长必须大于0")
+                return errors
+
+        def __init__(self, parent_widget: Widget = None):
+            super().__init__(Widget.DigitalDisplayPs.DigitalDisplayP)
+            self._parent_widget = parent_widget
+
+    class TextBoxPs(ControlManagerBase):
+        """文本框控件管理器"""
+
+        @dataclass
+        class TextBoxP(ControlBase):
+            """文本框控件实例"""
+            ControlType: str = "TextBox"
+            Type: Optional[int] = None
+            Text: str = ""
+            InfoType: Optional[int] = None
+
+            def __repr__(self) -> str:
+                type_name = "未知类文本框"
+                if self.Type == obs.OBS_TEXT_DEFAULT:
+                    type_name = "单行文本"
+                elif self.Type == obs.OBS_TEXT_PASSWORD:
+                    type_name = "单行文本（带密码）"
+                elif self.Type == obs.OBS_TEXT_MULTILINE:
+                    type_name = "多行文本"
+                elif self.Type == obs.OBS_TEXT_INFO:
+                    type_name = "只读信息文本"
+                return f"<TextBoxP Name='{self.Name}' Number={self.Number} Type='{type_name}' Text='{self.Text}'>"
+
+        def __init__(self, parent_widget: Widget = None):
+            super().__init__(Widget.TextBoxPs.TextBoxP)
+            self._parent_widget = parent_widget
+
+    class ButtonPs(ControlManagerBase):
+        """按钮控件管理器"""
+
+        @dataclass
+        class ButtonP(ControlBase):
+            """按钮控件实例"""
+            ControlType: str = "Button"
+            Type: Optional[int] = None
+            Callback: Optional[Callable] = None
+            Url: str = ""
+
+            def __repr__(self) -> str:
+                type_name = "未知类按钮"
+                if self.Type == obs.OBS_BUTTON_DEFAULT:
+                    type_name = "标准按钮"
+                elif self.Type == obs.OBS_BUTTON_URL:
+                    type_name = "打开 URL 的按钮"
+                return f"<ButtonP Name='{self.Name}' Number={self.Number} Type='{type_name}' Callback={self.Callback is not None}>"
+
+        def __init__(self, parent_widget: Widget = None):
+            super().__init__(Widget.ButtonPs.ButtonP)
+            self._parent_widget = parent_widget
+
+    class ComboBoxPs(ControlManagerBase):
+        """组合框控件管理器"""
+
+        @dataclass
+        class ComboBoxP(ControlBase):
+            """组合框控件实例"""
+            ControlType: str = "ComboBox"
+            Type: Optional[int] = None
+            Text: str = ""
+            Value: str = ""
+            Dictionary: Dict[str, Any] = field(default_factory=dict)
+
+            def __repr__(self) -> str:
+                type_name = "未知类组合框"
+                if self.Type == obs.OBS_COMBO_TYPE_EDITABLE:
+                    type_name = "可以编辑。 仅与字符串列表一起使用"
+                elif self.Type == obs.OBS_COMBO_TYPE_LIST:
+                    type_name = "不可编辑。显示为组合框"
+                elif self.Type == obs.OBS_COMBO_TYPE_RADIO:
+                    type_name = "不可编辑。显示为单选按钮"
+                return f"<ComboBoxP Name='{self.Name}' Number={self.Number} Type='{type_name}' Text='{self.Text}'>"
+
+        def __init__(self, parent_widget: Widget = None):
+            super().__init__(Widget.ComboBoxPs.ComboBoxP)
+            self._parent_widget = parent_widget
+
+    class PathBoxPs(ControlManagerBase):
+        """路径对话框控件管理器"""
+
+        @dataclass
+        class PathBoxP(ControlBase):
+            """路径对话框控件实例"""
+            ControlType: str = "PathBox"
+            Type: Optional[int] = None
+            Text: str = ""
+            Filter: str = ""
+            StartPath: str = ""
+
+            def __repr__(self) -> str:
+                type_name = "未知类型路径对话框"
+                if self.Type == obs.OBS_PATH_FILE:
+                    type_name = "文件对话框"
+                elif self.Type == obs.OBS_PATH_FILE_SAVE:
+                    type_name = "保存文件对话框"
+                elif self.Type == obs.OBS_PATH_DIRECTORY:
+                    type_name = "文件夹对话框"
+                return f"<PathBoxP Name='{self.Name}' Number={self.Number} Type='{type_name}' Text='{self.Text}'>"
+
+        def __init__(self, parent_widget: Widget = None):
+            super().__init__(Widget.PathBoxPs.PathBoxP)
+            self._parent_widget = parent_widget
+
+    class GroupPs(ControlManagerBase):
+        """分组框控件管理器"""
+
+        @dataclass
+        class GroupP(ControlBase):
+            """分组框控件实例"""
+            ControlType: str = "Group"
+            Type: Optional[int] = None
+            GroupProps: Any = None
+
+            def __repr__(self) -> str:
+                type_name = "未知类分组框"
+                if self.Type == obs.OBS_GROUP_NORMAL:
+                    type_name = "只有名称和内容的普通组"
+                elif self.Type == obs.OBS_GROUP_CHECKABLE:
+                    type_name = "具有复选框、名称和内容的可选组"
+                return f"<GroupP Name='{self.Name}' Number={self.Number} Type='{type_name}'>"
+
+        def __init__(self, parent_widget: Widget = None):
+            super().__init__(Widget.GroupPs.GroupP)
+            self._parent_widget = parent_widget
+
     def __init__(self):
         """初始化表单管理器"""
-        self.CheckBox = CheckBoxPs()
-        """复选框"""
-        self.DigitalDisplay = DigitalDisplayPs()
-        """数字框"""
-        self.TextBox = TextBoxPs()
-        """文本框"""
-        self.Button = ButtonPs()
-        """按钮"""
-        self.ComboBox = ComboBoxPs()
-        """组合框"""
-        self.PathBox = PathBoxPs()
-        """路径对话框"""
-        self.Group = GroupPs()
-        """分组框"""
+        # 初始化所有控件管理器，并传递 self 作为父引用
+        self.CheckBox = Widget.CheckBoxPs(self)
+        self.DigitalDisplay = Widget.DigitalDisplayPs(self)
+        self.TextBox = Widget.TextBoxPs(self)
+        self.Button = Widget.ButtonPs(self)
+        self.ComboBox = Widget.ComboBoxPs(self)
+        self.PathBox = Widget.PathBoxPs(self)
+        self.Group = Widget.GroupPs(self)
+
         self._all_controls: List[Any] = []
         self._loading_dict: Dict[int, Any] = {}
+        self._event_handlers: Dict[str, List[Callable]] = {}
+        self._last_update_time: float = 0
 
-    def _update_all_controls(self):
+    def _update_all_controls(self) -> None:
         """更新所有控件列表"""
         self._all_controls = []
-        # 收集所有类型的控件
-        self._all_controls.extend(self.CheckBox)
-        self._all_controls.extend(self.DigitalDisplay)
-        self._all_controls.extend(self.TextBox)
-        self._all_controls.extend(self.Button)
-        self._all_controls.extend(self.ComboBox)
-        self._all_controls.extend(self.PathBox)
-        self._all_controls.extend(self.Group)
+        managers = [
+            self.CheckBox, self.DigitalDisplay, self.TextBox,
+            self.Button, self.ComboBox, self.PathBox, self.Group
+        ]
+        for manager in managers:
+            self._all_controls.extend(manager)
+        self._last_update_time = time.time()
 
-    def loading(self):
+    @cache_loading_result
+    def loading(self, force: bool = False) -> Dict[int, Any]:
         """按载入次序排序所有控件"""
         self._update_all_controls()
-        # 按Number属性排序
-        sorted_controls = sorted(self._all_controls, key=lambda c: c.Number)
-        name_dict = {}  # 用于检测名称冲突
 
-        # 创建载入次序字典
-        self._loading_dict = {}
+        sorted_controls = sorted(self._all_controls, key=lambda c: c.Number)
+        name_dict = {}
+        loading_dict = {}
+
         for control in sorted_controls:
             # 检查名称冲突
             if control.Name in name_dict:
-                existing_control = name_dict[control.Name]
+                existing = name_dict[control.Name]
                 raise ValueError(
-                    f"控件名称冲突: 控件 '{control.Name}' "
-                    f"(类型: {type(control).__name__}, 载入次序: {control.Number}) 与 "
-                    f"'{existing_control.Name}' "
-                    f"(类型: {type(existing_control).__name__}, 载入次序: {existing_control.Number}) 重名"
+                    f"控件名称冲突: '{control.Name}' "
+                    f"(类型: {type(control).__name__}, 次序: {control.Number}) 与 "
+                    f"'{existing.Name}' (类型: {type(existing).__name__}, 次序: {existing.Number}) 重名"
                 )
-            else:
-                name_dict[control.Name] = control
-            if control.Number in self._loading_dict:
-                existing_control = self._loading_dict[control.Number]
+            name_dict[control.Name] = control
+
+            # 检查载入次序冲突
+            if control.Number in loading_dict:
+                existing = loading_dict[control.Number]
                 raise ValueError(
-                    f"载入次序冲突: 控件 '{control.Name}' (类型: {type(control).__name__}) 和 "
-                    f"'{existing_control.Name}' (类型: {type(existing_control).__name__}) "
-                    f"使用相同的Number值 {control.Number}"
+                    f"载入次序冲突: '{control.Name}' (类型: {type(control).__name__}) 和 "
+                    f"'{existing.Name}' (类型: {type(existing).__name__}) "
+                    f"使用相同次序 {control.Number}"
                 )
-            self._loading_dict[control.Number] = control
+            loading_dict[control.Number] = control
+
+        return loading_dict
 
     def get_control_by_number(self, number: int) -> Optional[Any]:
         """通过载入次序获取控件"""
-        self.loading()  # 确保已排序
-        return self._loading_dict.get(number)
+        loading_dict = self.loading()
+        return loading_dict.get(number)
 
     def get_control_by_name(self, name: str) -> Optional[Any]:
         """通过名称获取控件"""
-        # 在顶级控件中查找
-        for manager in [self.CheckBox, self.DigitalDisplay, self.TextBox,
-                        self.Button, self.ComboBox, self.PathBox, self.Group]:
+        managers = [
+            self.CheckBox, self.DigitalDisplay, self.TextBox,
+            self.Button, self.ComboBox, self.PathBox, self.Group
+        ]
+        for manager in managers:
             if name in manager:
                 return manager.get(name)
         return None
 
     def get_sorted_controls(self) -> List[Any]:
         """获取按载入次序排序的所有控件列表"""
-        self.loading()
-        return list(self._loading_dict.values())
+        loading_dict = self.loading()
+        return list(loading_dict.values())
 
-    def clean(self):
+    def find_controls(self, **filters) -> List[Any]:
+        """在所有控件中查找符合条件的控件"""
+        self._update_all_controls()
+        results = []
+        for control in self._all_controls:
+            match = True
+            for key, value in filters.items():
+                if not hasattr(control, key) or getattr(control, key) != value:
+                    match = False
+                    break
+            if match:
+                results.append(control)
+        return results
+
+    def get_controls_by_type(self, control_type: type) -> List[Any]:
+        """按类型获取控件"""
+        self._update_all_controls()
+        return [c for c in self._all_controls if isinstance(c, control_type)]
+
+    def validate_all_controls(self) -> Dict[str, List[str]]:
+        """验证所有控件的有效性"""
+        errors = {}
+        self._update_all_controls()
+        for control in self._all_controls:
+            if control_errors := control.validate():
+                errors[control.Name] = control_errors
+        return errors
+
+    def to_dict(self) -> Dict[str, Any]:
+        """将整个表单序列化为字典"""
+        return {
+            'checkboxes': self.CheckBox.to_dict(),
+            'digital_displays': self.DigitalDisplay.to_dict(),
+            'text_boxes': self.TextBox.to_dict(),
+            'buttons': self.Button.to_dict(),
+            'combo_boxes': self.ComboBox.to_dict(),
+            'path_boxes': self.PathBox.to_dict(),
+            'groups': self.Group.to_dict(),
+            'sorted_controls': [c.to_dict() for c in self.get_sorted_controls()]
+        }
+
+    def on_control_added(self, handler: Callable) -> None:
+        """注册控件添加事件处理器"""
+        self._add_event_handler('control_added', handler)
+
+    def on_control_removed(self, handler: Callable) -> None:
+        """注册控件移除事件处理器"""
+        self._add_event_handler('control_removed', handler)
+
+    def _add_event_handler(self, event_type: str, handler: Callable) -> None:
+        """添加事件处理器"""
+        if event_type not in self._event_handlers:
+            self._event_handlers[event_type] = []
+        self._event_handlers[event_type].append(handler)
+
+    def _trigger_event(self, event_type: str, *args, **kwargs) -> None:
+        """触发事件"""
+        for handler in self._event_handlers.get(event_type, []):
+            try:
+                handler(*args, **kwargs)
+            except Exception as e:
+                print(f"事件处理器执行失败: {e}")
+
+    def clean(self) -> Widget:
         """清除所有控件并重置表单"""
         # 重置所有控件管理器
-        self.CheckBox = CheckBoxPs()
-        self.DigitalDisplay = DigitalDisplayPs()
-        self.TextBox = TextBoxPs()
-        self.Button = ButtonPs()
-        self.ComboBox = ComboBoxPs()
-        self.PathBox = PathBoxPs()
-        self.Group = GroupPs()
+        self.CheckBox = Widget.CheckBoxPs(self)
+        self.DigitalDisplay = Widget.DigitalDisplayPs(self)
+        self.TextBox = Widget.TextBoxPs(self)
+        self.Button = Widget.ButtonPs(self)
+        self.ComboBox = Widget.ComboBoxPs(self)
+        self.PathBox = Widget.PathBoxPs(self)
+        self.Group = Widget.GroupPs(self)
 
         # 清空内部存储
         self._all_controls = []
         self._loading_dict = {}
+        if hasattr(self, '_cached_loading'):
+            delattr(self, '_cached_loading')
 
-        return self  # 支持链式调用
+        return self
 
     def __repr__(self) -> str:
         """返回表单的可读表示形式"""
         self._update_all_controls()
-        return f"<Widget controls={len(self._all_controls)}>"
-
+        control_counts = {
+            'CheckBox': len(self.CheckBox),
+            'DigitalDisplay': len(self.DigitalDisplay),
+            'TextBox': len(self.TextBox),
+            'Button': len(self.Button),
+            'ComboBox': len(self.ComboBox),
+            'PathBox': len(self.PathBox),
+            'Group': len(self.Group)
+        }
+        return f"<Widget total_controls={len(self._all_controls)}, {control_counts}>"
 
 if __name__ == "__main__":
     # 创建控件表单
     widget = Widget()
 
-    widget_Button_name_list = {
+    widget_Button_name_list: Dict[str, set[str]] = {
         "props": {
             "top", "bottom",
         },
@@ -744,24 +644,25 @@ if __name__ == "__main__":
             "accountRestore", "logout",
         },
         "room_props": {
-            "roomOpened", "roomCoverView", "roomCoverUpdate", "roomCommonTitlesTrue", "roomTitleChange","roomNewsChange",
+            "roomOpened", "roomCoverView", "roomCoverUpdate", "roomCommonTitlesTrue", "roomTitleChange",
+            "roomNewsChange",
             "roomCommonAreasTrue", "roomParentAreaTrue", "roomSubAreaTrue", "bliveWebJump",
         },
         "live_props": {
             "liveFaceAuth", "liveStart", "liveRtmpAddressCopy", "liveRtmpCodeCopy", "liveRtmpCodeUpdate", "liveStop",
             "liveBookingsDayTrue", "liveBookingsHourTrue", "liveBookingsMinuteTrue", "liveBookingsCreate",
-            "liveBookingsCancel",},
+            "liveBookingsCancel", },
     }
 
-    widget_Group_name_list = {
+    widget_Group_name_list: Dict[str, set[str]] = {
         "props": {
-            "account": "account_props",
-            "room": "room_props",
-            "live": "live_props",
+            "account",
+            "room",
+            "live",
         },
     }
 
-    widget_TextBox_name_list = {
+    widget_TextBox_name_list: Dict[str, set[str]] = {
         "account_props": {
             "loginStatus",
         },
@@ -773,7 +674,7 @@ if __name__ == "__main__":
         },
     }
 
-    widget_ComboBox_name_list = {
+    widget_ComboBox_name_list: Dict[str, set[str]] = {
         "account_props": {
             "uid",
         },
@@ -785,63 +686,169 @@ if __name__ == "__main__":
         },
     }
 
-    widget_PathBox_name_list = {
+    widget_PathBox_name_list: Dict[str, set[str]] = {
         "room_props": {
             "roomCover",
         },
     }
 
-    widget_DigitalDisplay_name_list = {
+    widget_DigitalDisplay_name_list: Dict[str, set[str]] = {
         "live_props": {
             "liveBookingsDay", "liveBookingsHour", "liveBookingsMinute",
         },
     }
 
-    widget_CheckBox_name_list = {
+    widget_CheckBox_name_list: Dict[str, set[str]] = {
         "live_props": {
             "liveBookingsDynamic",
         },
     }
 
     for P in widget_Button_name_list:
+        log_save(0, "【按钮】")
         for Button_name in widget_Button_name_list[P]:
             widget.Button.add(Button_name)
+            log_save(0, f"添加{Button_name}")
             obj = getattr(widget.Button, Button_name)
             obj.Props = P
 
     for P in widget_Group_name_list:
+        log_save(0, "【分组框】")
         for Group_name in widget_Group_name_list[P]:
             widget.Group.add(Group_name)
+            log_save(0, f"添加{Group_name}")
             obj = getattr(widget.Group, Group_name)
             obj.Props = P
-            obj.GroupProps = widget_Group_name_list[P][Group_name]
 
     for P in widget_TextBox_name_list:
+        log_save(0, "【文本框】")
         for TextBox_name in widget_TextBox_name_list[P]:
             widget.TextBox.add(TextBox_name)
+            log_save(0, f"添加{TextBox_name}")
             obj = getattr(widget.TextBox, TextBox_name)
             obj.Props = P
 
     for P in widget_ComboBox_name_list:
+        log_save(0, "【组合框】")
         for ComboBox_name in widget_ComboBox_name_list[P]:
             widget.ComboBox.add(ComboBox_name)
+            log_save(0, f"添加{ComboBox_name}")
             obj = getattr(widget.ComboBox, ComboBox_name)
             obj.Props = P
 
     for P in widget_PathBox_name_list:
+        log_save(0, "【路径对话框】")
         for PathBox_name in widget_PathBox_name_list[P]:
             widget.PathBox.add(PathBox_name)
+            log_save(0, f"添加{PathBox_name}")
             obj = getattr(widget.PathBox, PathBox_name)
             obj.Props = P
 
     for P in widget_DigitalDisplay_name_list:
+        log_save(0, "【数字框】")
         for DigitalDisplay_name in widget_DigitalDisplay_name_list[P]:
             widget.DigitalDisplay.add(DigitalDisplay_name)
+            log_save(0, f"添加{DigitalDisplay_name}")
             obj = getattr(widget.DigitalDisplay, DigitalDisplay_name)
             obj.Props = P
 
     for P in widget_CheckBox_name_list:
+        log_save(0, "【复选框】")
         for CheckBox_name in widget_CheckBox_name_list[P]:
             widget.CheckBox.add(CheckBox_name)
+            log_save(0, f"添加{CheckBox_name}")
             obj = getattr(widget.CheckBox, CheckBox_name)
             obj.Props = P
+
+
+    class GlobalVariableOfData:
+        widget_loading_number = 0
+
+
+    w_list = [
+        widget.Button.top,
+        widget.Group.account,
+        widget.TextBox.loginStatus,
+        widget.ComboBox.uid,
+        widget.Button.login,
+        widget.Button.accountListUpdate,
+        widget.Button.qrAddAccount,
+        widget.Button.qrPictureDisplay,
+        widget.Button.accountDelete,
+        widget.Button.accountBackup,
+        widget.Button.accountRestore,
+        widget.Button.logout,
+        widget.Group.room,
+        widget.TextBox.roomStatus,
+        widget.Button.roomOpened,
+        widget.Button.roomCoverView,
+        widget.PathBox.roomCover,
+        widget.Button.roomCoverUpdate,
+        widget.ComboBox.roomCommonTitles,
+        widget.Button.roomCommonTitlesTrue,
+        widget.TextBox.roomTitle,
+        widget.Button.roomTitleChange,
+        widget.TextBox.roomNews,
+        widget.Button.roomNewsChange,
+        widget.ComboBox.roomCommonAreas,
+        widget.Button.roomCommonAreasTrue,
+        widget.ComboBox.roomParentArea,
+        widget.Button.roomParentAreaTrue,
+        widget.ComboBox.roomSubArea,
+        widget.Button.roomSubAreaTrue,
+        widget.Button.bliveWebJump,
+        widget.Group.live,
+        widget.Button.liveFaceAuth,
+        widget.ComboBox.liveStreamingPlatform,
+        widget.Button.liveStart,
+        widget.Button.liveRtmpAddressCopy,
+        widget.Button.liveRtmpCodeCopy,
+        widget.Button.liveRtmpCodeUpdate,
+        widget.Button.liveStop,
+        widget.DigitalDisplay.liveBookingsDay,
+        widget.Button.liveBookingsDayTrue,
+        widget.DigitalDisplay.liveBookingsHour,
+        widget.Button.liveBookingsHourTrue,
+        widget.DigitalDisplay.liveBookingsMinute,
+        widget.Button.liveBookingsMinuteTrue,
+        widget.CheckBox.liveBookingsDynamic,
+        widget.TextBox.liveBookingsTitle,
+        widget.Button.liveBookingsCreate,
+        widget.ComboBox.liveBookings,
+        widget.Button.liveBookingsCancel,
+        widget.Button.bottom,
+    ]
+
+    for w in w_list:
+        w.Number = (
+            lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1]
+        )(GlobalVariableOfData.widget_loading_number)
+
+    if len(w_list) == len(widget.get_sorted_controls()):
+        log_save(0, "控件数量检测通过")
+    else:
+        log_save(3, "⚾控件数量检测不通过：设定控件载入顺序时的控件数量 和 创建的控件对象数量 不统一")
+
+    # 创建一个 OBS 属性集对象，他将包含所有控件对应的属性对象
+    props = "obs.obs_properties_create(props)"
+    # 为 分组框【配置】 建立属性集
+    account_props = "obs.obs_properties_create(account_props)"
+    # 为 分组框【直播间】 建立属性集
+    room_props = "obs.obs_properties_create(room_props)"
+    # 为 分组框【直播】 建立属性集
+    live_props = "obs.obs_properties_create(live_props)"
+
+    props_dict = {
+        "props": props,
+        "account_props": account_props,
+        "room_props": room_props,
+        "live_props": live_props,
+    }
+    """控件属性集的字典，仅在这里赋值一次，避免重复赋值导致溢出或者obs崩溃"""
+    for w in widget.get_sorted_controls():
+        if w.ControlType == "Group":
+            w.Props = props_dict[{
+                "account": "account_props",
+                "room": "room_props",
+                "live": "live_props",
+            }[w.Name]]
