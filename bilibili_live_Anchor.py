@@ -59,330 +59,6 @@ from PIL import Image, ImageOps
 script_version = "0.1.6"
 """脚本版本"""
 
-widget_Button_dict: Dict[str, Dict[str, Dict[str, str]]] = {
-    "props": {
-        "top": {
-            "Name": "top_button",
-            "Description": "Top",
-        },
-        "bottom": {
-            "Name": "bottom_button",
-            "Description": "Bottom",
-        },
-    },
-    "account_props": {
-        "login": {
-            "Name": "login_button",
-            "Description": "登录账号",
-        },
-        "accountListUpdate": {
-            "Name": "account_list_update_button",
-            "Description": "更新账号列表",
-        },
-        "qrAddAccount": {
-            "Name": "qr_add_account_button",
-            "Description": "二维码添加账户",
-        },
-        "qrPictureDisplay": {
-            "Name": "qr_picture_display_button",
-            "Description": "显示二维码图片",
-        },
-        "accountDelete": {
-            "Name": "account_delete_button",
-            "Description": "删除账户",
-        },
-        "accountBackup": {
-            "Name": "account_backup_button",
-            "Description": "备份账户",
-        },
-        "accountRestore": {
-            "Name": "account_restore_button",
-            "Description": "恢复账户",
-        },
-        "logout": {
-            "Name": "logout_button",
-            "Description": "登出账号",
-        },
-    },
-    "room_props": {
-        "roomOpened": {
-            "Name": "room_opened_button",
-            "Description": "开通直播间",
-        },
-        "roomCoverView": {
-            "Name": "room_cover_view_button",
-            "Description": "查看直播间封面",
-        },
-        "roomCoverUpdate": {
-            "Name": "room_cover_update_button",
-            "Description": "上传直播间封面",
-        },
-        "roomCommonTitlesTrue": {
-            "Name": "room_commonTitles_true_button",
-            "Description": "确认标题",
-        },
-        "roomTitleChange": {
-            "Name": "room_title_change_button",
-            "Description": "更改直播间标题",
-        },
-        "roomNewsChange": {
-            "Name": "room_news_change_button",
-            "Description": "更改直播间公告",
-        },
-        "roomCommonAreasTrue": {
-            "Name": "room_commonAreas_true_button",
-            "Description": "确认分区",
-        },
-        "roomParentAreaTrue": {
-            "Name": "room_parentArea_true_button",
-            "Description": "确认一级分区",
-        },
-        "roomSubAreaTrue": {
-            "Name": "room_subArea_true_button",
-            "Description": "「确认分区」",
-        },
-        "bliveWebJump": {
-            "Name": "blive_web_jump_button",
-            "Description": "跳转直播间后台网页",
-        },
-    },
-    "live_props": {
-        "liveFaceAuth": {
-            "Name": "live_face_auth_button",
-            "Description": "人脸认证",
-        },
-        "liveStart": {
-            "Name": "live_start_button",
-            "Description": "开始直播并复制推流码",
-        },
-        "liveRtmpAddressCopy": {
-            "Name": "live_rtmp_address_copy_button",
-            "Description": "复制直播服务器",
-        },
-        "liveRtmpCodeCopy": {
-            "Name": "live_rtmp_code_copy_button",
-            "Description": "复制直播推流码",
-        },
-        "liveRtmpCodeUpdate": {
-            "Name": "live_rtmp_code_update_button",
-            "Description": "更新推流码并复制",
-        },
-        "liveStop": {
-            "Name": "live_stop_button",
-            "Description": "结束直播",
-        },
-        "liveBookingsDayTrue": {
-            "Name": "live_bookings_day_true_button",
-            "Description": "确认预约天",
-        },
-        "liveBookingsHourTrue": {
-            "Name": "live_bookings_hour_true_button",
-            "Description": "确认预约时",
-        },
-        "liveBookingsMinuteTrue": {
-            "Name": "live_bookings_minute_true_button",
-            "Description": "确认预约分",
-        },
-        "liveBookingsCreate": {
-            "Name": "live_bookings_create_button",
-            "Description": "发布直播预约",
-        },
-        "liveBookingsCancel": {
-            "Name": "live_bookings_cancel_button",
-            "Description": "取消直播预约",
-        },
-    },
-}
-"""按钮控件名称列表"""
-
-widget_Group_dict: Dict[str, Dict[str, Dict[str, str]]] = {
-    "props": {
-        "account": {
-            "Name": "account_group",
-            "Description": "账号",
-        },
-        "room": {
-            "Name": "room_group",
-            "Description": "直播间",
-        },
-        "live": {
-            "Name": "live_group",
-            "Description": "直播",
-        },
-    },
-}
-"""分组框控件名称列表"""
-
-widget_TextBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {
-    "account_props": {
-        "loginStatus": {
-            "Name": "login_status_textBox",
-            "Description": "登录状态",
-        },
-    },
-    "room_props": {
-        "roomStatus": {
-            "Name": "room_status_textBox",
-            "Description": "查看直播间封面",
-        },
-        "roomTitle": {
-            "Name": "room_title_textBox",
-            "Description": "直播间标题",
-        },
-        "roomNews": {
-            "Name": "room_news_textBox",
-            "Description": "直播间公告",
-        },
-    },
-    "live_props": {
-        "liveBookingsTitle": {
-            "Name": "live_bookings_title_textBox",
-            "Description": "直播预约标题",
-        },
-    },
-}
-"""文本框控件名称列表"""
-
-widget_ComboBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {
-    "account_props": {
-        "uid": {
-            "Name": "uid_comboBox",
-            "Description": "用户",
-        },
-    },
-    "room_props": {
-        "roomCommonTitles": {
-            "Name": "room_commonTitles_comboBox",
-            "Description": "常用标题",
-        },
-        "roomCommonAreas": {
-            "Name": "room_commonAreas_comboBox",
-            "Description": "常用分区",
-        },
-        "roomParentArea": {
-            "Name": "room_parentArea_comboBox",
-            "Description": "一级分区",
-        },
-        "roomSubArea": {
-            "Name": "room_subArea_comboBox",
-            "Description": "二级分区",
-        },
-    },
-    "live_props": {
-        "liveStreamingPlatform": {
-            "Name": "live_streaming_platform_comboBox",
-            "Description": "直播平台",
-        },
-        "liveBookings": {
-            "Name": "live_bookings_comboBox",
-            "Description": "直播预约列表",
-        },
-    },
-}
-"""组合框控件名称列表"""
-
-widget_PathBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {
-    "room_props": {
-        "roomCover": {
-            "Name": "room_cover_fileDialogBox",
-            "Description": "直播间封面",
-        },
-    },
-}
-"""路径对话框控件名称列表"""
-
-widget_DigitalDisplay_dict: Dict[str, Dict[str, Dict[str, str]]] = {
-    "live_props": {
-        "liveBookingsDay": {
-            "Name": "live_bookings_day_digitalSlider",
-            "Description": "预约天",
-        },
-        "liveBookingsHour": {
-            "Name": "live_bookings_hour_digitalSlider",
-            "Description": "预约时",
-        },
-        "liveBookingsMinute": {
-            "Name": "live_bookings_minute_digitalSlider",
-            "Description": "预约分",
-        },
-    },
-}
-"""数字框控件名称列表"""
-
-widget_CheckBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {
-    "live_props": {
-        "liveBookingsDynamic": {
-            "Name": "live_bookings_dynamic_checkBox",
-            "Description": "是否发直播预约动态",
-        },
-    },
-}
-"""复选框控件名称列表"""
-
-widget_name_dict_all: dict[Literal["Button", "Group", "TextBox", "ComboBox", "PathBox", "DigitalDisplay", "CheckBox"], dict[str, dict[str, dict[str, str]]]] = {
-    "Button": widget_Button_dict,
-    "Group": widget_Group_dict,
-    "TextBox": widget_TextBox_dict,
-    "ComboBox": widget_ComboBox_dict,
-    "PathBox": widget_PathBox_dict,
-    "DigitalDisplay": widget_DigitalDisplay_dict,
-    "CheckBox": widget_CheckBox_dict,
-}
-
-w_list: List[str] = [
-    "top_button",
-    "account_group",
-    "login_status_textBox",
-    "uid_comboBox",
-    "login_button",
-    "account_list_update_button",
-    "qr_add_account_button",
-    "qr_picture_display_button",
-    "account_delete_button",
-    "account_backup_button",
-    "account_restore_button",
-    "logout_button",
-    "room_group",
-    "room_status_textBox",
-    "room_opened_button",
-    "room_cover_view_button",
-    "room_cover_fileDialogBox",
-    "room_cover_update_button",
-    "room_commonTitles_comboBox",
-    "room_commonTitles_true_button",
-    "room_title_textBox",
-    "room_title_change_button",
-    "room_news_textBox",
-    "room_news_change_button",
-    "room_commonAreas_comboBox",
-    "room_commonAreas_true_button",
-    "room_parentArea_comboBox",
-    "room_parentArea_true_button",
-    "room_subArea_comboBox",
-    "room_subArea_true_button",
-    "blive_web_jump_button",
-    "live_group",
-    "live_face_auth_button",
-    "live_streaming_platform_comboBox",
-    "live_start_button",
-    "live_rtmp_address_copy_button",
-    "live_rtmp_code_copy_button",
-    "live_rtmp_code_update_button",
-    "live_stop_button",
-    "live_bookings_day_digitalSlider",
-    "live_bookings_day_true_button",
-    "live_bookings_hour_digitalSlider",
-    "live_bookings_hour_true_button",
-    "live_bookings_minute_digitalSlider",
-    "live_bookings_minute_true_button",
-    "live_bookings_dynamic_checkBox",
-    "live_bookings_title_textBox",
-    "live_bookings_create_button",
-    "live_bookings_comboBox",
-    "live_bookings_cancel_button",
-    "bottom_button",
-]
-
 # 全局变量
 textBox_type_name4textBox_type = {
     obs.OBS_TEXT_INFO_NORMAL: '正常信息',
@@ -529,38 +205,36 @@ def log_save(log_level: Literal[0, 1, 2, 3], log_str: str, print_is:bool = True)
 
 
 class GlobalVariableOfData:
-    widget_loading_number = 0
+    widget_loading_number: int = 0
     """控件加载顺序"""
-    isScript_propertiesIs = False  # Script_properties()被调用
+    isScript_propertiesIs: bool = False  # Script_properties()被调用
     """Script_properties()被调用"""
-    streaming_active = None  # OBS推流状态
+    streaming_active: bool = None  # OBS推流状态
     """OBS推流状态"""
-    script_settings = None  # #脚本的所有设定属性集
+    script_settings: bool = None  # #脚本的所有设定属性集
     """脚本的所有设定属性集"""
 
-    logRecording = ""  # #日志记录的文本
+    logRecording: str = ""  # #日志记录的文本
     """日志记录的文本"""
-    networkConnectionStatus = False  # #网络连接状态
+    networkConnectionStatus: bool = False  # #网络连接状态
     """网络连接状态"""
-    sslVerification = True
+    sslVerification: bool = True
     """SSL验证"""
-    verificationNumberControls: bool = True
-    """控件数量验证"""
 
     # 文件配置类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    scriptsDataDirpath = None  # #脚本所在目录，末尾带/
+    scriptsDataDirpath: Optional[str] = None  # #脚本所在目录，末尾带/
     """脚本所在目录，末尾带/"""
-    scriptsUsersConfigFilepath = None  # #用户配置文件路径
+    scriptsUsersConfigFilepath: Optional[str] = None  # #用户配置文件路径
     """用户配置文件路径"""
-    scriptsTempDir = None   # #临时文件文件夹
+    scriptsTempDir: Optional[str] = None   # #临时文件文件夹
     """临时文件文件夹"""
-    scriptsLogDir = None  # #日志文件文件夹
+    scriptsLogDir: Optional[str] = None  # #日志文件文件夹
     """日志文件文件夹"""
-    scriptsCacheDir = None  # #缓存文件文件夹
+    scriptsCacheDir: Optional[str] = None  # #缓存文件文件夹
     """缓存文件文件夹"""
 
     # 用户类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    loginQrCode_key = None  # ##登陆二维码密钥
+    loginQrCode_key: str = None  # ##登陆二维码密钥
     """登陆二维码密钥"""
     loginQrCodeReturn = None  # ##登陆二维码返回数据
     """登陆二维码返回数据"""
@@ -1083,8 +757,40 @@ class Widget:
         """路径对话框"""
         self.Group = Widget.GroupPs()
         """分组框"""
+        self.widget_Button_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
+        """按钮控件名称列表"""
+        self.widget_Group_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
+        """分组框控件名称列表"""
+        self.widget_TextBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
+        """文本框控件名称列表"""
+        self.widget_ComboBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
+        """组合框控件名称列表"""
+        self.widget_PathBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
+        """路径对话框控件名称列表"""
+        self.widget_DigitalDisplay_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
+        """数字框控件名称列表"""
+        self.widget_CheckBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
+        """复选框控件名称列表"""
+        self.widget_list: List[str] = []
+        """一个用于规定控件加载顺序的列表"""
         self._all_controls: List[Any] = []
         self._loading_dict: Dict[int, Any] = {}
+
+    @property
+    def widget_dict_all(self) -> dict[Literal["Button", "Group", "TextBox", "ComboBox", "PathBox", "DigitalDisplay", "CheckBox"], dict[str, dict[str, dict[str, str]]]]:
+        return {
+            "Button": self.widget_Button_dict,
+            "Group": self.widget_Group_dict,
+            "TextBox": self.widget_TextBox_dict,
+            "ComboBox": self.widget_ComboBox_dict,
+            "PathBox": self.widget_PathBox_dict,
+            "DigitalDisplay": self.widget_DigitalDisplay_dict,
+            "CheckBox": self.widget_CheckBox_dict,
+        }
+
+    @property
+    def verificationNumberControls(self):
+        return len(self.widget_list) == len(self.get_sorted_controls())
 
     def _update_all_controls(self):
         """更新所有控件列表"""
@@ -1164,29 +870,23 @@ class Widget:
 
         return self  # 支持链式调用
 
-    def preliminary_configuration_control(self, basic_types_controls: Literal["Button", "Group", "TextBox", "ComboBox", "PathBox", "DigitalDisplay", "CheckBox"], widget_name_dict: Dict[str, Dict[str, Dict[str, str]]], widget_list: List[str]):
+    def preliminary_configuration_control(self):
         """
         创建初始控件
-        Args:
-            basic_types_controls: 控件的基本类型
-            widget_name_dict: 控件的对象名和唯一名
-            widget_list: 一个用于规定控件加载顺序的列表
-
-        Returns:
-
         """
-        log_save(0, f"{basic_types_controls}")
-        for Ps in widget_name_dict:
-            log_save(0, f"  {Ps}")
-            for name in widget_name_dict[Ps]:
-                widget_types_controls = getattr(self, basic_types_controls)
-                widget_types_controls.add(name)
-                log_save(0, f"      添加{name}")
-                obj = getattr(widget_types_controls, name)
-                obj.Name = widget_name_dict[Ps][name]["Name"]
-                obj.Number = widget_list.index(obj.Name)
-                obj.Description = widget_name_dict[Ps][name]["Description"]
-                obj.Props = Ps
+        for basic_types_controls in self.widget_dict_all:
+            log_save(0, f"{basic_types_controls}")
+            for Ps in self.widget_dict_all[basic_types_controls]:
+                log_save(0, f"  {Ps}")
+                for name in self.widget_dict_all[basic_types_controls][Ps]:
+                    widget_types_controls = getattr(self, basic_types_controls)
+                    widget_types_controls.add(name)
+                    log_save(0, f"      添加{name}")
+                    obj = getattr(widget_types_controls, name)
+                    obj.Name = self.widget_dict_all[basic_types_controls][Ps][name]["Name"]
+                    obj.Number = self.widget_list.index(obj.Name)
+                    obj.Description = self.widget_dict_all[basic_types_controls][Ps][name]["Description"]
+                    obj.Props = Ps
 
     def __repr__(self) -> str:
         """返回表单的可读表示形式"""
@@ -1197,14 +897,314 @@ class Widget:
 # 创建控件表单
 widget = Widget()
 
-for P in widget_name_dict_all:
-    widget.preliminary_configuration_control(P, widget_name_dict_all[P], w_list)
+widget.widget_Button_dict = {
+    "props": {
+        "top": {
+            "Name": "top_button",
+            "Description": "Top",
+        },
+        "bottom": {
+            "Name": "bottom_button",
+            "Description": "Bottom",
+        },
+    },
+    "account_props": {
+        "login": {
+            "Name": "login_button",
+            "Description": "登录账号",
+        },
+        "accountListUpdate": {
+            "Name": "account_list_update_button",
+            "Description": "更新账号列表",
+        },
+        "qrAddAccount": {
+            "Name": "qr_add_account_button",
+            "Description": "二维码添加账户",
+        },
+        "qrPictureDisplay": {
+            "Name": "qr_picture_display_button",
+            "Description": "显示二维码图片",
+        },
+        "accountDelete": {
+            "Name": "account_delete_button",
+            "Description": "删除账户",
+        },
+        "accountBackup": {
+            "Name": "account_backup_button",
+            "Description": "备份账户",
+        },
+        "accountRestore": {
+            "Name": "account_restore_button",
+            "Description": "恢复账户",
+        },
+        "logout": {
+            "Name": "logout_button",
+            "Description": "登出账号",
+        },
+    },
+    "room_props": {
+        "roomOpened": {
+            "Name": "room_opened_button",
+            "Description": "开通直播间",
+        },
+        "roomCoverView": {
+            "Name": "room_cover_view_button",
+            "Description": "查看直播间封面",
+        },
+        "roomCoverUpdate": {
+            "Name": "room_cover_update_button",
+            "Description": "上传直播间封面",
+        },
+        "roomCommonTitlesTrue": {
+            "Name": "room_commonTitles_true_button",
+            "Description": "确认标题",
+        },
+        "roomTitleChange": {
+            "Name": "room_title_change_button",
+            "Description": "更改直播间标题",
+        },
+        "roomNewsChange": {
+            "Name": "room_news_change_button",
+            "Description": "更改直播间公告",
+        },
+        "roomCommonAreasTrue": {
+            "Name": "room_commonAreas_true_button",
+            "Description": "确认分区",
+        },
+        "roomParentAreaTrue": {
+            "Name": "room_parentArea_true_button",
+            "Description": "确认一级分区",
+        },
+        "roomSubAreaTrue": {
+            "Name": "room_subArea_true_button",
+            "Description": "「确认分区」",
+        },
+        "bliveWebJump": {
+            "Name": "blive_web_jump_button",
+            "Description": "跳转直播间后台网页",
+        },
+    },
+    "live_props": {
+        "liveFaceAuth": {
+            "Name": "live_face_auth_button",
+            "Description": "人脸认证",
+        },
+        "liveStart": {
+            "Name": "live_start_button",
+            "Description": "开始直播并复制推流码",
+        },
+        "liveRtmpAddressCopy": {
+            "Name": "live_rtmp_address_copy_button",
+            "Description": "复制直播服务器",
+        },
+        "liveRtmpCodeCopy": {
+            "Name": "live_rtmp_code_copy_button",
+            "Description": "复制直播推流码",
+        },
+        "liveRtmpCodeUpdate": {
+            "Name": "live_rtmp_code_update_button",
+            "Description": "更新推流码并复制",
+        },
+        "liveStop": {
+            "Name": "live_stop_button",
+            "Description": "结束直播",
+        },
+        "liveBookingsDayTrue": {
+            "Name": "live_bookings_day_true_button",
+            "Description": "确认预约天",
+        },
+        "liveBookingsHourTrue": {
+            "Name": "live_bookings_hour_true_button",
+            "Description": "确认预约时",
+        },
+        "liveBookingsMinuteTrue": {
+            "Name": "live_bookings_minute_true_button",
+            "Description": "确认预约分",
+        },
+        "liveBookingsCreate": {
+            "Name": "live_bookings_create_button",
+            "Description": "发布直播预约",
+        },
+        "liveBookingsCancel": {
+            "Name": "live_bookings_cancel_button",
+            "Description": "取消直播预约",
+        },
+    },
+}
 
-if len(w_list) == len(widget.get_sorted_controls()):
-    GlobalVariableOfData.verificationNumberControls = True
-else:
-    GlobalVariableOfData.verificationNumberControls = False
+widget.widget_Group_dict = {
+    "props": {
+        "account": {
+            "Name": "account_group",
+            "Description": "账号",
+        },
+        "room": {
+            "Name": "room_group",
+            "Description": "直播间",
+        },
+        "live": {
+            "Name": "live_group",
+            "Description": "直播",
+        },
+    },
+}
 
+widget.widget_TextBox_dict = {
+    "account_props": {
+        "loginStatus": {
+            "Name": "login_status_textBox",
+            "Description": "登录状态",
+        },
+    },
+    "room_props": {
+        "roomStatus": {
+            "Name": "room_status_textBox",
+            "Description": "查看直播间封面",
+        },
+        "roomTitle": {
+            "Name": "room_title_textBox",
+            "Description": "直播间标题",
+        },
+        "roomNews": {
+            "Name": "room_news_textBox",
+            "Description": "直播间公告",
+        },
+    },
+    "live_props": {
+        "liveBookingsTitle": {
+            "Name": "live_bookings_title_textBox",
+            "Description": "直播预约标题",
+        },
+    },
+}
+
+widget.widget_ComboBox_dict = {
+    "account_props": {
+        "uid": {
+            "Name": "uid_comboBox",
+            "Description": "用户",
+        },
+    },
+    "room_props": {
+        "roomCommonTitles": {
+            "Name": "room_commonTitles_comboBox",
+            "Description": "常用标题",
+        },
+        "roomCommonAreas": {
+            "Name": "room_commonAreas_comboBox",
+            "Description": "常用分区",
+        },
+        "roomParentArea": {
+            "Name": "room_parentArea_comboBox",
+            "Description": "一级分区",
+        },
+        "roomSubArea": {
+            "Name": "room_subArea_comboBox",
+            "Description": "二级分区",
+        },
+    },
+    "live_props": {
+        "liveStreamingPlatform": {
+            "Name": "live_streaming_platform_comboBox",
+            "Description": "直播平台",
+        },
+        "liveBookings": {
+            "Name": "live_bookings_comboBox",
+            "Description": "直播预约列表",
+        },
+    },
+}
+
+widget.widget_PathBox_dict = {
+    "room_props": {
+        "roomCover": {
+            "Name": "room_cover_fileDialogBox",
+            "Description": "直播间封面",
+        },
+    },
+}
+
+widget.widget_DigitalDisplay_dict = {
+    "live_props": {
+        "liveBookingsDay": {
+            "Name": "live_bookings_day_digitalSlider",
+            "Description": "预约天",
+        },
+        "liveBookingsHour": {
+            "Name": "live_bookings_hour_digitalSlider",
+            "Description": "预约时",
+        },
+        "liveBookingsMinute": {
+            "Name": "live_bookings_minute_digitalSlider",
+            "Description": "预约分",
+        },
+    },
+}
+
+widget.widget_CheckBox_dict = {
+    "live_props": {
+        "liveBookingsDynamic": {
+            "Name": "live_bookings_dynamic_checkBox",
+            "Description": "是否发直播预约动态",
+        },
+    },
+}
+
+widget.widget_list = [
+    "top_button",
+    "account_group",
+    "login_status_textBox",
+    "uid_comboBox",
+    "login_button",
+    "account_list_update_button",
+    "qr_add_account_button",
+    "qr_picture_display_button",
+    "account_delete_button",
+    "account_backup_button",
+    "account_restore_button",
+    "logout_button",
+    "room_group",
+    "room_status_textBox",
+    "room_opened_button",
+    "room_cover_view_button",
+    "room_cover_fileDialogBox",
+    "room_cover_update_button",
+    "room_commonTitles_comboBox",
+    "room_commonTitles_true_button",
+    "room_title_textBox",
+    "room_title_change_button",
+    "room_news_textBox",
+    "room_news_change_button",
+    "room_commonAreas_comboBox",
+    "room_commonAreas_true_button",
+    "room_parentArea_comboBox",
+    "room_parentArea_true_button",
+    "room_subArea_comboBox",
+    "room_subArea_true_button",
+    "blive_web_jump_button",
+    "live_group",
+    "live_face_auth_button",
+    "live_streaming_platform_comboBox",
+    "live_start_button",
+    "live_rtmp_address_copy_button",
+    "live_rtmp_code_copy_button",
+    "live_rtmp_code_update_button",
+    "live_stop_button",
+    "live_bookings_day_digitalSlider",
+    "live_bookings_day_true_button",
+    "live_bookings_hour_digitalSlider",
+    "live_bookings_hour_true_button",
+    "live_bookings_minute_digitalSlider",
+    "live_bookings_minute_true_button",
+    "live_bookings_dynamic_checkBox",
+    "live_bookings_title_textBox",
+    "live_bookings_create_button",
+    "live_bookings_comboBox",
+    "live_bookings_cancel_button",
+    "bottom_button",
+]
+
+widget.preliminary_configuration_control()
 
 # 工具类函数
 class BilibiliUserLogsIn2ConfigFile:
@@ -2741,7 +2741,7 @@ class BilibiliApiGeneric:
         qrcode_key = generate_data['qrcode_key']
         return {'url': url, 'qrcode_key': qrcode_key}
 
-    def poll(self, qrcode_key: str) -> Dict[str, Union[Dict[str, str], int]]:  # 3.Dict[str, Dict[str, str] | int]
+    def poll(self, qrcode_key: str) -> Dict[str, Union[Dict[str, str], int]]:
         """
         获取扫码登陆状态，登陆成功获取 基础的 cookies
         @param qrcode_key: 扫描秘钥
@@ -2751,14 +2751,14 @@ class BilibiliApiGeneric:
         api = f'https://passport.bilibili.com/x/passport-login/web/qrcode/poll?qrcode_key={qrcode_key}'
         poll_return = requests.get(verify=self.sslVerification, url = api, data=qrcode_key, headers=self.headers).json()
         data = poll_return['data']
-        cookies = {}
+        cookies: Dict[str, str] = {}
         """
         - DedeUserID:           用户id
         - DedeUserID__ckMd5:    携带时间戳加密的用户id
         - SESSDATA:             账户密钥
         - bili_jct:             csrf鉴权
         """
-        code = data['code']
+        code: int = data['code']
         """
         - 0：    扫码登录成功 
         - 86038：二维码已失效 
@@ -3500,7 +3500,7 @@ def script_defaults(settings):  # 设置其默认值
     调用以设置与脚本关联的默认设置(如果有的话)。为了设置其默认值，您通常会调用默认值函数。
     :param settings:与脚本关联的设置。
     """
-    if GlobalVariableOfData.verificationNumberControls:
+    if widget.verificationNumberControls:
         log_save(0, "控件数量检测通过")
     else:
         log_save(3, "⚾控件数量检测不通过：设定控件载入顺序时的控件数量 和 创建的控件对象数量 不统一")

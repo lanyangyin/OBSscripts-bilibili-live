@@ -600,8 +600,40 @@ class Widget:
         """路径对话框"""
         self.Group = Widget.GroupPs()
         """分组框"""
+        self.widget_Button_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
+        """按钮控件名称列表"""
+        self.widget_Group_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
+        """分组框控件名称列表"""
+        self.widget_TextBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
+        """文本框控件名称列表"""
+        self.widget_ComboBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
+        """组合框控件名称列表"""
+        self.widget_PathBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
+        """路径对话框控件名称列表"""
+        self.widget_DigitalDisplay_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
+        """数字框控件名称列表"""
+        self.widget_CheckBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
+        """复选框控件名称列表"""
+        self.widget_list: List[str] = []
+        """一个用于规定控件加载顺序的列表"""
         self._all_controls: List[Any] = []
         self._loading_dict: Dict[int, Any] = {}
+
+    @property
+    def widget_dict_all(self) -> dict[Literal["Button", "Group", "TextBox", "ComboBox", "PathBox", "DigitalDisplay", "CheckBox"], dict[str, dict[str, dict[str, str]]]]:
+        return {
+            "Button": self.widget_Button_dict,
+            "Group": self.widget_Group_dict,
+            "TextBox": self.widget_TextBox_dict,
+            "ComboBox": self.widget_ComboBox_dict,
+            "PathBox": self.widget_PathBox_dict,
+            "DigitalDisplay": self.widget_DigitalDisplay_dict,
+            "CheckBox": self.widget_CheckBox_dict,
+        }
+
+    @property
+    def verificationNumberControls(self):
+        return len(self.widget_list) == len(self.get_sorted_controls())
 
     def _update_all_controls(self):
         """更新所有控件列表"""
@@ -681,29 +713,23 @@ class Widget:
 
         return self  # 支持链式调用
 
-    def preliminary_configuration_control(self, basic_types_controls: Literal["Button", "Group", "TextBox", "ComboBox", "PathBox", "DigitalDisplay", "CheckBox"], widget_name_dict: Dict[str, Dict[str, Dict[str, str]]], widget_list: List[str]):
+    def preliminary_configuration_control(self):
         """
         创建初始控件
-        Args:
-            basic_types_controls: 控件的基本类型
-            widget_name_dict: 控件的对象名和唯一名
-            widget_list: 一个用于规定控件加载顺序的列表
-
-        Returns:
-
         """
-        log_save(0, f"{basic_types_controls}")
-        for Ps in widget_name_dict:
-            log_save(0, f"  {Ps}")
-            for name in widget_name_dict[Ps]:
-                widget_types_controls = getattr(self, basic_types_controls)
-                widget_types_controls.add(name)
-                log_save(0, f"      添加{name}")
-                obj = getattr(widget_types_controls, name)
-                obj.Name = widget_name_dict[Ps][name]["Name"]
-                obj.Number = widget_list.index(obj.Name)
-                obj.Description = widget_name_dict[Ps][name]["Description"]
-                obj.Props = Ps
+        for basic_types_controls in self.widget_dict_all:
+            log_save(0, f"{basic_types_controls}")
+            for Ps in self.widget_dict_all[basic_types_controls]:
+                log_save(0, f"  {Ps}")
+                for name in self.widget_dict_all[basic_types_controls][Ps]:
+                    widget_types_controls = getattr(self, basic_types_controls)
+                    widget_types_controls.add(name)
+                    log_save(0, f"      添加{name}")
+                    obj = getattr(widget_types_controls, name)
+                    obj.Name = self.widget_dict_all[basic_types_controls][Ps][name]["Name"]
+                    obj.Number = self.widget_list.index(obj.Name)
+                    obj.Description = self.widget_dict_all[basic_types_controls][Ps][name]["Description"]
+                    obj.Props = Ps
 
     def __repr__(self) -> str:
         """返回表单的可读表示形式"""
@@ -711,11 +737,12 @@ class Widget:
         return f"<Widget controls={len(self._all_controls)}>"
 
 
+
 if __name__ == "__main__":
     # 创建控件表单
     widget = Widget()
 
-    widget_Button_dict: Dict[str, Dict[str, Dict[str, str]]] = {
+    widget.widget_Button_dict = {
         "props": {
             "top": {
                 "Name": "top_button",
@@ -849,9 +876,8 @@ if __name__ == "__main__":
             },
         },
     }
-    """按钮控件名称列表"""
 
-    widget_Group_dict: Dict[str, Dict[str, Dict[str, str]]] = {
+    widget.widget_Group_dict = {
         "props": {
             "account": {
                 "Name": "account_group",
@@ -867,9 +893,8 @@ if __name__ == "__main__":
             },
         },
     }
-    """分组框控件名称列表"""
 
-    widget_TextBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {
+    widget.widget_TextBox_dict = {
         "account_props": {
             "loginStatus": {
                 "Name": "login_status_textBox",
@@ -897,9 +922,8 @@ if __name__ == "__main__":
             },
         },
     }
-    """文本框控件名称列表"""
 
-    widget_ComboBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {
+    widget.widget_ComboBox_dict = {
         "account_props": {
             "uid": {
                 "Name": "uid_comboBox",
@@ -935,9 +959,8 @@ if __name__ == "__main__":
             },
         },
     }
-    """组合框控件名称列表"""
 
-    widget_PathBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {
+    widget.widget_PathBox_dict = {
         "room_props": {
             "roomCover": {
                 "Name": "room_cover_fileDialogBox",
@@ -945,9 +968,8 @@ if __name__ == "__main__":
             },
         },
     }
-    """路径对话框控件名称列表"""
 
-    widget_DigitalDisplay_dict: Dict[str, Dict[str, Dict[str, str]]] = {
+    widget.widget_DigitalDisplay_dict = {
         "live_props": {
             "liveBookingsDay": {
                 "Name": "live_bookings_day_digitalSlider",
@@ -963,9 +985,8 @@ if __name__ == "__main__":
             },
         },
     }
-    """数字框控件名称列表"""
 
-    widget_CheckBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {
+    widget.widget_CheckBox_dict = {
         "live_props": {
             "liveBookingsDynamic": {
                 "Name": "live_bookings_dynamic_checkBox",
@@ -973,19 +994,8 @@ if __name__ == "__main__":
             },
         },
     }
-    """复选框控件名称列表"""
 
-    widget_name_dict_all: dict[Literal["Button", "Group", "TextBox", "ComboBox", "PathBox", "DigitalDisplay", "CheckBox"], dict[str, dict[str, dict[str, str]]]] = {
-        "Button": widget_Button_dict,
-        "Group": widget_Group_dict,
-        "TextBox": widget_TextBox_dict,
-        "ComboBox": widget_ComboBox_dict,
-        "PathBox": widget_PathBox_dict,
-        "DigitalDisplay": widget_DigitalDisplay_dict,
-        "CheckBox": widget_CheckBox_dict,
-    }
-
-    w_list: List[str] = [
+    widget.widget_list = [
         "top_button",
         "account_group",
         "login_status_textBox",
@@ -1039,15 +1049,14 @@ if __name__ == "__main__":
         "bottom_button",
     ]
 
-    for P in widget_name_dict_all:
-        widget.preliminary_configuration_control(P, widget_name_dict_all[P], w_list)
+    widget.preliminary_configuration_control()
 
-    if len(w_list) == len(widget.get_sorted_controls()):
+    if widget.verificationNumberControls:
         log_save(0, "控件数量检测通过")
     else:
         log_save(3, "⚾控件数量检测不通过：设定控件载入顺序时的控件数量 和 创建的控件对象数量 不统一")
 
-    # 创建一个 OBS 属性集对象，他将包含所有控件对应的属性对象
+    # 建立默认属性集
     props = "obs.obs_properties_create(props)"
     # 为 分组框【配置】 建立属性集
     account_props = "obs.obs_properties_create(account_props)"
