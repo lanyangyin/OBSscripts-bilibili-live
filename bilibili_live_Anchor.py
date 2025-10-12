@@ -1746,6 +1746,7 @@ def url2pillow_image(url, ssl_verification: bool = True) -> Optional[ImageFile]:
     """
     将url图片转换为pillow_image实例
     Args:
+        ssl_verification:
         url:
     Returns:
         pillow_image实例
