@@ -89,14 +89,23 @@ except ImportError:
 class ControlBase:
     """控件基类"""
     ControlType: str = "Base"
+    """控件的基本类型"""
     Obj: Any = None
-    Props: Any = None
+    """控件的obs对象"""
+    Props: Union[str, Any] = None
+    """控件属于哪个属性集"""
     Number: int = 0
+    """控件的加载顺序数"""
     Name: str = ""
+    """控件的唯一名"""
     Description: str = ""
+    """控件显示给用户的信息"""
     Visible: bool = False
+    """控件的可见状态"""
     Enabled: bool = False
+    """控件的可用状态"""
     ModifiedIs: bool = False
+    """控件变动是否触发钩子函数"""
 
 
 class Widget:
@@ -514,7 +523,9 @@ class Widget:
         class GroupP(ControlBase):
             """分组框控件实例（独立控件）"""
             ControlType: str = "Group"
+            """分组框的控件类型为 Group"""
             Type: Optional[int] = None  # 分组框类型
+            """分组框的类型为 """
             GroupProps: Any = None  # 统辖属性集
 
             def __repr__(self) -> str:
@@ -670,6 +681,30 @@ class Widget:
 
         return self  # 支持链式调用
 
+    def preliminary_configuration_control(self, basic_types_controls: Literal["Button", "Group", "TextBox", "ComboBox", "PathBox", "DigitalDisplay", "CheckBox"], widget_name_dict: Dict[str, Dict[str, Dict[str, str]]], widget_list: List[str]):
+        """
+        创建初始控件
+        Args:
+            basic_types_controls: 控件的基本类型
+            widget_name_dict: 控件的对象名和唯一名
+            widget_list: 一个用于规定控件加载顺序的列表
+
+        Returns:
+
+        """
+        log_save(0, f"{basic_types_controls}")
+        for Ps in widget_name_dict:
+            log_save(0, f"  {Ps}")
+            for name in widget_name_dict[Ps]:
+                widget_types_controls = getattr(self, basic_types_controls)
+                widget_types_controls.add(name)
+                log_save(0, f"      添加{name}")
+                obj = getattr(widget_types_controls, name)
+                obj.Name = widget_name_dict[Ps][name]["Name"]
+                obj.Number = widget_list.index(obj.Name)
+                obj.Description = widget_name_dict[Ps][name]["Description"]
+                obj.Props = Ps
+
     def __repr__(self) -> str:
         """返回表单的可读表示形式"""
         self._update_all_controls()
@@ -680,194 +715,332 @@ if __name__ == "__main__":
     # 创建控件表单
     widget = Widget()
 
-    widget_Button_name_list: Dict[str, set[str]] = {
+    widget_Button_dict: Dict[str, Dict[str, Dict[str, str]]] = {
         "props": {
-            "top", "bottom",
+            "top": {
+                "Name": "top_button",
+                "Description": "Top",
+            },
+            "bottom": {
+                "Name": "bottom_button",
+                "Description": "Bottom",
+            },
         },
         "account_props": {
-            "login", "accountListUpdate", "qrAddAccount", "qrPictureDisplay", "accountDelete", "accountBackup",
-            "accountRestore", "logout",
+            "login": {
+                "Name": "login_button",
+                "Description": "登录账号",
+            },
+            "accountListUpdate": {
+                "Name": "account_list_update_button",
+                "Description": "更新账号列表",
+            },
+            "qrAddAccount": {
+                "Name": "qr_add_account_button",
+                "Description": "二维码添加账户",
+            },
+            "qrPictureDisplay": {
+                "Name": "qr_picture_display_button",
+                "Description": "显示二维码图片",
+            },
+            "accountDelete": {
+                "Name": "account_delete_button",
+                "Description": "删除账户",
+            },
+            "accountBackup": {
+                "Name": "account_backup_button",
+                "Description": "备份账户",
+            },
+            "accountRestore": {
+                "Name": "account_restore_button",
+                "Description": "恢复账户",
+            },
+            "logout": {
+                "Name": "logout_button",
+                "Description": "登出账号",
+            },
         },
         "room_props": {
-            "roomOpened", "roomCoverView", "roomCoverUpdate", "roomCommonTitlesTrue", "roomTitleChange",
-            "roomNewsChange",
-            "roomCommonAreasTrue", "roomParentAreaTrue", "roomSubAreaTrue", "bliveWebJump",
+            "roomOpened": {
+                "Name": "room_opened_button",
+                "Description": "开通直播间",
+            },
+            "roomCoverView": {
+                "Name": "room_cover_view_button",
+                "Description": "查看直播间封面",
+            },
+            "roomCoverUpdate": {
+                "Name": "room_cover_update_button",
+                "Description": "上传直播间封面",
+            },
+            "roomCommonTitlesTrue": {
+                "Name": "room_commonTitles_true_button",
+                "Description": "确认标题",
+            },
+            "roomTitleChange": {
+                "Name": "room_title_change_button",
+                "Description": "更改直播间标题",
+            },
+            "roomNewsChange": {
+                "Name": "room_news_change_button",
+                "Description": "更改直播间公告",
+            },
+            "roomCommonAreasTrue": {
+                "Name": "room_commonAreas_true_button",
+                "Description": "确认分区",
+            },
+            "roomParentAreaTrue": {
+                "Name": "room_parentArea_true_button",
+                "Description": "确认一级分区",
+            },
+            "roomSubAreaTrue": {
+                "Name": "room_subArea_true_button",
+                "Description": "「确认分区」",
+            },
+            "bliveWebJump": {
+                "Name": "blive_web_jump_button",
+                "Description": "跳转直播间后台网页",
+            },
         },
         "live_props": {
-            "liveFaceAuth", "liveStart", "liveRtmpAddressCopy", "liveRtmpCodeCopy", "liveRtmpCodeUpdate", "liveStop",
-            "liveBookingsDayTrue", "liveBookingsHourTrue", "liveBookingsMinuteTrue", "liveBookingsCreate",
-            "liveBookingsCancel", },
+            "liveFaceAuth": {
+                "Name": "live_face_auth_button",
+                "Description": "人脸认证",
+            },
+            "liveStart": {
+                "Name": "live_start_button",
+                "Description": "开始直播并复制推流码",
+            },
+            "liveRtmpAddressCopy": {
+                "Name": "live_rtmp_address_copy_button",
+                "Description": "复制直播服务器",
+            },
+            "liveRtmpCodeCopy": {
+                "Name": "live_rtmp_code_copy_button",
+                "Description": "复制直播推流码",
+            },
+            "liveRtmpCodeUpdate": {
+                "Name": "live_rtmp_code_update_button",
+                "Description": "更新推流码并复制",
+            },
+            "liveStop": {
+                "Name": "live_stop_button",
+                "Description": "结束直播",
+            },
+            "liveBookingsDayTrue": {
+                "Name": "live_bookings_day_true_button",
+                "Description": "确认预约天",
+            },
+            "liveBookingsHourTrue": {
+                "Name": "live_bookings_hour_true_button",
+                "Description": "确认预约时",
+            },
+            "liveBookingsMinuteTrue": {
+                "Name": "live_bookings_minute_true_button",
+                "Description": "确认预约分",
+            },
+            "liveBookingsCreate": {
+                "Name": "live_bookings_create_button",
+                "Description": "发布直播预约",
+            },
+            "liveBookingsCancel": {
+                "Name": "live_bookings_cancel_button",
+                "Description": "取消直播预约",
+            },
+        },
     }
+    """按钮控件名称列表"""
 
-    widget_Group_name_list: Dict[str, set[str]] = {
+    widget_Group_dict: Dict[str, Dict[str, Dict[str, str]]] = {
         "props": {
-            "account",
-            "room",
-            "live",
+            "account": {
+                "Name": "account_group",
+                "Description": "账号",
+            },
+            "room": {
+                "Name": "room_group",
+                "Description": "直播间",
+            },
+            "live": {
+                "Name": "live_group",
+                "Description": "直播",
+            },
         },
     }
+    """分组框控件名称列表"""
 
-    widget_TextBox_name_list: Dict[str, set[str]] = {
+    widget_TextBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {
         "account_props": {
-            "loginStatus",
+            "loginStatus": {
+                "Name": "login_status_textBox",
+                "Description": "登录状态",
+            },
         },
         "room_props": {
-            "roomStatus", "roomTitle", "roomNews",
+            "roomStatus": {
+                "Name": "room_status_textBox",
+                "Description": "查看直播间封面",
+            },
+            "roomTitle": {
+                "Name": "room_title_textBox",
+                "Description": "直播间标题",
+            },
+            "roomNews": {
+                "Name": "room_news_textBox",
+                "Description": "直播间公告",
+            },
         },
         "live_props": {
-            "liveBookingsTitle",
+            "liveBookingsTitle": {
+                "Name": "live_bookings_title_textBox",
+                "Description": "直播预约标题",
+            },
         },
     }
+    """文本框控件名称列表"""
 
-    widget_ComboBox_name_list: Dict[str, set[str]] = {
+    widget_ComboBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {
         "account_props": {
-            "uid",
+            "uid": {
+                "Name": "uid_comboBox",
+                "Description": "用户",
+            },
         },
         "room_props": {
-            "roomCommonTitles", "roomCommonAreas", "roomParentArea", "roomSubArea",
+            "roomCommonTitles": {
+                "Name": "room_commonTitles_comboBox",
+                "Description": "常用标题",
+            },
+            "roomCommonAreas": {
+                "Name": "room_commonAreas_comboBox",
+                "Description": "常用分区",
+            },
+            "roomParentArea": {
+                "Name": "room_parentArea_comboBox",
+                "Description": "一级分区",
+            },
+            "roomSubArea": {
+                "Name": "room_subArea_comboBox",
+                "Description": "二级分区",
+            },
         },
         "live_props": {
-            "liveStreamingPlatform", "liveBookings",
+            "liveStreamingPlatform": {
+                "Name": "live_streaming_platform_comboBox",
+                "Description": "直播平台",
+            },
+            "liveBookings": {
+                "Name": "live_bookings_comboBox",
+                "Description": "直播预约列表",
+            },
         },
     }
+    """组合框控件名称列表"""
 
-    widget_PathBox_name_list: Dict[str, set[str]] = {
+    widget_PathBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {
         "room_props": {
-            "roomCover",
+            "roomCover": {
+                "Name": "room_cover_fileDialogBox",
+                "Description": "直播间封面",
+            },
         },
     }
+    """路径对话框控件名称列表"""
 
-    widget_DigitalDisplay_name_list: Dict[str, set[str]] = {
+    widget_DigitalDisplay_dict: Dict[str, Dict[str, Dict[str, str]]] = {
         "live_props": {
-            "liveBookingsDay", "liveBookingsHour", "liveBookingsMinute",
+            "liveBookingsDay": {
+                "Name": "live_bookings_day_digitalSlider",
+                "Description": "预约天",
+            },
+            "liveBookingsHour": {
+                "Name": "live_bookings_hour_digitalSlider",
+                "Description": "预约时",
+            },
+            "liveBookingsMinute": {
+                "Name": "live_bookings_minute_digitalSlider",
+                "Description": "预约分",
+            },
         },
     }
+    """数字框控件名称列表"""
 
-    widget_CheckBox_name_list: Dict[str, set[str]] = {
+    widget_CheckBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {
         "live_props": {
-            "liveBookingsDynamic",
+            "liveBookingsDynamic": {
+                "Name": "live_bookings_dynamic_checkBox",
+                "Description": "是否发直播预约动态",
+            },
         },
     }
+    """复选框控件名称列表"""
 
-    for P in widget_Button_name_list:
-        log_save(0, "【按钮】")
-        for Button_name in widget_Button_name_list[P]:
-            widget.Button.add(Button_name)
-            log_save(0, f"添加{Button_name}")
-            obj = getattr(widget.Button, Button_name)
-            obj.Props = P
+    widget_name_dict_all: dict[Literal["Button", "Group", "TextBox", "ComboBox", "PathBox", "DigitalDisplay", "CheckBox"], dict[str, dict[str, dict[str, str]]]] = {
+        "Button": widget_Button_dict,
+        "Group": widget_Group_dict,
+        "TextBox": widget_TextBox_dict,
+        "ComboBox": widget_ComboBox_dict,
+        "PathBox": widget_PathBox_dict,
+        "DigitalDisplay": widget_DigitalDisplay_dict,
+        "CheckBox": widget_CheckBox_dict,
+    }
 
-    for P in widget_Group_name_list:
-        log_save(0, "【分组框】")
-        for Group_name in widget_Group_name_list[P]:
-            widget.Group.add(Group_name)
-            log_save(0, f"添加{Group_name}")
-            obj = getattr(widget.Group, Group_name)
-            obj.Props = P
-
-    for P in widget_TextBox_name_list:
-        log_save(0, "【文本框】")
-        for TextBox_name in widget_TextBox_name_list[P]:
-            widget.TextBox.add(TextBox_name)
-            log_save(0, f"添加{TextBox_name}")
-            obj = getattr(widget.TextBox, TextBox_name)
-            obj.Props = P
-
-    for P in widget_ComboBox_name_list:
-        log_save(0, "【组合框】")
-        for ComboBox_name in widget_ComboBox_name_list[P]:
-            widget.ComboBox.add(ComboBox_name)
-            log_save(0, f"添加{ComboBox_name}")
-            obj = getattr(widget.ComboBox, ComboBox_name)
-            obj.Props = P
-
-    for P in widget_PathBox_name_list:
-        log_save(0, "【路径对话框】")
-        for PathBox_name in widget_PathBox_name_list[P]:
-            widget.PathBox.add(PathBox_name)
-            log_save(0, f"添加{PathBox_name}")
-            obj = getattr(widget.PathBox, PathBox_name)
-            obj.Props = P
-
-    for P in widget_DigitalDisplay_name_list:
-        log_save(0, "【数字框】")
-        for DigitalDisplay_name in widget_DigitalDisplay_name_list[P]:
-            widget.DigitalDisplay.add(DigitalDisplay_name)
-            log_save(0, f"添加{DigitalDisplay_name}")
-            obj = getattr(widget.DigitalDisplay, DigitalDisplay_name)
-            obj.Props = P
-
-    for P in widget_CheckBox_name_list:
-        log_save(0, "【复选框】")
-        for CheckBox_name in widget_CheckBox_name_list[P]:
-            widget.CheckBox.add(CheckBox_name)
-            log_save(0, f"添加{CheckBox_name}")
-            obj = getattr(widget.CheckBox, CheckBox_name)
-            obj.Props = P
-
-
-    class GlobalVariableOfData:
-        widget_loading_number = 0
-
-
-    w_list = [
-        widget.Button.top,
-        widget.Group.account,
-        widget.TextBox.loginStatus,
-        widget.ComboBox.uid,
-        widget.Button.login,
-        widget.Button.accountListUpdate,
-        widget.Button.qrAddAccount,
-        widget.Button.qrPictureDisplay,
-        widget.Button.accountDelete,
-        widget.Button.accountBackup,
-        widget.Button.accountRestore,
-        widget.Button.logout,
-        widget.Group.room,
-        widget.TextBox.roomStatus,
-        widget.Button.roomOpened,
-        widget.Button.roomCoverView,
-        widget.PathBox.roomCover,
-        widget.Button.roomCoverUpdate,
-        widget.ComboBox.roomCommonTitles,
-        widget.Button.roomCommonTitlesTrue,
-        widget.TextBox.roomTitle,
-        widget.Button.roomTitleChange,
-        widget.TextBox.roomNews,
-        widget.Button.roomNewsChange,
-        widget.ComboBox.roomCommonAreas,
-        widget.Button.roomCommonAreasTrue,
-        widget.ComboBox.roomParentArea,
-        widget.Button.roomParentAreaTrue,
-        widget.ComboBox.roomSubArea,
-        widget.Button.roomSubAreaTrue,
-        widget.Button.bliveWebJump,
-        widget.Group.live,
-        widget.Button.liveFaceAuth,
-        widget.ComboBox.liveStreamingPlatform,
-        widget.Button.liveStart,
-        widget.Button.liveRtmpAddressCopy,
-        widget.Button.liveRtmpCodeCopy,
-        widget.Button.liveRtmpCodeUpdate,
-        widget.Button.liveStop,
-        widget.DigitalDisplay.liveBookingsDay,
-        widget.Button.liveBookingsDayTrue,
-        widget.DigitalDisplay.liveBookingsHour,
-        widget.Button.liveBookingsHourTrue,
-        widget.DigitalDisplay.liveBookingsMinute,
-        widget.Button.liveBookingsMinuteTrue,
-        widget.CheckBox.liveBookingsDynamic,
-        widget.TextBox.liveBookingsTitle,
-        widget.Button.liveBookingsCreate,
-        widget.ComboBox.liveBookings,
-        widget.Button.liveBookingsCancel,
-        widget.Button.bottom,
+    w_list: List[str] = [
+        "top_button",
+        "account_group",
+        "login_status_textBox",
+        "uid_comboBox",
+        "login_button",
+        "account_list_update_button",
+        "qr_add_account_button",
+        "qr_picture_display_button",
+        "account_delete_button",
+        "account_backup_button",
+        "account_restore_button",
+        "logout_button",
+        "room_group",
+        "room_status_textBox",
+        "room_opened_button",
+        "room_cover_view_button",
+        "room_cover_fileDialogBox",
+        "room_cover_update_button",
+        "room_commonTitles_comboBox",
+        "room_commonTitles_true_button",
+        "room_title_textBox",
+        "room_title_change_button",
+        "room_news_textBox",
+        "room_news_change_button",
+        "room_commonAreas_comboBox",
+        "room_commonAreas_true_button",
+        "room_parentArea_comboBox",
+        "room_parentArea_true_button",
+        "room_subArea_comboBox",
+        "room_subArea_true_button",
+        "blive_web_jump_button",
+        "live_group",
+        "live_face_auth_button",
+        "live_streaming_platform_comboBox",
+        "live_start_button",
+        "live_rtmp_address_copy_button",
+        "live_rtmp_code_copy_button",
+        "live_rtmp_code_update_button",
+        "live_stop_button",
+        "live_bookings_day_digitalSlider",
+        "live_bookings_day_true_button",
+        "live_bookings_hour_digitalSlider",
+        "live_bookings_hour_true_button",
+        "live_bookings_minute_digitalSlider",
+        "live_bookings_minute_true_button",
+        "live_bookings_dynamic_checkBox",
+        "live_bookings_title_textBox",
+        "live_bookings_create_button",
+        "live_bookings_comboBox",
+        "live_bookings_cancel_button",
+        "bottom_button",
     ]
 
-    for w in w_list:
-        w.Number = (
-            lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1]
-        )(GlobalVariableOfData.widget_loading_number)
+    for P in widget_name_dict_all:
+        widget.preliminary_configuration_control(P, widget_name_dict_all[P], w_list)
 
     if len(w_list) == len(widget.get_sorted_controls()):
         log_save(0, "控件数量检测通过")
@@ -891,9 +1064,4 @@ if __name__ == "__main__":
     }
     """控件属性集的字典，仅在这里赋值一次，避免重复赋值导致溢出或者obs崩溃"""
     for w in widget.get_sorted_controls():
-        if w.ControlType == "Group":
-            w.GroupProps = props_dict[{
-                "account": "account_props",
-                "room": "room_props",
-                "live": "live_props",
-            }[w.Name]]
+        log_save(0, w.Name)

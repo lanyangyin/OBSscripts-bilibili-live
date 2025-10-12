@@ -59,82 +59,329 @@ from PIL import Image, ImageOps
 script_version = "0.1.6"
 """脚本版本"""
 
-
-widget_Button_name_list: Dict[str, set[str]] = {
+widget_Button_dict: Dict[str, Dict[str, Dict[str, str]]] = {
     "props": {
-        "top", "bottom",
+        "top": {
+            "Name": "top_button",
+            "Description": "Top",
+        },
+        "bottom": {
+            "Name": "bottom_button",
+            "Description": "Bottom",
+        },
     },
     "account_props": {
-        "login", "accountListUpdate", "qrAddAccount", "qrPictureDisplay", "accountDelete", "accountBackup",
-        "accountRestore", "logout",
+        "login": {
+            "Name": "login_button",
+            "Description": "登录账号",
+        },
+        "accountListUpdate": {
+            "Name": "account_list_update_button",
+            "Description": "更新账号列表",
+        },
+        "qrAddAccount": {
+            "Name": "qr_add_account_button",
+            "Description": "二维码添加账户",
+        },
+        "qrPictureDisplay": {
+            "Name": "qr_picture_display_button",
+            "Description": "显示二维码图片",
+        },
+        "accountDelete": {
+            "Name": "account_delete_button",
+            "Description": "删除账户",
+        },
+        "accountBackup": {
+            "Name": "account_backup_button",
+            "Description": "备份账户",
+        },
+        "accountRestore": {
+            "Name": "account_restore_button",
+            "Description": "恢复账户",
+        },
+        "logout": {
+            "Name": "logout_button",
+            "Description": "登出账号",
+        },
     },
     "room_props": {
-        "roomOpened", "roomCoverView", "roomCoverUpdate", "roomCommonTitlesTrue", "roomTitleChange",
-        "roomNewsChange",
-        "roomCommonAreasTrue", "roomParentAreaTrue", "roomSubAreaTrue", "bliveWebJump",
+        "roomOpened": {
+            "Name": "room_opened_button",
+            "Description": "开通直播间",
+        },
+        "roomCoverView": {
+            "Name": "room_cover_view_button",
+            "Description": "查看直播间封面",
+        },
+        "roomCoverUpdate": {
+            "Name": "room_cover_update_button",
+            "Description": "上传直播间封面",
+        },
+        "roomCommonTitlesTrue": {
+            "Name": "room_commonTitles_true_button",
+            "Description": "确认标题",
+        },
+        "roomTitleChange": {
+            "Name": "room_title_change_button",
+            "Description": "更改直播间标题",
+        },
+        "roomNewsChange": {
+            "Name": "room_news_change_button",
+            "Description": "更改直播间公告",
+        },
+        "roomCommonAreasTrue": {
+            "Name": "room_commonAreas_true_button",
+            "Description": "确认分区",
+        },
+        "roomParentAreaTrue": {
+            "Name": "room_parentArea_true_button",
+            "Description": "确认一级分区",
+        },
+        "roomSubAreaTrue": {
+            "Name": "room_subArea_true_button",
+            "Description": "「确认分区」",
+        },
+        "bliveWebJump": {
+            "Name": "blive_web_jump_button",
+            "Description": "跳转直播间后台网页",
+        },
     },
     "live_props": {
-        "liveFaceAuth", "liveStart", "liveRtmpAddressCopy", "liveRtmpCodeCopy", "liveRtmpCodeUpdate", "liveStop",
-        "liveBookingsDayTrue", "liveBookingsHourTrue", "liveBookingsMinuteTrue", "liveBookingsCreate",
-        "liveBookingsCancel", },
+        "liveFaceAuth": {
+            "Name": "live_face_auth_button",
+            "Description": "人脸认证",
+        },
+        "liveStart": {
+            "Name": "live_start_button",
+            "Description": "开始直播并复制推流码",
+        },
+        "liveRtmpAddressCopy": {
+            "Name": "live_rtmp_address_copy_button",
+            "Description": "复制直播服务器",
+        },
+        "liveRtmpCodeCopy": {
+            "Name": "live_rtmp_code_copy_button",
+            "Description": "复制直播推流码",
+        },
+        "liveRtmpCodeUpdate": {
+            "Name": "live_rtmp_code_update_button",
+            "Description": "更新推流码并复制",
+        },
+        "liveStop": {
+            "Name": "live_stop_button",
+            "Description": "结束直播",
+        },
+        "liveBookingsDayTrue": {
+            "Name": "live_bookings_day_true_button",
+            "Description": "确认预约天",
+        },
+        "liveBookingsHourTrue": {
+            "Name": "live_bookings_hour_true_button",
+            "Description": "确认预约时",
+        },
+        "liveBookingsMinuteTrue": {
+            "Name": "live_bookings_minute_true_button",
+            "Description": "确认预约分",
+        },
+        "liveBookingsCreate": {
+            "Name": "live_bookings_create_button",
+            "Description": "发布直播预约",
+        },
+        "liveBookingsCancel": {
+            "Name": "live_bookings_cancel_button",
+            "Description": "取消直播预约",
+        },
+    },
 }
 """按钮控件名称列表"""
 
-widget_TextBox_name_list: Dict[str, set[str]] = {
+widget_Group_dict: Dict[str, Dict[str, Dict[str, str]]] = {
+    "props": {
+        "account": {
+            "Name": "account_group",
+            "Description": "账号",
+        },
+        "room": {
+            "Name": "room_group",
+            "Description": "直播间",
+        },
+        "live": {
+            "Name": "live_group",
+            "Description": "直播",
+        },
+    },
+}
+"""分组框控件名称列表"""
+
+widget_TextBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {
     "account_props": {
-        "loginStatus",
+        "loginStatus": {
+            "Name": "login_status_textBox",
+            "Description": "登录状态",
+        },
     },
     "room_props": {
-        "roomStatus", "roomTitle", "roomNews",
+        "roomStatus": {
+            "Name": "room_status_textBox",
+            "Description": "查看直播间封面",
+        },
+        "roomTitle": {
+            "Name": "room_title_textBox",
+            "Description": "直播间标题",
+        },
+        "roomNews": {
+            "Name": "room_news_textBox",
+            "Description": "直播间公告",
+        },
     },
     "live_props": {
-        "liveBookingsTitle",
+        "liveBookingsTitle": {
+            "Name": "live_bookings_title_textBox",
+            "Description": "直播预约标题",
+        },
     },
 }
 """文本框控件名称列表"""
 
-widget_ComboBox_name_list: Dict[str, set[str]] = {
+widget_ComboBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {
     "account_props": {
-        "uid",
+        "uid": {
+            "Name": "uid_comboBox",
+            "Description": "用户",
+        },
     },
     "room_props": {
-        "roomCommonTitles", "roomCommonAreas", "roomParentArea", "roomSubArea",
+        "roomCommonTitles": {
+            "Name": "room_commonTitles_comboBox",
+            "Description": "常用标题",
+        },
+        "roomCommonAreas": {
+            "Name": "room_commonAreas_comboBox",
+            "Description": "常用分区",
+        },
+        "roomParentArea": {
+            "Name": "room_parentArea_comboBox",
+            "Description": "一级分区",
+        },
+        "roomSubArea": {
+            "Name": "room_subArea_comboBox",
+            "Description": "二级分区",
+        },
     },
     "live_props": {
-        "liveStreamingPlatform", "liveBookings",
+        "liveStreamingPlatform": {
+            "Name": "live_streaming_platform_comboBox",
+            "Description": "直播平台",
+        },
+        "liveBookings": {
+            "Name": "live_bookings_comboBox",
+            "Description": "直播预约列表",
+        },
     },
 }
 """组合框控件名称列表"""
 
-widget_PathBox_name_list: Dict[str, set[str]] = {
+widget_PathBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {
     "room_props": {
-        "roomCover",
+        "roomCover": {
+            "Name": "room_cover_fileDialogBox",
+            "Description": "直播间封面",
+        },
     },
 }
 """路径对话框控件名称列表"""
 
-widget_DigitalDisplay_name_list: Dict[str, set[str]] = {
+widget_DigitalDisplay_dict: Dict[str, Dict[str, Dict[str, str]]] = {
     "live_props": {
-        "liveBookingsDay", "liveBookingsHour", "liveBookingsMinute",
+        "liveBookingsDay": {
+            "Name": "live_bookings_day_digitalSlider",
+            "Description": "预约天",
+        },
+        "liveBookingsHour": {
+            "Name": "live_bookings_hour_digitalSlider",
+            "Description": "预约时",
+        },
+        "liveBookingsMinute": {
+            "Name": "live_bookings_minute_digitalSlider",
+            "Description": "预约分",
+        },
     },
 }
 """数字框控件名称列表"""
 
-widget_CheckBox_name_list: Dict[str, set[str]] = {
+widget_CheckBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {
     "live_props": {
-        "liveBookingsDynamic",
+        "liveBookingsDynamic": {
+            "Name": "live_bookings_dynamic_checkBox",
+            "Description": "是否发直播预约动态",
+        },
     },
 }
 """复选框控件名称列表"""
 
-widget_Group_name_list: Dict[str, set[str]] = {
-    "props": {
-        "account",
-        "room",
-        "live",
-    },
+widget_name_dict_all: dict[Literal["Button", "Group", "TextBox", "ComboBox", "PathBox", "DigitalDisplay", "CheckBox"], dict[str, dict[str, dict[str, str]]]] = {
+    "Button": widget_Button_dict,
+    "Group": widget_Group_dict,
+    "TextBox": widget_TextBox_dict,
+    "ComboBox": widget_ComboBox_dict,
+    "PathBox": widget_PathBox_dict,
+    "DigitalDisplay": widget_DigitalDisplay_dict,
+    "CheckBox": widget_CheckBox_dict,
 }
-"""分组框控件名称列表"""
+
+w_list: List[str] = [
+    "top_button",
+    "account_group",
+    "login_status_textBox",
+    "uid_comboBox",
+    "login_button",
+    "account_list_update_button",
+    "qr_add_account_button",
+    "qr_picture_display_button",
+    "account_delete_button",
+    "account_backup_button",
+    "account_restore_button",
+    "logout_button",
+    "room_group",
+    "room_status_textBox",
+    "room_opened_button",
+    "room_cover_view_button",
+    "room_cover_fileDialogBox",
+    "room_cover_update_button",
+    "room_commonTitles_comboBox",
+    "room_commonTitles_true_button",
+    "room_title_textBox",
+    "room_title_change_button",
+    "room_news_textBox",
+    "room_news_change_button",
+    "room_commonAreas_comboBox",
+    "room_commonAreas_true_button",
+    "room_parentArea_comboBox",
+    "room_parentArea_true_button",
+    "room_subArea_comboBox",
+    "room_subArea_true_button",
+    "blive_web_jump_button",
+    "live_group",
+    "live_face_auth_button",
+    "live_streaming_platform_comboBox",
+    "live_start_button",
+    "live_rtmp_address_copy_button",
+    "live_rtmp_code_copy_button",
+    "live_rtmp_code_update_button",
+    "live_stop_button",
+    "live_bookings_day_digitalSlider",
+    "live_bookings_day_true_button",
+    "live_bookings_hour_digitalSlider",
+    "live_bookings_hour_true_button",
+    "live_bookings_minute_digitalSlider",
+    "live_bookings_minute_true_button",
+    "live_bookings_dynamic_checkBox",
+    "live_bookings_title_textBox",
+    "live_bookings_create_button",
+    "live_bookings_comboBox",
+    "live_bookings_cancel_button",
+    "bottom_button",
+]
 
 # 全局变量
 textBox_type_name4textBox_type = {
@@ -325,14 +572,23 @@ class GlobalVariableOfData:
 class ControlBase:
     """控件基类"""
     ControlType: str = "Base"
+    """控件的基本类型"""
     Obj: Any = None
-    Props: Any = None
+    """控件的obs对象"""
+    Props: Union[str, Any] = None
+    """控件属于哪个属性集"""
     Number: int = 0
+    """控件的加载顺序数"""
     Name: str = ""
+    """控件的唯一名"""
     Description: str = ""
+    """控件显示给用户的信息"""
     Visible: bool = False
+    """控件的可见状态"""
     Enabled: bool = False
+    """控件的可用状态"""
     ModifiedIs: bool = False
+    """控件变动是否触发钩子函数"""
 
 
 class Widget:
@@ -750,7 +1006,9 @@ class Widget:
         class GroupP(ControlBase):
             """分组框控件实例（独立控件）"""
             ControlType: str = "Group"
+            """分组框的控件类型为 Group"""
             Type: Optional[int] = None  # 分组框类型
+            """分组框的类型为 """
             GroupProps: Any = None  # 统辖属性集
 
             def __repr__(self) -> str:
@@ -906,6 +1164,30 @@ class Widget:
 
         return self  # 支持链式调用
 
+    def preliminary_configuration_control(self, basic_types_controls: Literal["Button", "Group", "TextBox", "ComboBox", "PathBox", "DigitalDisplay", "CheckBox"], widget_name_dict: Dict[str, Dict[str, Dict[str, str]]], widget_list: List[str]):
+        """
+        创建初始控件
+        Args:
+            basic_types_controls: 控件的基本类型
+            widget_name_dict: 控件的对象名和唯一名
+            widget_list: 一个用于规定控件加载顺序的列表
+
+        Returns:
+
+        """
+        log_save(0, f"{basic_types_controls}")
+        for Ps in widget_name_dict:
+            log_save(0, f"  {Ps}")
+            for name in widget_name_dict[Ps]:
+                widget_types_controls = getattr(self, basic_types_controls)
+                widget_types_controls.add(name)
+                log_save(0, f"      添加{name}")
+                obj = getattr(widget_types_controls, name)
+                obj.Name = widget_name_dict[Ps][name]["Name"]
+                obj.Number = widget_list.index(obj.Name)
+                obj.Description = widget_name_dict[Ps][name]["Description"]
+                obj.Props = Ps
+
     def __repr__(self) -> str:
         """返回表单的可读表示形式"""
         self._update_all_controls()
@@ -915,120 +1197,8 @@ class Widget:
 # 创建控件表单
 widget = Widget()
 
-for P in widget_Button_name_list:
-    log_save(0, "【按钮】")
-    for Button_name in widget_Button_name_list[P]:
-        widget.Button.add(Button_name)
-        log_save(0, f"添加{Button_name}")
-        obj = getattr(widget.Button, Button_name)
-        obj.Props = P
-
-for P in widget_Group_name_list:
-    log_save(0, "【分组框】")
-    for Group_name in widget_Group_name_list[P]:
-        widget.Group.add(Group_name)
-        log_save(0, f"添加{Group_name}")
-        obj = getattr(widget.Group, Group_name)
-        obj.Props = P
-
-for P in widget_TextBox_name_list:
-    log_save(0, "【文本框】")
-    for TextBox_name in widget_TextBox_name_list[P]:
-        widget.TextBox.add(TextBox_name)
-        log_save(0, f"添加{TextBox_name}")
-        obj = getattr(widget.TextBox, TextBox_name)
-        obj.Props = P
-
-for P in widget_ComboBox_name_list:
-    log_save(0, "【组合框】")
-    for ComboBox_name in widget_ComboBox_name_list[P]:
-        widget.ComboBox.add(ComboBox_name)
-        log_save(0, f"添加{ComboBox_name}")
-        obj = getattr(widget.ComboBox, ComboBox_name)
-        obj.Props = P
-
-for P in widget_PathBox_name_list:
-    log_save(0, "【路径对话框】")
-    for PathBox_name in widget_PathBox_name_list[P]:
-        widget.PathBox.add(PathBox_name)
-        log_save(0, f"添加{PathBox_name}")
-        obj = getattr(widget.PathBox, PathBox_name)
-        obj.Props = P
-
-for P in widget_DigitalDisplay_name_list:
-    log_save(0, "【数字框】")
-    for DigitalDisplay_name in widget_DigitalDisplay_name_list[P]:
-        widget.DigitalDisplay.add(DigitalDisplay_name)
-        log_save(0, f"添加{DigitalDisplay_name}")
-        obj = getattr(widget.DigitalDisplay, DigitalDisplay_name)
-        obj.Props = P
-
-for P in widget_CheckBox_name_list:
-    log_save(0, "【复选框】")
-    for CheckBox_name in widget_CheckBox_name_list[P]:
-        widget.CheckBox.add(CheckBox_name)
-        log_save(0, f"添加{CheckBox_name}")
-        obj = getattr(widget.CheckBox, CheckBox_name)
-        obj.Props = P
-
-w_list = [
-    widget.Button.top,
-    widget.Group.account,
-    widget.TextBox.loginStatus,
-    widget.ComboBox.uid,
-    widget.Button.login,
-    widget.Button.accountListUpdate,
-    widget.Button.qrAddAccount,
-    widget.Button.qrPictureDisplay,
-    widget.Button.accountDelete,
-    widget.Button.accountBackup,
-    widget.Button.accountRestore,
-    widget.Button.logout,
-    widget.Group.room,
-    widget.TextBox.roomStatus,
-    widget.Button.roomOpened,
-    widget.Button.roomCoverView,
-    widget.PathBox.roomCover,
-    widget.Button.roomCoverUpdate,
-    widget.ComboBox.roomCommonTitles,
-    widget.Button.roomCommonTitlesTrue,
-    widget.TextBox.roomTitle,
-    widget.Button.roomTitleChange,
-    widget.TextBox.roomNews,
-    widget.Button.roomNewsChange,
-    widget.ComboBox.roomCommonAreas,
-    widget.Button.roomCommonAreasTrue,
-    widget.ComboBox.roomParentArea,
-    widget.Button.roomParentAreaTrue,
-    widget.ComboBox.roomSubArea,
-    widget.Button.roomSubAreaTrue,
-    widget.Button.bliveWebJump,
-    widget.Group.live,
-    widget.Button.liveFaceAuth,
-    widget.ComboBox.liveStreamingPlatform,
-    widget.Button.liveStart,
-    widget.Button.liveRtmpAddressCopy,
-    widget.Button.liveRtmpCodeCopy,
-    widget.Button.liveRtmpCodeUpdate,
-    widget.Button.liveStop,
-    widget.DigitalDisplay.liveBookingsDay,
-    widget.Button.liveBookingsDayTrue,
-    widget.DigitalDisplay.liveBookingsHour,
-    widget.Button.liveBookingsHourTrue,
-    widget.DigitalDisplay.liveBookingsMinute,
-    widget.Button.liveBookingsMinuteTrue,
-    widget.CheckBox.liveBookingsDynamic,
-    widget.TextBox.liveBookingsTitle,
-    widget.Button.liveBookingsCreate,
-    widget.ComboBox.liveBookings,
-    widget.Button.liveBookingsCancel,
-    widget.Button.bottom,
-]
-
-for w in w_list:
-    w.Number = (
-        lambda v: (setattr(GlobalVariableOfData, 'widget_loading_number', v + 1), v)[1]
-    )(GlobalVariableOfData.widget_loading_number)
+for P in widget_name_dict_all:
+    widget.preliminary_configuration_control(P, widget_name_dict_all[P], w_list)
 
 if len(w_list) == len(widget.get_sorted_controls()):
     GlobalVariableOfData.verificationNumberControls = True
@@ -3475,8 +3645,6 @@ def script_defaults(settings):  # 设置其默认值
 
     # ====================================================================================================================
     # 设置控件属性
-    widget.Button.top.Name = "top_button"
-    widget.Button.top.Description = "Top"
     widget.Button.top.Visible = False
     widget.Button.top.Enabled = False
     widget.Button.top.ModifiedIs = True
@@ -3485,16 +3653,12 @@ def script_defaults(settings):  # 设置其默认值
 
     # 分组框【账号】
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    widget.Group.account.Name = "account_group"
-    widget.Group.account.Description = "账号"
     widget.Group.account.Visible = True
     widget.Group.account.Enabled = True
     widget.Group.account.ModifiedIs = False
     widget.Group.account.Type = obs.OBS_GROUP_NORMAL
     widget.Group.account.GroupProps = "account_props"
 
-    widget.TextBox.loginStatus.Name = "login_status_textBox"
-    widget.TextBox.loginStatus.Description = "登录状态"
     widget.TextBox.loginStatus.Visible = True
     widget.TextBox.loginStatus.Enabled = True
     widget.TextBox.loginStatus.ModifiedIs = True
@@ -3502,8 +3666,6 @@ def script_defaults(settings):  # 设置其默认值
     widget.TextBox.loginStatus.Text = f'{uname} 已登录' if b_u_l_c.get_cookies() else '未登录，请登录后点击【更新账号列表】'
     widget.TextBox.loginStatus.InfoType = obs.OBS_TEXT_INFO_NORMAL if b_u_l_c.get_cookies() else obs.OBS_TEXT_INFO_WARNING
 
-    widget.ComboBox.uid.Name = "uid_comboBox"
-    widget.ComboBox.uid.Description = "用户"
     widget.ComboBox.uid.Visible = True
     widget.ComboBox.uid.Enabled = True
     widget.ComboBox.uid.ModifiedIs = True
@@ -3512,64 +3674,48 @@ def script_defaults(settings):  # 设置其默认值
     widget.ComboBox.uid.Value = b_u_l_c.get_users()[0] if b_u_l_c.get_cookies() else '-1'
     widget.ComboBox.uid.Dictionary = {uid or '-1': all_uname4uid.get(uid, '添加或选择一个账号登录') for uid in b_u_l_c.get_users().values()}
 
-    widget.Button.login.Name = "login_button"
-    widget.Button.login.Description = "登录账号"
     widget.Button.login.Visible = True if all_uname4uid else False
     widget.Button.login.Enabled = True if all_uname4uid else False
     widget.Button.login.ModifiedIs = False
     widget.Button.login.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.login.Callback = button_function_login
 
-    widget.Button.accountListUpdate.Name = "account_list_update_button"
-    widget.Button.accountListUpdate.Description = "更新账号列表"
     widget.Button.accountListUpdate.Visible = True
     widget.Button.accountListUpdate.Enabled = True
     widget.Button.accountListUpdate.ModifiedIs = False
     widget.Button.accountListUpdate.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.accountListUpdate.Callback = button_function_update_account_list
 
-    widget.Button.qrAddAccount.Name = "qr_add_account_button"
-    widget.Button.qrAddAccount.Description = "二维码添加账户"
     widget.Button.qrAddAccount.Visible = True
     widget.Button.qrAddAccount.Enabled = True
     widget.Button.qrAddAccount.ModifiedIs = False
     widget.Button.qrAddAccount.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.qrAddAccount.Callback = button_function_qr_add_account
 
-    widget.Button.qrPictureDisplay.Name = "qr_picture_display_button"
-    widget.Button.qrPictureDisplay.Description = "显示二维码图片"
     widget.Button.qrPictureDisplay.Visible = False
     widget.Button.qrPictureDisplay.Enabled = False
     widget.Button.qrPictureDisplay.ModifiedIs = False
     widget.Button.qrPictureDisplay.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.qrPictureDisplay.Callback = lambda ps, p: button_function_show_qr_picture()
 
-    widget.Button.accountDelete.Name = "account_delete_button"
-    widget.Button.accountDelete.Description = "删除账户"
     widget.Button.accountDelete.Visible = True if all_uname4uid else False
     widget.Button.accountDelete.Enabled = True if all_uname4uid else False
     widget.Button.accountDelete.ModifiedIs = False
     widget.Button.accountDelete.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.accountDelete.Callback = button_function_del_user
 
-    widget.Button.accountBackup.Name = "account_backup_button"
-    widget.Button.accountBackup.Description = "备份账户"
     widget.Button.accountBackup.Visible = False
     widget.Button.accountBackup.Enabled = False
     widget.Button.accountBackup.ModifiedIs = False
     widget.Button.accountBackup.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.accountBackup.Callback = button_function_backup_users
 
-    widget.Button.accountRestore.Name = "account_restore_button"
-    widget.Button.accountRestore.Description = "恢复账户"
     widget.Button.accountRestore.Visible = False
     widget.Button.accountRestore.Enabled = False
     widget.Button.accountRestore.ModifiedIs = False
     widget.Button.accountRestore.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.accountRestore.Callback = button_function_restore_user
 
-    widget.Button.logout.Name = "logout_button"
-    widget.Button.logout.Description = "登出账号"
     widget.Button.logout.Visible = True if b_u_l_c.get_cookies() else False
     widget.Button.logout.Enabled = True if b_u_l_c.get_cookies() else False
     widget.Button.logout.ModifiedIs = False
@@ -3579,16 +3725,12 @@ def script_defaults(settings):  # 设置其默认值
 
     # 分组框【直播间】
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    widget.Group.room.Name = "room_group"
-    widget.Group.room.Description = "直播间"
     widget.Group.room.Visible = True
     widget.Group.room.Enabled = True
     widget.Group.room.ModifiedIs = False
     widget.Group.room.Type = obs.OBS_GROUP_NORMAL
     widget.Group.room.GroupProps = "room_props"
 
-    widget.TextBox.roomStatus.Name = "room_status_textBox"
-    widget.TextBox.roomStatus.Description = "查看直播间封面"
     widget.TextBox.roomStatus.Visible = True
     widget.TextBox.roomStatus.Enabled = True
     widget.TextBox.roomStatus.ModifiedIs = False
@@ -3596,24 +3738,18 @@ def script_defaults(settings):  # 设置其默认值
     widget.TextBox.roomStatus.Text = (f"{str(room_id)}{'直播中' if live_status else '未开播'}" if room_status else "无直播间") if b_u_l_c.get_cookies() else "未登录"
     widget.TextBox.roomStatus.InfoType = (obs.OBS_TEXT_INFO_NORMAL if bool(room_status) else obs.OBS_TEXT_INFO_WARNING) if b_u_l_c.get_cookies() else obs.OBS_TEXT_INFO_ERROR
 
-    widget.Button.roomOpened.Name = "room_opened_button"
-    widget.Button.roomOpened.Description = "开通直播间"
     widget.Button.roomOpened.Visible = (not bool(room_status)) if b_u_l_c.get_cookies() else False
     widget.Button.roomOpened.Enabled = (not bool(room_status)) if b_u_l_c.get_cookies() else False
     widget.Button.roomOpened.ModifiedIs = False
     widget.Button.roomOpened.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.roomOpened.Callback = button_function_opened_room
 
-    widget.Button.roomCoverView.Name = "room_cover_view_button"
-    widget.Button.roomCoverView.Description = "查看直播间封面"
     widget.Button.roomCoverView.Visible = bool(room_status)
     widget.Button.roomCoverView.Enabled = bool(room_status)
     widget.Button.roomCoverView.ModifiedIs = False
     widget.Button.roomCoverView.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.roomCoverView.Callback = button_function_check_room_cover
 
-    widget.PathBox.roomCover.Name = "room_cover_fileDialogBox"
-    widget.PathBox.roomCover.Description = "直播间封面"
     widget.PathBox.roomCover.Visible = bool(room_status)
     widget.PathBox.roomCover.Enabled = bool(room_status)
     widget.PathBox.roomCover.ModifiedIs = False
@@ -3622,16 +3758,12 @@ def script_defaults(settings):  # 设置其默认值
     widget.PathBox.roomCover.Filter = "图片(*.jpg *.jpeg *.png)"
     widget.PathBox.roomCover.StartPath = ""
 
-    widget.Button.roomCoverUpdate.Name = "room_cover_update_button"
-    widget.Button.roomCoverUpdate.Description = "上传直播间封面"
     widget.Button.roomCoverUpdate.Visible = False
     widget.Button.roomCoverUpdate.Enabled = False
     widget.Button.roomCoverUpdate.ModifiedIs = False
     widget.Button.roomCoverUpdate.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.roomCoverUpdate.Callback = lambda ps, p: button_function_update_room_cover()
 
-    widget.ComboBox.roomCommonTitles.Name = "room_commonTitles_comboBox"
-    widget.ComboBox.roomCommonTitles.Description = "常用标题"
     widget.ComboBox.roomCommonTitles.Visible = bool(room_status)
     widget.ComboBox.roomCommonTitles.Enabled = bool(room_status)
     widget.ComboBox.roomCommonTitles.ModifiedIs = True
@@ -3640,48 +3772,36 @@ def script_defaults(settings):  # 设置其默认值
     widget.ComboBox.roomCommonTitles.Value = "0"
     widget.ComboBox.roomCommonTitles.Dictionary = common_title4number
 
-    widget.Button.roomCommonTitlesTrue.Name = "room_commonTitles_true_button"
-    widget.Button.roomCommonTitlesTrue.Description = "确认标题"
     widget.Button.roomCommonTitlesTrue.Visible = False
     widget.Button.roomCommonTitlesTrue.Enabled = False
     widget.Button.roomCommonTitlesTrue.ModifiedIs = False
     widget.Button.roomCommonTitlesTrue.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.roomCommonTitlesTrue.Callback = lambda ps, p: button_function_true_live_room_title()
 
-    widget.TextBox.roomTitle.Name = "room_title_textBox"
-    widget.TextBox.roomTitle.Description = "直播间标题"
     widget.TextBox.roomTitle.Visible = bool(room_status)
     widget.TextBox.roomTitle.Enabled = bool(room_status)
     widget.TextBox.roomTitle.ModifiedIs = True
     widget.TextBox.roomTitle.Type = obs.OBS_TEXT_DEFAULT
     widget.TextBox.roomTitle.Text = room_title if bool(room_status) else ""
 
-    widget.Button.roomTitleChange.Name = "room_title_change_button"
-    widget.Button.roomTitleChange.Description = "更改直播间标题"
     widget.Button.roomTitleChange.Visible = bool(room_status)
     widget.Button.roomTitleChange.Enabled = bool(room_status)
     widget.Button.roomTitleChange.ModifiedIs = False
     widget.Button.roomTitleChange.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.roomTitleChange.Callback = lambda ps, p: button_function_change_live_room_title()
 
-    widget.TextBox.roomNews.Name = "room_news_textBox"
-    widget.TextBox.roomNews.Description = "直播间公告"
     widget.TextBox.roomNews.Visible = bool(room_status)
     widget.TextBox.roomNews.Enabled = bool(room_status)
     widget.TextBox.roomNews.ModifiedIs = True
     widget.TextBox.roomNews.Type = obs.OBS_TEXT_DEFAULT
     widget.TextBox.roomNews.Text = room_news if bool(room_status) else ""
 
-    widget.Button.roomNewsChange.Name = "room_news_change_button"
-    widget.Button.roomNewsChange.Description = "更改直播间公告"
     widget.Button.roomNewsChange.Visible = bool(room_status)
     widget.Button.roomNewsChange.Enabled = bool(room_status)
     widget.Button.roomNewsChange.ModifiedIs = False
     widget.Button.roomNewsChange.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.roomNewsChange.Callback = lambda ps, p: button_function_change_live_room_news()
 
-    widget.ComboBox.roomCommonAreas.Name = "room_commonAreas_comboBox"
-    widget.ComboBox.roomCommonAreas.Description = "常用分区"
     widget.ComboBox.roomCommonAreas.Visible = bool(room_status)
     widget.ComboBox.roomCommonAreas.Enabled = bool(room_status)
     widget.ComboBox.roomCommonAreas.ModifiedIs = True
@@ -3690,16 +3810,12 @@ def script_defaults(settings):  # 设置其默认值
     widget.ComboBox.roomCommonAreas.Value = json.dumps({area["parent_area_id"]: str(area["area_id"])}, ensure_ascii=False) if common_areas else "-1"
     widget.ComboBox.roomCommonAreas.Dictionary = common_area_id_dict_str4common_area_name_dict_str
 
-    widget.Button.roomCommonAreasTrue.Name = "room_commonAreas_true_button"
-    widget.Button.roomCommonAreasTrue.Description = "确认分区"
     widget.Button.roomCommonAreasTrue.Visible = False
     widget.Button.roomCommonAreasTrue.Enabled = False
     widget.Button.roomCommonAreasTrue.ModifiedIs = False
     widget.Button.roomCommonAreasTrue.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.roomCommonAreasTrue.Callback = lambda ps, p: button_function_true_live_room_area()
 
-    widget.ComboBox.roomParentArea.Name = "room_parentArea_comboBox"
-    widget.ComboBox.roomParentArea.Description = "一级分区"
     widget.ComboBox.roomParentArea.Visible = bool(room_status)
     widget.ComboBox.roomParentArea.Enabled = bool(room_status)
     widget.ComboBox.roomParentArea.ModifiedIs = True
@@ -3708,16 +3824,12 @@ def script_defaults(settings):  # 设置其默认值
     widget.ComboBox.roomParentArea.Value = str(area["parent_area_id"]) if bool(area) else "-1"
     widget.ComboBox.roomParentArea.Dictionary = parent_live_area_name4parent_live_area_id
 
-    widget.Button.roomParentAreaTrue.Name = "room_parentArea_true_button"
-    widget.Button.roomParentAreaTrue.Description = "确认一级分区"
     widget.Button.roomParentAreaTrue.Visible = False
     widget.Button.roomParentAreaTrue.Enabled = False
     widget.Button.roomParentAreaTrue.ModifiedIs = False
     widget.Button.roomParentAreaTrue.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.roomParentAreaTrue.Callback = lambda ps, p: button_function_start_parent_area()
 
-    widget.ComboBox.roomSubArea.Name = "room_subArea_comboBox"
-    widget.ComboBox.roomSubArea.Description = "二级分区"
     widget.ComboBox.roomSubArea.Visible = bool(room_status)
     widget.ComboBox.roomSubArea.Enabled = bool(room_status)
     widget.ComboBox.roomSubArea.ModifiedIs = True
@@ -3726,16 +3838,12 @@ def script_defaults(settings):  # 设置其默认值
     widget.ComboBox.roomSubArea.Value = str(area["area_id"]) if bool(area) else "-1"
     widget.ComboBox.roomSubArea.Dictionary = sub_live_area_name4sub_live_area_id
 
-    widget.Button.roomSubAreaTrue.Name = "room_subArea_true_button"
-    widget.Button.roomSubAreaTrue.Description = "「确认分区」"
     widget.Button.roomSubAreaTrue.Visible = bool(room_status)
     widget.Button.roomSubAreaTrue.Enabled = bool(room_status)
     widget.Button.roomSubAreaTrue.ModifiedIs = False
     widget.Button.roomSubAreaTrue.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.roomSubAreaTrue.Callback = lambda ps, p: button_function_start_sub_area()
 
-    widget.Button.bliveWebJump.Name = "blive_web_jump_button"
-    widget.Button.bliveWebJump.Description = "跳转直播间后台网页"
     widget.Button.bliveWebJump.Visible = True if b_u_l_c.get_cookies() else False
     widget.Button.bliveWebJump.Enabled = True if b_u_l_c.get_cookies() else False
     widget.Button.bliveWebJump.ModifiedIs = False
@@ -3746,24 +3854,18 @@ def script_defaults(settings):  # 设置其默认值
 
     # 分组框【直播】
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    widget.Group.live.Name = "live_group"
-    widget.Group.live.Description = "直播"
     widget.Group.live.Visible = bool(room_status)
     widget.Group.live.Enabled = bool(room_status)
     widget.Group.live.ModifiedIs = False
     widget.Group.live.Type = obs.OBS_GROUP_NORMAL
     widget.Group.live.GroupProps = "live_props"
 
-    widget.Button.liveFaceAuth.Name = "live_face_auth_button"
-    widget.Button.liveFaceAuth.Description = "人脸认证"
     widget.Button.liveFaceAuth.Visible = bool(room_status)
     widget.Button.liveFaceAuth.Enabled = bool(room_status)
     widget.Button.liveFaceAuth.ModifiedIs = False
     widget.Button.liveFaceAuth.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.liveFaceAuth.Callback = lambda ps, p: button_function_face_auth()
 
-    widget.ComboBox.liveStreamingPlatform.Name = "live_streaming_platform_comboBox"
-    widget.ComboBox.liveStreamingPlatform.Description = "直播平台"
     widget.ComboBox.liveStreamingPlatform.Visible = bool(room_status)
     widget.ComboBox.liveStreamingPlatform.Enabled = bool(room_status)
     widget.ComboBox.liveStreamingPlatform.ModifiedIs = True
@@ -3772,48 +3874,36 @@ def script_defaults(settings):  # 设置其默认值
     widget.ComboBox.liveStreamingPlatform.Value = ""
     widget.ComboBox.liveStreamingPlatform.Dictionary = {"pc_link": "直播姬（pc）", "web_link": "web在线直播", "android_link": "bililink"}
 
-    widget.Button.liveStart.Name = "live_start_button"
-    widget.Button.liveStart.Description = "开始直播并复制推流码"
     widget.Button.liveStart.Visible = True if ((not live_status) and room_status) else False
     widget.Button.liveStart.Enabled = True if ((not live_status) and room_status) else False
     widget.Button.liveStart.ModifiedIs = False
     widget.Button.liveStart.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.liveStart.Callback = lambda ps, p: button_function_start_live()
 
-    widget.Button.liveRtmpAddressCopy.Name = "live_rtmp_address_copy_button"
-    widget.Button.liveRtmpAddressCopy.Description = "复制直播服务器"
     widget.Button.liveRtmpAddressCopy.Visible = True if (live_status and room_status) else False
     widget.Button.liveRtmpAddressCopy.Enabled = True if (live_status and room_status) else False
     widget.Button.liveRtmpAddressCopy.ModifiedIs = False
     widget.Button.liveRtmpAddressCopy.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.liveRtmpAddressCopy.Callback = button_function_rtmp_address_copy
 
-    widget.Button.liveRtmpCodeCopy.Name = "live_rtmp_code_copy_button"
-    widget.Button.liveRtmpCodeCopy.Description = "复制直播推流码"
     widget.Button.liveRtmpCodeCopy.Visible = True if (live_status and room_status) else False
     widget.Button.liveRtmpCodeCopy.Enabled = True if (live_status and room_status) else False
     widget.Button.liveRtmpCodeCopy.ModifiedIs = False
     widget.Button.liveRtmpCodeCopy.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.liveRtmpCodeCopy.Callback = button_function_rtmp_stream_code_copy
 
-    widget.Button.liveRtmpCodeUpdate.Name = "live_rtmp_code_update_button"
-    widget.Button.liveRtmpCodeUpdate.Description = "更新推流码并复制"
     widget.Button.liveRtmpCodeUpdate.Visible = True if (live_status and room_status) else False
     widget.Button.liveRtmpCodeUpdate.Enabled = True if (live_status and room_status) else False
     widget.Button.liveRtmpCodeUpdate.ModifiedIs = False
     widget.Button.liveRtmpCodeUpdate.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.liveRtmpCodeUpdate.Callback = button_function_rtmp_stream_code_update
 
-    widget.Button.liveStop.Name = "live_stop_button"
-    widget.Button.liveStop.Description = "结束直播"
     widget.Button.liveStop.Visible = True if (live_status and room_status) else False
     widget.Button.liveStop.Enabled = True if (live_status and room_status) else False
     widget.Button.liveStop.ModifiedIs = False
     widget.Button.liveStop.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.liveStop.Callback = lambda ps, p: button_function_stop_live()
 
-    widget.DigitalDisplay.liveBookingsDay.Name = "live_bookings_day_digitalSlider"
-    widget.DigitalDisplay.liveBookingsDay.Description = "预约天"
     widget.DigitalDisplay.liveBookingsDay.Visible = bool(room_status)
     widget.DigitalDisplay.liveBookingsDay.Enabled = bool(room_status)
     widget.DigitalDisplay.liveBookingsDay.ModifiedIs = True
@@ -3824,16 +3914,12 @@ def script_defaults(settings):  # 设置其默认值
     widget.DigitalDisplay.liveBookingsDay.Max = 180
     widget.DigitalDisplay.liveBookingsDay.Step = 1
 
-    widget.Button.liveBookingsDayTrue.Name = "live_bookings_day_true_button"
-    widget.Button.liveBookingsDayTrue.Description = "确认预约天"
     widget.Button.liveBookingsDayTrue.Visible = False
     widget.Button.liveBookingsDayTrue.Enabled = False
     widget.Button.liveBookingsDayTrue.ModifiedIs = False
     widget.Button.liveBookingsDayTrue.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.liveBookingsDayTrue.Callback = lambda ps, p: button_function_true_live_appointment_day()
 
-    widget.DigitalDisplay.liveBookingsHour.Name = "live_bookings_hour_digitalSlider"
-    widget.DigitalDisplay.liveBookingsHour.Description = "预约时"
     widget.DigitalDisplay.liveBookingsHour.Visible = bool(room_status)
     widget.DigitalDisplay.liveBookingsHour.Enabled = bool(room_status)
     widget.DigitalDisplay.liveBookingsHour.ModifiedIs = True
@@ -3844,16 +3930,12 @@ def script_defaults(settings):  # 设置其默认值
     widget.DigitalDisplay.liveBookingsHour.Max = 23
     widget.DigitalDisplay.liveBookingsHour.Step = 1
 
-    widget.Button.liveBookingsHourTrue.Name = "live_bookings_hour_true_button"
-    widget.Button.liveBookingsHourTrue.Description = "确认预约时"
     widget.Button.liveBookingsHourTrue.Visible = False
     widget.Button.liveBookingsHourTrue.Enabled = False
     widget.Button.liveBookingsHourTrue.ModifiedIs = False
     widget.Button.liveBookingsHourTrue.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.liveBookingsHourTrue.Callback = lambda ps, p: button_function_test("确认预约时")
 
-    widget.DigitalDisplay.liveBookingsMinute.Name = "live_bookings_minute_digitalSlider"
-    widget.DigitalDisplay.liveBookingsMinute.Description = "预约分"
     widget.DigitalDisplay.liveBookingsMinute.Visible = bool(room_status)
     widget.DigitalDisplay.liveBookingsMinute.Enabled = bool(room_status)
     widget.DigitalDisplay.liveBookingsMinute.ModifiedIs = True
@@ -3864,39 +3946,29 @@ def script_defaults(settings):  # 设置其默认值
     widget.DigitalDisplay.liveBookingsMinute.Max = 59
     widget.DigitalDisplay.liveBookingsMinute.Step = 1
 
-    widget.Button.liveBookingsMinuteTrue.Name = "live_bookings_minute_true_button"
-    widget.Button.liveBookingsMinuteTrue.Description = "确认预约分"
     widget.Button.liveBookingsMinuteTrue.Visible = False
     widget.Button.liveBookingsMinuteTrue.Enabled = False
     widget.Button.liveBookingsMinuteTrue.ModifiedIs = False
     widget.Button.liveBookingsMinuteTrue.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.liveBookingsMinuteTrue.Callback = lambda ps, p: button_function_test("确认预约分")
 
-    widget.CheckBox.liveBookingsDynamic.Name = "live_bookings_dynamic_checkBox"
-    widget.CheckBox.liveBookingsDynamic.Description = "是否发直播预约动态"
     widget.CheckBox.liveBookingsDynamic.Visible = bool(room_status)
     widget.CheckBox.liveBookingsDynamic.Enabled = bool(room_status)
     widget.CheckBox.liveBookingsDynamic.ModifiedIs = True
     widget.CheckBox.liveBookingsDynamic.Bool = False
 
-    widget.TextBox.liveBookingsTitle.Name = "live_bookings_title_textBox"
-    widget.TextBox.liveBookingsTitle.Description = "直播预约标题"
     widget.TextBox.liveBookingsTitle.Visible = bool(room_status)
     widget.TextBox.liveBookingsTitle.Enabled = bool(room_status)
     widget.TextBox.liveBookingsTitle.ModifiedIs = True
     widget.TextBox.liveBookingsTitle.Type = obs.OBS_TEXT_DEFAULT
     widget.TextBox.liveBookingsTitle.Text = ""
 
-    widget.Button.liveBookingsCreate.Name = "live_bookings_create_button"
-    widget.Button.liveBookingsCreate.Description = "发布直播预约"
     widget.Button.liveBookingsCreate.Visible = bool(room_status)
     widget.Button.liveBookingsCreate.Enabled = bool(room_status)
     widget.Button.liveBookingsCreate.ModifiedIs = False
     widget.Button.liveBookingsCreate.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.liveBookingsCreate.Callback = button_function_creat_live_appointment
 
-    widget.ComboBox.liveBookings.Name = "live_bookings_comboBox"
-    widget.ComboBox.liveBookings.Description = "直播预约列表"
     widget.ComboBox.liveBookings.Visible = bool(room_status)
     widget.ComboBox.liveBookings.Enabled = bool(room_status)
     widget.ComboBox.liveBookings.ModifiedIs = True
@@ -3905,16 +3977,12 @@ def script_defaults(settings):  # 设置其默认值
     widget.ComboBox.liveBookings.Value = ""
     widget.ComboBox.liveBookings.Dictionary = reserve_name4reserve_sid
 
-    widget.Button.liveBookingsCancel.Name = "live_bookings_cancel_button"
-    widget.Button.liveBookingsCancel.Description = "取消直播预约"
     widget.Button.liveBookingsCancel.Visible = bool(room_status)
     widget.Button.liveBookingsCancel.Enabled = bool(room_status)
     widget.Button.liveBookingsCancel.ModifiedIs = False
     widget.Button.liveBookingsCancel.Type = obs.OBS_BUTTON_DEFAULT
     widget.Button.liveBookingsCancel.Callback = button_function_cancel_live_appointment
 
-    widget.Button.bottom.Name = "bottom_button"
-    widget.Button.bottom.Description = "Bottom"
     widget.Button.bottom.Visible = False
     widget.Button.bottom.Enabled = False
     widget.Button.bottom.ModifiedIs = True
