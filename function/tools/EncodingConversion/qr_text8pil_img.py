@@ -29,13 +29,15 @@ qr_text8pil_img 是一个更健壮、更安全的文本转二维码工具，它�
 from typing import Dict, Union, Literal
 from PIL import Image, ImageOps
 import qrcode
+from qrcode.constants import ERROR_CORRECT_L
+from qrcode.main import QRCode
 import io
 
 
 def qr_text8pil_img(
         qr_str: str,
         border: int = 2,
-        error_correction: Literal[0, 1, 2, 3] = qrcode.constants.ERROR_CORRECT_L,
+        error_correction: Literal[0, 1, 2, 3] = ERROR_CORRECT_L,
         invert: bool = False
 ) -> Dict[str, Union[str, Image.Image]]:
     """
@@ -66,7 +68,7 @@ def qr_text8pil_img(
         raise ValueError("border 必须是非负整数")
 
     # 创建 QRCode 对象
-    qr = qrcode.QRCode(
+    qr = QRCode(
         version=1,
         box_size=10,
         border=border,

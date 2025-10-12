@@ -892,7 +892,7 @@ if __name__ == "__main__":
     """控件属性集的字典，仅在这里赋值一次，避免重复赋值导致溢出或者obs崩溃"""
     for w in widget.get_sorted_controls():
         if w.ControlType == "Group":
-            w.Props = props_dict[{
+            w.GroupProps = props_dict[{
                 "account": "account_props",
                 "room": "room_props",
                 "live": "live_props",
