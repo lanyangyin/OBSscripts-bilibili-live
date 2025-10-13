@@ -4204,7 +4204,7 @@ def button_function_login(props, prop):
     return True
 
 
-def button_function_update_account_list(props=None, prop=None, settings=GlobalVariableOfData.script_settings):
+def button_function_update_account_list(props=None, prop=None, settings=None):
     """
     更新账号列表
     Args:
