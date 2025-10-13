@@ -601,19 +601,19 @@ class Widget:
         self.Group = Widget.GroupPs()
         """分组框"""
         self.widget_Button_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
-        """按钮控件名称列表"""
+        """按钮控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
         self.widget_Group_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
-        """分组框控件名称列表"""
+        """分组框控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
         self.widget_TextBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
-        """文本框控件名称列表"""
+        """文本框控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
         self.widget_ComboBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
-        """组合框控件名称列表"""
+        """组合框控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
         self.widget_PathBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
-        """路径对话框控件名称列表"""
+        """路径对话框控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
         self.widget_DigitalDisplay_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
-        """数字框控件名称列表"""
+        """数字框控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
         self.widget_CheckBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
-        """复选框控件名称列表"""
+        """复选框控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
         self.widget_list: List[str] = []
         """一个用于规定控件加载顺序的列表"""
         self._all_controls: List[Any] = []
@@ -621,6 +621,7 @@ class Widget:
 
     @property
     def widget_dict_all(self) -> dict[Literal["Button", "Group", "TextBox", "ComboBox", "PathBox", "DigitalDisplay", "CheckBox"], dict[str, dict[str, dict[str, str]]]]:
+        """记录7大控件类型的所有控件的不变属性"""
         return {
             "Button": self.widget_Button_dict,
             "Group": self.widget_Group_dict,
@@ -632,7 +633,8 @@ class Widget:
         }
 
     @property
-    def verificationNumberControls(self):
+    def verification_number_controls(self):
+        """和排序列表进行控件数量验证"""
         return len(self.widget_list) == len(self.get_sorted_controls())
 
     def _update_all_controls(self):
@@ -1051,11 +1053,13 @@ if __name__ == "__main__":
 
     widget.preliminary_configuration_control()
 
-    if widget.verificationNumberControls:
+    # script_defaults===================================================================================================
+    if widget.verification_number_controls:
         log_save(0, "控件数量检测通过")
     else:
         log_save(3, "⚾控件数量检测不通过：设定控件载入顺序时的控件数量 和 创建的控件对象数量 不统一")
 
+    # script_properties=================================================================================================
     # 建立默认属性集
     props = "obs.obs_properties_create(props)"
     # 为 分组框【配置】 建立属性集

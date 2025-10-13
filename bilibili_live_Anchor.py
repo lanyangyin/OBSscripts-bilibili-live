@@ -758,19 +758,19 @@ class Widget:
         self.Group = Widget.GroupPs()
         """分组框"""
         self.widget_Button_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
-        """按钮控件名称列表"""
+        """按钮控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
         self.widget_Group_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
-        """分组框控件名称列表"""
+        """分组框控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
         self.widget_TextBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
-        """文本框控件名称列表"""
+        """文本框控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
         self.widget_ComboBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
-        """组合框控件名称列表"""
+        """组合框控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
         self.widget_PathBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
-        """路径对话框控件名称列表"""
+        """路径对话框控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
         self.widget_DigitalDisplay_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
-        """数字框控件名称列表"""
+        """数字框控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
         self.widget_CheckBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
-        """复选框控件名称列表"""
+        """复选框控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
         self.widget_list: List[str] = []
         """一个用于规定控件加载顺序的列表"""
         self._all_controls: List[Any] = []
@@ -778,6 +778,7 @@ class Widget:
 
     @property
     def widget_dict_all(self) -> dict[Literal["Button", "Group", "TextBox", "ComboBox", "PathBox", "DigitalDisplay", "CheckBox"], dict[str, dict[str, dict[str, str]]]]:
+        """记录7大控件类型的所有控件的不变属性"""
         return {
             "Button": self.widget_Button_dict,
             "Group": self.widget_Group_dict,
@@ -789,7 +790,8 @@ class Widget:
         }
 
     @property
-    def verificationNumberControls(self):
+    def verification_number_controls(self):
+        """和排序列表进行控件数量验证"""
         return len(self.widget_list) == len(self.get_sorted_controls())
 
     def _update_all_controls(self):
@@ -2289,7 +2291,6 @@ def pil_image2binary(
         raise OSError(f"图像保存失败: {str(e)}") from e
     image_bytes = buffer.getvalue()  # 转换为字节流
     return image_bytes
-# end
 
 # 不登录也能用的api
 class BilibiliApiGeneric:
@@ -2776,8 +2777,6 @@ class BilibiliApiGeneric:
             buvid3 = requests.get(verify=self.sslVerification, url = f'https://www.bilibili.com/video/', headers=self.headers)
             cookies.update(buvid3.cookies.get_dict())
         return {'code': code, 'cookies': cookies}
-# end
-
 
 # 登陆后才能用的函数
 class BilibiliApiMaster:
@@ -3429,8 +3428,6 @@ class BilibiliApiMaster:
         FetchWebUpStreamAddre_ReturnValue = requests.post(verify=self.sslVerification, url = api, headers=headers, params=FetchWebUpStreamAddr_data).json()
         return FetchWebUpStreamAddre_ReturnValue
 
-# end
-
 # ====================================================================================================================
 
 
@@ -3501,7 +3498,7 @@ def script_defaults(settings):  # 设置其默认值
     调用以设置与脚本关联的默认设置(如果有的话)。为了设置其默认值，您通常会调用默认值函数。
     :param settings:与脚本关联的设置。
     """
-    if widget.verificationNumberControls:
+    if widget.verification_number_controls:
         log_save(0, "控件数量检测通过")
     else:
         log_save(3, "⚾控件数量检测不通过：设定控件载入顺序时的控件数量 和 创建的控件对象数量 不统一")
