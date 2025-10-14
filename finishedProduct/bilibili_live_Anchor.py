@@ -170,6 +170,44 @@ def script_path():
     pass
 
 
+class GlobalVariableOfData:
+    widget_loading_number: int = 0
+    """控件加载顺序"""
+    isScript_propertiesIs: bool = False  # Script_properties()被调用
+    """Script_properties()被调用"""
+    streaming_active: bool = None  # OBS推流状态
+    """OBS推流状态"""
+    script_settings: bool = None  # #脚本的所有设定属性集
+    """脚本的所有设定属性集"""
+
+    logRecording: str = ""  # #日志记录的文本
+    """日志记录的文本"""
+    networkConnectionStatus: bool = False  # #网络连接状态
+    """网络连接状态"""
+    sslVerification: bool = True
+    """SSL验证"""
+
+    # 文件配置类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    scriptsDataDirpath: Optional[Path] = None  # #脚本所在目录，末尾带/
+    """脚本所在目录，末尾带/"""
+    scriptsUsersConfigFilepath: Optional[Path] = None  # #用户配置文件路径
+    """用户配置文件路径"""
+    scriptsTempDir: Optional[Path] = None   # #临时文件文件夹
+    """临时文件文件夹"""
+    scriptsLogDir: Optional[Path] = None  # #日志文件文件夹
+    """日志文件文件夹"""
+    scriptsCacheDir: Optional[Path] = None  # #缓存文件文件夹
+    """缓存文件文件夹"""
+
+    # 用户类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    loginQrCode_key: str = None  # ##登陆二维码密钥
+    """登陆二维码密钥"""
+    loginQrCodeReturn: Optional[dict[str, Union[dict[str, str], int]]] = None  # ##登陆二维码返回数据
+    """登陆二维码返回数据"""
+    loginQRCodePillowImg = None  # ##登录二维码的pillow_img实例
+    """登录二维码的pillow_img实例"""
+
+
 def log_save(log_level: Literal[0, 1, 2, 3], log_str: str, print_is:bool = True) -> None:
     """
     输出并保存日志
@@ -202,44 +240,6 @@ def log_save(log_level: Literal[0, 1, 2, 3], log_str: str, print_is:bool = True)
     if print_is:
         obs.script_log(log_type[log_level], log_text)
     GlobalVariableOfData.logRecording += log_text + "\n"
-
-
-class GlobalVariableOfData:
-    widget_loading_number: int = 0
-    """控件加载顺序"""
-    isScript_propertiesIs: bool = False  # Script_properties()被调用
-    """Script_properties()被调用"""
-    streaming_active: bool = None  # OBS推流状态
-    """OBS推流状态"""
-    script_settings: bool = None  # #脚本的所有设定属性集
-    """脚本的所有设定属性集"""
-
-    logRecording: str = ""  # #日志记录的文本
-    """日志记录的文本"""
-    networkConnectionStatus: bool = False  # #网络连接状态
-    """网络连接状态"""
-    sslVerification: bool = True
-    """SSL验证"""
-
-    # 文件配置类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    scriptsDataDirpath: Optional[str] = None  # #脚本所在目录，末尾带/
-    """脚本所在目录，末尾带/"""
-    scriptsUsersConfigFilepath: Optional[str] = None  # #用户配置文件路径
-    """用户配置文件路径"""
-    scriptsTempDir: Optional[str] = None   # #临时文件文件夹
-    """临时文件文件夹"""
-    scriptsLogDir: Optional[str] = None  # #日志文件文件夹
-    """日志文件文件夹"""
-    scriptsCacheDir: Optional[str] = None  # #缓存文件文件夹
-    """缓存文件文件夹"""
-
-    # 用户类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    loginQrCode_key: str = None  # ##登陆二维码密钥
-    """登陆二维码密钥"""
-    loginQrCodeReturn = None  # ##登陆二维码返回数据
-    """登陆二维码返回数据"""
-    loginQRCodePillowImg = None  # ##登录二维码的pillow_img实例
-    """登录二维码的pillow_img实例"""
 
 
 @dataclass
@@ -3520,7 +3520,7 @@ def script_defaults(settings):  # 设置其默认值
     log_save(0, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
     log_save(0, f"║设置路径变量")
     log_save(0, f"║╔{4 * '═'}路径变量{4 * '═'}╗")
-    GlobalVariableOfData.scriptsDataDirpath = f"{script_path()}bilibili-live"
+    GlobalVariableOfData.scriptsDataDirpath = Path(f"{script_path()}bilibili-live")
     log_save(0, f"║║脚本用户数据文件夹路径：{GlobalVariableOfData.scriptsDataDirpath}")
     GlobalVariableOfData.scriptsUsersConfigFilepath = Path(GlobalVariableOfData.scriptsDataDirpath) / "config.json"
     log_save(0, f"║║脚本用户数据路径：{GlobalVariableOfData.scriptsUsersConfigFilepath}")
