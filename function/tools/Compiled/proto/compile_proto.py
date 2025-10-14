@@ -50,19 +50,6 @@ def compile_proto_simple(proto_files: list[str]):
     return True
 
 
-if __name__ == "__main__":
-    proto_files = [
-        "C:/Users/18898/PycharmProjects/OBSscripts-bilibili-live/doc/proto/bilibili/live/component/common_model/fans_club.proto",
-        "C:/Users/18898/PycharmProjects/OBSscripts-bilibili-live/doc/proto/bilibili/live/component/common_model/user_dagw.proto",
-        "C:/Users/18898/PycharmProjects/OBSscripts-bilibili-live/doc/proto/bilibili/live/xuserreward/v1.proto"
-    ]
-
-    if compile_proto_simple(proto_files):
-        print("所有proto文件编译完成!")
-    else:
-        print("编译失败!")
-
-
 def debug_proto_compilation(proto_file):
     """
     手动调试proto编译
@@ -104,7 +91,18 @@ def debug_proto_compilation(proto_file):
         return False
 
 
-# 使用手动调试
 if __name__ == "__main__":
-    test_file = "C:/Users/18898/PycharmProjects/OBSscripts-bilibili-live/doc/proto/bilibili/live/component/common_model/fans_club.proto"
+    proto_files = [
+        "C:/Users/18898/PycharmProjects/OBSscripts-bilibili-live/doc/proto/bilibili/live/component/common_model/fans_club.proto",
+        "C:/Users/18898/PycharmProjects/OBSscripts-bilibili-live/doc/proto/bilibili/live/component/common_model/user_dagw.proto",
+    ]
+
+    if compile_proto_simple(proto_files):
+        print("所有proto文件编译完成!")
+    else:
+        print("编译失败!")
+
+
+    # 使用手动调试
+    test_file = r"C:\Users\18898\PycharmProjects\OBSscripts-bilibili-live\doc\proto\bilibili\live\xuserreward\v1.proto"
     debug_proto_compilation(test_file)
