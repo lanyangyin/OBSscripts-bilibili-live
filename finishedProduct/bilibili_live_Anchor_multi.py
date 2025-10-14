@@ -3438,34 +3438,46 @@ class BilibiliApiMaster:
 def trigger_frontend_event(event):
     """
     处理推流事件
+    Args:
+        event: obs前端事件
+
+    Returns:
+
     """
-    log_save(0, f"┏━━━━监测到obs前端事件━━━━━┓")
-    log_save(0, f"┃　　　　监测到obs前端事件　　　　　┃{information4frontend_event[event]}")
-    log_save(0, f"┗━━━━监测到obs前端事件━━━━━┛")
+    log_save(0, f"监测到obs前端事件: {information4frontend_event[event]}")
     if event == obs.OBS_FRONTEND_EVENT_STREAMING_STARTED:
         last_status_change = time.time()
         log_save(0, f"监控到推流开始事件: {last_status_change}")
         if GlobalVariableOfData.streaming_active != obs.obs_frontend_streaming_active():
-            log_save(0, f"推流状态发生变化：{GlobalVariableOfData.streaming_active}➡️{obs.obs_frontend_streaming_active()}")
+            log_save(0, f"推流状态发生变化: {GlobalVariableOfData.streaming_active}➡️{obs.obs_frontend_streaming_active()}")
             GlobalVariableOfData.streaming_active = obs.obs_frontend_streaming_active()
     elif event == obs.OBS_FRONTEND_EVENT_STREAMING_STOPPED:
         last_status_change = time.time()
         log_save(0, f"监控到推流停止事件: {last_status_change}")
         if GlobalVariableOfData.streaming_active != obs.obs_frontend_streaming_active():
-            log_save(0, f"推流状态发生变化：{GlobalVariableOfData.streaming_active}➡️{obs.obs_frontend_streaming_active()}")
+            log_save(0, f"推流状态发生变化: {GlobalVariableOfData.streaming_active}➡️{obs.obs_frontend_streaming_active()}")
             GlobalVariableOfData.streaming_active = obs.obs_frontend_streaming_active()
             log_save(0, f"尝试关闭直播")
             button_function_stop_live()
     return True
 
 
-def property_modified(t=""):
-    """"处理控件变动事件"""
-    if t == "bottom_button":
-        log_save(0, f"┏━UI变动事件测试函数被调用（Script_properties）开始━┓")
-        log_save(0, f"┃　UI变动事件测试函数被调用（Script_properties）开始　┃")
-        log_save(0, f"┗━UI变动事件测试函数被调用（Script_properties）开始━┛")
+def property_modified(t: str) -> bool:
+    """
+    控件变动拉钩
+    Args:
+        t: 控件全局唯一名
+
+    Returns:
+
+    """
+    log_save(0, f"检测到控件【{t}】变动事件")
+    if t == "bottom_button":  # 这个按钮用来标记脚本开始构造控件
+        log_save(0, f"检测到脚本构造控件体开始，断开控件事件钩子")
         GlobalVariableOfData.isScript_propertiesIs = True
+    if t == "top_button":
+        log_save(0, f"检测到脚本构造控件体结束，启动控件事件钩子")
+        GlobalVariableOfData.isScript_propertiesIs = False
     if not GlobalVariableOfData.isScript_propertiesIs:
         if t == "room_parentArea_comboBox":
             return button_function_start_parent_area()
@@ -3481,14 +3493,9 @@ def property_modified(t=""):
             return button_function_true_live_appointment_hour()
         elif t == "live_bookings_minute_digitalSlider":
             return button_function_true_live_appointment_minute()
-        log_save(0, f"┏━UI变动事件测试函数被调用━┓")
-        log_save(0, f"┃　UI变动事件测试函数被调用　┃ {t}")
-        log_save(0, f"┗━UI变动事件测试函数被调用━┛")
-    if t == "top_button":
-        log_save(0, f"┏━UI变动事件测试函数被调用（Script_properties）结束━┓")
-        log_save(0, f"┃　UI变动事件测试函数被调用（Script_properties）结束　┃")
-        log_save(0, f"┗━UI变动事件测试函数被调用（Script_properties）结束━┛")
-        GlobalVariableOfData.isScript_propertiesIs = False
+    else:
+        log_save(0, f"控件事件钩子已断开")
+        return False
     return False
 
 
@@ -4014,7 +4021,7 @@ def script_description():
 
     <!-- 版本信息 -->
     <div style="text-align:center; margin-bottom:12px; color:#a0a0a0; font-size:14px;">
-        bilibili_live_Anchor脚本版本：0.15.9
+        bilibili_live_Anchor脚本版本：{script_version}
     </div>
 
     <div style="background-color:rgba(255,215,0,0.1); border:1px solid rgba(255,215,0,0.3); border-radius:5px; padding:8px 12px; margin-bottom:12px;">
@@ -4090,8 +4097,7 @@ def script_properties():  # 建立控件
     obs_properties_t 类型的属性对象。这个属性对象通常用于枚举 libobs 对象的可用设置，
     """
     log_save(0, f"")
-    log_save(0, f"╔{'═' * 20}调用内置函数script_properties调整脚本控件{'═' * 20}╗")
-    log_save(0, f"║{' ' * 20}调用内置函数script_properties调整脚本控件{' ' * 20}║")
+    log_save(0, f"╔{'═' * 20}构造控件体开始{'═' * 20}╗")
     # 网络连通
     if not GlobalVariableOfData.networkConnectionStatus:
         return None
@@ -4151,11 +4157,11 @@ def script_properties():  # 建立控件
             w.Obj = obs.obs_properties_add_group(props_dict[w.Props], w.Name, w.Description, w.Type, props_dict[w.GroupProps])
 
         if w.ModifiedIs:
+            log_save(0, f"为{w.ControlType}: 【{w.Description}】添加钩子函数")
             obs.obs_property_set_modified_callback(w.Obj, lambda ps, p, st, name=w.Name: property_modified(name))
     # 更新UI界面数据#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
     update_ui_interface_data(is_script_properties=True)
-    log_save(0, f"║{' ' * 20}调用内置函数script_properties调整脚本控件{' ' * 20}║")
-    log_save(0, f"╚{'═' * 20}调用内置函数script_properties调整脚本控件{'═' * 20}╝")
+    log_save(0, f"╚{'═' * 20}构造控件体结束{'═' * 20}╝")
     log_save(0, f"")
     return props
 
