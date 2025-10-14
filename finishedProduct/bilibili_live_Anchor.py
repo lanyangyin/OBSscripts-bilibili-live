@@ -4818,8 +4818,6 @@ def button_function_change_live_room_title():
     """
     更改直播间标题
     Args:
-        props:
-        prop:
     Returns:
     """
     # 获取当前直播间标题
@@ -5039,8 +5037,6 @@ def button_function_change_live_room_news():
     """
     更改直播间公告
     Args:
-        props:
-        prop:
     Returns:
     """
     # 调整控件数据
