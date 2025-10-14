@@ -16,17 +16,16 @@
 #         2436725966@qq.com
 # import asyncio
 # import base64
-import hashlib
 import io
-import json
 import os
-# import os
+import sys
+import json
+import hashlib
 import pathlib
 import random
 import ssl
 import string
 # import pprint
-import sys
 # import tempfile
 # import threading
 import time
@@ -47,8 +46,7 @@ from requests.exceptions import SSLError
 
 import obspython as obs
 # import pypinyin
-from qrcode.constants import ERROR_CORRECT_L
-from qrcode.main import QRCode
+import qrcode
 import requests
 import pyperclip as cb
 from PIL import Image, ImageOps
@@ -167,14 +165,14 @@ def script_path():
         >>> print(Path(f'{script_path()}bilibili-live') / "config.json")
         /Applications/OBS.app/Contents/PlugIns/frontend-tools.plugin/Contents/Resources/scripts/bilibili-live/config.json
     """
-    pass
+    return f"{Path(__file__).parent}\\"
 
 
 class GlobalVariableOfData:
     widget_loading_number: int = 0
     """控件加载顺序"""
     isScript_propertiesIs: bool = False  # Script_properties()被调用
-    """Script_properties()被调用"""
+    """是否允许Script_properties()被调用"""
     streaming_active: bool = None  # OBS推流状态
     """OBS推流状态"""
     script_settings: bool = None  # #脚本的所有设定属性集
@@ -2041,7 +2039,7 @@ def url2dict(url: str, decode: bool = True, handle_multiple: bool = True) -> Dic
 def qr_text8pil_img(
         qr_str: str,
         border: int = 2,
-        error_correction: Literal[0, 1, 2, 3] = ERROR_CORRECT_L,
+        error_correction: Literal[0, 1, 2, 3] = qrcode.constants.ERROR_CORRECT_L,
         invert: bool = False
 ) -> Dict[str, Union[str, Image.Image]]:
     """
@@ -2069,7 +2067,7 @@ def qr_text8pil_img(
         raise ValueError("border 必须是非负整数")
 
     # 创建 QRCode 对象
-    qr = QRCode(
+    qr = qrcode.main.QRCode(
         version=1,
         box_size=10,
         border=border,
@@ -3997,12 +3995,56 @@ def script_description():
     """
     if not GlobalVariableOfData.networkConnectionStatus:
         return "<font color=yellow>网络不可用</font>"
-    t = ('<html lang="zh-CN"><body><pre>\
-<font color=yellow>!脚本路径中尽量不要有中文</font><br>\
-<font color="white" size=5>⟳</font><font color=green size=4>为重新载入插件按钮</font><br>\
-使用<font color="#ee4343">管理员权限</font>运行obs<br>\
-其它问题请前往<a href="https://github.com/lanyangyin/OBSscripts-bilibili-live/issues">Github</a>或者<a href="https://message.bilibili.com/#/whisper/mid143474500">B站</a>提问\
-</pre></body></html>')
+    if not widget.verification_number_controls:
+        return "<font color=yellow>控件构建错误</font>"
+    t = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>OBS脚本使用提示</title>
+</head>
+<body style="margin:0; padding:12px; background-color:#2b2b2b; color:#e0e0e0; font-family:'Microsoft YaHei', sans-serif;">
+<div style="background-color:#3a3a3a; border:1px solid #555; border-radius:8px; padding:16px; max-width:100%;">
+
+    <h1 style="color:#ffd700; font-size:18px; margin:0 0 8px 0; text-align:center; padding-bottom:8px; border-bottom:1px solid #555; border-radius:0;">
+        脚本使用提示</h1>
+
+    <!-- 版本信息 -->
+    <div style="text-align:center; margin-bottom:12px; color:#a0a0a0; font-size:14px;">
+        bilibili_live_Anchor脚本版本：0.15.9
+    </div>
+
+    <div style="background-color:rgba(255,215,0,0.1); border:1px solid rgba(255,215,0,0.3); border-radius:5px; padding:8px 12px; margin-bottom:12px;">
+        <p style="color:#ffd700; margin:0; display:flex; align-items:center;">
+            <span style="margin-right:8px;">⚠</span>
+            {os.getcwd()}
+        </p>
+    </div>
+
+    <div style="margin-bottom:12px;">
+        <div style="display:flex; align-items:center; margin-bottom:8px; padding:6px;">
+            <span style="margin-right:8px;">⟳</span>
+            <span>点击<span style="color:#4cd964; font-weight:bold;">重新载入脚本</span>按钮更新脚本</span>
+        </div>
+
+        <div style="background-color:rgba(238,67,67,0.1); border:1px solid rgba(238,67,67,0.3); border-radius:5px; padding:8px 12px; margin:12px 0; display:flex; align-items:center;">
+            <span style="margin-right:8px;">ⓘ</span>
+            <span>请使用<strong style="color:#ee4343;">管理员权限</strong>运行OBS</span>
+        </div>
+    </div>
+
+    <div style="text-align:center; margin-top:16px;">
+        <a href="https://github.com/lanyangyin/OBSscripts-bilibili-live/issues"
+           style="display:inline-block; padding:6px 12px; margin:0 4px; background-color:#333; color:#e0e0e0; text-decoration:none; border-radius:4px; border:1px solid #444;">GitHub问题反馈</a>
+        <a href="https://message.bilibili.com/#/whisper/mid143474500"
+           style="display:inline-block; padding:6px 12px; margin:0 4px; background-color:#4a4a4a; color:#e0e0e0; text-decoration:none; border-radius:4px; border:1px solid #666;">B站私信提问</a>
+    </div>
+
+</div>
+</body>
+</html>
+    """
     return t
 
 
@@ -4013,13 +4055,10 @@ def script_load(settings):
     相反，该参数用于脚本中可能使用的任何额外的内部设置数据。
     :param settings:与脚本关联的设置。
     """
-    log_save(0, "╔══已载入: bilibili_live══╗")
-    log_save(0, "║  已载入: bilibili_live  ║")
-    log_save(0, "╚══已载入: bilibili_live══╝")
+    log_save(0, "已载入: bilibili_live")
+
     # 注册事件回调
-    log_save(0, "┌──开始监视obs事件──┐")
-    log_save(0, "│  开始监视obs事件  │")
-    log_save(0, "└──开始监视obs事件──┘")
+    log_save(0, "开始监视obs事件")
     obs.obs_frontend_add_event_callback(trigger_frontend_event)
     # obs_data_t 类型的数据对象。这个数据对象可以用来存储和管理设置项，例如场景、源或过滤器的配置信息
     # settings = obs.obs_data_create()
@@ -4108,6 +4147,7 @@ def script_properties():  # 建立控件
             # 分组框控件
             log_save(0, f"分组框控件: {w.Name} 【{w.Description}】")
             w.Obj = obs.obs_properties_add_group(props_dict[w.Props], w.Name, w.Description, w.Type, props_dict[w.GroupProps])
+
         if w.ModifiedIs:
             obs.obs_property_set_modified_callback(w.Obj, lambda ps, p, st, name=w.Name: property_modified(name))
     # 更新UI界面数据#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*

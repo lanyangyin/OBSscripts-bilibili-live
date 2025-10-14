@@ -3,7 +3,7 @@ import subprocess
 import sys
 
 
-def compile_proto_files(proto_files: list[str|str]):
+def compile_proto_files(proto_files: list[str]):
     """编译所有的proto文件"""
 
     for proto_file in proto_files:
@@ -35,9 +35,9 @@ def compile_proto_files(proto_files: list[str|str]):
 
 if __name__ == "__main__":
     proto_files_list = [
-        "bilibili/live/component/common_model/fans_club.proto",
-        "bilibili/live/component/common_model/user_dagw.proto",
-        "bilibili/live/xuserreward/v1.proto"
+        "doc/proto/bilibili/live/component/common_model/fans_club.proto",
+        "doc/proto/bilibili/live/component/common_model/user_dagw.proto",
+        "doc/proto/bilibili/live/xuserreward/v1.proto"
     ]
     if compile_proto_files(proto_files_list):
         print("所有proto文件编译完成!")

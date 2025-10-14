@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网络状态提示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .network-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 8px;
+            padding: 12px 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            animation: pulse 2s infinite;
+            max-width: 300px;
+        }
+
+        .network-icon {
+            font-size: 20px;
+            color: #ffc107;
+            animation: blink 1.5s infinite;
+        }
+
+        .network-text {
+            color: #ffc107;
+            font-weight: 600;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
+            }
+            50% {
+                box-shadow: 0 4px 20px rgba(255, 193, 7, 0.4);
+            }
+            100% {
+                box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
+            }
+        }
+
+        @keyframes blink {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* 可选：添加重试按钮 */
+        .retry-button {
+            margin-left: auto;
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.4);
+            border-radius: 4px;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .retry-button:hover {
+            background: rgba(255, 193, 7, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="network-status">
+        <div class="network-icon">⚠</div>
+        <div class="network-text">网络不可用</div>
+        <!-- 可选：添加重试按钮 -->
+        <!-- <button class="retry-button" onclick="window.location.reload()">重试</button> -->
+    </div>
+</body>
+</html>

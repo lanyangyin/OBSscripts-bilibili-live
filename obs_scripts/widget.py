@@ -1,4 +1,3 @@
-# widget.py 开头部分
 """控件管理器 - 修复版本"""
 
 import logging
@@ -9,9 +8,6 @@ from typing import Optional, Union, Any, Dict, List, Iterator, Callable, Literal
 # 动态导入OBS模块，提供降级方案
 try:
     import obspython as obs
-
-    script_version = "0.1.6"
-
 
     class GlobalVariableOfData:
         logRecording = ""  # #日志记录的文本
@@ -45,7 +41,7 @@ try:
         }
         now = datetime.now()
         formatted = now.strftime("%Y/%m/%d %H:%M:%S")
-        log_text = f"{script_version}【{formatted}】【{log_type_str[log_level]}】{log_str}"
+        log_text = f"0.1.6【{formatted}】【{log_type_str[log_level]}】{log_str}"
         if print_is:
             obs.script_log(log_type[log_level], log_text)
         GlobalVariableOfData.logRecording += log_text + "\n"
