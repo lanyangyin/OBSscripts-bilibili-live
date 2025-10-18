@@ -1,13 +1,17 @@
 import asyncio
+import datetime
 import json
+import threading
+import time
 import zlib
 from collections.abc import Callable
 from pathlib import Path
 from typing import Optional, Union
 from function.api.Authentication.Wbi.get_danmu_info import WbiSigna
-from function.tools.EncodingConversion.parse_cookie import parse_cookie
 from function.api.Special.Get.get_user_live_info import BilibiliCSRFAuthenticator
+from function.tools.EncodingConversion.parse_cookie import parse_cookie
 from function.tools.EncodingConversion.dict_to_cookie_string import dict_to_cookie_string
+from function.tools.EncodingConversion.DanmuProtoDecoder import DanmuProtoDecoder
 from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
 
 import websockets
@@ -48,6 +52,7 @@ class Danmu:
         HEARTBEAT_INTERVAL = 30
         VERSION_NORMAL = 0
         VERSION_ZIP = 2
+        num_r = 20
 
         def __init__(self, url: str, auth_body: dict[str, Union[str, int]]):
             self.url = url
@@ -57,7 +62,8 @@ class Danmu:
             self.Callable_opt_code5: Callable = lambda a: a
             """普通包 (命令)"""
             # pprint.pprint(auth_body)
-            # self.saved_danmudata = set()
+            self.saved_danmu_data = set()
+            """排除相同弹幕"""
 
         async def connect(self):
             retry_count = 0
@@ -112,7 +118,7 @@ class Danmu:
                 # 等待认证响应
                 try:
                     auth_response = await asyncio.wait_for(ws.recv(), timeout=10)
-                    print("认证成功，连接已建立")
+                    print(f"认证成功，连接已建立{auth_response}")
                     # 启动心跳任务
                     asyncio.create_task(self.send_heartbeat(ws))
                 except asyncio.TimeoutError:
@@ -137,7 +143,7 @@ class Danmu:
 
         async def on_message(self, message):
             if isinstance(message, bytes):
-                self.unpack(message)
+                threading.Thread(self.unpack(message)).start()
 
         def pack(self, content: Optional[dict], code: int) -> bytes:
             content_bytes = json.dumps(content).encode('utf-8') if content else b''
@@ -190,10 +196,24 @@ class Danmu:
                 pass
 
             content = content_bytes.decode('utf-8')
-            if opt_code == 8:  # AUTH_REPLY
-                self.Callable_opt_code8(content)
-            elif opt_code == 5:  # SEND_SMS_REPLY
-                self.Callable_opt_code5(content)
+            now_saved_danmu_data_len = len(self.saved_danmu_data)
+            self.saved_danmu_data.add(content)
+            if now_saved_danmu_data_len != len(self.saved_danmu_data):
+                if opt_code == 8:  # AUTH_REPLY
+                    self.Callable_opt_code8(content)
+                    pass
+                elif opt_code == 5:  # SEND_SMS_REPLY
+                    content_dict: dict = json.loads(content)
+                    if content_dict['cmd'] == "INTERACT_WORD_V2":
+                        content_dict['data'] = DanmuProtoDecoder().decode_interact_word_v2_protobuf(content_dict['data']['pb'])
+                    elif content_dict['cmd'] == "ONLINE_RANK_V3":
+                        content_dict['data'] = DanmuProtoDecoder().decode_online_rank_v3_protobuf(content_dict['data']['pb'])
+                    self.Callable_opt_code5(content_dict)
+                    pass
+            if len(self.saved_danmu_data) < 100:
+                self.saved_danmu_data.add(content)
+            else:
+                self.saved_danmu_data = set()
 
             if len(byte_buffer) > package_len:
                 self.unpack(byte_buffer[package_len:])
@@ -206,7 +226,11 @@ class Danmu:
 
         def start(self):
             try:
-                asyncio.run(self.connect())
+                def c():
+                    asyncio.run(self.connect())
+                for i in range(self.num_r):
+                    threading.Thread(target=c).start()
+                    time.sleep(1)
             except KeyboardInterrupt:
                 print("用户中断程序")
                 self.stop()
@@ -216,8 +240,7 @@ class Danmu:
 
 
 if __name__ == "__main__":
-    from function.tools.EncodingConversion.DanmuProtoDecoder import DanmuProtoDecoder
-    from _Input.DanMu.Danmu import room_id
+    from _Input.functions.DanMu import Danmu as Dm
 
     BULC = BilibiliUserConfigManager(Path('../../cookies/config.json'))
     cookies = BULC.get_user_cookies()['data']
@@ -228,20 +251,47 @@ if __name__ == "__main__":
     }
 
     dm = Danmu(Headers)
-    cdm = dm.connect_room(room_id)
+    cdm = dm.connect_room(Dm.room_id)
     cdm.Callable_opt_code8 = lambda a = "": print(f"身份验证回复: {a}\n")
-    def a(content):
-        # print(f"Danmu message at {datetime.datetime.now()}: {content}")
-        if json.loads(content)['cmd'] == "LIVE":
+    def bullet_comment_processing(content: dict):
+        print()
+        if content['cmd'] == "LIVE":
             # 直播开始 (LIVE)
             # 注：请求了开始直播接口、开始向服务器推流时下发。
-            contentdata = json.loads(content)
-            print(contentdata)
+            contentdata = content
+
+            # 提取直播开始信息
+            roomid = contentdata['roomid']
+            live_time = contentdata['live_time']
+            live_platform = contentdata['live_platform']
+
+            print(f'🔴直播开始：房间{roomid} 时间{live_time} 平台[{live_platform}]')
             pass
-        elif json.loads(content)['cmd'] == "DANMU_MSG":
+        elif content['cmd'] == "COMBO_SEND":
+            contentdata = content['data']
+            ufo = contentdata['uname']
+            mfo = ""
+            if contentdata['medal_info']['medal_name']:
+                medali = contentdata['medal_info']
+                mfo = f"【{medali['medal_name']}|{medali['medal_level']}】"
+            wfo = ''
+            if contentdata['wealth_level'] != 0:
+                wfo = f"[{contentdata['wealth_level']}]"
+            tfo = f""
+            tfo += contentdata['action']
+            coin = f"{contentdata['combo_total_coin'] / 1000}￥"
+            tfo += f"{contentdata['batch_combo_num']}个《{contentdata['gift_name']}》\t{coin}"
+            print(f'⛓🎁连续礼物：{wfo}{mfo}{ufo}\t{tfo}')
+        elif content['cmd'] == "COMMON_NOTICE_DANMAKU":
+            # 星球守护者
+            contentdata = content['data']
+            tfo = f""
+            tfo += contentdata['content_segments'][0]["text"]
+            print(f'🌎星球守护者：\t{tfo}')
+        elif content['cmd'] == "DANMU_MSG":
             # 弹幕 (DANMU_MSG)
             # 注: 当收到弹幕时接收到此条消息, 10 进制转 16 进制若位数不足则在左侧补 0
-            contentinfo = json.loads(content)['info']
+            contentinfo = content['info']
             contentinfo[0][15]['extra'] = json.loads(contentinfo[0][15]['extra'])
             tfo = contentinfo[0][15]['extra']['content']
             afo = ""
@@ -257,12 +307,12 @@ if __name__ == "__main__":
                 wfo = str(contentinfo[-2])
             print(f"{wfo}{mfo}{ufo}:\n\t>>>{afo}{tfo}")
             pass
-        elif json.loads(content)['cmd'] == "DM_INTERACTION":
+        elif content['cmd'] == "DM_INTERACTION":
             # 交互信息合并 (DM_INTERACTION)
             # 注: 连续多条相同弹幕时触发
-            contentdata = json.loads(content)['data']
+            contentdata = content['data']
             contentdata['data'] = json.loads(contentdata['data'])
-            tfo = "连续发送弹幕或点赞"
+            tfo = "❓连续发送弹幕或点赞"
             if contentdata['type'] == 102:
                 tfo = ""
                 for contentdatacombo in contentdata['data']['combo'][:-1]:
@@ -272,9 +322,351 @@ if __name__ == "__main__":
                 tfo = f"⛓👍连续点赞：\t{contentdata['data']['cnt']}\t{contentdata['data']['suffix_text']}"
             print(f"{tfo}")
             pass
-        elif json.loads(content)['cmd'] == "SEND_GIFT":
+        elif content['cmd'] == "ENTRY_EFFECT":
+            # # 用户进场特效 (ENTRY_EFFECT)
+            # # 注: 有进场特效的用户进入直播间
+            # contentdata = content['data']
+            # print(contentdata)
+            pass
+        elif content['cmd'] == "ENTRY_EFFECT_MUST_RECEIVE":
+            # # 必须接受的用户进场特效 (ENTRY_EFFECT_MUST_RECEIVE)
+            # # 注: 在部分主播进入自己的直播间时下发。
+            # contentdata = content['data']
+            # print(contentdata)
+            pass
+        elif content['cmd'] == "GUARD_BUY":
+            # 上舰通知 (GUARD_BUY)
+            # 注: 当有用户购买 舰长 / 提督 / 总督 时
+            contentdata = content['data']
+            tfo = f"🚢上舰：\t{contentdata['username']}\t购买{contentdata['num']}个\t【{contentdata['gift_name']}】"
+            print(f"{tfo}")
+            pass
+        elif content['cmd'] == "INTERACT_WORD":
+            # # 用户交互消息(INTERACT_WORD)
+            # # 注: 有用户进入直播间、关注主播、分享直播间时触发
+            # contentdata = content['data']
+            # tfo = "❓进入直播间或关注消息"
+            # if contentdata['msg_type'] == 1:
+            #     tfo = "🏠进入直播间"
+            # elif contentdata['msg_type'] == 2:
+            #     tfo = "⭐关注直播间"
+            # ufo = contentdata['uname']
+            # mfo = ""
+            # if contentdata['fans_medal']:
+            #     fmedal = contentdata['fans_medal']
+            #     mfo = f"【{fmedal['medal_name']}|{fmedal['medal_level']}】"
+            # wfo = ''
+            # try:
+            #     if content['data']['uinfo']['wealth']['level']:
+            #         wfo = f"[{content['data']['uinfo']['wealth']['level']}]"
+            # except:
+            #     pass
+            # print(f"{tfo}：\t{wfo}{mfo}{ufo}")
+            pass
+        elif content['cmd'] == "INTERACT_WORD_V2":
+            # 用户交互消息【Proto格式】
+            # 注: 有用户进入直播间、关注主播、分享直播间时触发
+            contentdata = content['data']
+            # # print(contentdata['pb'])
+            # contentdata = DanmuProtoDecoder().decode_interact_word_v2_protobuf(contentdata['pb'])
+            try:
+                tfo = "❓进入直播间或关注消息或分享直播间"
+                if contentdata['msg_type'] == 1:
+                    tfo = "🏠进入直播间"
+                elif contentdata['msg_type'] == 2:
+                    tfo = "⭐关注直播间"
+                ufo = contentdata['uname']
+                mfo = ""
+                if contentdata['fans_medal']:
+                    fmedal = contentdata['fans_medal']
+                    mfo = f"【{fmedal['medal_name']}|{fmedal['medal_level']}】"
+                wfo = ''
+                try:
+                    if content['data']['uinfo']['wealth']['level']:
+                        wfo = f"[{content['data']['uinfo']['wealth']['level']}]"
+                except:
+                    pass
+                print(f"{tfo}：\t{wfo}{mfo}{ufo}")
+            except:
+                print(contentdata)
+            pass
+        elif content['cmd'] == "LIKE_INFO_V3_CLICK":
+            # 直播间用户点赞 (LIKE_INFO_V3_CLICK)
+            contentdata = content['data']
+            tfo = contentdata['like_text']
+            ufo = contentdata['uname']
+            mfo = ""
+            if contentdata['fans_medal']:
+                fmedal = contentdata['fans_medal']
+                mfo = f"【{fmedal['medal_name']}|{fmedal['guard_level']}】"
+            wfo = ''
+            try:
+                if contentdata['uinfo']['wealth']['level']:
+                    wfo = f"[{contentdata['uinfo']['wealth']['level']}]"
+            except:
+                pass
+            print(f"👍点赞：\t{wfo}{mfo}{ufo}\t{tfo}")
+            pass
+        elif content['cmd'] == "LIKE_INFO_V3_NOTICE":
+            # # 通知消息
+            # contentdata = content['content_segments']['data']
+            # content_segments_font_color = contentdata['content_segments']['font_color']
+            # content_segments_text = contentdata['content_segments']['text']
+            # content_segments_type = contentdata['content_segments']['type']
+            # print(content_segments_font_color, content_segments_text, content_segments_type)
+            pass
+        elif content['cmd'] == "LIKE_INFO_V3_UPDATE":
+            # 直播间点赞数更新 (LIKE_INFO_V3_UPDATE)
+            contentdata = content['data']
+            print(f"👍🔢点赞数：\t{contentdata['click_count']}")
+            pass
+        elif content['cmd'] == "LIVE_ROOM_TOAST_MESSAGE":
+            # # ?视频连线
+            # contentdata = content['data']
+            # print(contentdata)
+            pass
+        elif content['cmd'] == "master_qn_strategy_chg":
+            # # ???
+            # contentdata = content['data']  # 字符串'{"mtime":1758875819,"scatter":[0,300]}'
+            # contentdata = json.loads(contentdata)
+            # mtime = contentdata["mtime"]
+            # """
+            # ?
+            # """
+            # scatter = contentdata["scatter"]
+            # """
+            # ?
+            # """
+            # print(mtime, scatter)
+            pass
+        elif content['cmd'] == "MESSAGEBOX_USER_GAIN_MEDAL":
+            # # 获得粉丝勋章 (MESSAGEBOX_USER_GAIN_MEDAL)
+            # # 获得时下发。
+            # contentdata = content['data']
+            # print(contentdata)
+            pass
+        elif content['cmd'] == "MESSAGEBOX_USER_MEDAL_CHANGE":
+            # # 粉丝勋章更新 (MESSAGEBOX_USER_MEDAL_CHANGE)
+            # # 升级或点亮时下发
+            # contentdata = content['data']
+            # print(contentdata)
+            pass
+        elif content['cmd'] == "NOTICE_MSG":
+            # # 通知消息
+            # contentdata = content
+            # print(contentdata)
+            pass
+        elif content['cmd'] == "ONLINE_RANK_COUNT":
+            # # 直播间高能用户数量 (ONLINE_RANK_COUNT)
+            # contentdata = content['data']
+            # print(f"🧑🔢高能用户数：\t{contentdata['count']}")
+            pass
+        elif content['cmd'] == "ONLINE_RANK_V2":
+            # # 直播间高能榜(ONLINE_RANK_V2)
+            # # 注: 直播间高能用户数据刷新
+            # contentdata = content['data']
+            # high_energy_users_in_the_live_streaming_room_list = contentdata["list"]
+            # """
+            # 在直播间高能用户中的用户信息
+            # """
+            # rank_type = contentdata["rank_type"]
+            # """
+            # 待调查
+            # """
+            # print(high_energy_users_in_the_live_streaming_room_list, rank_type)
+            pass
+        elif content['cmd'] == "ONLINE_RANK_V3":
+            # 直播间高能用户相关【Proto格式】
+            contentdata = content['data']
+            # # print(contentdata['pb'])
+            # contentdata = DanmuProtoDecoder().decode_online_rank_v3_protobuf(contentdata['pb'])
+            try:
+                high_energy_users_in_the_live_streaming_room_list = contentdata["list"]
+                """
+                在直播间高能用户中的用户信息
+                """
+                rank_type = contentdata["rank_type"]
+                """
+                待调查
+                """
+                print("📖", high_energy_users_in_the_live_streaming_room_list, rank_type)
+            except:
+                print(contentdata)
+            pass
+        elif content['cmd'] == "PLAYURL_RELOAD":
+            contentdata = content['data']
+            playurldata = contentdata['playurl']
+
+            # 基本信息
+            room_id = contentdata['room_id']
+            cid = playurldata['cid']
+
+            # 流媒体协议和质量信息
+            protocol_list = []
+            for stream in playurldata['stream']:
+                protocol_name = stream['protocol_name']
+
+                formats_info = []
+                for fmt in stream['format']:
+                    format_name = fmt['format_name']
+
+                    # 获取支持的画质
+                    quality_codes = []
+                    for codec in fmt['codec']:
+                        quality_codes.extend(codec['accept_qn'])
+
+                    # 将质量代码转换为描述
+                    quality_descs = []
+                    for qn in set(quality_codes):  # 去重
+                        for quality in playurldata['g_qn_desc']:
+                            if quality['qn'] == qn:
+                                quality_descs.append(quality['desc'])
+                                break
+
+                    format_info = f"{format_name}({','.join(quality_descs)})"
+                    formats_info.append(format_info)
+
+                protocol_info = f"{protocol_name}[{';'.join(formats_info)}]"
+                protocol_list.append(protocol_info)
+
+            protocol_str = " | ".join(protocol_list)
+
+            # P2P信息
+            p2p_enabled = "是" if playurldata['p2p_data']['p2p'] else "否"
+
+            # 重载选项
+            reload_info = contentdata['reload_option']
+            scatter_time = reload_info['scatter']
+
+            print(
+                f'📺视频信息：房间{room_id} 内容{cid} 协议[{protocol_str}] P2P[{p2p_enabled}] 重载间隔[{scatter_time}ms]')
+        elif content['cmd'] == "POPULAR_RANK_CHANGED":
+            contentdata = content['data']
+            # 排名信息
+            rank = contentdata['rank']
+            uid = contentdata['uid']
+            rank_name = contentdata['rank_name_by_type']
+            on_rank_name = contentdata['on_rank_name_by_type']
+
+            # 格式化排名显示
+            rank_display = f"第{rank}名" if rank > 0 else "未上榜"
+
+            print(f'🏆排名变化：{on_rank_name}{rank_name} {rank_display} 主播{uid}')
+        elif content['cmd'] == "POPULARITY_RED_POCKET_NEW":
+            contentdata = content['data']
+            ufo = contentdata['uname']
+            mfo = ""
+            if contentdata['medal_info']['medal_name']:
+                medali = contentdata['medal_info']
+                mfo = f"【{medali['medal_name']}|{medali['medal_level']}】"
+            wfo = ''
+            if contentdata['wealth_level'] != 0:
+                wfo = f"[{contentdata['wealth_level']}]"
+            tfo = ''
+            tfo += contentdata['action']
+            coin = contentdata['price']
+            tfo += f"\t{coin}"
+            print(f'🔖红包：\t{wfo}{mfo}{ufo}\t{tfo}')
+        elif content['cmd'] == "POPULARITY_RED_POCKET_V2_NEW":
+            contentdata = content['data']
+            ufo = contentdata['uname']
+            mfo = ""
+            if contentdata['medal_info']['medal_name']:
+                medali = contentdata['medal_info']
+                mfo = f"【{medali['medal_name']}|{medali['medal_level']}】"
+            wfo = ''
+            if contentdata['wealth_level'] != 0:
+                wfo = f"[{contentdata['wealth_level']}]"
+            tfo = ''
+            tfo += contentdata['action']
+            coin = contentdata['price']
+            tfo += f"\t{coin}"
+            print(f'🔖红包：\t{wfo}{mfo}{ufo}\t{tfo}')
+        elif content['cmd'] == "POPULARITY_RED_POCKET_V2_WINNER_LIST":
+            contentdata = content['data']
+
+            # 红包信息
+            lot_id = contentdata['lot_id']
+            total_num = contentdata['total_num']
+
+            # 中奖用户信息
+            winner_list = []
+            for winner in contentdata['winner_info']:
+                user_mid = winner[0]
+                user_name = winner[1]
+                gift_id = winner[3]
+
+                # 获取礼物信息
+                gift_info = contentdata['awards'].get(str(gift_id), {})
+                gift_name = gift_info.get('award_name', '未知礼物')
+                gift_price = gift_info.get('award_price', 0)
+
+                winner_info = f"{user_name}({user_mid})获得[{gift_name}]({gift_price / 1000}￥)"
+                winner_list.append(winner_info)
+
+            display_winners = winner_list
+            # # 限制显示数量，避免过长
+            # display_winners = winner_list[:5]  # 只显示前5个
+            # if len(winner_list) > 5:
+            #     display_winners.append(f"等{len(winner_list)}人")
+
+            winners_str = "、".join(display_winners)
+
+            print(f'🧧红包中奖：红包{lot_id} 共{total_num}个礼物 {winners_str}')
+        elif content['cmd'] == "POPULARITY_RED_POCKET_WINNER_LIST":
+            contentdata = content['data']
+
+            # 红包信息
+            lot_id = contentdata['lot_id']
+            total_num = contentdata['total_num']
+
+            # 中奖用户信息
+            winner_list = []
+            for winner in contentdata['winner_info']:
+                user_mid = winner[0]
+                user_name = winner[1]
+                gift_id = winner[3]
+
+                # 获取礼物信息
+                gift_info = contentdata['awards'].get(str(gift_id), {})
+                gift_name = gift_info.get('award_name', '未知礼物')
+                gift_price = gift_info.get('award_price', 0)
+
+                winner_info = f"{user_name}({user_mid})获得[{gift_name}]({gift_price / 1000}￥)"
+                winner_list.append(winner_info)
+
+            display_winners = winner_list
+            # # 限制显示数量，避免过长
+            # display_winners = winner_list[:5]  # 只显示前5个
+            # if len(winner_list) > 5:
+            #     display_winners.append(f"等{len(winner_list)}人")
+
+            winners_str = "、".join(display_winners)
+
+            print(f'🧧红包中奖：红包{lot_id} 共{total_num}个礼物 {winners_str}')
+        elif content['cmd'] == "PREPARING":
+            # # 主播准备中 (PREPARING)
+            # contentdata = content
+            # print(contentdata)
+            pass
+        elif content['cmd'] == "RANK_CHANGED":
+            # # 榜单排名
+            # contentdata = content['data']
+            # print("RANK_CHANGED", contentdata)
+            pass
+        elif content['cmd'] == "RANK_CHANGED_V2":
+            # # 榜单排名
+            # contentdata = content['data']
+            # print("RANK_CHANGED_V2", contentdata)
+            pass
+        elif content['cmd'] == "ROOM_REAL_TIME_MESSAGE_UPDATE":
+            # # 主播信息更新 (ROOM_REAL_TIME_MESSAGE_UPDATE)
+            # contentdata = content['data']
+            # print(contentdata)
+            pass
+        elif content['cmd'] == "SEND_GIFT":
             # 送礼 (SEND_GIFT)
-            contentdata = json.loads(content)['data']
+            contentdata = content['data']
             ufo = contentdata['uname']
             mfo = ""
             if contentdata['medal_info']['medal_name']:
@@ -297,201 +689,60 @@ if __name__ == "__main__":
                 tfo += f"{contentdata['action']}{contentdata['num']}个《{contentdata['giftName']}》"
             print(f'🎁礼物：\t{wfo}{mfo}{ufo}\t{tfo}')
             pass
-        elif json.loads(content)['cmd'] == "GUARD_BUY":
-            # 上舰通知 (GUARD_BUY)
-            # 注: 当有用户购买 舰长 / 提督 / 总督 时
-            contentdata = json.loads(content)['data']
-            tfo = f"🚢上舰：\t{contentdata['username']}\t购买{contentdata['num']}个\t【{contentdata['gift_name']}】"
-            print(f"{tfo}")
+        elif content['cmd'] == "VOICE_JOIN_LIST":
+            # # ?语音加入列表
+            # contentdata = content['data']
+            # print("语音加入列表", contentdata)
             pass
-
-        elif json.loads(content)['cmd'] == "WIDGET_BANNER":
+        elif content['cmd'] == "VOICE_JOIN_ROOM_COUNT_INFO":
+            # # ?语音加入房间计数信息
+            # contentdata = content['data']
+            # print("语音加入房间计数信息", contentdata)
+            pass
+        elif content['cmd'] == "WATCHED_CHANGE":
+            # # 直播间看过人数 (WATCHED_CHANGE)
+            # # 注: 当前直播历史观众数量, 可替代人气
+            # contentdata = content['data']
+            # print(f"👀🔢直播间看过人数：\t{contentdata['num']}|\t{contentdata['text_large']}")
+            pass
+        elif content['cmd'] == "WIDGET_BANNER":
             # # 顶部横幅 (WIDGET_BANNER)
             # # 注: 网页端在直播间标题下面的横幅, 例如 限时任务 等
-            # contentdata = json.loads(content)['data']
+            # contentdata = content['data']
             # widget_list = contentdata['widget_list']
             # print(widget_list)
             pass
-        elif json.loads(content)['cmd'] == "INTERACT_WORD":
-            # # 用户交互消息(INTERACT_WORD)
-            # # 注: 有用户进入直播间、关注主播、分享直播间时触发
-            # contentdata = json.loads(content)['data']
-            # tfo = "❓进入直播间或关注消息"
-            # if contentdata['msg_type'] == 1:
-            #     tfo = "🏠进入直播间"
-            # elif contentdata['msg_type'] == 2:
-            #     tfo = "⭐关注直播间"
-            # ufo = contentdata['uname']
-            # mfo = ""
-            # if contentdata['fans_medal']:
-            #     fmedal = contentdata['fans_medal']
-            #     mfo = f"【{fmedal['medal_name']}|{fmedal['medal_level']}】"
-            # wfo = ''
-            # try:
-            #     if json.loads(content)['data']['uinfo']['wealth']['level']:
-            #         wfo = f"[{json.loads(content)['data']['uinfo']['wealth']['level']}]"
-            # except:
-            #     pass
-            # print(f"{tfo}：\t{wfo}{mfo}{ufo}")
-            pass
-        elif json.loads(content)['cmd'] == "INTERACT_WORD_V2":
-            # 用户交互消息【加密】
-            contentdata = json.loads(content)['data']
-            pb = contentdata['pb']
-            print("INTERACT_WORD_V2", DanmuProtoDecoder().decode_interact_word_v2_protobuf(pb))
-            pass
-        elif json.loads(content)['cmd'] == "VOICE_JOIN_ROOM_COUNT_INFO":
-            # # ?语音加入房间计数信息
-            # contentdata = json.loads(content)['data']
-            # print("语音加入房间计数信息", contentdata)
-            pass
-        elif json.loads(content)['cmd'] == "VOICE_JOIN_LIST":
-            # # ?语音加入列表
-            # contentdata = json.loads(content)['data']
-            # print("语音加入列表", contentdata)
-            pass
-        elif json.loads(content)['cmd'] == "PREPARING":
-            # # 主播准备中 (PREPARING)
-            # contentdata = json.loads(content)
-            # print(contentdata)
-            pass
-        elif json.loads(content)['cmd'] == "LIKE_INFO_V3_CLICK":
-            # # 直播间用户点赞 (LIKE_INFO_V3_CLICK)
-            # contentdata = json.loads(content)['data']
-            # tfo = contentdata['like_text']
-            # ufo = contentdata['uname']
-            # mfo = ""
-            # if contentdata['fans_medal']:
-            #     fmedal = contentdata['fans_medal']
-            #     mfo = f"【{fmedal['medal_name']}|{fmedal['guard_level']}】"
-            # wfo = ''
-            # try:
-            #     if contentdata['uinfo']['wealth']['level']:
-            #         wfo = f"[{contentdata['uinfo']['wealth']['level']}]"
-            # except:
-            #     pass
-            # print(f"👍点赞：\t{wfo}{mfo}{ufo}\t{tfo}")
-            pass
-        elif json.loads(content)['cmd'] == "LIKE_INFO_V3_UPDATE":
-            # # 直播间点赞数更新 (LIKE_INFO_V3_UPDATE)
-            # contentdata = json.loads(content)['data']
-            # print(f"👍🔢点赞数：\t{contentdata['click_count']}")
-            pass
-        elif json.loads(content)['cmd'] == "ONLINE_RANK_COUNT":
-            # # 直播间高能用户数量 (ONLINE_RANK_COUNT)
-            # contentdata = json.loads(content)['data']
-            # print(f"🧑🔢高能用户数：\t{contentdata['count']}")
-            pass
-        elif json.loads(content)['cmd'] == "ONLINE_RANK_V2":
-            # # 直播间高能榜(ONLINE_RANK_V2)
-            # # 注: 直播间高能用户数据刷新
-            # contentdata = json.loads(content)['data']
-            # high_energy_users_in_the_live_streaming_room_list = contentdata["list"]
-            # """
-            # 在直播间高能用户中的用户信息
-            # """
-            # rank_type = contentdata["rank_type"]
-            # """
-            # 待调查
-            # """
-            # print(high_energy_users_in_the_live_streaming_room_list, rank_type)
-            pass
-        elif json.loads(content)['cmd'] == "ONLINE_RANK_V3":
-            # 直播间高能用户相关【加密】
-            contentdata = json.loads(content)['data']
-            pb = contentdata['pb']
-            print("ONLINE_RANK_V3", DanmuProtoDecoder().decode_online_rank_v3_protobuf(pb))
-            pass
-        elif json.loads(content)['cmd'] == "RANK_CHANGED":
-            # # 榜单排名
-            # contentdata = json.loads(content)['data']
-            # print("RANK_CHANGED", contentdata)
-            pass
-        elif json.loads(content)['cmd'] == "RANK_CHANGED_V2":
-            # # 榜单排名
-            # contentdata = json.loads(content)['data']
-            # print("RANK_CHANGED_V2", contentdata)
-            pass
-        elif json.loads(content)['cmd'] == "WATCHED_CHANGE":
-            # # 直播间看过人数 (WATCHED_CHANGE)
-            # # 注: 当前直播历史观众数量, 可替代人气
-            # contentdata = json.loads(content)['data']
-            # print(f"👀🔢直播间看过人数：\t{contentdata['num']}|\t{contentdata['text_large']}")
-            pass
-        elif json.loads(content)['cmd'] == "MESSAGEBOX_USER_GAIN_MEDAL":
-            # # 获得粉丝勋章 (MESSAGEBOX_USER_GAIN_MEDAL)
-            # # 获得时下发。
-            # contentdata = json.loads(content)['data']
-            # print(contentdata)
-            pass
-        elif json.loads(content)['cmd'] == "MESSAGEBOX_USER_MEDAL_CHANGE":
-            # # 粉丝勋章更新 (MESSAGEBOX_USER_MEDAL_CHANGE)
-            # # 升级或点亮时下发
-            # contentdata = json.loads(content)['data']
-            # print(contentdata)
-            pass
-        elif json.loads(content)['cmd'] == "STOP_LIVE_ROOM_LIST":
+        elif content['cmd'] == "WIDGET_GIFT_STAR_PROCESS":
+            contentdata = content['data']
+
+            # 基本信息
+            finished = "已完成" if contentdata['finished'] else "未完成"
+            ddl_time = contentdata['ddl_timestamp']
+
+            # 进度信息
+            progress_list = []
+            for process in contentdata['process_list']:
+                completed = process['completed_num']
+                target = process['target_num']
+                progress = f"{completed}/{target}"
+                progress_list.append(progress)
+
+            progress_str = "、".join(progress_list)
+
+            print(f'🌟礼物星球：进度[{progress_str}] 状态[{finished}] 截止{datetime.datetime.fromtimestamp(ddl_time)}')
+        elif content['cmd'] == "STOP_LIVE_ROOM_LIST":
             # # 下播的直播间 (STOP_LIVE_ROOM_LIST)
             # # 注: 估计是更新关注的主播直播状态的
-            # contentdata = json.loads(content)['data']
+            # contentdata = content['data']
             # stop_live_room_list = contentdata['room_id_list']
             # print(stop_live_room_list)
             pass
-        elif json.loads(content)['cmd'] == "NOTICE_MSG":
-            # # 通知消息
-            # contentdata = json.loads(content)
-            # print(contentdata)
-            pass
-        elif json.loads(content)['cmd'] == "LIKE_INFO_V3_NOTICE":
-            # # 通知消息
-            # contentdata = json.loads(content)['content_segments']['data']
-            # content_segments_font_color = contentdata['content_segments']['font_color']
-            # content_segments_text = contentdata['content_segments']['text']
-            # content_segments_type = contentdata['content_segments']['type']
-            # print(content_segments_font_color, content_segments_text, content_segments_type)
-            pass
-        elif json.loads(content)['cmd'] == "ENTRY_EFFECT":
-            # # 用户进场特效 (ENTRY_EFFECT)
-            # # 注: 有进场特效的用户进入直播间
-            # contentdata = json.loads(content)['data']
-            # print(contentdata)
-            pass
-        elif json.loads(content)['cmd'] == "ENTRY_EFFECT_MUST_RECEIVE":
-            # # 必须接受的用户进场特效 (ENTRY_EFFECT_MUST_RECEIVE)
-            # # 注: 在部分主播进入自己的直播间时下发。
-            # contentdata = json.loads(content)['data']
-            # print(contentdata)
-            pass
-        elif json.loads(content)['cmd'] == "ROOM_REAL_TIME_MESSAGE_UPDATE":
-            # # 主播信息更新 (ROOM_REAL_TIME_MESSAGE_UPDATE)
-            # contentdata = json.loads(content)['data']
-            # print(contentdata)
-            pass
-        elif json.loads(content)['cmd'] == "master_qn_strategy_chg":
-            # # ???
-            # contentdata = json.loads(content)['data']  # 字符串'{"mtime":1758875819,"scatter":[0,300]}'
-            # contentdata = json.loads(contentdata)
-            # mtime = contentdata["mtime"]
-            # """
-            # ?
-            # """
-            # scatter = contentdata["scatter"]
-            # """
-            # ?
-            # """
-            # print(mtime, scatter)
-            pass
-        elif json.loads(content)['cmd'] == "LIVE_ROOM_TOAST_MESSAGE":
-            # # ?视频连线
-            # contentdata = json.loads(content)['data']
-            # print(contentdata)
-            pass
         else:
-            # print("❌未收录：", json.loads(content)['cmd'])
-            # contentdata = json.loads(content)
-            # print(contentdata)
+            print("❌未收录：", content['cmd'])
+            contentdata = content
+            print(json.dumps(contentdata))
             pass
-    cdm.Callable_opt_code5 = a
+    cdm.Callable_opt_code5 = bullet_comment_processing
 
     try:
         cdm.start()

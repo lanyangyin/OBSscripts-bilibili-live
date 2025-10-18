@@ -53,10 +53,23 @@ from PIL import Image, ImageOps
 
 # import websockets
 
-sys.path.insert(0, f'{os.path.dirname(os.path.abspath(__file__))}\\bilibili-live')
+# 定义网络错误码
+NETWORK_CONNECTION_SUCCESS = 0
+"网络连接成功"
+NETWORK_DNS_FAILED = 1
+"DNS 连接失败"
+NETWORK_ALL_SERVICES_FAILED = 2
+"所有服务连接尝试失败"
+NETWORK_HTTP_FAILED = 3
+"HTTP 连接失败"
 
+# 定义错误码
+SSL_VERIFICATION_SUCCESS = 0
+SSL_CERTIFICATE_ERROR = 1
+SSL_NETWORK_ERROR = 2
+SSL_UNKNOWN_ERROR = 3
 
-script_version = "0.1.6"
+script_version = "0.2.6"
 """脚本版本"""
 
 # 全局变量
@@ -66,10 +79,10 @@ textBox_type_name4textBox_type = {
     obs.OBS_TEXT_INFO_ERROR: '错误信息'
 }
 """
-只读文本框的消息类型字典\n
-- obs.OBS_TEXT_INFO_NORMAL：'正常信息', 
-- obs.OBS_TEXT_INFO_WARNING：'警告信息', 
-- obs.OBS_TEXT_INFO_ERROR：'错误信息'
+只读文本框的消息类型字典
+    - obs.OBS_TEXT_INFO_NORMAL：'正常信息', 
+    - obs.OBS_TEXT_INFO_WARNING：'警告信息', 
+    - obs.OBS_TEXT_INFO_ERROR：'错误信息'
 """
 
 information4login_qr_return_code = {
@@ -79,11 +92,11 @@ information4login_qr_return_code = {
     86038: "二维码已失效",
 }
 """
-登陆二维码被调用后轮询函数返回值对应的含义\n
-- 0: "登录成功",
-- 86101: "未扫码",
-- 86090: "二维码已扫码未确认",
-- 86038: "二维码已失效",
+登陆二维码被调用后轮询函数返回值对应的含义
+    - 0: "登录成功",
+    - 86101: "未扫码",
+    - 86090: "二维码已扫码未确认",
+    - 86038: "二维码已失效",
 """
 
 information4frontend_event = {
@@ -1583,25 +1596,49 @@ class CommonTitlesManager:
         return json.dumps(self.data, ensure_ascii=False, indent=2)
 
 
-def check_network_connection():
-    """检查网络连接，通过多个服务提供者的链接验证"""
-    log_save(0, "======= 开始网络连接检查 =======")
+def check_network_connection() -> Dict[str, Union[Dict[str, Union[bool, list, float, str]], bool, str, int]]:
+    """
+    检查网络连接，通过多个服务提供者的链接验证
+
+    Returns:
+        dict: 包含以下键的字典:
+            - 'connected': bool, 网络是否连通
+            - 'code': int, 错误码 (0表示成功)
+            - 'data': dict, 包含详细信息如延迟、使用的服务等
+            - 'message': str, 描述性消息
+    """
+    result: Dict[str, Union[Dict[str, Union[bool, list, float, str]], bool, str, int]] = {
+        'connected': False,
+        'code': NETWORK_ALL_SERVICES_FAILED,
+        'data': {
+            'dns_checked': False,
+            'services_checked': [],
+            'successful_service': None,
+            'latency_ms': None
+        },
+        'message': '所有连接尝试均失败'
+    }
 
     # 1. 首先尝试快速DNS连接检查
-    log_save(0, "[步骤1] 尝试通过DNS连接检查网络 (8.8.8.8:53)...")
     try:
         start_time = time.time()
         socket.create_connection(("8.8.8.8", 53), timeout=2)
         elapsed = (time.time() - start_time) * 1000
-        log_save(0, f"🧩  DNS连接成功! 耗时: {elapsed:.2f}ms")
-        return True
+
+        result['connected'] = True
+        result['code'] = NETWORK_CONNECTION_SUCCESS
+        result['data']['dns_checked'] = True
+        result['data']['latency_ms'] = elapsed
+        result['data']['successful_service'] = 'DNS (8.8.8.8:53)'
+        result['message'] = f'DNS连接成功，延迟: {elapsed:.2f}ms'
+
+        return result
     except OSError as e:
-        log_save(1, f"⚠️ DNS连接失败: {str(e)}")
+        result['code'] = NETWORK_DNS_FAILED
+        result['message'] = f'DNS连接失败: {str(e)}'
+        # 继续尝试其他方法
 
     # 2. 尝试多个服务提供者的链接
-    log_save(0, "\n[步骤2] 开始尝试多个服务提供者的连接...")
-
-    # 定义测试URL及其提供商
     test_services = [
         {"url": "http://www.gstatic.com/generate_204", "provider": "Google"},
         {"url": "http://www.google-analytics.com/generate_204", "provider": "Google"},
@@ -1619,7 +1656,14 @@ def check_network_connection():
     for service in test_services:
         url = service["url"]
         provider = service["provider"]
-        log_save(0, f"\n- 尝试 {provider} 服务: {url}")
+
+        service_result = {
+            'provider': provider,
+            'url': url,
+            'success': False,
+            'error': None,
+            'status_code': None
+        }
 
         try:
             # 发送HEAD请求减少数据传输量
@@ -1630,33 +1674,70 @@ def check_network_connection():
 
                 # 检查响应状态
                 if response.status < 500:  # 排除服务器错误
-                    log_save(0, f"  🧩  连接成功! 状态码: {response.status} | 耗时: {elapsed:.2f}ms")
-                    return True
+                    result['connected'] = True
+                    result['code'] = NETWORK_CONNECTION_SUCCESS
+                    result['data']['successful_service'] = provider
+                    result['data']['latency_ms'] = elapsed
+                    result['message'] = f'通过 {provider} 服务连接成功，延迟: {elapsed:.2f}ms'
+
+                    service_result['success'] = True
+                    service_result['status_code'] = response.status
+                    result['data']['services_checked'].append(service_result)
+
+                    return result
                 else:
-                    log_save(1, f"  ⚠️ 服务器错误: 状态码 {response.status}")
+                    service_result['error'] = f'服务器错误: 状态码 {response.status}'
+                    service_result['status_code'] = response.status
         except TimeoutError:
-            log_save(1, "  ⏱️ 连接超时 (3秒)")
+            service_result['error'] = '连接超时 (3秒)'
         except ConnectionError:
-            log_save(1, "  🔌 连接错误 (网络问题)")
+            service_result['error'] = '连接错误 (网络问题)'
         except URLError as e:
-            log_save(1, f"  ❌ URL错误: {str(e.reason)}")
+            service_result['error'] = f'URL错误: {str(e.reason)}'
         except Exception as e:
-            log_save(1, f"  ⚠️ 未知错误: {str(e)}")
+            service_result['error'] = f'未知错误: {str(e)}'
+
+        result['data']['services_checked'].append(service_result)
 
     # 3. 最后尝试基本HTTP连接
-    log_save(1, "\n[步骤3] 尝试基本HTTP连接检查 (http://example.com)...")
+    http_result = {
+        'provider': 'example.com',
+        'url': 'http://example.com',
+        'success': False,
+        'error': None,
+        'status_code': None
+    }
+
     try:
         start_time = time.time()
-        urllib.request.urlopen("http://example.com", timeout=3)
+        response = urllib.request.urlopen("http://example.com", timeout=3)
         elapsed = (time.time() - start_time) * 1000
-        log_save(0, f"🧩  HTTP连接成功! 耗时: {elapsed:.2f}ms")
-        return True
+
+        result['connected'] = True
+        result['code'] = NETWORK_CONNECTION_SUCCESS
+        result['data']['successful_service'] = 'example.com'
+        result['data']['latency_ms'] = elapsed
+        result['message'] = f'HTTP连接成功! 耗时: {elapsed:.2f}ms'
+
+        http_result['success'] = True
+        http_result['status_code'] = response.status
+        result['data']['services_checked'].append(http_result)
+
+        return result
     except URLError as e:
-        log_save(3, f"❌ 所有连接尝试失败: {str(e)}")
-        return False
+        http_result['error'] = f'URL错误: {str(e.reason)}'
+        result['code'] = NETWORK_HTTP_FAILED
+        result['message'] = f'所有连接尝试失败: {str(e)}'
+    except Exception as e:
+        http_result['error'] = f'未知错误: {str(e)}'
+        result['code'] = NETWORK_HTTP_FAILED
+        result['message'] = f'所有连接尝试失败: {str(e)}'
+
+    result['data']['services_checked'].append(http_result)
+    return result
 
 
-def check_ssl_verification(test_url="https://api.bilibili.com", timeout=5):
+def check_ssl_verification(test_url="https://api.bilibili.com", timeout=5) -> Dict[str, Union[str, int, bool, Dict[str, Optional[str, int, bool]]]]:
     """
     检测 SSL 证书验证是否可用
 
@@ -1665,13 +1746,23 @@ def check_ssl_verification(test_url="https://api.bilibili.com", timeout=5):
     timeout (int): 测试请求的超时时间（秒）
 
     返回:
-    tuple: (verify_ssl: bool, warning: str)
-        verify_ssl: 是否启用 SSL 验证
-        warning: 警告信息（如果存在问题）
+    dict: 包含以下键的字典:
+        - 'success': bool, SSL 验证是否成功
+        - 'code': int, 错误码
+        - 'data': dict, 包含测试URL、响应状态码等详细信息
+        - 'message': str, 描述性消息
     """
-    # 默认启用 SSL 验证
-    verify_ssl = True
-    warning = "✅ "
+    result: Dict[str, Union[str, int, bool, Dict[str, Optional[str, int, bool]]]] = {
+        'success': True,
+        'code': SSL_VERIFICATION_SUCCESS,
+        'data': {
+            'test_url': test_url,
+            'timeout': timeout,
+            'status_code': None,
+            'ssl_verification_enabled': True
+        },
+        'message': 'SSL 证书验证正常'
+    }
 
     try:
         # 尝试使用 SSL 验证进行请求
@@ -1681,36 +1772,48 @@ def check_ssl_verification(test_url="https://api.bilibili.com", timeout=5):
             verify=True  # 强制启用验证
         )
 
+        # 记录响应状态码
+        result['data']['status_code'] = response.status_code
+
         # 检查响应状态
         if response.status_code >= 400:
-            warning = f"❌ 测试请求返回错误状态: {response.status_code}"
+            result['success'] = False
+            result['code'] = SSL_NETWORK_ERROR
+            result['message'] = f"测试请求返回错误状态: {response.status_code}"
 
     except SSLError as e:
         # 捕获 SSL 验证错误
-        verify_ssl = False
-        warning = f"❌ SSL 验证失败: {e}】已禁用 SSL 证书验证（可能存在安全风险）"
+        result['success'] = False
+        result['code'] = SSL_CERTIFICATE_ERROR
+        result['data']['ssl_verification_enabled'] = False
+        result['message'] = f"SSL 证书验证失败: {str(e)}"
 
         # 禁用 SSL 验证警告
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+        # 配置全局 SSL 上下文为不验证
+        try:
+            ssl._create_default_https_context = ssl._create_unverified_context
+            result['data']['ssl_context_modified'] = True
+        except Exception as context_error:
+            result['data']['ssl_context_modified'] = False
+            result['message'] += f"。配置全局 SSL 上下文失败: {str(context_error)}"
+
     except requests.exceptions.RequestException as e:
         # 其他网络错误
-        verify_ssl = False
-        warning = f"❌ 网络请求错误: {e}】已禁用 SSL 证书验证（可能存在安全风险）"
+        result['success'] = False
+        result['code'] = SSL_NETWORK_ERROR
+        result['data']['ssl_verification_enabled'] = False
+        result['message'] = f"网络请求错误: {str(e)}"
 
     except Exception as e:
         # 其他未知错误
-        verify_ssl = False
-        warning = f"❌ 未知错误: {e}】已禁用 SSL 证书验证（可能存在安全风险）"
+        result['success'] = False
+        result['code'] = SSL_UNKNOWN_ERROR
+        result['data']['ssl_verification_enabled'] = False
+        result['message'] = f"未知错误: {str(e)}"
 
-    # 如果验证失败，配置全局 SSL 上下文
-    if not verify_ssl:
-        try:
-            ssl._create_default_https_context = ssl._create_unverified_context
-        except Exception as e:
-            warning += f"】配置全局 SSL 上下文失败: {e}"
-
-    return verify_ssl, warning
+    return result
 
 
 def get_future_timestamp(days=0, hours=0, minutes=0):
@@ -3511,22 +3614,17 @@ def script_defaults(settings):  # 设置其默认值
         log_save(3, "⚾控件数量检测不通过：设定控件载入顺序时的控件数量 和 创建的控件对象数量 不统一")
         return None
     # 检查网络连接
-    GlobalVariableOfData.networkConnectionStatus = check_network_connection()
+    network_connection_info = check_network_connection()
+    GlobalVariableOfData.networkConnectionStatus = network_connection_info["connected"]
     if GlobalVariableOfData.networkConnectionStatus:
-        log_save(0, f"⭐检查网络连接: 网络可用⭐")
+        log_save(0, f"⭐检查网络连接: {network_connection_info['message']}⭐")
     else:
-        log_save(3, f"⚠️检查网络连接: 网络不可用❌")
+        log_save(3, f"⚠️检查网络连接: {network_connection_info['message']}❌{network_connection_info.get('error', '')}")
         return None
-    GlobalVariableOfData.sslVerification, ssl_warning = check_ssl_verification()
-    if not GlobalVariableOfData.sslVerification:
-        log_save(3, f"[SSL 警告] {ssl_warning}")
-    else:
-        log_save(0, f"[SSL 正常] {ssl_warning}")
-    # 调整控件数据
-    log_save(0, f"")
-    log_save(0, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
-    log_save(0, f"║设置路径变量")
-    log_save(0, f"║╔{4 * '═'}路径变量{4 * '═'}╗")
+    ssl_verification_info = check_ssl_verification()
+    GlobalVariableOfData.sslVerification = ssl_verification_info['success']
+    log_save(1, f"[SSL] {ssl_verification_info['message']}")
+    # 设置控件属性参数
     GlobalVariableOfData.scriptsDataDirpath = Path(f"{script_path()}bilibili-live")
     log_save(0, f"║║脚本用户数据文件夹路径：{GlobalVariableOfData.scriptsDataDirpath}")
     GlobalVariableOfData.scriptsUsersConfigFilepath = Path(GlobalVariableOfData.scriptsDataDirpath) / "config.json"
@@ -3540,8 +3638,7 @@ def script_defaults(settings):  # 设置其默认值
     GlobalVariableOfData.scriptsCacheDir = Path(GlobalVariableOfData.scriptsDataDirpath) / "cache"
     os.makedirs(GlobalVariableOfData.scriptsCacheDir, exist_ok=True)
     log_save(0, f"║║脚本缓存文件夹路径：{GlobalVariableOfData.scriptsCacheDir}")
-    log_save(0, f"║╚{4 * '═'}路径变量{4 * '═'}╝")
-    log_save(0, f"║╔{6*'═'}设置控件前准备（获取数据）{6*'═'}╗")
+
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
     b_a_m = BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies()), GlobalVariableOfData.sslVerification) if b_u_l_c.get_cookies() else None
     b_a_g = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification)
@@ -4003,58 +4100,67 @@ def script_description():
     调用以检索要在“脚本”窗口中显示给用户的描述字符串。
     """
     if not GlobalVariableOfData.networkConnectionStatus:
-        return "<font color=yellow>网络不可用</font>"
-    if not widget.verification_number_controls:
-        return "<font color=yellow>控件构建错误</font>"
-    t = f"""
+        failure_t = "网络不可用"
+    elif not widget.verification_number_controls:
+        failure_t = "控件构建错误"
+    else:
+        failure_t = ""
+    if failure_t:
+        return f"""
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>OBS脚本使用提示</title>
+</head>
+<body style="margin:0; padding:12px; background-color:#2b2b2b; color:#e0e0e0; font-family:'Microsoft YaHei', sans-serif; display:flex; justify-content:center; align-items:center; height:100vh;">
+<div style="display:flex; align-items:center; background-color:rgba(255,193,7,0.1); border:1px solid rgba(255,193,7,0.3); padding:12px 20px; max-width:300px;">
+    <div style="font-size:20px; color:#ffc107; margin-right:12px;">⚠</div>
+    <div style="color:#ffc107; font-weight:600; font-size:16px;">网络不可用</div>
+</div>
+</body>
+</html>
+"""
+    else:
+        return f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
 </head>
 <body style="margin:0; padding:12px; background-color:#2b2b2b; color:#e0e0e0; font-family:'Microsoft YaHei', sans-serif;">
 <div style="background-color:#3a3a3a; border:1px solid #555; border-radius:8px; padding:16px; max-width:100%;">
-
     <h1 style="color:#ffd700; font-size:18px; margin:0 0 8px 0; text-align:center; padding-bottom:8px; border-bottom:1px solid #555; border-radius:0;">
         脚本使用提示</h1>
-
     <!-- 版本信息 -->
     <div style="text-align:center; margin-bottom:12px; color:#a0a0a0; font-size:14px;">
         bilibili_live_Anchor脚本版本：{script_version}
     </div>
-
     <div style="background-color:rgba(255,215,0,0.1); border:1px solid rgba(255,215,0,0.3); border-radius:5px; padding:8px 12px; margin-bottom:12px;">
         <p style="color:#ffd700; margin:0; display:flex; align-items:center;">
             <span style="margin-right:8px;">⚠</span>
             {os.getcwd()}
         </p>
     </div>
-
     <div style="margin-bottom:12px;">
         <div style="display:flex; align-items:center; margin-bottom:8px; padding:6px;">
             <span style="margin-right:8px;">⟳</span>
             <span>点击<span style="color:#4cd964; font-weight:bold;">重新载入脚本</span>按钮更新脚本</span>
         </div>
-
         <div style="background-color:rgba(238,67,67,0.1); border:1px solid rgba(238,67,67,0.3); border-radius:5px; padding:8px 12px; margin:12px 0; display:flex; align-items:center;">
             <span style="margin-right:8px;">ⓘ</span>
             <span>请使用<strong style="color:#ee4343;">管理员权限</strong>运行OBS</span>
         </div>
     </div>
-
     <div style="text-align:center; margin-top:16px;">
         <a href="https://github.com/lanyangyin/OBSscripts-bilibili-live/issues"
            style="display:inline-block; padding:6px 12px; margin:0 4px; background-color:#333; color:#e0e0e0; text-decoration:none; border-radius:4px; border:1px solid #444;">GitHub问题反馈</a>
         <a href="https://message.bilibili.com/#/whisper/mid143474500"
            style="display:inline-block; padding:6px 12px; margin:0 4px; background-color:#4a4a4a; color:#e0e0e0; text-decoration:none; border-radius:4px; border:1px solid #666;">B站私信提问</a>
     </div>
-
 </div>
 </body>
 </html>
     """
-    return t
 
 
 # --- 一个名为script_load的函数将在启动时调用
@@ -4097,7 +4203,7 @@ def script_properties():  # 建立控件
     obs_properties_t 类型的属性对象。这个属性对象通常用于枚举 libobs 对象的可用设置，
     """
     log_save(0, f"")
-    log_save(0, f"╔{'═' * 20}构造控件体开始{'═' * 20}╗")
+    log_save(0, f"╔{'═' * 20}构造控件体 开始{'═' * 20}╗")
     # 网络连通
     if not GlobalVariableOfData.networkConnectionStatus:
         return None
@@ -4161,7 +4267,7 @@ def script_properties():  # 建立控件
             obs.obs_property_set_modified_callback(w.Obj, lambda ps, p, st, name=w.Name: property_modified(name))
     # 更新UI界面数据#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
     update_ui_interface_data(is_script_properties=True)
-    log_save(0, f"╚{'═' * 20}构造控件体结束{'═' * 20}╝")
+    log_save(0, f"╚{'═' * 20}构造控件体 结束{'═' * 20}╝")
     log_save(0, f"")
     return props
 

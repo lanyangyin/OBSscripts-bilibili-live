@@ -39,6 +39,8 @@ check_ssl_verification 函数是一个专业的 SSL/TLS 证书验证检测工具
             - 描述 SSL 验证状态或错误信息的可读消息
 """
 import ssl
+from typing import Dict, Union, Optional
+
 import urllib3
 import requests
 from requests.exceptions import SSLError
@@ -50,7 +52,7 @@ SSL_NETWORK_ERROR = 2
 SSL_UNKNOWN_ERROR = 3
 
 
-def check_ssl_verification(test_url="https://api.bilibili.com", timeout=5):
+def check_ssl_verification(test_url="https://api.bilibili.com", timeout=5) -> Dict[str, Union[str, int, bool, Dict[str, Optional[str, int, bool]]]]:
     """
     检测 SSL 证书验证是否可用
 
@@ -65,7 +67,7 @@ def check_ssl_verification(test_url="https://api.bilibili.com", timeout=5):
         - 'data': dict, 包含测试URL、响应状态码等详细信息
         - 'message': str, 描述性消息
     """
-    result = {
+    result: Dict[str, Union[str, int, bool, Dict[str, Optional[str, int, bool]]]] = {
         'success': True,
         'code': SSL_VERIFICATION_SUCCESS,
         'data': {

@@ -42,10 +42,11 @@ check_network_connection 函数是一个专业的网络连通性检测工具，�
 """
 import socket
 import urllib.request
+from typing import Dict, Union
 from urllib.error import URLError
 import time
 
-# 定义错误码
+# 定义网络错误码
 NETWORK_CONNECTION_SUCCESS = 0
 "网络连接成功"
 NETWORK_DNS_FAILED = 1
@@ -56,7 +57,7 @@ NETWORK_HTTP_FAILED = 3
 "HTTP 连接失败"
 
 
-def check_network_connection():
+def check_network_connection() -> Dict[str, Union[Dict[str, Union[bool, list, float, str]], bool, str, int]]:
     """
     检查网络连接，通过多个服务提供者的链接验证
 
@@ -67,7 +68,7 @@ def check_network_connection():
             - 'data': dict, 包含详细信息如延迟、使用的服务等
             - 'message': str, 描述性消息
     """
-    result = {
+    result: Dict[str, Union[Dict[str, Union[bool, list, float, str]], bool, str, int]] = {
         'connected': False,
         'code': NETWORK_ALL_SERVICES_FAILED,
         'data': {
@@ -199,5 +200,5 @@ def check_network_connection():
 
 if __name__ == "__main__":
     # 测试网络连接
-    result = check_network_connection()
-    print(result)
+    result_d = check_network_connection()
+    print(result_d)

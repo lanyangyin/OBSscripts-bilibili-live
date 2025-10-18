@@ -52,6 +52,7 @@ import pyperclip as cb
 from PIL import Image, ImageOps
 
 # import websockets
+sys.path.insert(0, f'{os.path.dirname(os.path.abspath(__file__))}\\bilibili-live')
 
 
 script_version = "0.1.6"

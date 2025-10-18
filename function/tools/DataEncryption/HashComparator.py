@@ -1,7 +1,7 @@
 import hashlib
 import base64
 import hmac
-from typing import Union, Optional, Dict, Any
+from typing import Optional, Dict, Any
 from enum import Enum
 
 
@@ -241,11 +241,12 @@ class HashComparator:
 
 # 使用示例和测试
 if __name__ == "__main__":
+    from _Input.DataEncryption import HashComparator as HashComparator_c
     # 创建哈希比较器实例
     comparator = HashComparator(HashAlgorithm.SHA256)
 
     # 基本使用示例
-    text = "Hello, World!"
+    text = HashComparator_c.text
     hashed = comparator.hash_string(text)
     print(f"原始文本: {text}")
     print(f"哈希值: {hashed}")
