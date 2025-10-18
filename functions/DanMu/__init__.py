@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 import json
+import struct
 import threading
 import time
 import zlib
@@ -118,7 +119,24 @@ class Danmu:
                 # 等待认证响应
                 try:
                     auth_response = await asyncio.wait_for(ws.recv(), timeout=10)
-                    print(f"认证成功，连接已建立{auth_response}")
+                    print(f"认证成功，连接已建立")
+                    # 解析头部 (16字节)
+                    package_len = struct.unpack('>I', auth_response[0:4])[0]  # 包总长度
+                    head_length = struct.unpack('>H', auth_response[4:6])[0]  # 头部长度
+                    prot_ver = struct.unpack('>H', auth_response[6:8])[0]  # 协议版本
+                    opt_code = struct.unpack('>I', auth_response[8:12])[0]  # 操作码
+                    sequence = struct.unpack('>I', auth_response[12:16])[0]  # 序列号
+
+                    # 解析正文
+                    content_bytes = auth_response[16:package_len]
+                    content_str = content_bytes.decode('utf-8')
+
+                    print(f"包总长度: {package_len} 字节")
+                    print(f"头部长度: {head_length} 字节")
+                    print(f"协议版本: {prot_ver}")
+                    print(f"操作码: {opt_code} (8 = 认证回复)")
+                    print(f"序列号: {sequence}")
+                    print(f"正文内容: {content_str}")
                     # 启动心跳任务
                     asyncio.create_task(self.send_heartbeat(ws))
                 except asyncio.TimeoutError:
@@ -214,6 +232,7 @@ class Danmu:
                 self.saved_danmu_data.add(content)
             else:
                 self.saved_danmu_data = set()
+                self.saved_danmu_data.add(content)
 
             if len(byte_buffer) > package_len:
                 self.unpack(byte_buffer[package_len:])
