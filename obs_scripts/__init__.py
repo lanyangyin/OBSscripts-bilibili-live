@@ -31,8 +31,7 @@ from typing import Literal, Any, Union, Dict, List, Optional, Iterator, Callable
 try:
     import obspython as obs
 except ImportError:
-    class obs:
-        setting = {}
+    class ObsFrontendEvent:
         OBS_FRONTEND_EVENT_THEME_CHANGED = 39
         OBS_FRONTEND_EVENT_SCREENSHOT_TAKEN = 40
         OBS_FRONTEND_EVENT_TBAR_VALUE_CHANGED = None
@@ -71,13 +70,15 @@ except ImportError:
         OBS_FRONTEND_EVENT_RECORDING_STARTED = None
         OBS_FRONTEND_EVENT_RECORDING_STARTING = None
         OBS_FRONTEND_EVENT_STREAMING_STOPPED = None
+        OBS_FRONTEND_EVENT_STREAMING_STOPPING = None
+        OBS_FRONTEND_EVENT_STREAMING_STARTED = None
+        OBS_FRONTEND_EVENT_STREAMING_STARTING = None
+    class obs(ObsFrontendEvent):
+        setting = {}
         LOG_ERROR = None
         LOG_WARNING = None
         LOG_DEBUG = None
         LOG_INFO = None
-        OBS_FRONTEND_EVENT_STREAMING_STOPPING = None
-        OBS_FRONTEND_EVENT_STREAMING_STARTED = None
-        OBS_FRONTEND_EVENT_STREAMING_STARTING = None
 
         @classmethod
         def script_log(cls, LOG_INFO, param):
