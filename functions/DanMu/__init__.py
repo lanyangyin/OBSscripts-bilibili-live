@@ -75,44 +75,53 @@ class Danmu:
             """排除相同弹幕"""
             self.num_r = 20
             """同时连接多个弹幕减少丢包"""
+            self.connection_threads = []  # 新增：管理所有连接线程
+            self.running = False  # 新增：运行状态标志
 
         async def connect(self):
             retry_count = 0
             max_retries = 5
-            base_delay = 3  # 基础重连延迟秒数
+            base_delay = 3
             self.danmu_working_event.set()
 
-            while self.danmu_working_event.is_set() and retry_count < max_retries:
+            # 使用 running 标志而不是只依赖事件
+            while self.running and self.danmu_working_event.is_set() and retry_count < max_retries:
                 try:
                     async with websockets.connect(
                             self.url,
-                            ping_interval=20,  # 添加ping间隔
-                            ping_timeout=10,  # ping超时时间
-                            close_timeout=10  # 关闭超时时间
+                            ping_interval=20,
+                            ping_timeout=10,
+                            close_timeout=10
                     ) as ws:
                         await self.on_open(ws)
-                        retry_count = 0  # 重置重试计数
+                        retry_count = 0
 
-                        while self.danmu_working_event.is_set():
+                        while self.running and self.danmu_working_event.is_set():
                             try:
-                                message = await asyncio.wait_for(ws.recv(), timeout=40)
+                                # 使用较短的超时时间，以便更频繁地检查停止信号
+                                message = await asyncio.wait_for(ws.recv(), timeout=10.0)
                                 await self.on_message(message)
                             except asyncio.TimeoutError:
-                                # 发送心跳检测连接是否还活着
+                                # 检查是否应该停止
+                                if not self.running:
+                                    break
                                 try:
                                     await ws.send(self.pack(None, 2))
-                                except Exception as e:
+                                except Exception:
                                     break
-                            except websockets.exceptions.ConnectionClosed as e:
+                            except websockets.exceptions.ConnectionClosed:
                                 break
 
                 except Exception as e:
+                    if not self.running:  # 如果是主动停止，立即退出
+                        break
                     retry_count += 1
-                    delay = base_delay * (2 ** retry_count)  # 指数退避
-                    await asyncio.sleep(delay)
-
-            if retry_count >= max_retries:
-                pass
+                    delay = base_delay * (2 ** retry_count)
+                    # 在等待期间也检查停止信号
+                    for _ in range(int(delay * 10)):
+                        if not self.running:
+                            break
+                        await asyncio.sleep(0.1)
 
         async def on_open(self, ws):
             """
@@ -158,15 +167,15 @@ class Danmu:
                 raise
 
         async def send_heartbeat(self, ws):
-            """
-            发送心跳
-            Args:
-                ws: wss 对象
-            """
-            while self.danmu_working_event.is_set():
+            """发送心跳"""
+            while self.running and self.danmu_working_event.is_set():
                 try:
                     await ws.send(self.pack(None, 2))
-                    await asyncio.sleep(self.HEARTBEAT_INTERVAL)
+                    # 使用更短的心跳间隔检查停止信号
+                    for _ in range(30):  # 30 * 0.1 = 3秒
+                        if not self.running:
+                            return
+                        await asyncio.sleep(0.1)
                 except websockets.exceptions.ConnectionClosed:
                     break
                 except Exception as e:
@@ -239,9 +248,11 @@ class Danmu:
             # print(f"头部长度: {head_length} 字节")
             if prot_ver == self.VERSION_NORMAL:
                 pass
-            elif prot_ver == self.VERSION_ZIP:  # 协议版本为普通包 (正文使用 zlib 压缩)时，解压后重新解压
+            elif prot_ver == self.VERSION_ZIP:
                 content_bytes = zlib.decompress(content_bytes)
-                threading.Thread(self.unpack(content_bytes)).start()
+                thread = threading.Thread(target=self.unpack, args=(content_bytes,))
+                thread.daemon = True  # 设置为守护线程
+                thread.start()
                 return
             elif prot_ver == self.VERSION_BTI:
                 pass
@@ -265,36 +276,64 @@ class Danmu:
                 elif content_dict['cmd'] == "ONLINE_RANK_V3":
                     content_dict['data'] = DanmuProtoDecoder().decode_online_rank_v3_protobuf(
                         content_dict['data']['pb'])
-                threading.Thread(self.Callable_opt_code5(content_dict)).start()
+                thread = threading.Thread(target=self.Callable_opt_code5, args=(content_dict,))
+                thread.daemon = True
+                thread.start()
                 pass
             elif opt_code == 8:  # AUTH_REPLY
                 self.Callable_opt_code8(content)
                 pass
 
             if len(byte_buffer) > package_len:
-                threading.Thread(self.unpack(byte_buffer[package_len:])).start()
-
-        def stop(self):
-            """优雅停止连接"""
-            self.danmu_working_event.clear()
+                thread = threading.Thread(target=self.unpack, args=(byte_buffer[package_len:],))
+                thread.daemon = True
+                thread.start()
 
         def start(self):
             try:
-                def c():
+                self.running = True  # 设置运行状态
+                self.connection_threads.clear()  # 清空线程列表
+
+                def connection_task():
                     asyncio.run(self.connect())
 
                 for i in range(self.num_r):
-                    threading.Thread(target=c).start()
+                    thread = threading.Thread(target=connection_task, name=f"DanmuConn-{i}")
+                    thread.daemon = True  # 设置为守护线程
+                    self.connection_threads.append(thread)
+                    thread.start()
                     time.sleep(1)
+
             except KeyboardInterrupt:
                 self.stop()
             except Exception as e:
                 self.stop()
 
+        def stop(self):
+            """优雅停止连接"""
+            self.running = False  # 设置停止标志
+            self.danmu_working_event.clear()  # 清除事件
+
+            # 等待所有线程结束，设置超时时间
+            for thread in self.connection_threads:
+                if thread.is_alive():
+                    thread.join(timeout=2.0)  # 最多等待2秒
+
 
 if __name__ == "__main__":
     from _Input.functions.DanMu import Danmu as Dm
+    import signal
+    import sys
 
+
+    # 在 main 部分添加
+    def signal_handler(signum, frame):
+        print("\n正在停止弹幕连接...")
+        cdm.stop()
+        sys.exit(0)
+
+
+    signal.signal(signal.SIGINT, signal_handler)
     BULC = BilibiliUserConfigManager(Path('../../cookies/config.json'))
     cookies = BULC.get_user_cookies()['data']
     Headers = {
@@ -305,6 +344,7 @@ if __name__ == "__main__":
 
     dm = Danmu(Headers)
     cdm = dm.connect_room(Dm.room_id)
+    cdm.num_r = 30
 
 
     def reply_with_a_callback_after_verification(auth_response: bytes):
