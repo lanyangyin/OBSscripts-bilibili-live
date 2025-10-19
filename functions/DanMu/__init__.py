@@ -48,8 +48,7 @@ class Danmu:
         return self._WebSocketClient(wss_url, auth_body)
 
     class _WebSocketClient:
-        danmu_start_is = True
-        danmu_working_is = True
+        danmu_working_event = threading.Event()
         HEARTBEAT_INTERVAL = 30
         VERSION_NORMAL = 0
         VERSION_ZIP = 2
@@ -58,9 +57,9 @@ class Danmu:
             self.url = url
             self.auth_body = auth_body
             self.Callable_opt_code8: Callable[[str], None] = lambda a: a
-            """认证包回复"""
+            """认证包回复的回调函数"""
             self.Callable_opt_code5: Callable[[Dict[str, Any]], None] = lambda a: a
-            """普通包 (命令)"""
+            """普通包 (命令)的回调函数"""
             # pprint.pprint(auth_body)
             self.saved_danmu_data = set()
             """排除相同弹幕"""
@@ -71,8 +70,9 @@ class Danmu:
             retry_count = 0
             max_retries = 5
             base_delay = 3  # 基础重连延迟秒数
+            self.danmu_working_event.set()
 
-            while self.danmu_start_is and retry_count < max_retries:
+            while self.danmu_working_event.is_set() and retry_count < max_retries:
                 try:
                     async with websockets.connect(
                             self.url,
@@ -83,8 +83,7 @@ class Danmu:
                         await self.on_open(ws)
                         retry_count = 0  # 重置重试计数
 
-                        while self.danmu_start_is:
-                            self.danmu_working_is = True
+                        while self.danmu_working_event.is_set():
                             try:
                                 message = await asyncio.wait_for(ws.recv(), timeout=40)
                                 await self.on_message(message)
@@ -108,7 +107,6 @@ class Danmu:
 
             if retry_count >= max_retries:
                 print("达到最大重试次数，停止连接")
-            self.danmu_working_is = False
 
         async def on_open(self, ws):
             try:
@@ -149,7 +147,7 @@ class Danmu:
                 raise
 
         async def send_heartbeat(self, ws):
-            while self.danmu_start_is and self.danmu_working_is:
+            while self.danmu_working_event.is_set():
                 try:
                     await ws.send(self.pack(None, 2))
                     await asyncio.sleep(self.HEARTBEAT_INTERVAL)
@@ -207,12 +205,16 @@ class Danmu:
 
             content_bytes = byte_buffer[16:package_len]
 
+            # print(f"头部长度: {head_length} 字节")
+
             if prot_ver == self.VERSION_ZIP:
                 content_bytes = zlib.decompress(content_bytes)
                 self.unpack(content_bytes)
                 return
             if prot_ver == 3:
                 pass
+
+            # print(f"序列号: {sequence}")
 
             content = content_bytes.decode('utf-8')
             now_saved_danmu_data_len = len(self.saved_danmu_data)
@@ -240,9 +242,8 @@ class Danmu:
 
         def stop(self):
             """优雅停止连接"""
-            self.danmu_start_is = False
-            self.danmu_working_is = False
-            print("正在停止弹幕客户端...")
+            print("🚨正在停止弹幕客户端...")
+            self.danmu_working_event.clear()
 
         def start(self):
             try:
@@ -849,7 +850,9 @@ if __name__ == "__main__":
     cdm.Callable_opt_code5 = danmu_processing
 
     try:
-        cdm.start()
+        threading.Thread(target=cdm.start).start()
+        while True:
+            pass
     except KeyboardInterrupt:
         print("程序被用户中断")
         cdm.stop()
