@@ -1,10 +1,12 @@
 import asyncio
 import datetime
+import hashlib
 import json
 import struct
 import threading
 import time
 import zlib
+from collections import deque
 from collections.abc import Callable
 from pathlib import Path
 from typing import Optional, Union, Dict, Any
@@ -16,6 +18,7 @@ from function.tools.EncodingConversion.DanmuProtoDecoder import DanmuProtoDecode
 from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
 
 import websockets
+
 
 class Danmu:
 
@@ -48,20 +51,27 @@ class Danmu:
         return self._WebSocketClient(wss_url, auth_body)
 
     class _WebSocketClient:
-        danmu_working_event = threading.Event()
         HEARTBEAT_INTERVAL = 30
+        """心跳间隔"""
         VERSION_NORMAL = 0
+        """协议版本:0: 普通包 (正文不使用压缩)"""
         VERSION_ZIP = 2
+        """协议版本:2: 普通包 (正文使用 zlib 压缩)"""
+        VERSION_BTI = 3
+        """协议版本:3: 普通包 (使用 brotli 压缩的多个带文件头的普通包)"""
 
         def __init__(self, url: str, auth_body: dict[str, Union[str, int]]):
+            self.danmu_working_event = threading.Event()
             self.url = url
             self.auth_body = auth_body
             self.Callable_opt_code8: Callable[[str], None] = lambda a: a
-            """认证包回复的回调函数"""
+            """接收认证包回复的回调函数"""
             self.Callable_opt_code5: Callable[[Dict[str, Any]], None] = lambda a: a
-            """普通包 (命令)的回调函数"""
-            # pprint.pprint(auth_body)
-            self.saved_danmu_data = set()
+            """接收普通包 (命令)的回调函数"""
+            self.wssCertificationAndHeartbeat: Callable[[bytes], None] = lambda a: a
+            """发送认证包接收时的回调函数"""
+            self.saved_danmu_data = deque(maxlen=1000)  # 固定大小队列
+            self.message_hashes = set()  # 使用哈希去重
             """排除相同弹幕"""
             self.num_r = 20
             """同时连接多个弹幕减少丢包"""
@@ -88,74 +98,78 @@ class Danmu:
                                 message = await asyncio.wait_for(ws.recv(), timeout=40)
                                 await self.on_message(message)
                             except asyncio.TimeoutError:
-                                print("接收消息超时，发送心跳检测...")
                                 # 发送心跳检测连接是否还活着
                                 try:
                                     await ws.send(self.pack(None, 2))
-                                except:
+                                except Exception as e:
                                     break
                             except websockets.exceptions.ConnectionClosed as e:
-                                print(f"连接关闭: {e}")
                                 break
 
                 except Exception as e:
                     retry_count += 1
                     delay = base_delay * (2 ** retry_count)  # 指数退避
-                    print(f"连接失败，{delay}秒后重试... (尝试 {retry_count}/{max_retries})")
-                    print(f"错误详情: {e}")
                     await asyncio.sleep(delay)
 
             if retry_count >= max_retries:
-                print("达到最大重试次数，停止连接")
+                pass
 
         async def on_open(self, ws):
+            """
+            wss 认证和心跳
+            Args:
+                ws: wss 对象
+            """
             try:
-                print("正在连接到弹幕服务器...")
                 # 先发送认证包
-                auth_data = self.pack(self.auth_body, 7)
-                await ws.send(auth_data)
+                await ws.send(self.pack(self.auth_body, 7))
 
                 # 等待认证响应
                 try:
-                    auth_response = await asyncio.wait_for(ws.recv(), timeout=10)
-                    print(f"认证成功，连接已建立")
-                    # 解析头部 (16 字节)
-                    package_len = struct.unpack('>I', auth_response[0:4])[0]  # 包总长度
-                    head_length = struct.unpack('>H', auth_response[4:6])[0]  # 头部长度
-                    prot_ver = struct.unpack('>H', auth_response[6:8])[0]  # 协议版本
-                    opt_code = struct.unpack('>I', auth_response[8:12])[0]  # 操作码
-                    sequence = struct.unpack('>I', auth_response[12:16])[0]  # 序列号
-
-                    # 解析正文
-                    content_bytes = auth_response[16:package_len]
-                    content_str = content_bytes.decode('utf-8')
-
-                    print(f"包总长度: {package_len} 字节")
-                    print(f"头部长度: {head_length} 字节")
-                    print(f"协议版本: {prot_ver}")
-                    print(f"操作码: {opt_code} (8 = 认证回复)")
-                    print(f"序列号: {sequence}")
-                    print(f"正文内容: {content_str}")
+                    auth_response: bytes = await asyncio.wait_for(ws.recv(), timeout=10)
+                    """
+                    16 字节 认证回复
+                        [0:4]包总长度
+                            (头部大小 + 正文大小)
+                        [4:6]头部长度
+                            (一般为 0x0010, 即 16 字节)
+                        [6:8]协议版本
+                            - 0: 普通包 (正文不使用压缩)
+                            - 1: 心跳及认证包 (正文不使用压缩)
+                            - 2: 普通包 (正文使用 zlib 压缩)
+                            - 3: 普通包 (使用 brotli 压缩的多个带文件头的普通包)
+                        [8:12]操作码
+                            - 2	心跳包
+                            - 3	心跳包回复 (人气值)
+                            - 5	普通包 (命令)
+                            - 7	认证包
+                            - 8	认证包回复
+                        [12:16]序列号
+                        
+                        [16:]正文内容
+                    """
+                    threading.Thread(self.wssCertificationAndHeartbeat(auth_response))
                     # 启动心跳任务
                     asyncio.create_task(self.send_heartbeat(ws))
                 except asyncio.TimeoutError:
-                    print("认证响应超时")
                     raise
 
             except Exception as e:
-                print(f"连接初始化失败: {e}")
                 raise
 
         async def send_heartbeat(self, ws):
+            """
+            发送心跳
+            Args:
+                ws: wss 对象
+            """
             while self.danmu_working_event.is_set():
                 try:
                     await ws.send(self.pack(None, 2))
                     await asyncio.sleep(self.HEARTBEAT_INTERVAL)
                 except websockets.exceptions.ConnectionClosed:
-                    print("心跳发送失败，连接已关闭")
                     break
                 except Exception as e:
-                    print(f"心跳发送异常: {e}")
                     break
 
         async def on_message(self, message):
@@ -163,6 +177,23 @@ class Danmu:
                 threading.Thread(self.unpack(message)).start()
 
         def pack(self, content: Optional[dict], code: int) -> bytes:
+            """
+            wss 消息打包
+            Args:
+                content: 消息内容
+                code:
+                    操作码 (封包类型)
+
+                        - 2	心跳包
+                        - 3	心跳包回复 (人气值)
+                        - 5	普通包 (命令)
+                        - 7	认证包
+                        - 8	认证包回复
+
+
+            Returns:打包后待发送的 wss 消息
+
+            """
             content_bytes = json.dumps(content).encode('utf-8') if content else b''
             header = (len(content_bytes) + 16).to_bytes(4, 'big') + \
                      (16).to_bytes(2, 'big') + \
@@ -206,57 +237,58 @@ class Danmu:
             content_bytes = byte_buffer[16:package_len]
 
             # print(f"头部长度: {head_length} 字节")
-
-            if prot_ver == self.VERSION_ZIP:
+            if prot_ver == self.VERSION_NORMAL:
+                pass
+            elif prot_ver == self.VERSION_ZIP:  # 协议版本为普通包 (正文使用 zlib 压缩)时，解压后重新解压
                 content_bytes = zlib.decompress(content_bytes)
-                self.unpack(content_bytes)
+                threading.Thread(self.unpack(content_bytes)).start()
                 return
-            if prot_ver == 3:
+            elif prot_ver == self.VERSION_BTI:
                 pass
 
             # print(f"序列号: {sequence}")
 
             content = content_bytes.decode('utf-8')
-            now_saved_danmu_data_len = len(self.saved_danmu_data)
-            self.saved_danmu_data.add(content)
-            if now_saved_danmu_data_len != len(self.saved_danmu_data):
-                if opt_code == 8:  # AUTH_REPLY
-                    self.Callable_opt_code8(content)
-                    pass
-                elif opt_code == 5:  # SEND_SMS_REPLY
-                    content_dict: dict = json.loads(content)
-                    if content_dict['cmd'] == "INTERACT_WORD_V2":
-                        content_dict['data'] = DanmuProtoDecoder().decode_interact_word_v2_protobuf(content_dict['data']['pb'])
-                    elif content_dict['cmd'] == "ONLINE_RANK_V3":
-                        content_dict['data'] = DanmuProtoDecoder().decode_online_rank_v3_protobuf(content_dict['data']['pb'])
-                    self.Callable_opt_code5(content_dict)
-                    pass
-            if len(self.saved_danmu_data) < 100:
-                self.saved_danmu_data.add(content)
-            else:
-                self.saved_danmu_data = set()
-                self.saved_danmu_data.add(content)
+            content_hash = hashlib.md5(content.encode()).hexdigest()
+            if content_hash in self.message_hashes:
+                return  # 快速去重
+
+            self.message_hashes.add(content_hash)
+            if len(self.message_hashes) > 10000:  # 定期清理
+                self.message_hashes.clear()
+
+            if opt_code == 5:  # SEND_SMS_REPLY
+                content_dict: dict = json.loads(content)
+                if content_dict['cmd'] == "INTERACT_WORD_V2":
+                    content_dict['data'] = DanmuProtoDecoder().decode_interact_word_v2_protobuf(
+                        content_dict['data']['pb'])
+                elif content_dict['cmd'] == "ONLINE_RANK_V3":
+                    content_dict['data'] = DanmuProtoDecoder().decode_online_rank_v3_protobuf(
+                        content_dict['data']['pb'])
+                threading.Thread(self.Callable_opt_code5(content_dict)).start()
+                pass
+            elif opt_code == 8:  # AUTH_REPLY
+                self.Callable_opt_code8(content)
+                pass
 
             if len(byte_buffer) > package_len:
-                self.unpack(byte_buffer[package_len:])
+                threading.Thread(self.unpack(byte_buffer[package_len:])).start()
 
         def stop(self):
             """优雅停止连接"""
-            print("🚨正在停止弹幕客户端...")
             self.danmu_working_event.clear()
 
         def start(self):
             try:
                 def c():
                     asyncio.run(self.connect())
+
                 for i in range(self.num_r):
                     threading.Thread(target=c).start()
                     time.sleep(1)
             except KeyboardInterrupt:
-                print("用户中断程序")
                 self.stop()
             except Exception as e:
-                print(f"程序运行异常: {e}")
                 self.stop()
 
 
@@ -273,9 +305,61 @@ if __name__ == "__main__":
 
     dm = Danmu(Headers)
     cdm = dm.connect_room(Dm.room_id)
+
+
+    def reply_with_a_callback_after_verification(auth_response: bytes):
+        """
+
+        Args:
+            auth_response:
+                16 字节 认证回复
+
+                    [0:4]包总长度
+                        (头部大小 + 正文大小)
+                    [4:6]头部长度
+                        (一般为 0x0010, 即 16 字节)
+                    [6:8]协议版本
+                        - 0: 普通包 (正文不使用压缩)
+                        - 1: 心跳及认证包 (正文不使用压缩)
+                        - 2: 普通包 (正文使用 zlib 压缩)
+                        - 3: 普通包 (使用 brotli 压缩的多个带文件头的普通包)
+                    [8:12]操作码
+                        - 2	心跳包
+                        - 3	心跳包回复 (人气值)
+                        - 5	普通包 (命令)
+                        - 7	认证包
+                        - 8	认证包回复
+                    [12:16]序列号
+
+                    [16:]正文内容
+        Returns:
+
+        """
+        print(f"认证成功，连接已建立")
+        # 解析头部 (16 字节)
+        package_len = struct.unpack('>I', auth_response[0:4])[0]  # 包总长度
+        head_length = struct.unpack('>H', auth_response[4:6])[0]  # 头部长度
+        prot_ver = struct.unpack('>H', auth_response[6:8])[0]  # 协议版本
+        opt_code = struct.unpack('>I', auth_response[8:12])[0]  # 操作码
+        sequence = struct.unpack('>I', auth_response[12:16])[0]  # 序列号
+
+        # 解析正文
+        content_bytes: bytes = auth_response[16:package_len]  # 正文
+        content_str = content_bytes.decode('utf-8')
+
+        print(f"包总长度: {package_len} 字节\t头部长度: {head_length} 字节\t协议版本: {prot_ver}\t操作码: {opt_code} (8 = 认证回复)\t序列号: {sequence}\t正文内容: {content_str}\t")
+
+
+    cdm.wssCertificationAndHeartbeat = reply_with_a_callback_after_verification
+
+
     def authentication_package_reply_processing(content: str):
         print(f"身份验证回复: {content}\n")
+
+
     cdm.Callable_opt_code8 = authentication_package_reply_processing
+
+
     def danmu_processing(content: dict):
         print()
         if content['cmd'] == "LIVE":
@@ -847,6 +931,8 @@ if __name__ == "__main__":
             contentdata = content
             print(json.dumps(contentdata))
             pass
+
+
     cdm.Callable_opt_code5 = danmu_processing
 
     try:
