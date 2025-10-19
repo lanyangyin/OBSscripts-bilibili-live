@@ -7,7 +7,7 @@ import time
 import zlib
 from collections.abc import Callable
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Union, Dict, Any
 from function.api.Authentication.Wbi.get_danmu_info import WbiSigna
 from function.api.Special.Get.get_user_live_info import BilibiliCSRFAuthenticator
 from function.tools.EncodingConversion.parse_cookie import parse_cookie
@@ -57,9 +57,9 @@ class Danmu:
         def __init__(self, url: str, auth_body: dict[str, Union[str, int]]):
             self.url = url
             self.auth_body = auth_body
-            self.Callable_opt_code8: Callable = lambda a: a
+            self.Callable_opt_code8: Callable[[str], None] = lambda a: a
             """认证包回复"""
-            self.Callable_opt_code5: Callable = lambda a: a
+            self.Callable_opt_code5: Callable[[Dict[str, Any]], None] = lambda a: a
             """普通包 (命令)"""
             # pprint.pprint(auth_body)
             self.saved_danmu_data = set()
@@ -121,7 +121,7 @@ class Danmu:
                 try:
                     auth_response = await asyncio.wait_for(ws.recv(), timeout=10)
                     print(f"认证成功，连接已建立")
-                    # 解析头部 (16字节)
+                    # 解析头部 (16 字节)
                     package_len = struct.unpack('>I', auth_response[0:4])[0]  # 包总长度
                     head_length = struct.unpack('>H', auth_response[4:6])[0]  # 头部长度
                     prot_ver = struct.unpack('>H', auth_response[6:8])[0]  # 协议版本
@@ -272,8 +272,10 @@ if __name__ == "__main__":
 
     dm = Danmu(Headers)
     cdm = dm.connect_room(Dm.room_id)
-    cdm.Callable_opt_code8 = lambda a = "": print(f"身份验证回复: {a}\n")
-    def bullet_comment_processing(content: dict):
+    def authentication_package_reply_processing(content: str):
+        print(f"身份验证回复: {content}\n")
+    cdm.Callable_opt_code8 = authentication_package_reply_processing
+    def danmu_processing(content: dict):
         print()
         if content['cmd'] == "LIVE":
             # 直播开始 (LIVE)
@@ -437,10 +439,10 @@ if __name__ == "__main__":
             pass
         elif content['cmd'] == "LIKE_INFO_V3_NOTICE":
             # # 通知消息
-            # contentdata = content['content_segments']['data']
-            # content_segments_font_color = contentdata['content_segments']['font_color']
-            # content_segments_text = contentdata['content_segments']['text']
-            # content_segments_type = contentdata['content_segments']['type']
+            # contentdata = content['content_segments'] ['data']
+            # content_segments_font_color = contentdata['content_segments'] ['font_color']
+            # content_segments_text = contentdata['content_segments'] ['text']
+            # content_segments_type = contentdata['content_segments'] ['type']
             # print(content_segments_font_color, content_segments_text, content_segments_type)
             pass
         elif content['cmd'] == "LIKE_INFO_V3_UPDATE":
@@ -759,6 +761,38 @@ if __name__ == "__main__":
                 mfo = f"【{medal_info['medal_name']}|{medal_info['medal_level']}】"
 
             print(f'💬🗾醒目留言：{mfo}{uname}({uid}) {price}元 {duration}秒 "{message}"')
+        elif content['cmd'] == "USER_TOAST_MSG":
+            contentdata = content['data']
+
+            # 用户信息
+            username = contentdata['username']
+            uid = contentdata['uid']
+            guard_level = contentdata['guard_level']
+            role_name = contentdata['role_name']
+            price = contentdata['price'] / 1000  # 转换为元
+            unit = contentdata['unit']
+
+            # 格式化大航海等级显示
+            guard_map = {1: "总督", 2: "提督", 3: "舰长"}
+            guard_name = guard_map.get(guard_level, f"未知({guard_level})")
+
+            print(f'🚢大航海：{username}({uid}) 开通{guard_name} {price}元/{unit}')
+        elif content['cmd'] == "USER_TOAST_MSG_V2":
+            contentdata = content['data']
+
+            # 用户信息
+            username = contentdata['sender_uinfo']['base']['name']
+            uid = contentdata['sender_uinfo']['uid']
+            guard_level = contentdata['guard_info']['guard_level']
+            role_name = contentdata['guard_info']['role_name']
+            price = contentdata['pay_info']['price'] / 1000  # 转换为元
+            unit = contentdata['pay_info']['unit']
+
+            # 格式化大航海等级显示
+            guard_map = {1: "总督", 2: "提督", 3: "舰长"}
+            guard_name = guard_map.get(guard_level, f"未知({guard_level})")
+
+            print(f'🚢大航海：{username}({uid}) 开通{guard_name} {price}元/{unit}')
         elif content['cmd'] == "VOICE_JOIN_LIST":
             # # ?语音加入列表
             # contentdata = content['data']
@@ -812,7 +846,7 @@ if __name__ == "__main__":
             contentdata = content
             print(json.dumps(contentdata))
             pass
-    cdm.Callable_opt_code5 = bullet_comment_processing
+    cdm.Callable_opt_code5 = danmu_processing
 
     try:
         cdm.start()
