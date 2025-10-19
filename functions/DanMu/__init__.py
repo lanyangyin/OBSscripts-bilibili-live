@@ -53,7 +53,6 @@ class Danmu:
         HEARTBEAT_INTERVAL = 30
         VERSION_NORMAL = 0
         VERSION_ZIP = 2
-        num_r = 20
 
         def __init__(self, url: str, auth_body: dict[str, Union[str, int]]):
             self.url = url
@@ -65,6 +64,8 @@ class Danmu:
             # pprint.pprint(auth_body)
             self.saved_danmu_data = set()
             """排除相同弹幕"""
+            self.num_r = 20
+            """同时连接多个弹幕减少丢包"""
 
         async def connect(self):
             retry_count = 0
@@ -360,6 +361,14 @@ if __name__ == "__main__":
             tfo = f"🚢上舰：\t{contentdata['username']}\t购买{contentdata['num']}个\t【{contentdata['gift_name']}】"
             print(f"{tfo}")
             pass
+        elif content['cmd'] == "HOT_ROOM_NOTIFY":
+            contentdata = content['data']
+            tfo = ""
+            if contentdata["exit_no_refresh"]:
+                tfo += f"退出不刷新"
+            else:
+                tfo += f"退出刷新"
+            print(f"{tfo}")
         elif content['cmd'] == "INTERACT_WORD":
             # # 用户交互消息(INTERACT_WORD)
             # # 注: 有用户进入直播间、关注主播、分享直播间时触发
@@ -708,6 +717,48 @@ if __name__ == "__main__":
                 tfo += f"{contentdata['action']}{contentdata['num']}个《{contentdata['giftName']}》"
             print(f'🎁礼物：\t{wfo}{mfo}{ufo}\t{tfo}')
             pass
+        elif content['cmd'] == "SUPER_CHAT_MESSAGE":
+            contentdata = content['data']
+
+            # 用户信息
+            uname = contentdata['user_info']['uname']
+            uid = contentdata['uid']
+            price = contentdata['price']
+            message = contentdata['message']
+            duration = contentdata['time']
+
+            # 粉丝牌信息
+            medal_info = contentdata['medal_info']
+            mfo = ""
+            if medal_info['medal_name']:
+                mfo = f"【{medal_info['medal_name']}|{medal_info['medal_level']}】"
+
+            print(f'💬醒目留言：{mfo}{uname}({uid}) {price}元 {duration}秒 "{message}"')
+        elif content['cmd'] == "SUPER_CHAT_MESSAGE_DELETE":
+            contentdata = content['data']
+
+            # 删除的SC ID列表
+            ids = contentdata['ids']
+            ids_str = "、".join(str(sc_id) for sc_id in ids)
+
+            print(f'🗑️醒目留言删除：SC[{ids_str}]')
+        elif content['cmd'] == "SUPER_CHAT_MESSAGE_JPN":
+            contentdata = content['data']
+
+            # 用户信息
+            uname = contentdata['user_info']['uname']
+            uid = contentdata['uid']
+            price = contentdata['price']
+            message = contentdata['message']
+            duration = contentdata['time']
+
+            # 粉丝牌信息
+            medal_info = contentdata['medal_info']
+            mfo = ""
+            if medal_info['medal_name']:
+                mfo = f"【{medal_info['medal_name']}|{medal_info['medal_level']}】"
+
+            print(f'💬🗾醒目留言：{mfo}{uname}({uid}) {price}元 {duration}秒 "{message}"')
         elif content['cmd'] == "VOICE_JOIN_LIST":
             # # ?语音加入列表
             # contentdata = content['data']
