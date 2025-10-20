@@ -85,23 +85,23 @@ except ImportError:
 class ControlBase:
     """控件基类"""
     ControlType: str = "Base"
-    """控件的基本类型"""
+    """📵控件的基本类型"""
     Obj: Any = None
-    """控件的obs对象"""
+    """📵控件的obs对象"""
     Props: Union[str, Any] = None
-    """控件属于哪个属性集"""
+    """📵控件属于哪个属性集"""
     Number: int = 0
-    """控件的加载顺序数"""
+    """📵控件的加载顺序数"""
     Name: str = ""
-    """控件的唯一名"""
+    """📵控件的唯一名"""
     Description: str = ""
-    """控件显示给用户的信息"""
+    """📵控件显示给用户的信息"""
     Visible: bool = False
     """控件的可见状态"""
     Enabled: bool = False
     """控件的可用状态"""
     ModifiedIs: bool = False
-    """控件变动是否触发钩子函数"""
+    """📵控件变动是否触发钩子函数"""
 
 
 class Widget:
@@ -175,7 +175,7 @@ class Widget:
         class DigitalDisplayP(ControlBase):
             """数字框控件实例"""
             ControlType: str = "DigitalDisplay"
-            SliderIs: bool = False
+            Type: Literal["ThereIsASlider", "NoSlider"] = ""
             Value: int = 0
             Suffix: str = ""
             Min: int = 0
@@ -183,7 +183,7 @@ class Widget:
             Step: int = 0
 
             def __repr__(self) -> str:
-                type_name = "滑块数字框" if self.SliderIs else "普通数字框"
+                type_name = "滑块数字框" if self.Type == "ThereIsASlider" else "普通数字框"
                 return f"<DigitalDisplayP Name='{self.Name}' Number={self.Number} Type='{type_name}' Min={self.Min} Max={self.Max}>"
 
         def __init__(self):
@@ -449,7 +449,9 @@ class Widget:
         class PathBoxP(ControlBase):
             """路径对话框控件实例"""
             ControlType: str = "PathBox"
+            """📵分组框的控件类型为 PathBox"""
             Type: Optional[int] = None  # 路径对话框类型
+            """📵分组框的类型 """
             Text: str = ""
             Filter: str = ""  # 文件种类（筛选条件）
             StartPath: str = ""  # 对话框起始路径
@@ -519,9 +521,9 @@ class Widget:
         class GroupP(ControlBase):
             """分组框控件实例（独立控件）"""
             ControlType: str = "Group"
-            """分组框的控件类型为 Group"""
+            """📵分组框的控件类型为 Group"""
             Type: Optional[int] = None  # 分组框类型
-            """分组框的类型为 """
+            """📵分组框的类型 """
             GroupProps: Any = None  # 统辖属性集
 
             def __repr__(self) -> str:
@@ -725,7 +727,9 @@ class Widget:
                     log_save(0, f"      添加{name}")
                     obj = getattr(widget_types_controls, name)
                     obj.Name = self.widget_dict_all[basic_types_controls][Ps][name]["Name"]
+                    obj.Type = self.widget_dict_all[basic_types_controls][Ps][name]["Type"]
                     obj.Number = self.widget_list.index(obj.Name)
+                    obj.ModifiedIs = self.widget_dict_all[basic_types_controls][Ps][name]["ModifiedIs"]
                     obj.Description = self.widget_dict_all[basic_types_controls][Ps][name]["Description"]
                     obj.Props = Ps
 
@@ -745,132 +749,200 @@ if __name__ == "__main__":
             "top": {
                 "Name": "top_button",
                 "Description": "Top",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": True
+            },
+            "startScript": {
+                "Name": "start_script_button",
+                "Description": "启动脚本",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "bottom": {
                 "Name": "bottom_button",
-                "Description": "Bottom",
+                "Description": obs.OBS_BUTTON_DEFAULT,
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": True
             },
         },
         "account_props": {
             "login": {
                 "Name": "login_button",
                 "Description": "登录账号",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "accountListUpdate": {
                 "Name": "account_list_update_button",
                 "Description": "更新账号列表",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "qrAddAccount": {
                 "Name": "qr_add_account_button",
                 "Description": "二维码添加账户",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "qrPictureDisplay": {
                 "Name": "qr_picture_display_button",
                 "Description": "显示二维码图片",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "accountDelete": {
                 "Name": "account_delete_button",
                 "Description": "删除账户",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "accountBackup": {
                 "Name": "account_backup_button",
                 "Description": "备份账户",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "accountRestore": {
                 "Name": "account_restore_button",
                 "Description": "恢复账户",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "logout": {
                 "Name": "logout_button",
                 "Description": "登出账号",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
         },
         "room_props": {
             "roomOpened": {
                 "Name": "room_opened_button",
                 "Description": "开通直播间",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "roomCoverView": {
                 "Name": "room_cover_view_button",
                 "Description": "查看直播间封面",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "roomCoverUpdate": {
                 "Name": "room_cover_update_button",
                 "Description": "上传直播间封面",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "roomCommonTitlesTrue": {
                 "Name": "room_commonTitles_true_button",
                 "Description": "确认标题",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "roomTitleChange": {
                 "Name": "room_title_change_button",
                 "Description": "更改直播间标题",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "roomNewsChange": {
                 "Name": "room_news_change_button",
                 "Description": "更改直播间公告",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "roomCommonAreasTrue": {
                 "Name": "room_commonAreas_true_button",
                 "Description": "确认分区",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "roomParentAreaTrue": {
                 "Name": "room_parentArea_true_button",
                 "Description": "确认一级分区",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "roomSubAreaTrue": {
                 "Name": "room_subArea_true_button",
                 "Description": "「确认分区」",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "bliveWebJump": {
                 "Name": "blive_web_jump_button",
                 "Description": "跳转直播间后台网页",
+                "Type": obs.OBS_BUTTON_URL,
+                "ModifiedIs": False
             },
         },
         "live_props": {
             "liveFaceAuth": {
                 "Name": "live_face_auth_button",
                 "Description": "人脸认证",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "liveStart": {
                 "Name": "live_start_button",
                 "Description": "开始直播并复制推流码",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "liveRtmpAddressCopy": {
                 "Name": "live_rtmp_address_copy_button",
                 "Description": "复制直播服务器",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "liveRtmpCodeCopy": {
                 "Name": "live_rtmp_code_copy_button",
                 "Description": "复制直播推流码",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "liveRtmpCodeUpdate": {
                 "Name": "live_rtmp_code_update_button",
                 "Description": "更新推流码并复制",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "liveStop": {
                 "Name": "live_stop_button",
                 "Description": "结束直播",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "liveBookingsDayTrue": {
                 "Name": "live_bookings_day_true_button",
                 "Description": "确认预约天",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "liveBookingsHourTrue": {
                 "Name": "live_bookings_hour_true_button",
                 "Description": "确认预约时",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "liveBookingsMinuteTrue": {
                 "Name": "live_bookings_minute_true_button",
                 "Description": "确认预约分",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "liveBookingsCreate": {
                 "Name": "live_bookings_create_button",
                 "Description": "发布直播预约",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
             "liveBookingsCancel": {
                 "Name": "live_bookings_cancel_button",
                 "Description": "取消直播预约",
+                "Type": obs.OBS_BUTTON_DEFAULT,
+                "ModifiedIs": False
             },
         },
     }
@@ -880,14 +952,20 @@ if __name__ == "__main__":
             "account": {
                 "Name": "account_group",
                 "Description": "账号",
+                "Type": obs.OBS_GROUP_NORMAL,
+                "ModifiedIs": False
             },
             "room": {
                 "Name": "room_group",
                 "Description": "直播间",
+                "Type": obs.OBS_GROUP_NORMAL,
+                "ModifiedIs": False
             },
             "live": {
                 "Name": "live_group",
                 "Description": "直播",
+                "Type": obs.OBS_GROUP_NORMAL,
+                "ModifiedIs": False
             },
         },
     }
@@ -897,26 +975,36 @@ if __name__ == "__main__":
             "loginStatus": {
                 "Name": "login_status_textBox",
                 "Description": "登录状态",
+                "Type": obs.OBS_TEXT_INFO,
+                "ModifiedIs": True
             },
         },
         "room_props": {
             "roomStatus": {
                 "Name": "room_status_textBox",
                 "Description": "查看直播间封面",
+                "Type": obs.OBS_TEXT_INFO,
+                "ModifiedIs": False
             },
             "roomTitle": {
                 "Name": "room_title_textBox",
                 "Description": "直播间标题",
+                "Type": obs.OBS_TEXT_DEFAULT,
+                "ModifiedIs": True
             },
             "roomNews": {
                 "Name": "room_news_textBox",
                 "Description": "直播间公告",
+                "Type": obs.OBS_TEXT_DEFAULT,
+                "ModifiedIs": True
             },
         },
         "live_props": {
             "liveBookingsTitle": {
                 "Name": "live_bookings_title_textBox",
                 "Description": "直播预约标题",
+                "Type": obs.OBS_TEXT_DEFAULT,
+                "ModifiedIs": True
             },
         },
     }
@@ -926,34 +1014,48 @@ if __name__ == "__main__":
             "uid": {
                 "Name": "uid_comboBox",
                 "Description": "用户",
+                "Type": obs.OBS_COMBO_TYPE_LIST,
+                "ModifiedIs": True
             },
         },
         "room_props": {
             "roomCommonTitles": {
                 "Name": "room_commonTitles_comboBox",
                 "Description": "常用标题",
+                "Type": obs.OBS_COMBO_TYPE_EDITABLE,
+                "ModifiedIs": True
             },
             "roomCommonAreas": {
                 "Name": "room_commonAreas_comboBox",
                 "Description": "常用分区",
+                "Type": obs.OBS_COMBO_TYPE_LIST,
+                "ModifiedIs": True
             },
             "roomParentArea": {
                 "Name": "room_parentArea_comboBox",
                 "Description": "一级分区",
+                "Type": obs.OBS_COMBO_TYPE_LIST,
+                "ModifiedIs": True
             },
             "roomSubArea": {
                 "Name": "room_subArea_comboBox",
                 "Description": "二级分区",
+                "Type": obs.OBS_COMBO_TYPE_LIST,
+                "ModifiedIs": True
             },
         },
         "live_props": {
             "liveStreamingPlatform": {
                 "Name": "live_streaming_platform_comboBox",
                 "Description": "直播平台",
+                "Type": obs.OBS_COMBO_TYPE_LIST,
+                "ModifiedIs": True
             },
             "liveBookings": {
                 "Name": "live_bookings_comboBox",
                 "Description": "直播预约列表",
+                "Type": obs.OBS_COMBO_TYPE_LIST,
+                "ModifiedIs": True
             },
         },
     }
@@ -963,6 +1065,8 @@ if __name__ == "__main__":
             "roomCover": {
                 "Name": "room_cover_fileDialogBox",
                 "Description": "直播间封面",
+                "Type": obs.OBS_PATH_FILE,
+                "ModifiedIs": False
             },
         },
     }
@@ -972,14 +1076,20 @@ if __name__ == "__main__":
             "liveBookingsDay": {
                 "Name": "live_bookings_day_digitalSlider",
                 "Description": "预约天",
+                "Type": "ThereIsASlider",
+                "ModifiedIs": True
             },
             "liveBookingsHour": {
                 "Name": "live_bookings_hour_digitalSlider",
                 "Description": "预约时",
+                "Type": "ThereIsASlider",
+                "ModifiedIs": True
             },
             "liveBookingsMinute": {
                 "Name": "live_bookings_minute_digitalSlider",
                 "Description": "预约分",
+                "Type": "ThereIsASlider",
+                "ModifiedIs": True
             },
         },
     }
@@ -989,12 +1099,15 @@ if __name__ == "__main__":
             "liveBookingsDynamic": {
                 "Name": "live_bookings_dynamic_checkBox",
                 "Description": "是否发直播预约动态",
+                "Type": None,
+                "ModifiedIs": True
             },
         },
     }
 
     widget.widget_list = [
         "top_button",
+        "start_script_button",
         "account_group",
         "login_status_textBox",
         "uid_comboBox",
