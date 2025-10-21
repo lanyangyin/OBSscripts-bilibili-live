@@ -3058,6 +3058,8 @@ class Widget:
             """
             GroupProps: Any = None  # 统辖属性集
             """📵分组框的自身控件属性集"""
+            Bool: Any = False
+            """带复选框的分组框的选中状态"""
 
             def __repr__(self) -> str:
                 type_name = "未知类分组框"
@@ -3940,7 +3942,7 @@ def script_properties():  # 建立控件
     return props
 
 
-def update_ui_interface_data() -> bool:
+def update_ui_interface_data():
     """
     更新UI界面数据
     Returns:
@@ -3950,6 +3952,7 @@ def update_ui_interface_data() -> bool:
             obs.obs_property_set_visible(w.Obj, w.Visible)
         if obs.obs_property_enabled(w.Obj) != w.Enabled:
             obs.obs_property_set_enabled(w.Obj, w.Enabled)
+
         if w.ControlType == "CheckBox":
             if obs.obs_data_get_bool(GlobalVariableOfData.script_settings, w.Name) != w.Bool:
                 obs.obs_data_set_bool(GlobalVariableOfData.script_settings, w.Name, w.Bool)
@@ -3988,7 +3991,10 @@ def update_ui_interface_data() -> bool:
             if obs.obs_data_get_string(GlobalVariableOfData.script_settings, w.Name) != w.Text:
                 obs.obs_data_set_string(GlobalVariableOfData.script_settings, w.Name, w.Text)
         elif w.ControlType == "Group":
-            pass
+            if w.Type == obs.OBS_GROUP_CHECKABLE:
+                if obs.obs_data_get_bool(GlobalVariableOfData.script_settings, w.Name) != w.Bool:
+                    obs.obs_data_set_bool(GlobalVariableOfData.script_settings, w.Name, w.Bool)
+                pass
     return True
 
 
