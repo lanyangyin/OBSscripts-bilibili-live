@@ -92,28 +92,44 @@ def log_save(log_level, log_str: str) -> None:
     GlobalVariableOfData.logRecording += log_text + "\n"
 
 
-class NetworkErrorCode:
-    """定义网络错误码"""
-    NETWORK_CONNECTION_SUCCESS: int = 0
-    "网络连接成功"
-    NETWORK_DNS_FAILED: int = 1
-    "DNS 连接失败"
-    NETWORK_ALL_SERVICES_FAILED: int = 2
-    "所有服务连接尝试失败"
-    NETWORK_HTTP_FAILED: int = 3
-    "HTTP 连接失败"
+class GlobalVariableOfData:
+    script_loading_is: bool = False
+    """是否正式加载脚本"""
+    widget_loading_number: int = 0
+    """控件加载顺序"""
+    isScript_propertiesIs: bool = False  # Script_properties()被调用
+    """是否允许Script_properties()被调用"""
+    streaming_active: bool = None  # OBS推流状态
+    """OBS推流状态"""
+    script_settings: bool = None  # #脚本的所有设定属性集
+    """脚本的所有设定属性集"""
 
+    logRecording: str = ""  # #日志记录的文本
+    """日志记录的文本"""
+    networkConnectionStatus: bool = False  # #网络连接状态
+    """网络连接状态"""
+    sslVerification: bool = True
+    """SSL验证"""
 
-class SslErrorCode:
-    """定义ssl错误码"""
-    SSL_VERIFICATION_SUCCESS: int = 0
-    """SSL验证成功"""
-    SSL_CERTIFICATE_ERROR: int = 1
-    """SSL证书错误"""
-    SSL_NETWORK_ERROR: int = 2
-    """SSL网络错误"""
-    SSL_UNKNOWN_ERROR: int = 3
-    """SSL未知错误"""
+    # 文件配置类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    scriptsDataDirpath: Optional[Path] = None  # #脚本所在目录，末尾带/
+    """脚本所在目录，末尾带/"""
+    scriptsUsersConfigFilepath: Optional[Path] = None  # #用户配置文件路径
+    """用户配置文件路径"""
+    scriptsTempDir: Optional[Path] = None  # #临时文件文件夹
+    """临时文件文件夹"""
+    scriptsLogDir: Optional[Path] = None  # #日志文件文件夹
+    """日志文件文件夹"""
+    scriptsCacheDir: Optional[Path] = None  # #缓存文件文件夹
+    """缓存文件文件夹"""
+
+    # 用户类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    loginQrCode_key: str = None  # ##登陆二维码密钥
+    """登陆二维码密钥"""
+    loginQrCodeReturn: Optional[dict[str, Union[dict[str, str], int]]] = None  # ##登陆二维码返回数据
+    """登陆二维码返回数据"""
+    loginQRCodePillowImg = None  # ##登录二维码的pillow_img实例
+    """登录二维码的pillow_img实例"""
 
 
 class ExplanatoryDictionary:
@@ -209,44 +225,28 @@ class ExplanatoryDictionary:
     """obs日志警告等级 说明字典"""
 
 
-class GlobalVariableOfData:
-    script_loading_is: bool = False
-    """是否正式加载脚本"""
-    widget_loading_number: int = 0
-    """控件加载顺序"""
-    isScript_propertiesIs: bool = False  # Script_properties()被调用
-    """是否允许Script_properties()被调用"""
-    streaming_active: bool = None  # OBS推流状态
-    """OBS推流状态"""
-    script_settings: bool = None  # #脚本的所有设定属性集
-    """脚本的所有设定属性集"""
+class NetworkErrorCode:
+    """定义网络错误码"""
+    NETWORK_CONNECTION_SUCCESS: int = 0
+    "网络连接成功"
+    NETWORK_DNS_FAILED: int = 1
+    "DNS 连接失败"
+    NETWORK_ALL_SERVICES_FAILED: int = 2
+    "所有服务连接尝试失败"
+    NETWORK_HTTP_FAILED: int = 3
+    "HTTP 连接失败"
 
-    logRecording: str = ""  # #日志记录的文本
-    """日志记录的文本"""
-    networkConnectionStatus: bool = False  # #网络连接状态
-    """网络连接状态"""
-    sslVerification: bool = True
-    """SSL验证"""
 
-    # 文件配置类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    scriptsDataDirpath: Optional[Path] = None  # #脚本所在目录，末尾带/
-    """脚本所在目录，末尾带/"""
-    scriptsUsersConfigFilepath: Optional[Path] = None  # #用户配置文件路径
-    """用户配置文件路径"""
-    scriptsTempDir: Optional[Path] = None  # #临时文件文件夹
-    """临时文件文件夹"""
-    scriptsLogDir: Optional[Path] = None  # #日志文件文件夹
-    """日志文件文件夹"""
-    scriptsCacheDir: Optional[Path] = None  # #缓存文件文件夹
-    """缓存文件文件夹"""
-
-    # 用户类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    loginQrCode_key: str = None  # ##登陆二维码密钥
-    """登陆二维码密钥"""
-    loginQrCodeReturn: Optional[dict[str, Union[dict[str, str], int]]] = None  # ##登陆二维码返回数据
-    """登陆二维码返回数据"""
-    loginQRCodePillowImg = None  # ##登录二维码的pillow_img实例
-    """登录二维码的pillow_img实例"""
+class SslErrorCode:
+    """定义ssl错误码"""
+    SSL_VERIFICATION_SUCCESS: int = 0
+    """SSL验证成功"""
+    SSL_CERTIFICATE_ERROR: int = 1
+    """SSL证书错误"""
+    SSL_NETWORK_ERROR: int = 2
+    """SSL网络错误"""
+    SSL_UNKNOWN_ERROR: int = 3
+    """SSL未知错误"""
 
 
 @dataclass
