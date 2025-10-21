@@ -31,6 +31,17 @@ from typing import Literal, Any, Union, Dict, List, Optional, Iterator, Callable
 try:
     import obspython as obs
 except ImportError:
+    class ButtonType:
+        OBS_BUTTON_DEFAULT = 0
+        OBS_BUTTON_URL = 1
+
+
+    class ObsTextInfo:
+        OBS_TEXT_INFO_NORMAL = 0
+        OBS_TEXT_INFO_WARNING = 0
+        OBS_TEXT_INFO_ERROR = 0
+
+
     class ObsFrontendEvent:
         OBS_FRONTEND_EVENT_THEME_CHANGED = 39
         OBS_FRONTEND_EVENT_SCREENSHOT_TAKEN = 40
@@ -76,22 +87,43 @@ except ImportError:
 
 
     class ObsLog:
-        LOG_ERROR = None
-        LOG_WARNING = None
-        LOG_DEBUG = None
-        LOG_INFO = None
+        LOG_ERROR = f"{Path(__file__)}".split("\\")[-1]
+        LOG_WARNING = f"{Path(__file__)}".split("\\")[-1]
+        LOG_DEBUG = f"{Path(__file__)}".split("\\")[-1]
+        LOG_INFO = f"{Path(__file__)}".split("\\")[-1]
 
 
-    class obs(ObsFrontendEvent, ObsLog):
+    class AddControl:
+        @staticmethod
+        def obs_properties_add_button(props, name, text, callback):
+            pass
+
+
+    class ControlType:
+        @staticmethod
+        def obs_property_button_set_type(p, type) -> None:
+            r"""
+            obs_property_button_set_type(p, type)
+
+            Parameters
+            ----------
+            p: obs_property_t *
+            type: enum enum obs_button_type
+
+            """
+            pass
+
+
+    class obs(ObsFrontendEvent, ObsLog, ObsTextInfo, ButtonType, AddControl, ControlType):
         setting = {}
 
-        @classmethod
-        def script_log(cls, LOG_INFO, param):
+        @staticmethod
+        def script_log(LOG_INFO, param):
             print(LOG_INFO, param)
             return None
 
-        @classmethod
-        def obs_frontend_add_event_callback(cls, callback, *private_data):
+        @staticmethod
+        def obs_frontend_add_event_callback(callback, *private_data):
             """
             添加一个回调函数，该回调函数将在发生前端事件时调用。请参阅obs_frontend_event，了解可以触发哪些类型的事件。
 
@@ -147,8 +179,8 @@ except ImportError:
             """
             return None
 
-        @classmethod
-        def obs_frontend_remove_event_callback(cls, callback, *private_data):
+        @staticmethod
+        def obs_frontend_remove_event_callback(callback, *private_data):
             """
             以下是 OBS 前端事件的主要类型（完整列表见 obs-frontend-api.h）：
             事件常量	值	说明
@@ -174,10 +206,63 @@ except ImportError:
             """
             return None
 
-        @classmethod
-        def obs_properties_create(cls):
+        @staticmethod
+        def obs_properties_create():
             return False
 
+        @staticmethod
+        def obs_property_set_modified_callback(p, modified) -> None:
+            return None
+
+        @staticmethod
+        def obs_property_enabled(p) -> bool:
+            r"""
+            obs_property_enabled(p) -> bool
+
+            Parameters
+            ----------
+            p: obs_property_t *
+
+            """
+            return True
+
+        @staticmethod
+        def obs_property_visible(p) -> bool:
+            r"""
+            obs_property_visible(p) -> bool
+
+            Parameters
+            ----------
+            p: obs_property_t *
+
+            """
+            return True
+
+        @staticmethod
+        def obs_property_set_visible(p, visible: bool) -> None:
+            r"""
+            obs_property_set_visible(p, visible)
+
+            Parameters
+            ----------
+            p: obs_property_t *
+            visible: bool
+
+            """
+            return None
+
+        @staticmethod
+        def obs_property_set_enabled(p, enabled: bool) -> None:
+            r"""
+            obs_property_set_enabled(p, enabled)
+
+            Parameters
+            ----------
+            p: obs_property_t *
+            enabled: bool
+
+            """
+            return None
 
     def script_path():
         """
@@ -872,7 +957,7 @@ class Widget:
         """路径对话框"""
         self.Group = Widget.GroupPs()
         """分组框"""
-        self.widget_Button_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
+        self.widget_Button_dict: Dict[str, Dict[str, Dict[str, Union[str, bool, Callable[[Any, Any], bool]]]]] = {}
         """按钮控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
         self.widget_Group_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
         """分组框控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
@@ -1107,7 +1192,7 @@ def trigger_frontend_event(event):
     }
     """obs前台事件文本"""
 
-    log_save("INFO", f"监测到obs前端事件: {information4frontend_event[event]}")
+    log_save(obs.LOG_INFO, f"监测到obs前端事件: {information4frontend_event[event]}")
     if event == obs.OBS_FRONTEND_EVENT_STREAMING_STARTED:
         pass
     elif event == obs.OBS_FRONTEND_EVENT_STREAMING_STOPPED:
@@ -1124,17 +1209,17 @@ def property_modified(name: str) -> bool:
     Returns:
 
     """
-    log_save("INFO", f"检测到控件【{name}】变动事件")
+    log_save(obs.LOG_INFO, f"检测到控件【{name}】变动事件")
     if name == "bottom_button":  # 这个按钮用来标记脚本开始构造控件
-        log_save("INFO", f"检测到脚本构造控件体开始，断开控件事件钩子")
+        log_save(obs.LOG_INFO, f"检测到脚本构造控件体开始，断开控件事件钩子")
         GlobalVariableOfData.isScript_propertiesIs = True
     if name == "top_button":
-        log_save("INFO", f"检测到脚本构造控件体结束，启动控件事件钩子")
+        log_save(obs.LOG_INFO, f"检测到脚本构造控件体结束，启动控件事件钩子")
         GlobalVariableOfData.isScript_propertiesIs = False
     if not GlobalVariableOfData.isScript_propertiesIs:
         pass
     else:
-        log_save("INFO", f"控件事件钩子已断开")
+        log_save(obs.LOG_INFO, f"控件事件钩子已断开")
         return False
     return False
 
@@ -1145,18 +1230,18 @@ def script_defaults(settings):  # 设置其默认值
     调用以设置与脚本关联的默认设置(如果有的话)。为了设置其默认值，您通常会调用默认值函数。
     :param settings:与脚本关联的设置。
     """
-    log_save("INFO", "script_defaults 被调用")
+    log_save(obs.LOG_INFO, "script_defaults 被调用")
     widget.Button.top.Visible = True
     widget.Button.top.Enabled = False
     widget.Button.top.ModifiedIs = True
     widget.Button.top.Type = obs.OBS_BUTTON_DEFAULT
-    widget.Button.top.Callback = lambda ps, p: log_save("INFO", "顶部")
+    widget.Button.top.Callback = lambda ps, p: log_save(obs.LOG_INFO, "顶部")
 
     widget.Button.bottom.Visible = True
     widget.Button.bottom.Enabled = False
     widget.Button.bottom.ModifiedIs = True
     widget.Button.bottom.Type = obs.OBS_BUTTON_DEFAULT
-    widget.Button.bottom.Callback = lambda ps, p: log_save("INFO", "底部")
+    widget.Button.bottom.Callback = lambda ps, p: log_save(obs.LOG_INFO, "底部")
     pass
 
 
@@ -1165,7 +1250,7 @@ def script_description():
     """
     调用以检索要在“脚本”窗口中显示给用户的描述字符串。
     """
-    log_save("INFO", "script_defaults 被调用")
+    log_save(obs.LOG_INFO, "script_defaults 被调用")
     pass
     return f"""
 <!DOCTYPE html>
@@ -1190,7 +1275,7 @@ def script_load(settings):
     相反，该参数用于脚本中可能使用的任何额外的内部设置数据。
     :param settings:与脚本关联的设置。
     """
-    log_save("INFO", "script_load 被调用")
+    log_save(obs.LOG_INFO, "script_load 被调用")
     obs.obs_frontend_add_event_callback(trigger_frontend_event)
     pass
 
@@ -1203,7 +1288,7 @@ def script_update(settings):
     不要在这里控制控件的【可见】、【可用】、【值】和【名称】
     :param settings:与脚本关联的设置。
     """
-    log_save("INFO", "script_update 被调用")
+    log_save(obs.LOG_INFO, "script_update 被调用")
     pass
 
 
@@ -1216,7 +1301,7 @@ def script_properties():  # 建立控件
     Returns:通过 obs_properties_create() 创建的 Obs_properties_t 对象
     obs_properties_t 类型的属性对象。这个属性对象通常用于枚举 libobs 对象的可用设置，
     """
-    log_save("INFO", "script_properties 被调用")
+    log_save(obs.LOG_INFO, "script_properties 被调用")
     # 创建一个 OBS 属性集对象，他将包含所有控件对应的属性对象
     props = obs.obs_properties_create()
     props_dict = {
@@ -1228,11 +1313,11 @@ def script_properties():  # 建立控件
         # 获取按载入次序排序的所有控件列表
         if w.ControlType == "CheckBox":
             # 添加复选框控件
-            log_save("INFO", f"复选框控件: {w.Name} 【{w.Description}】")
+            log_save(obs.LOG_INFO, f"复选框控件: {w.Name} 【{w.Description}】")
             obs.obs_properties_add_bool(props_dict[w.Props], w.Name, w.Description)
         elif w.ControlType == "DigitalDisplay":
             # 添加数字控件
-            log_save("INFO", f"数字框控件: {w.Name} 【{w.Description}】")
+            log_save(obs.LOG_INFO, f"数字框控件: {w.Name} 【{w.Description}】")
             if w.SliderIs:  # 是否为数字控件添加滑动条
                 w.Obj = obs.obs_properties_add_int_slider(props_dict[w.Props], w.Name, w.Description, w.Min, w.Max,
                                                           w.Step)
@@ -1241,33 +1326,33 @@ def script_properties():  # 建立控件
             obs.obs_property_int_set_suffix(w.Obj, w.Suffix)
         elif w.ControlType == "TextBox":
             # 添加文本框控件
-            log_save("INFO", f"文本框控件: {w.Name} 【{w.Description}】")
+            log_save(obs.LOG_INFO, f"文本框控件: {w.Name} 【{w.Description}】")
             w.Obj = obs.obs_properties_add_text(props_dict[w.Props], w.Name, w.Description, w.Type)
         elif w.ControlType == "Button":
             # 添加按钮控件
-            log_save("INFO", f"按钮控件: {w.Name} 【{w.Description}】")
+            log_save(obs.LOG_INFO, f"按钮控件: {w.Name} 【{w.Description}】")
             w.Obj = obs.obs_properties_add_button(props_dict[w.Props], w.Name, w.Description, w.Callback)
             obs.obs_property_button_set_type(w.Obj, w.Type)
             if w.Type == obs.OBS_BUTTON_URL:  # 是否为链接跳转按钮
                 obs.obs_property_button_set_url(w.Obj, w.Url)
         elif w.ControlType == "ComboBox":
             # 添加组合框控件
-            log_save("INFO", f"组合框控件: {w.Name} 【{w.Description}】")
+            log_save(obs.LOG_INFO, f"组合框控件: {w.Name} 【{w.Description}】")
             w.Obj = obs.obs_properties_add_list(props_dict[w.Props], w.Name, w.Description, w.Type,
                                                 obs.OBS_COMBO_FORMAT_STRING)
         elif w.ControlType == "PathBox":
             # 添加路径对话框控件
-            log_save("INFO", f"路径对话框控件: {w.Name} 【{w.Description}】")
+            log_save(obs.LOG_INFO, f"路径对话框控件: {w.Name} 【{w.Description}】")
             w.Obj = obs.obs_properties_add_path(props_dict[w.Props], w.Name, w.Description, w.Type, w.Filter,
                                                 w.StartPath)
         elif w.ControlType == "Group":
             # 分组框控件
-            log_save("INFO", f"分组框控件: {w.Name} 【{w.Description}】")
+            log_save(obs.LOG_INFO, f"分组框控件: {w.Name} 【{w.Description}】")
             w.Obj = obs.obs_properties_add_group(props_dict[w.Props], w.Name, w.Description, w.Type,
                                                  props_dict[w.GroupProps])
 
         if w.ModifiedIs:
-            log_save("INFO", f"为{w.ControlType}: 【{w.Description}】添加钩子函数")
+            log_save(obs.LOG_INFO, f"为{w.ControlType}: 【{w.Description}】添加钩子函数")
             obs.obs_property_set_modified_callback(w.Obj, lambda ps, p, st, name=w.Name: property_modified(name))
     update_ui_interface_data()
     pass
@@ -1341,7 +1426,7 @@ def script_tick(seconds):
     Returns:
 
     """
-    log_save("INFO", "script_tick 被调用")
+    log_save(obs.LOG_INFO, "script_tick 被调用")
     pass
 
 
@@ -1349,15 +1434,34 @@ def script_unload():
     """
     在脚本被卸载时调用。
     """
-    log_save("INFO", "script_unload 被调用")
+    log_save(obs.LOG_INFO, "script_unload 被调用")
     obs.obs_frontend_remove_event_callback(trigger_frontend_event)
-    log_save("INFO", GlobalVariableOfData.log_text)
+    log_save(obs.LOG_INFO, GlobalVariableOfData.log_text)
     pass
 
 
 class ButtonFunction:
     """按钮回调函数"""
-    pass
+
+    @staticmethod
+    def button_function_top(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        log_save(obs.LOG_INFO, f"【{'顶部'}】按钮被触发")
+        return True
+
+    @staticmethod
+    def button_function_bottom(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        log_save(obs.LOG_INFO, f"【{'底部'}】按钮被触发")
+        return True
 
 
 # 创建控件表单
@@ -1369,14 +1473,14 @@ widget.widget_Button_dict = {
             "Name": "top_button",
             "Description": "Top",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": lambda ps, p: log_save(obs.LOG_INFO, f"【{'顶部'}】按钮被触发"),
+            "Callback": ButtonFunction.button_function_top,
             "ModifiedIs": True
         },
         "bottom": {
             "Name": "bottom_button",
             "Description": "Bottom",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": lambda ps, p: log_save(obs.LOG_INFO, f"【{'底部'}】按钮被触发"),
+            "Callback": ButtonFunction.button_function_bottom,
             "ModifiedIs": True
         },
     },
