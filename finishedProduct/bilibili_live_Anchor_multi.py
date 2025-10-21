@@ -4221,494 +4221,530 @@ def update_ui_interface_data(is_script_properties=False):
     return True
 
 
-def button_function_start_script(props, prop):
-    GlobalVariableOfData.script_loading_is = True
-    log_save(obs.LOG_INFO, f"更新控件配置信息")
-    script_defaults(GlobalVariableOfData.script_settings)
-    # 更新脚本用户小部件
-    log_save(obs.LOG_INFO, f"更新控件UI")
-    update_ui_interface_data()
-    return True
+class ButtonFunction:
+    def button_function_start_script(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        GlobalVariableOfData.script_loading_is = True
+        log_save(obs.LOG_INFO, f"更新控件配置信息")
+        script_defaults(GlobalVariableOfData.script_settings)
+        # 更新脚本用户小部件
+        log_save(obs.LOG_INFO, f"更新控件UI")
+        update_ui_interface_data()
+        return True
 
 
-def button_function_login(props, prop):
-    """
-    登录并刷新控件状态
-    Args:
-        props:
-        prop:
-    Returns:
-    """
-    # ＝＝＝＝＝＝＝＝＝＝＝
-    # ＝     登录      ＝
-    # ＝＝＝＝＝＝＝＝＝＝＝
-    GlobalVariableOfData.script_loading_is = True
-    uid = obs.obs_data_get_string(GlobalVariableOfData.script_settings, 'uid_comboBox')
-    if uid in ["-1"]:
-        log_save(obs.LOG_WARNING, "请添加或选择一个账号登录")
-        return False
-    log_save(obs.LOG_INFO, f"即将登录的账号：{uid}")
-    log_save(obs.LOG_INFO, f"将选定的账号：{uid}，在配置文件中转移到默认账号的位置")
-    try:
+    def button_function_login(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """
+        登录并刷新控件状态
+        Args:
+            props:
+            prop:
+        Returns:
+        """
+        # ＝＝＝＝＝＝＝＝＝＝＝
+        # ＝     登录      ＝
+        # ＝＝＝＝＝＝＝＝＝＝＝
+        GlobalVariableOfData.script_loading_is = True
+        uid = obs.obs_data_get_string(GlobalVariableOfData.script_settings, 'uid_comboBox')
+        if uid in ["-1"]:
+            log_save(obs.LOG_WARNING, "请添加或选择一个账号登录")
+            return False
+        log_save(obs.LOG_INFO, f"即将登录的账号：{uid}")
+        log_save(obs.LOG_INFO, f"将选定的账号：{uid}，在配置文件中转移到默认账号的位置")
+        try:
+            b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+            uid = str(uid)
+            log_save(obs.LOG_INFO, f"尝试登录用户: {uid}")
+            b_u_l_c.update_user(b_u_l_c.get_cookies(int(uid)))
+            log_save(obs.LOG_INFO, f"用户 {uid} 登录成功")
+        except ValueError as e:
+            log_save(obs.LOG_ERROR, f"参数错误: {str(e)}")
+            raise
+        except Exception as e:
+            log_save(obs.LOG_WARNING, f"登录过程异常: {str(e)}")
+            raise RuntimeError("登录服务暂时不可用") from e
+        # ＝＝＝＝＝＝＝＝＝＝＝
+        # ＝     更新      ＝
+        # ＝＝＝＝＝＝＝＝＝＝＝
+        # 调用script_defaults更新obs默认配置信息
+        log_save(obs.LOG_INFO, f"更新控件配置信息")
+        script_defaults(GlobalVariableOfData.script_settings)
+        # 更新脚本用户小部件
+        log_save(obs.LOG_INFO, f"更新控件UI")
+        update_ui_interface_data()
+        return True
+
+
+    def button_function_update_account_list(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """
+        更新账号列表
+        Args:
+            settings:
+            props:
+            prop:
+    
+        Returns:
+        """
+        # 调整控件数据
+        # 设置控件前准备（获取数据） 开始
+        # 创建用户配置文件实例
         b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-        uid = str(uid)
-        log_save(obs.LOG_INFO, f"尝试登录用户: {uid}")
-        b_u_l_c.update_user(b_u_l_c.get_cookies(int(uid)))
-        log_save(obs.LOG_INFO, f"用户 {uid} 登录成功")
-    except ValueError as e:
-        log_save(obs.LOG_ERROR, f"参数错误: {str(e)}")
-        raise
-    except Exception as e:
-        log_save(obs.LOG_WARNING, f"登录过程异常: {str(e)}")
-        raise RuntimeError("登录服务暂时不可用") from e
-    # ＝＝＝＝＝＝＝＝＝＝＝
-    # ＝     更新      ＝
-    # ＝＝＝＝＝＝＝＝＝＝＝
-    # 调用script_defaults更新obs默认配置信息
-    log_save(obs.LOG_INFO, f"更新控件配置信息")
-    script_defaults(GlobalVariableOfData.script_settings)
-    # 更新脚本用户小部件
-    log_save(obs.LOG_INFO, f"更新控件UI")
-    update_ui_interface_data()
-    return True
+        # 获取 用户配置文件 中 每一个用户 导航栏用户信息 排除空值
+        user_interface_nav4uid = {uid: BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
+                                                         cookie=dict2cookie(b_u_l_c.get_cookies(int(uid))), ).get_nav_info()
+                                  for uid in [x for x in b_u_l_c.get_users().values() if x]}
+        # 获取 用户配置文件 中 每一个 用户 的 昵称
+        all_uname4uid = {uid: user_interface_nav4uid[uid]["uname"] for uid in user_interface_nav4uid}
+        # 获取 '登录用户' 的昵称
+        uname = all_uname4uid[b_u_l_c.get_users()[0]] if b_u_l_c.get_cookies() else None
+
+        # 设置控件前准备（获取数据）结束
+        # 设置 分组框【账号】 可见状态
+        widget.Group.account.Visible = True
+        # 设置 分组框【账号】 可用状态
+        widget.Group.account.Enabled = True
+        # 设置 只读文本框【登录状态】 可见状态
+        widget.TextBox.loginStatus.Visible = True
+        # 设置 只读文本框【登录状态】 可用状态
+        widget.TextBox.loginStatus.Enabled = True
+        # 设置 只读文本框【登录状态】 信息类型
+        widget.TextBox.loginStatus.Type = obs.OBS_TEXT_INFO_NORMAL if b_u_l_c.get_cookies() else obs.OBS_TEXT_INFO_WARNING
+        # 设置 只读文本框【登录状态】 内容
+        widget.TextBox.loginStatus.Text = f'{uname} 已登录' if b_u_l_c.get_cookies() else '未登录，请登录后点击【更新账号列表】'
+        # 设置 组合框【用户】 可见状态
+        widget.ComboBox.uid.Visible = True
+        # 设置 组合框【用户】 可用状态
+        widget.ComboBox.uid.Enabled = True
+        # 设置 组合框【用户】 的数据字典
+        widget.ComboBox.uid.Dictionary = {uid or '-1': all_uname4uid.get(uid, '添加或选择一个账号登录') for uid in
+                                          b_u_l_c.get_users().values()}
+        # 设置 组合框【用户】 默认显示内容
+        widget.ComboBox.uid.Obj_string = uname if b_u_l_c.get_cookies() else '添加或选择一个账号登录'
+        # 设置 组合框【用户】 默认显示内容 的 列表值
+        widget.ComboBox.uid.Value = b_u_l_c.get_users()[0] if b_u_l_c.get_cookies() else '-1'
+        # 设置 按钮【登录账号】 可见状态
+        widget.Button.login.Visible = True if all_uname4uid else False
+        # 设置 按钮【登录账号】 可用状态
+        widget.Button.login.Enabled = True if all_uname4uid else False
+        # 设置 按钮【更新账号列表】 可见状态
+        widget.Button.accountListUpdate.Visible = True
+        # 设置 按钮【更新账号列表】 可用状态
+        widget.Button.accountListUpdate.Enabled = True
+        # 设置 按钮【二维码添加账户】 可见状态
+        widget.Button.qrAddAccount.Visible = True
+        # 设置 按钮【二维码添加账户】 可用状态
+        widget.Button.qrAddAccount.Enabled = True
+        # 设置 按钮【显示二维码图片】 可见状态
+        widget.Button.qrPictureDisplay.Visible = False
+        # 设置 按钮【显示二维码图片】 可用状态
+        widget.Button.qrPictureDisplay.Enabled = False
+        # 设置 按钮【删除账户】 可见状态
+        widget.Button.accountDelete.Visible = True if all_uname4uid else False
+        # 设置 按钮【删除账户】 可用状态
+        widget.Button.accountDelete.Enabled = True if all_uname4uid else False
+        # 设置 按钮【备份账户】 可见状态
+        widget.Button.accountBackup.Visible = False
+        # 设置 按钮【备份账户】 可用状态
+        widget.Button.accountBackup.Enabled = False
+        # 设置 按钮【恢复账户】 可见状态
+        widget.Button.accountRestore.Visible = False
+        # 设置 按钮【恢复账户】 可用状态
+        widget.Button.accountRestore.Enabled = False
+        # 设置 按钮【登出账号】 可见状态
+        widget.Button.logout.Visible = True if all_uname4uid and b_u_l_c.get_cookies() else False
+        # 设置 按钮【登出账号】 可用状态
+        widget.Button.logout.Enabled = True if all_uname4uid and b_u_l_c.get_cookies() else False
+
+        # 更新UI界面数据
+        # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+        # 只读文本框++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐只读文本框 UI{30 * '─'}┐")
+        # 【账号】分组————————————————————————————————————————————————————————————————————————————————————————————————————————
+        log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
+        log_save(obs.LOG_INFO, f"　││▶️分组框【账号】")
+        # 只读文本框【登录状态】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️只读文本框【登录状态】 UI")
+        # 设置 只读文本框【登录状态】 可见状态
+        if obs.obs_property_visible(widget.TextBox.loginStatus.Obj) != widget.TextBox.loginStatus.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 只读文本框【登录状态】 可见状态 发生变动: {obs.obs_property_visible(widget.TextBox.loginStatus.Obj)}➡️{widget.TextBox.loginStatus.Visible}")
+            obs.obs_property_set_visible(widget.TextBox.loginStatus.Obj, widget.TextBox.loginStatus.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 只读文本框【登录状态】 可见状态 未 发生变动")
+        # 设置 只读文本框【登录状态】 可用状态
+        if obs.obs_property_enabled(widget.TextBox.loginStatus.Obj) != widget.TextBox.loginStatus.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 只读文本框【登录状态】 可用状态 发生变动: {obs.obs_property_enabled(widget.TextBox.loginStatus.Obj)}➡️{widget.TextBox.loginStatus.Enabled}")
+            obs.obs_property_set_enabled(widget.TextBox.loginStatus.Obj, widget.TextBox.loginStatus.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 只读文本框【登录状态】 可用状态 未 发生变动")
+        # 设置 只读文本框【登录状态】 信息类型
+        if obs.obs_property_text_info_type(widget.TextBox.loginStatus.Obj) != widget.TextBox.loginStatus.Type:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 只读文本框【登录状态】 信息类型 发生变动: {textBox_type_name4textBox_type[obs.obs_property_text_info_type(widget.TextBox.loginStatus.Obj)]}➡️{textBox_type_name4textBox_type[widget.TextBox.loginStatus.Type]}")
+            obs.obs_property_text_set_info_type(widget.TextBox.loginStatus.Obj, widget.TextBox.loginStatus.Type)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 只读文本框【登录状态】 信息类型 未 发生变动")
+        # 设置 只读文本框【登录状态】 文本
+        if obs.obs_data_get_string(GlobalVariableOfData.script_settings,
+                                   'login_status_textBox') != widget.TextBox.loginStatus.Text:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 只读文本框【登录状态】 文本 发生变动: {obs.obs_data_get_string(GlobalVariableOfData.script_settings, 'login_status_textBox')}➡️{widget.TextBox.loginStatus.Text}")
+            obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'login_status_textBox',
+                                    f'{widget.TextBox.loginStatus.Text}')
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 只读文本框【登录状态】 文本 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
+        log_save(obs.LOG_INFO, f"　└{30 * '─'}👌只读文本框 UI{30 * '─'}┘")
+
+        # 组合框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐组合框 UI{30 * '─'}┐")
+        # 【账号】分组————————————————————————————————————————————————————————————————————————————————————————————————————————
+        log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
+        log_save(obs.LOG_INFO, f"　││▶️分组框【账号】")
+        # 组合框【用户】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️组合框【用户】 UI")
+        # 设置 组合框【用户】 可见状态
+        if obs.obs_property_visible(widget.ComboBox.uid.Obj) != widget.ComboBox.uid.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 组合框【用户】 可见状态 发生变动: {obs.obs_property_visible(widget.ComboBox.uid.Obj)}➡️{widget.ComboBox.uid.Visible}")
+            obs.obs_property_set_visible(widget.ComboBox.uid.Obj, widget.ComboBox.uid.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 组合框【用户】 可见状态 未 发生变动")
+        # 设置 组合框【用户】 可用状态
+        if obs.obs_property_enabled(widget.ComboBox.uid.Obj) != widget.ComboBox.uid.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 组合框【用户】 可用状态 发生变动: {obs.obs_property_enabled(widget.ComboBox.uid.Obj)}➡️{widget.ComboBox.uid.Enabled}")
+            obs.obs_property_set_enabled(widget.ComboBox.uid.Obj, widget.ComboBox.uid.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 组合框【用户】 可用状态 未 发生变动")
+        # 判断 组合框【用户】字典数据 和 当前数据是否有变化
+        if widget.ComboBox.uid.Dictionary != {
+            obs.obs_property_list_item_string(widget.ComboBox.uid.Obj, idx): obs.obs_property_list_item_name(
+                    widget.ComboBox.uid.Obj, idx) for idx in
+            range(obs.obs_property_list_item_count(widget.ComboBox.uid.Obj))}:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 组合框【用户】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.uid.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.uid.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.uid.Obj))})}个元素➡️{len(widget.ComboBox.uid.Dictionary)}个元素")
+            # 清空 组合框【用户】
+            log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【用户】数据 第一步：清空 组合框【用户】")
+            obs.obs_property_list_clear(widget.ComboBox.uid.Obj)
+            # 添加 组合框【用户】 列表选项  默认值会被设置在第一位
+            log_save(obs.LOG_INFO,
+                     f"　│││📑  更新 组合框【用户】数据 第二步：添加 组合框【用户】 列表选项  如果有默认值，会被设置在第一位")
+            for uid in widget.ComboBox.uid.Dictionary:
+                obs.obs_property_list_add_string(widget.ComboBox.uid.Obj, widget.ComboBox.uid.Dictionary[uid],
+                                                 uid) if uid != widget.ComboBox.uid.Value else obs.obs_property_list_insert_string(
+                    widget.ComboBox.uid.Obj, 0, widget.ComboBox.uid.Obj_string, widget.ComboBox.uid.Value)
+            # 设置 组合框【用户】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
+            log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【用户】数据 第三步：更新 组合框【用户】 文本")
+            obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'uid_comboBox',
+                                    obs.obs_property_list_item_string(widget.ComboBox.uid.Obj, 0))
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 组合框【用户】 列表数据 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
+        log_save(obs.LOG_INFO, f"　└{30 * '─'}👌组合框 UI{30 * '─'}┘")
+
+        # 按钮+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐按钮 UI{30 * '─'}┐")
+        # 【账号】分组————————————————————————————————————————————————————————————————————————————————————————————————————————
+        log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
+        log_save(obs.LOG_INFO, f"　││▶️分组框【账号】")
+        # 按钮【登录账号】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️按钮【登录账号】 UI")
+        # 设置 按钮【登录账号】 可见状态
+        if obs.obs_property_visible(widget.Button.login.Obj) != widget.Button.login.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【登录账号】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.login.Obj)}➡️{widget.Button.login.Visible}")
+            obs.obs_property_set_visible(widget.Button.login.Obj, widget.Button.login.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【登录账号】 可见状态 未 发生变动")
+        # 设置 按钮【登录账号】 可用状态
+        if obs.obs_property_enabled(widget.Button.login.Obj) != widget.Button.login.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【登录账号】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.login.Obj)}➡️{widget.Button.login.Enabled}")
+            obs.obs_property_set_enabled(widget.Button.login.Obj, widget.Button.login.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【登录账号】 可用状态 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        # 按钮【二维码添加账户】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️按钮【二维码添加账户】 UI")
+        # 设置 按钮【二维码添加账户】 可见状态
+        if obs.obs_property_visible(widget.Button.qrAddAccount.Obj) != widget.Button.qrAddAccount.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【二维码添加账户】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.qrAddAccount.Obj)}➡️{widget.Button.qrAddAccount.Visible}")
+            obs.obs_property_set_visible(widget.Button.qrAddAccount.Obj, widget.Button.qrAddAccount.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【二维码添加账户】 可见状态 未 发生变动")
+        # 设置 按钮【二维码添加账户】 可用状态
+        if obs.obs_property_enabled(widget.Button.qrAddAccount.Obj) != widget.Button.qrAddAccount.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【二维码添加账户】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.qrAddAccount.Obj)}➡️{widget.Button.qrAddAccount.Enabled}")
+            obs.obs_property_set_enabled(widget.Button.qrAddAccount.Obj, widget.Button.qrAddAccount.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【二维码添加账户】 可用状态 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        # 按钮【显示二维码图片】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️按钮【显示二维码图片】 UI")
+        # 设置 按钮【显示二维码图片】 可见状态
+        if obs.obs_property_visible(widget.Button.qrPictureDisplay.Obj) != widget.Button.qrPictureDisplay.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【显示二维码图片】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.qrPictureDisplay.Obj)}➡️{widget.Button.qrPictureDisplay.Visible}")
+            obs.obs_property_set_visible(widget.Button.qrPictureDisplay.Obj, widget.Button.qrPictureDisplay.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【显示二维码图片】 可见状态 未 发生变动")
+        # 设置 按钮【显示二维码图片】 可用状态
+        if obs.obs_property_enabled(widget.Button.qrPictureDisplay.Obj) != widget.Button.qrPictureDisplay.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【显示二维码图片】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.qrPictureDisplay.Obj)}➡️{widget.Button.qrPictureDisplay.Enabled}")
+            obs.obs_property_set_enabled(widget.Button.qrPictureDisplay.Obj, widget.Button.qrPictureDisplay.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【显示二维码图片】 可用状态 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        # 按钮【删除账户】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️按钮【删除账户】 UI")
+        # 设置 按钮【删除账户】 可见状态
+        if obs.obs_property_visible(widget.Button.accountDelete.Obj) != widget.Button.accountDelete.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【删除账户】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.accountDelete.Obj)}➡️{widget.Button.accountDelete.Visible}")
+            obs.obs_property_set_visible(widget.Button.accountDelete.Obj, widget.Button.accountDelete.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【删除账户】 可见状态 未 发生变动")
+        # 设置 按钮【删除账户】 可用状态
+        if obs.obs_property_enabled(widget.Button.accountDelete.Obj) != widget.Button.accountDelete.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【删除账户】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.accountDelete.Obj)}➡️{widget.Button.accountDelete.Enabled}")
+            obs.obs_property_set_enabled(widget.Button.accountDelete.Obj, widget.Button.accountDelete.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【删除账户】 可用状态 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        # 按钮【备份账户】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️按钮【备份账户】 UI")
+        # 设置 按钮【备份账户】 可见状态
+        if obs.obs_property_visible(widget.Button.accountBackup.Obj) != widget.Button.accountBackup.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【备份账户】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.accountBackup.Obj)}➡️{widget.Button.accountBackup.Visible}")
+            obs.obs_property_set_visible(widget.Button.accountBackup.Obj, widget.Button.accountBackup.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【备份账户】 可见状态 未 发生变动")
+        # 设置 按钮【备份账户】 可用状态
+        if obs.obs_property_enabled(widget.Button.accountBackup.Obj) != widget.Button.accountBackup.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【备份账户】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.accountBackup.Obj)}➡️{widget.Button.accountBackup.Enabled}")
+            obs.obs_property_set_enabled(widget.Button.accountBackup.Obj, widget.Button.accountBackup.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【备份账户】 可用状态 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        # 按钮【恢复账户】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️按钮【恢复账户】 UI")
+        # 设置 按钮【恢复账户】 可见状态
+        if obs.obs_property_visible(widget.Button.accountRestore.Obj) != widget.Button.accountRestore.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【恢复账户】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.accountRestore.Obj)}➡️{widget.Button.accountRestore.Visible}")
+            obs.obs_property_set_visible(widget.Button.accountRestore.Obj, widget.Button.accountRestore.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【恢复账户】 可见状态 未 发生变动")
+        # 设置 按钮【恢复账户】 可用状态
+        if obs.obs_property_enabled(widget.Button.accountRestore.Obj) != widget.Button.accountRestore.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【恢复账户】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.accountRestore.Obj)}➡️{widget.Button.accountRestore.Enabled}")
+            obs.obs_property_set_enabled(widget.Button.accountRestore.Obj, widget.Button.accountRestore.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【恢复账户】 可用状态 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        # 按钮【登出账号】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️按钮【登出账号】 UI")
+        # 设置 按钮【登出账号】 可见状态
+        if obs.obs_property_visible(widget.Button.logout.Obj) != widget.Button.logout.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【登出账号】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.logout.Obj)}➡️{widget.Button.logout.Visible}")
+            obs.obs_property_set_visible(widget.Button.logout.Obj, widget.Button.logout.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【登出账号】 可见状态 未 发生变动")
+        # 设置 按钮【登出账号】 可用状态
+        if obs.obs_property_enabled(widget.Button.logout.Obj) != widget.Button.logout.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【登出账号】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.logout.Obj)}➡️{widget.Button.logout.Enabled}")
+            obs.obs_property_set_enabled(widget.Button.logout.Obj, widget.Button.logout.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【登出账号】 可用状态 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
+        log_save(obs.LOG_INFO, f"　└{30 * '─'}👌按钮 UI{30 * '─'}┘")
+
+        log_save(obs.LOG_INFO, f"　│                       更新UI界面数据                       │")
+        log_save(obs.LOG_INFO, f"╲────────────────────────更新UI界面数据────────────────────────╱")
+        return True
 
 
-def button_function_update_account_list(props=None, prop=None, settings=None):
-    """
-    更新账号列表
-    Args:
-        settings:
-        props:
-        prop:
-
-    Returns:
-    """
-    # 调整控件数据
-    # 设置控件前准备（获取数据） 开始
-    # 创建用户配置文件实例
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    # 获取 用户配置文件 中 每一个用户 导航栏用户信息 排除空值
-    user_interface_nav4uid = {uid: BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                                     cookie=dict2cookie(b_u_l_c.get_cookies(int(uid))), ).get_nav_info()
-                              for uid in [x for x in b_u_l_c.get_users().values() if x]}
-    # 获取 用户配置文件 中 每一个 用户 的 昵称
-    all_uname4uid = {uid: user_interface_nav4uid[uid]["uname"] for uid in user_interface_nav4uid}
-    # 获取 '登录用户' 的昵称
-    uname = all_uname4uid[b_u_l_c.get_users()[0]] if b_u_l_c.get_cookies() else None
-
-    # 设置控件前准备（获取数据）结束
-    # 设置 分组框【账号】 可见状态
-    widget.Group.account.Visible = True
-    # 设置 分组框【账号】 可用状态
-    widget.Group.account.Enabled = True
-    # 设置 只读文本框【登录状态】 可见状态
-    widget.TextBox.loginStatus.Visible = True
-    # 设置 只读文本框【登录状态】 可用状态
-    widget.TextBox.loginStatus.Enabled = True
-    # 设置 只读文本框【登录状态】 信息类型
-    widget.TextBox.loginStatus.Type = obs.OBS_TEXT_INFO_NORMAL if b_u_l_c.get_cookies() else obs.OBS_TEXT_INFO_WARNING
-    # 设置 只读文本框【登录状态】 内容
-    widget.TextBox.loginStatus.Text = f'{uname} 已登录' if b_u_l_c.get_cookies() else '未登录，请登录后点击【更新账号列表】'
-    # 设置 组合框【用户】 可见状态
-    widget.ComboBox.uid.Visible = True
-    # 设置 组合框【用户】 可用状态
-    widget.ComboBox.uid.Enabled = True
-    # 设置 组合框【用户】 的数据字典
-    widget.ComboBox.uid.Dictionary = {uid or '-1': all_uname4uid.get(uid, '添加或选择一个账号登录') for uid in
-                                      b_u_l_c.get_users().values()}
-    # 设置 组合框【用户】 默认显示内容
-    widget.ComboBox.uid.Obj_string = uname if b_u_l_c.get_cookies() else '添加或选择一个账号登录'
-    # 设置 组合框【用户】 默认显示内容 的 列表值
-    widget.ComboBox.uid.Value = b_u_l_c.get_users()[0] if b_u_l_c.get_cookies() else '-1'
-    # 设置 按钮【登录账号】 可见状态
-    widget.Button.login.Visible = True if all_uname4uid else False
-    # 设置 按钮【登录账号】 可用状态
-    widget.Button.login.Enabled = True if all_uname4uid else False
-    # 设置 按钮【更新账号列表】 可见状态
-    widget.Button.accountListUpdate.Visible = True
-    # 设置 按钮【更新账号列表】 可用状态
-    widget.Button.accountListUpdate.Enabled = True
-    # 设置 按钮【二维码添加账户】 可见状态
-    widget.Button.qrAddAccount.Visible = True
-    # 设置 按钮【二维码添加账户】 可用状态
-    widget.Button.qrAddAccount.Enabled = True
-    # 设置 按钮【显示二维码图片】 可见状态
-    widget.Button.qrPictureDisplay.Visible = False
-    # 设置 按钮【显示二维码图片】 可用状态
-    widget.Button.qrPictureDisplay.Enabled = False
-    # 设置 按钮【删除账户】 可见状态
-    widget.Button.accountDelete.Visible = True if all_uname4uid else False
-    # 设置 按钮【删除账户】 可用状态
-    widget.Button.accountDelete.Enabled = True if all_uname4uid else False
-    # 设置 按钮【备份账户】 可见状态
-    widget.Button.accountBackup.Visible = False
-    # 设置 按钮【备份账户】 可用状态
-    widget.Button.accountBackup.Enabled = False
-    # 设置 按钮【恢复账户】 可见状态
-    widget.Button.accountRestore.Visible = False
-    # 设置 按钮【恢复账户】 可用状态
-    widget.Button.accountRestore.Enabled = False
-    # 设置 按钮【登出账号】 可见状态
-    widget.Button.logout.Visible = True if all_uname4uid and b_u_l_c.get_cookies() else False
-    # 设置 按钮【登出账号】 可用状态
-    widget.Button.logout.Enabled = True if all_uname4uid and b_u_l_c.get_cookies() else False
-
-    # 更新UI界面数据
-    # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    # 只读文本框++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐只读文本框 UI{30 * '─'}┐")
-    # 【账号】分组————————————————————————————————————————————————————————————————————————————————————————————————————————
-    log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
-    log_save(obs.LOG_INFO, f"　││▶️分组框【账号】")
-    # 只读文本框【登录状态】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️只读文本框【登录状态】 UI")
-    # 设置 只读文本框【登录状态】 可见状态
-    if obs.obs_property_visible(widget.TextBox.loginStatus.Obj) != widget.TextBox.loginStatus.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 只读文本框【登录状态】 可见状态 发生变动: {obs.obs_property_visible(widget.TextBox.loginStatus.Obj)}➡️{widget.TextBox.loginStatus.Visible}")
-        obs.obs_property_set_visible(widget.TextBox.loginStatus.Obj, widget.TextBox.loginStatus.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 只读文本框【登录状态】 可见状态 未 发生变动")
-    # 设置 只读文本框【登录状态】 可用状态
-    if obs.obs_property_enabled(widget.TextBox.loginStatus.Obj) != widget.TextBox.loginStatus.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 只读文本框【登录状态】 可用状态 发生变动: {obs.obs_property_enabled(widget.TextBox.loginStatus.Obj)}➡️{widget.TextBox.loginStatus.Enabled}")
-        obs.obs_property_set_enabled(widget.TextBox.loginStatus.Obj, widget.TextBox.loginStatus.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 只读文本框【登录状态】 可用状态 未 发生变动")
-    # 设置 只读文本框【登录状态】 信息类型
-    if obs.obs_property_text_info_type(widget.TextBox.loginStatus.Obj) != widget.TextBox.loginStatus.Type:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 只读文本框【登录状态】 信息类型 发生变动: {textBox_type_name4textBox_type[obs.obs_property_text_info_type(widget.TextBox.loginStatus.Obj)]}➡️{textBox_type_name4textBox_type[widget.TextBox.loginStatus.Type]}")
-        obs.obs_property_text_set_info_type(widget.TextBox.loginStatus.Obj, widget.TextBox.loginStatus.Type)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 只读文本框【登录状态】 信息类型 未 发生变动")
-    # 设置 只读文本框【登录状态】 文本
-    if obs.obs_data_get_string(GlobalVariableOfData.script_settings,
-                               'login_status_textBox') != widget.TextBox.loginStatus.Text:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 只读文本框【登录状态】 文本 发生变动: {obs.obs_data_get_string(GlobalVariableOfData.script_settings, 'login_status_textBox')}➡️{widget.TextBox.loginStatus.Text}")
-        obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'login_status_textBox',
-                                f'{widget.TextBox.loginStatus.Text}')
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 只读文本框【登录状态】 文本 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
-    log_save(obs.LOG_INFO, f"　└{30 * '─'}👌只读文本框 UI{30 * '─'}┘")
-
-    # 组合框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐组合框 UI{30 * '─'}┐")
-    # 【账号】分组————————————————————————————————————————————————————————————————————————————————————————————————————————
-    log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
-    log_save(obs.LOG_INFO, f"　││▶️分组框【账号】")
-    # 组合框【用户】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️组合框【用户】 UI")
-    # 设置 组合框【用户】 可见状态
-    if obs.obs_property_visible(widget.ComboBox.uid.Obj) != widget.ComboBox.uid.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 组合框【用户】 可见状态 发生变动: {obs.obs_property_visible(widget.ComboBox.uid.Obj)}➡️{widget.ComboBox.uid.Visible}")
-        obs.obs_property_set_visible(widget.ComboBox.uid.Obj, widget.ComboBox.uid.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 组合框【用户】 可见状态 未 发生变动")
-    # 设置 组合框【用户】 可用状态
-    if obs.obs_property_enabled(widget.ComboBox.uid.Obj) != widget.ComboBox.uid.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 组合框【用户】 可用状态 发生变动: {obs.obs_property_enabled(widget.ComboBox.uid.Obj)}➡️{widget.ComboBox.uid.Enabled}")
-        obs.obs_property_set_enabled(widget.ComboBox.uid.Obj, widget.ComboBox.uid.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 组合框【用户】 可用状态 未 发生变动")
-    # 判断 组合框【用户】字典数据 和 当前数据是否有变化
-    if widget.ComboBox.uid.Dictionary != {
-        obs.obs_property_list_item_string(widget.ComboBox.uid.Obj, idx): obs.obs_property_list_item_name(
-                widget.ComboBox.uid.Obj, idx) for idx in
-        range(obs.obs_property_list_item_count(widget.ComboBox.uid.Obj))}:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 组合框【用户】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.uid.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.uid.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.uid.Obj))})}个元素➡️{len(widget.ComboBox.uid.Dictionary)}个元素")
-        # 清空 组合框【用户】
-        log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【用户】数据 第一步：清空 组合框【用户】")
-        obs.obs_property_list_clear(widget.ComboBox.uid.Obj)
-        # 添加 组合框【用户】 列表选项  默认值会被设置在第一位
-        log_save(obs.LOG_INFO,
-                 f"　│││📑  更新 组合框【用户】数据 第二步：添加 组合框【用户】 列表选项  如果有默认值，会被设置在第一位")
-        for uid in widget.ComboBox.uid.Dictionary:
-            obs.obs_property_list_add_string(widget.ComboBox.uid.Obj, widget.ComboBox.uid.Dictionary[uid],
-                                             uid) if uid != widget.ComboBox.uid.Value else obs.obs_property_list_insert_string(
-                widget.ComboBox.uid.Obj, 0, widget.ComboBox.uid.Obj_string, widget.ComboBox.uid.Value)
-        # 设置 组合框【用户】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
-        log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【用户】数据 第三步：更新 组合框【用户】 文本")
-        obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'uid_comboBox',
-                                obs.obs_property_list_item_string(widget.ComboBox.uid.Obj, 0))
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 组合框【用户】 列表数据 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
-    log_save(obs.LOG_INFO, f"　└{30 * '─'}👌组合框 UI{30 * '─'}┘")
-
-    # 按钮+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐按钮 UI{30 * '─'}┐")
-    # 【账号】分组————————————————————————————————————————————————————————————————————————————————————————————————————————
-    log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
-    log_save(obs.LOG_INFO, f"　││▶️分组框【账号】")
-    # 按钮【登录账号】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️按钮【登录账号】 UI")
-    # 设置 按钮【登录账号】 可见状态
-    if obs.obs_property_visible(widget.Button.login.Obj) != widget.Button.login.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【登录账号】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.login.Obj)}➡️{widget.Button.login.Visible}")
-        obs.obs_property_set_visible(widget.Button.login.Obj, widget.Button.login.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【登录账号】 可见状态 未 发生变动")
-    # 设置 按钮【登录账号】 可用状态
-    if obs.obs_property_enabled(widget.Button.login.Obj) != widget.Button.login.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【登录账号】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.login.Obj)}➡️{widget.Button.login.Enabled}")
-        obs.obs_property_set_enabled(widget.Button.login.Obj, widget.Button.login.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【登录账号】 可用状态 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    # 按钮【二维码添加账户】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️按钮【二维码添加账户】 UI")
-    # 设置 按钮【二维码添加账户】 可见状态
-    if obs.obs_property_visible(widget.Button.qrAddAccount.Obj) != widget.Button.qrAddAccount.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【二维码添加账户】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.qrAddAccount.Obj)}➡️{widget.Button.qrAddAccount.Visible}")
-        obs.obs_property_set_visible(widget.Button.qrAddAccount.Obj, widget.Button.qrAddAccount.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【二维码添加账户】 可见状态 未 发生变动")
-    # 设置 按钮【二维码添加账户】 可用状态
-    if obs.obs_property_enabled(widget.Button.qrAddAccount.Obj) != widget.Button.qrAddAccount.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【二维码添加账户】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.qrAddAccount.Obj)}➡️{widget.Button.qrAddAccount.Enabled}")
-        obs.obs_property_set_enabled(widget.Button.qrAddAccount.Obj, widget.Button.qrAddAccount.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【二维码添加账户】 可用状态 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    # 按钮【显示二维码图片】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️按钮【显示二维码图片】 UI")
-    # 设置 按钮【显示二维码图片】 可见状态
-    if obs.obs_property_visible(widget.Button.qrPictureDisplay.Obj) != widget.Button.qrPictureDisplay.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【显示二维码图片】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.qrPictureDisplay.Obj)}➡️{widget.Button.qrPictureDisplay.Visible}")
-        obs.obs_property_set_visible(widget.Button.qrPictureDisplay.Obj, widget.Button.qrPictureDisplay.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【显示二维码图片】 可见状态 未 发生变动")
-    # 设置 按钮【显示二维码图片】 可用状态
-    if obs.obs_property_enabled(widget.Button.qrPictureDisplay.Obj) != widget.Button.qrPictureDisplay.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【显示二维码图片】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.qrPictureDisplay.Obj)}➡️{widget.Button.qrPictureDisplay.Enabled}")
-        obs.obs_property_set_enabled(widget.Button.qrPictureDisplay.Obj, widget.Button.qrPictureDisplay.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【显示二维码图片】 可用状态 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    # 按钮【删除账户】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️按钮【删除账户】 UI")
-    # 设置 按钮【删除账户】 可见状态
-    if obs.obs_property_visible(widget.Button.accountDelete.Obj) != widget.Button.accountDelete.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【删除账户】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.accountDelete.Obj)}➡️{widget.Button.accountDelete.Visible}")
-        obs.obs_property_set_visible(widget.Button.accountDelete.Obj, widget.Button.accountDelete.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【删除账户】 可见状态 未 发生变动")
-    # 设置 按钮【删除账户】 可用状态
-    if obs.obs_property_enabled(widget.Button.accountDelete.Obj) != widget.Button.accountDelete.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【删除账户】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.accountDelete.Obj)}➡️{widget.Button.accountDelete.Enabled}")
-        obs.obs_property_set_enabled(widget.Button.accountDelete.Obj, widget.Button.accountDelete.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【删除账户】 可用状态 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    # 按钮【备份账户】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️按钮【备份账户】 UI")
-    # 设置 按钮【备份账户】 可见状态
-    if obs.obs_property_visible(widget.Button.accountBackup.Obj) != widget.Button.accountBackup.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【备份账户】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.accountBackup.Obj)}➡️{widget.Button.accountBackup.Visible}")
-        obs.obs_property_set_visible(widget.Button.accountBackup.Obj, widget.Button.accountBackup.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【备份账户】 可见状态 未 发生变动")
-    # 设置 按钮【备份账户】 可用状态
-    if obs.obs_property_enabled(widget.Button.accountBackup.Obj) != widget.Button.accountBackup.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【备份账户】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.accountBackup.Obj)}➡️{widget.Button.accountBackup.Enabled}")
-        obs.obs_property_set_enabled(widget.Button.accountBackup.Obj, widget.Button.accountBackup.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【备份账户】 可用状态 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    # 按钮【恢复账户】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️按钮【恢复账户】 UI")
-    # 设置 按钮【恢复账户】 可见状态
-    if obs.obs_property_visible(widget.Button.accountRestore.Obj) != widget.Button.accountRestore.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【恢复账户】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.accountRestore.Obj)}➡️{widget.Button.accountRestore.Visible}")
-        obs.obs_property_set_visible(widget.Button.accountRestore.Obj, widget.Button.accountRestore.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【恢复账户】 可见状态 未 发生变动")
-    # 设置 按钮【恢复账户】 可用状态
-    if obs.obs_property_enabled(widget.Button.accountRestore.Obj) != widget.Button.accountRestore.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【恢复账户】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.accountRestore.Obj)}➡️{widget.Button.accountRestore.Enabled}")
-        obs.obs_property_set_enabled(widget.Button.accountRestore.Obj, widget.Button.accountRestore.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【恢复账户】 可用状态 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    # 按钮【登出账号】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️按钮【登出账号】 UI")
-    # 设置 按钮【登出账号】 可见状态
-    if obs.obs_property_visible(widget.Button.logout.Obj) != widget.Button.logout.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【登出账号】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.logout.Obj)}➡️{widget.Button.logout.Visible}")
-        obs.obs_property_set_visible(widget.Button.logout.Obj, widget.Button.logout.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【登出账号】 可见状态 未 发生变动")
-    # 设置 按钮【登出账号】 可用状态
-    if obs.obs_property_enabled(widget.Button.logout.Obj) != widget.Button.logout.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【登出账号】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.logout.Obj)}➡️{widget.Button.logout.Enabled}")
-        obs.obs_property_set_enabled(widget.Button.logout.Obj, widget.Button.logout.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【登出账号】 可用状态 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
-    log_save(obs.LOG_INFO, f"　└{30 * '─'}👌按钮 UI{30 * '─'}┘")
-
-    log_save(obs.LOG_INFO, f"　│                       更新UI界面数据                       │")
-    log_save(obs.LOG_INFO, f"╲────────────────────────更新UI界面数据────────────────────────╱")
-    return True
-
-
-def button_function_qr_add_account(props, prop):
-    """
-    二维码添加账号
-    Args:
-        props:
-        prop:
-    Returns:
-    """
-    # 判断是否需要展示登录二维码图片
-    if GlobalVariableOfData.loginQRCodePillowImg:
-        return button_function_show_qr_picture()
-
-    # 申请登录二维码
-    url8qrkey = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).generate()
-    # 获取二维码url
-    url = url8qrkey['url']
-    log_save(obs.LOG_INFO, f"获取登录二维码链接{url}")
-    # 获取二维码key
-    GlobalVariableOfData.loginQrCode_key = url8qrkey['qrcode_key']
-    log_save(obs.LOG_INFO, f"获取登录二维码密钥{GlobalVariableOfData.loginQrCode_key}")
-    # 获取二维码对象
-    qr = qr_text8pil_img(url)
-    # 获取登录二维码的pillow img实例
-    GlobalVariableOfData.loginQRCodePillowImg = qr["img"]
-    # 输出二维码图形字符串
-    log_save(obs.LOG_INFO, f"\n\n{qr['str']}")
-    log_save(obs.LOG_INFO, f"字符串二维码已输出，如果乱码或者扫描不上，建议点击 按钮【显示登录二维码图片】")
-    # 获取二维码扫描登陆状态
-    GlobalVariableOfData.loginQrCodeReturn = BilibiliApiGeneric(
-        ssl_verification=GlobalVariableOfData.sslVerification).poll(GlobalVariableOfData.loginQrCode_key)
-    log_save(obs.LOG_INFO, f"开始轮询登录状态")
-    # 轮询登录状态
-    log_save(obs.LOG_WARNING, str(information4login_qr_return_code[GlobalVariableOfData.loginQrCodeReturn['code']]))
-
-    def check_poll():
+    def button_function_qr_add_account(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
         """
-        二维码扫描登录状态检测
-        @return: cookies，超时为{}
+        二维码添加账号
+        Args:
+            props:
+            prop:
+        Returns:
         """
-        # 获取uid对应的cookies
-        b_u_l_c = BilibiliUserLogsIn2ConfigFile(GlobalVariableOfData.scriptsUsersConfigFilepath)
-        user_list_dict = b_u_l_c.get_users()
-        code_old = GlobalVariableOfData.loginQrCodeReturn['code']
+        # 判断是否需要展示登录二维码图片
+        if GlobalVariableOfData.loginQRCodePillowImg:
+            return ButtonFunction.button_function_show_qr_picture()
+
+        # 申请登录二维码
+        url8qrkey = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).generate()
+        # 获取二维码url
+        url = url8qrkey['url']
+        log_save(obs.LOG_INFO, f"获取登录二维码链接{url}")
+        # 获取二维码key
+        GlobalVariableOfData.loginQrCode_key = url8qrkey['qrcode_key']
+        log_save(obs.LOG_INFO, f"获取登录二维码密钥{GlobalVariableOfData.loginQrCode_key}")
+        # 获取二维码对象
+        qr = qr_text8pil_img(url)
+        # 获取登录二维码的pillow img实例
+        GlobalVariableOfData.loginQRCodePillowImg = qr["img"]
+        # 输出二维码图形字符串
+        log_save(obs.LOG_INFO, f"\n\n{qr['str']}")
+        log_save(obs.LOG_INFO, f"字符串二维码已输出，如果乱码或者扫描不上，建议点击 按钮【显示登录二维码图片】")
+        # 获取二维码扫描登陆状态
         GlobalVariableOfData.loginQrCodeReturn = BilibiliApiGeneric(
             ssl_verification=GlobalVariableOfData.sslVerification).poll(GlobalVariableOfData.loginQrCode_key)
-        # 二维码扫描登陆状态改变时，输出改变后状态
-        log_save(obs.LOG_WARNING,
-                 str(information4login_qr_return_code[GlobalVariableOfData.loginQrCodeReturn['code']])) if code_old != \
-                                                                                                           GlobalVariableOfData.loginQrCodeReturn[
-                                                                                                               'code'] else None
-        if GlobalVariableOfData.loginQrCodeReturn['code'] == 0 or GlobalVariableOfData.loginQrCodeReturn[
-            'code'] == 86038:
-            log_save(obs.LOG_INFO, "轮询结束")
-            GlobalVariableOfData.loginQRCodePillowImg = None
-            # 二维码扫描登陆状态为成功或者超时时获取cookies结束[轮询二维码扫描登陆状态]
-            cookies = GlobalVariableOfData.loginQrCodeReturn['cookies']
-            if cookies:
-                # 获取登陆账号cookies中携带的uid
-                uid = int(cookies['DedeUserID'])
-                if str(uid) in user_list_dict.values():
-                    log_save(obs.LOG_DEBUG, "已有该用户，正在更新用户登录信息")
-                    b_u_l_c.update_user(cookies, False)
+        log_save(obs.LOG_INFO, f"开始轮询登录状态")
+        # 轮询登录状态
+        log_save(obs.LOG_WARNING, str(information4login_qr_return_code[GlobalVariableOfData.loginQrCodeReturn['code']]))
+
+        def check_poll():
+            """
+            二维码扫描登录状态检测
+            @return: cookies，超时为{}
+            """
+            # 获取uid对应的cookies
+            b_u_l_c = BilibiliUserLogsIn2ConfigFile(GlobalVariableOfData.scriptsUsersConfigFilepath)
+            user_list_dict = b_u_l_c.get_users()
+            code_old = GlobalVariableOfData.loginQrCodeReturn['code']
+            GlobalVariableOfData.loginQrCodeReturn = BilibiliApiGeneric(
+                ssl_verification=GlobalVariableOfData.sslVerification).poll(GlobalVariableOfData.loginQrCode_key)
+            # 二维码扫描登陆状态改变时，输出改变后状态
+            log_save(obs.LOG_WARNING,
+                     str(information4login_qr_return_code[GlobalVariableOfData.loginQrCodeReturn['code']])) if code_old != \
+                                                                                                               GlobalVariableOfData.loginQrCodeReturn[
+                                                                                                                   'code'] else None
+            if GlobalVariableOfData.loginQrCodeReturn['code'] == 0 or GlobalVariableOfData.loginQrCodeReturn[
+                'code'] == 86038:
+                log_save(obs.LOG_INFO, "轮询结束")
+                GlobalVariableOfData.loginQRCodePillowImg = None
+                # 二维码扫描登陆状态为成功或者超时时获取cookies结束[轮询二维码扫描登陆状态]
+                cookies = GlobalVariableOfData.loginQrCodeReturn['cookies']
+                if cookies:
+                    # 获取登陆账号cookies中携带的uid
+                    uid = int(cookies['DedeUserID'])
+                    if str(uid) in user_list_dict.values():
+                        log_save(obs.LOG_DEBUG, "已有该用户，正在更新用户登录信息")
+                        b_u_l_c.update_user(cookies, False)
+                    else:
+                        b_u_l_c.add_user(cookies)
+                        log_save(obs.LOG_INFO, "添加用户成功")
+                        # 请点击按钮【更新账号列表】，更新用户列表
+                        log_save(obs.LOG_INFO, "请点击按钮【更新账号列表】，更新用户列表")
                 else:
-                    b_u_l_c.add_user(cookies)
-                    log_save(obs.LOG_INFO, "添加用户成功")
-                    # 请点击按钮【更新账号列表】，更新用户列表
-                    log_save(obs.LOG_INFO, "请点击按钮【更新账号列表】，更新用户列表")
-            else:
-                log_save(obs.LOG_INFO, "添加用户失败")
-            # 结束计时器
-            obs.remove_current_callback()
+                    log_save(obs.LOG_INFO, "添加用户失败")
+                # 结束计时器
+                obs.remove_current_callback()
 
-    # 开始计时器
-    obs.timer_add(check_poll, 1000)
-    return True
-
-
-def button_function_show_qr_picture():
-    """
-    显示二维码图片
-    """
-    if GlobalVariableOfData.loginQRCodePillowImg:
-        log_save(obs.LOG_INFO, f"有可展示的登录二维码图片，展示登录二维码图片")
-        GlobalVariableOfData.loginQRCodePillowImg.show()
+        # 开始计时器
+        obs.timer_add(check_poll, 1000)
         return True
-    else:
-        log_save(obs.LOG_WARNING, f"没有可展示的登录二维码图片，请点击按钮 【二维码添加账号】创建")
-        return False
 
 
-def button_function_del_user(props, prop):
-    """
-    删除用户
-    Args:
-        props:
-        prop:
-    Returns:
-    """
-    uid = obs.obs_data_get_string(GlobalVariableOfData.script_settings, 'uid_comboBox')
-    if uid in ["-1"]:
-        log_save(obs.LOG_ERROR, "请选择一个账号")
-        return False
-    # ＝＝＝＝＝＝＝＝＝＝＝
-    # ＝     删除      ＝
-    # ＝＝＝＝＝＝＝＝＝＝＝
-    log_save(obs.LOG_INFO, f"即将删除的账号：{uid}")
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    b_u_l_c.delete_user(uid)
-    # ＝＝＝＝＝＝＝＝＝＝＝
-    # ＝     更新      ＝
-    # ＝＝＝＝＝＝＝＝＝＝＝
-    # 调用script_defaults更新obs默认配置信息
-    log_save(obs.LOG_INFO, f"更新控件配置信息")
-    script_defaults(GlobalVariableOfData.script_settings)
-    # 更新脚本用户小部件
-    log_save(obs.LOG_INFO, f"更新控件UI")
-    update_ui_interface_data()
-    return True
+    def button_function_show_qr_picture(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """
+        显示二维码图片
+        """
+        if GlobalVariableOfData.loginQRCodePillowImg:
+            log_save(obs.LOG_INFO, f"有可展示的登录二维码图片，展示登录二维码图片")
+            GlobalVariableOfData.loginQRCodePillowImg.show()
+            return True
+        else:
+            log_save(obs.LOG_WARNING, f"没有可展示的登录二维码图片，请点击按钮 【二维码添加账号】创建")
+            return False
 
 
-def button_function_backup_users(props, prop):
+    def button_function_del_user(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """
+        删除用户
+        Args:
+            props:
+            prop:
+        Returns:
+        """
+        uid = obs.obs_data_get_string(GlobalVariableOfData.script_settings, 'uid_comboBox')
+        if uid in ["-1"]:
+            log_save(obs.LOG_ERROR, "请选择一个账号")
+            return False
+        # ＝＝＝＝＝＝＝＝＝＝＝
+        # ＝     删除      ＝
+        # ＝＝＝＝＝＝＝＝＝＝＝
+        log_save(obs.LOG_INFO, f"即将删除的账号：{uid}")
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        b_u_l_c.delete_user(uid)
+        # ＝＝＝＝＝＝＝＝＝＝＝
+        # ＝     更新      ＝
+        # ＝＝＝＝＝＝＝＝＝＝＝
+        # 调用script_defaults更新obs默认配置信息
+        log_save(obs.LOG_INFO, f"更新控件配置信息")
+        script_defaults(GlobalVariableOfData.script_settings)
+        # 更新脚本用户小部件
+        log_save(obs.LOG_INFO, f"更新控件UI")
+        update_ui_interface_data()
+        return True
+
+
+def button_function_backup_users(*args):
+    if len(args) == 2:
+        props = args[0]
+        prop = args[1]
+    if len(args) == 3:
+        settings = args[2]
     """
     备份用户
     Args:
@@ -4719,7 +4755,12 @@ def button_function_backup_users(props, prop):
     pass
 
 
-def button_function_restore_user(props, prop):
+def button_function_restore_user(*args):
+    if len(args) == 2:
+        props = args[0]
+        prop = args[1]
+    if len(args) == 3:
+        settings = args[2]
     """
     恢复用户
     Args:
@@ -4730,7 +4771,12 @@ def button_function_restore_user(props, prop):
     pass
 
 
-def button_function_logout(props, prop):
+def button_function_logout(*args):
+    if len(args) == 2:
+        props = args[0]
+        prop = args[1]
+    if len(args) == 3:
+        settings = args[2]
     """
     登出
     Args:
@@ -4761,7 +4807,12 @@ def button_function_logout(props, prop):
     return True
 
 
-def button_function_opened_room(props, prop):
+def button_function_opened_room(*args):
+    if len(args) == 2:
+        props = args[0]
+        prop = args[1]
+    if len(args) == 3:
+        settings = args[2]
     """创建直播间"""
     # 创建用户配置文件实例
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
@@ -4787,7 +4838,12 @@ def button_function_opened_room(props, prop):
     return True
 
 
-def button_function_check_room_cover(props, prop):
+def button_function_check_room_cover(*args):
+    if len(args) == 2:
+        props = args[0]
+        prop = args[1]
+    if len(args) == 3:
+        settings = args[2]
     """
     查看直播间封面
     Args:
@@ -4850,7 +4906,12 @@ def button_function_check_room_cover(props, prop):
     pass
 
 
-def button_function_update_room_cover():
+def button_function_update_room_cover(*args):
+    if len(args) == 2:
+        props = args[0]
+        prop = args[1]
+    if len(args) == 3:
+        settings = args[2]
     """上传直播间封面"""
     # 获取文件对话框内容
     widget.PathBox.roomCover.Text = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
@@ -4906,7 +4967,12 @@ def button_function_update_room_cover():
     return True
 
 
-def button_function_face_auth():
+def button_function_face_auth(*args):
+    if len(args) == 2:
+        props = args[0]
+        prop = args[1]
+    if len(args) == 3:
+        settings = args[2]
     """展示人脸认证的二维码"""
     # 创建用户配置文件实例
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
@@ -4924,7 +4990,12 @@ def button_function_face_auth():
         log_save(obs.LOG_ERROR, f"未登录")
 
 
-def button_function_true_live_room_title():
+def button_function_true_live_room_title(*args):
+    if len(args) == 2:
+        props = args[0]
+        prop = args[1]
+    if len(args) == 3:
+        settings = args[2]
     """将可 可编辑组合框【常用标题】 中的文本 复制到 普通文本框【直播间标题】 """
     # 获取 可编辑组合框【常用标题】 当前 显示文本
     title_text = obs.obs_data_get_string(GlobalVariableOfData.script_settings, 'room_commonTitles_comboBox')
@@ -4935,7 +5006,12 @@ def button_function_true_live_room_title():
     return True
 
 
-def button_function_change_live_room_title():
+def button_function_change_live_room_title(*args):
+    if len(args) == 2:
+        props = args[0]
+        prop = args[1]
+    if len(args) == 3:
+        settings = args[2]
     """
     更改直播间标题
     Args:
@@ -5191,7 +5267,12 @@ def button_function_change_live_room_title():
     return True
 
 
-def button_function_change_live_room_news():
+def button_function_change_live_room_news(*args):
+    if len(args) == 2:
+        props = args[0]
+        prop = args[1]
+    if len(args) == 3:
+        settings = args[2]
     """
     更改直播间公告
     Args:
@@ -5359,7 +5440,12 @@ def button_function_change_live_room_news():
     return True
 
 
-def button_function_true_live_room_area():
+def button_function_true_live_room_area(*args):
+    if len(args) == 2:
+        props = args[0]
+        prop = args[1]
+    if len(args) == 3:
+        settings = args[2]
     """将可 组合框【常用分区】 中的值 映射到 组合框【一级分区】 和 组合框【二级分区】 """
     # #获取 组合框【常用分区】 当前选项的值
     room_common_areas_combobox_value = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
@@ -5381,7 +5467,12 @@ def button_function_true_live_room_area():
     return True
 
 
-def button_function_start_parent_area():
+def button_function_start_parent_area(*args):
+    if len(args) == 2:
+        props = args[0]
+        prop = args[1]
+    if len(args) == 3:
+        settings = args[2]
     """确认一级分区"""
     # #获取 组合框【一级分区】 当前选项的值
     parent_live_area_combobox_value = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
@@ -5436,7 +5527,12 @@ def button_function_start_parent_area():
     return True
 
 
-def button_function_start_sub_area():
+def button_function_start_sub_area(*args):
+    if len(args) == 2:
+        props = args[0]
+        prop = args[1]
+    if len(args) == 3:
+        settings = args[2]
     # 调整控件数据
     log_save(obs.LOG_INFO, f"")
     log_save(obs.LOG_INFO, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
@@ -5783,7 +5879,12 @@ def button_function_start_sub_area():
     return True
 
 
-def button_function_jump_blive_web(props, prop):
+def button_function_jump_blive_web(*args):
+    if len(args) == 2:
+        props = args[0]
+        prop = args[1]
+    if len(args) == 3:
+        settings = args[2]
     """
     跳转直播间后台网页
     Args:
@@ -5797,7 +5898,12 @@ def button_function_jump_blive_web(props, prop):
 
 # ____________________-------------------____________________---------------------_______________________---------------
 
-def button_function_start_live():
+def button_function_start_live(*args):
+    if len(args) == 2:
+        props = args[0]
+        prop = args[1]
+    if len(args) == 3:
+        settings = args[2]
     """
     开始直播
     """
@@ -6193,7 +6299,12 @@ def button_function_start_live():
     return True
 
 
-def button_function_rtmp_address_copy(props, prop):
+def button_function_rtmp_address_copy(*args):
+    if len(args) == 2:
+        props = args[0]
+        prop = args[1]
+    if len(args) == 3:
+        settings = args[2]
     """
     复制直播服务器
     Args:
@@ -6216,7 +6327,12 @@ def button_function_rtmp_address_copy(props, prop):
     return True
 
 
-def button_function_rtmp_stream_code_copy(props, prop):
+def button_function_rtmp_stream_code_copy(*args):
+    if len(args) == 2:
+        props = args[0]
+        prop = args[1]
+    if len(args) == 3:
+        settings = args[2]
     """
     复制直播推流码
     Args:
@@ -6240,7 +6356,12 @@ def button_function_rtmp_stream_code_copy(props, prop):
     return True
 
 
-def button_function_rtmp_stream_code_update(props, prop):
+def button_function_rtmp_stream_code_update(*args):
+    if len(args) == 2:
+        props = args[0]
+        prop = args[1]
+    if len(args) == 3:
+        settings = args[2]
     """
     更新推流码并复制
     Args:
@@ -6271,7 +6392,12 @@ def button_function_rtmp_stream_code_update(props, prop):
     return True
 
 
-def button_function_stop_live():
+def button_function_stop_live(*args):
+    if len(args) == 2:
+        props = args[0]
+        prop = args[1]
+    if len(args) == 3:
+        settings = args[2]
     """
     结束直播
     """
@@ -6585,7 +6711,12 @@ def button_function_stop_live():
     return True
 
 
-def button_function_true_live_appointment_day():
+def button_function_true_live_appointment_day(*args):
+    if len(args) == 2:
+        props = args[0]
+        prop = args[1]
+    if len(args) == 3:
+        settings = args[2]
     """确认预约天"""
     appointment_day_int = obs.obs_data_get_int(GlobalVariableOfData.script_settings, "live_bookings_day_digitalSlider")
     appointment_day_digital_slider_min = obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsDay.Obj)
@@ -6629,15 +6760,30 @@ def button_function_true_live_appointment_day():
     return False
 
 
-def button_function_true_live_appointment_hour():
+def button_function_true_live_appointment_hour(*args):
+    if len(args) == 2:
+        props = args[0]
+        prop = args[1]
+    if len(args) == 3:
+        settings = args[2]
     return button_function_true_live_appointment_day()
 
 
-def button_function_true_live_appointment_minute():
+def button_function_true_live_appointment_minute(*args):
+    if len(args) == 2:
+        props = args[0]
+        prop = args[1]
+    if len(args) == 3:
+        settings = args[2]
     return button_function_true_live_appointment_day()
 
 
-def button_function_creat_live_appointment(props, prop):
+def button_function_creat_live_appointment(*args):
+    if len(args) == 2:
+        props = args[0]
+        prop = args[1]
+    if len(args) == 3:
+        settings = args[2]
     """创建直播预约"""
     # 获取直播预约天
     live_bookings_day = obs.obs_data_get_int(GlobalVariableOfData.script_settings, "live_bookings_day_digitalSlider")
@@ -7103,7 +7249,12 @@ def button_function_creat_live_appointment(props, prop):
     return True
 
 
-def button_function_cancel_live_appointment(props, prop):
+def button_function_cancel_live_appointment(*args):
+    if len(args) == 2:
+        props = args[0]
+        prop = args[1]
+    if len(args) == 3:
+        settings = args[2]
     """取消直播预约"""
     # 获取当前直播预约的sid
     live_bookings_sid = obs.obs_data_get_string(GlobalVariableOfData.script_settings, "live_bookings_comboBox")
@@ -7542,13 +7693,7 @@ def button_function_cancel_live_appointment(props, prop):
     log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
     log_save(obs.LOG_INFO, f"　└{30 * '─'}👌组合框 UI{30 * '─'}┘")
     return True
-
-
-def button_function_test(p_name):
-    if p_name:
-        log_save(obs.LOG_INFO, f"【{p_name}】按钮被触发")
-    return True
-
+    
 
 def script_unload():
     """
@@ -7575,21 +7720,21 @@ widget.widget_Button_dict = {
             "Name": "top_button",
             "Description": "Top",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": lambda ps, p: button_function_test("顶部"),
+            "Callback": lambda ps, p: log_save(obs.LOG_INFO, f"【{'顶部'}】按钮被触发"),
             "ModifiedIs": True
         },
         "startScript": {
             "Name": "start_script_button",
             "Description": "启动脚本",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_start_script,
+            "Callback": ButtonFunction.button_function_start_script,
             "ModifiedIs": False
         },
         "bottom": {
             "Name": "bottom_button",
             "Description": "Bottom",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": lambda ps, p: button_function_test("底部"),
+            "Callback": lambda ps, p: log_save(obs.LOG_INFO, f"【{'底部'}】按钮被触发"),
             "ModifiedIs": True
         },
     },
@@ -7598,35 +7743,35 @@ widget.widget_Button_dict = {
             "Name": "login_button",
             "Description": "登录账号",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_login,
+            "Callback": ButtonFunction.button_function_login,
             "ModifiedIs": False
         },
         "accountListUpdate": {
             "Name": "account_list_update_button",
             "Description": "更新账号列表",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_update_account_list,
+            "Callback": ButtonFunction.button_function_update_account_list,
             "ModifiedIs": False
         },
         "qrAddAccount": {
             "Name": "qr_add_account_button",
             "Description": "二维码添加账户",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_qr_add_account,
+            "Callback": ButtonFunction.button_function_qr_add_account,
             "ModifiedIs": False
         },
         "qrPictureDisplay": {
             "Name": "qr_picture_display_button",
             "Description": "显示二维码图片",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": lambda ps, p: button_function_show_qr_picture(),
+            "Callback": ButtonFunction.button_function_show_qr_picture,
             "ModifiedIs": False
         },
         "accountDelete": {
             "Name": "account_delete_button",
             "Description": "删除账户",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_del_user,
+            "Callback": ButtonFunction.button_function_del_user,
             "ModifiedIs": False
         },
         "accountBackup": {
@@ -7670,49 +7815,49 @@ widget.widget_Button_dict = {
             "Name": "room_cover_update_button",
             "Description": "上传直播间封面",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": lambda ps, p: button_function_update_room_cover(),
+            "Callback": button_function_update_room_cover,
             "ModifiedIs": False
         },
         "roomCommonTitlesTrue": {
             "Name": "room_commonTitles_true_button",
             "Description": "确认标题",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": lambda ps, p: button_function_true_live_room_title(),
+            "Callback": button_function_true_live_room_title,
             "ModifiedIs": False
         },
         "roomTitleChange": {
             "Name": "room_title_change_button",
             "Description": "更改直播间标题",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": lambda ps, p: button_function_change_live_room_title(),
+            "Callback": button_function_change_live_room_title,
             "ModifiedIs": False
         },
         "roomNewsChange": {
             "Name": "room_news_change_button",
             "Description": "更改直播间公告",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": lambda ps, p: button_function_change_live_room_news(),
+            "Callback": button_function_change_live_room_news,
             "ModifiedIs": False
         },
         "roomCommonAreasTrue": {
             "Name": "room_commonAreas_true_button",
             "Description": "确认分区",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": lambda ps, p: button_function_true_live_room_area(),
+            "Callback": button_function_true_live_room_area,
             "ModifiedIs": False
         },
         "roomParentAreaTrue": {
             "Name": "room_parentArea_true_button",
             "Description": "确认一级分区",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": lambda ps, p: button_function_start_parent_area(),
+            "Callback": button_function_start_parent_area,
             "ModifiedIs": False
         },
         "roomSubAreaTrue": {
             "Name": "room_subArea_true_button",
             "Description": "「确认分区」",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": lambda ps, p: button_function_start_sub_area(),
+            "Callback": button_function_start_sub_area,
             "ModifiedIs": False
         },
         "bliveWebJump": {
@@ -7728,14 +7873,14 @@ widget.widget_Button_dict = {
             "Name": "live_face_auth_button",
             "Description": "人脸认证",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": lambda ps, p: button_function_face_auth(),
+            "Callback": button_function_face_auth,
             "ModifiedIs": False
         },
         "liveStart": {
             "Name": "live_start_button",
             "Description": "开始直播并复制推流码",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": lambda ps, p: button_function_start_live(),
+            "Callback": button_function_start_live,
             "ModifiedIs": False
         },
         "liveRtmpAddressCopy": {
@@ -7763,28 +7908,28 @@ widget.widget_Button_dict = {
             "Name": "live_stop_button",
             "Description": "结束直播",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": lambda ps, p: button_function_stop_live(),
+            "Callback": button_function_stop_live,
             "ModifiedIs": False
         },
         "liveBookingsDayTrue": {
             "Name": "live_bookings_day_true_button",
             "Description": "确认预约天",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": lambda ps, p: button_function_true_live_appointment_day(),
+            "Callback": button_function_true_live_appointment_day,
             "ModifiedIs": False
         },
         "liveBookingsHourTrue": {
             "Name": "live_bookings_hour_true_button",
             "Description": "确认预约时",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": lambda ps, p: button_function_test("确认预约时"),
+            "Callback": lambda ps, p: log_save(obs.LOG_INFO, f"【{'确认预约时'}】按钮被触发"),
             "ModifiedIs": False
         },
         "liveBookingsMinuteTrue": {
             "Name": "live_bookings_minute_true_button",
             "Description": "确认预约分",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": lambda ps, p: button_function_test("确认预约分"),
+            "Callback": lambda ps, p: log_save(obs.LOG_INFO, f"【{'确认预约分'}】按钮被触发"),
             "ModifiedIs": False
         },
         "liveBookingsCreate": {
