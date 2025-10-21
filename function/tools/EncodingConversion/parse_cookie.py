@@ -134,7 +134,7 @@ if __name__ == "__main__":
     print("所有测试通过！")
 
     # 示例用法
-    cookie_string = "buvid3=A0677F67-FBB5-7613-E283-CD0D3B59190219553infoc; b_nut=1761068219; b_lsid=89B86B77_19A07D804C1; _uuid=AE371E67-E106C-3F5B-9D9B-4D1011CF281D288871infoc; enable_web_push=DISABLE; home_feed_column=5; browser_resolution=1592-2452; buvid_fp=f34c359c367ca8ebf3e3f3486a2e3225; buvid4=6C82EC89-FBCF-FE2A-D7B1-12A3255B1EE321258-025102201-QpHZYVWqnEnOCZfk5BDNAtPGBJlrEgAm6hcvsEAMy6VyBHRrvxif2KeBAlW+QFl5; CURRENT_FNVAL=2000; sid=8m319lqi; bili_ticket=eyJhbGciOiJIUzI1NiIsImtpZCI6InMwMyIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjEzMjc0NDgsImlhdCI6MTc2MTA2ODE4OCwicGx0IjotMX0.IdIrB8ObiKkSkPCEfxGHgHWpVLMVFMbrIXu42fsj-iU; bili_ticket_expires=1761327388; LIVE_BUVID=AUTO1217610682482486; PVID=4"
+    cookie_string = "DedeUserID=67890; DedeUserID__ckMd5=md5_67890; SESSDATA=sessdata_67890; bili_jct=jct_67890; buvid3=buvid3_67890; b_nut=bnut_67890; last_updated=2025-10-22T02%3A16%3A32.728431"
     parsed = parse_cookie(cookie_string)
     print(f"\n解析结果: {parsed}")
     print(f"\n解析结果: {parsed.get('DedeUserID', '')}")
