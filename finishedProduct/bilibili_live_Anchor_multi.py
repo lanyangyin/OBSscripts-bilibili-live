@@ -53,45 +53,6 @@ from PIL import Image, ImageOps
 
 # import websockets
 
-script_version = bytes.fromhex('302e322e36').decode('utf-8')
-"""脚本版本.encode().hex()"""
-
-
-def script_path():
-    """
-    用于获取脚本所在文件夹的路径，这其实是一个obs插件内置函数，
-    只在obs插件指定的函数内部使用有效,
-    这里构建这个函数是没必要的，写在这里只是为了避免IDE出现error提示
-    Example:
-        假如脚本路径在 "/Applications/OBS.app/Contents/PlugIns/frontend-tools.plugin/Contents/Resources/scripts/bilibili_live.py"
-        >>> print(script_path())
-        /Applications/OBS.app/Contents/PlugIns/frontend-tools.plugin/Contents/Resources/scripts/
-        >>> print(Path(f'{script_path()}bilibili-live') / "config.json")
-        /Applications/OBS.app/Contents/PlugIns/frontend-tools.plugin/Contents/Resources/scripts/bilibili-live/config.json
-    """
-    return f"{Path(__file__).parent}\\"
-
-
-def log_save(log_level, log_str: str) -> None:
-    """
-    输出并保存日志
-    Args:
-        log_level: 日志等级
-
-            - obs.LOG_INFO
-            - obs.LOG_DEBUG
-            - obs.LOG_WARNING
-            - obs.LOG_ERROR
-        log_str: 日志内容
-    Returns: None
-    """
-    now: datetime = datetime.now()
-    formatted: str = now.strftime("%Y/%m/%d %H:%M:%S")
-    log_text: str = f"{script_version} 【{formatted}】【{ExplanatoryDictionary.log_type[log_level]}】 \t{log_str}"
-    obs.script_log(log_level, log_str)
-    GlobalVariableOfData.logRecording += log_text + "\n"
-
-
 class GlobalVariableOfData:
     script_loading_is: bool = False
     """是否正式加载脚本"""
@@ -1419,7 +1380,6 @@ class CommonTitlesManager:
         return json.dumps(self.data, ensure_ascii=False, indent=2)
 
 
-# 不登录也能用的api
 class BilibiliApiGeneric:
     """
     不登录也能用的api
@@ -1913,7 +1873,6 @@ class BilibiliApiGeneric:
         return {'code': code, 'cookies': cookies}
 
 
-# 登陆后才能用的函数
 class BilibiliApiMaster:
     """登陆后才能用的函数"""
 
@@ -2578,6 +2537,45 @@ class BilibiliApiMaster:
 # -----------------------------------------------------------
 # OBS Script Functions                                      -
 # -----------------------------------------------------------
+
+script_version = bytes.fromhex('302e322e36').decode('utf-8')
+"""脚本版本.encode().hex()"""
+
+
+def script_path():
+    """
+    用于获取脚本所在文件夹的路径，这其实是一个obs插件内置函数，
+    只在obs插件指定的函数内部使用有效,
+    这里构建这个函数是没必要的，写在这里只是为了避免IDE出现error提示
+    Example:
+        假如脚本路径在 "/Applications/OBS.app/Contents/PlugIns/frontend-tools.plugin/Contents/Resources/scripts/bilibili_live.py"
+        >>> print(script_path())
+        /Applications/OBS.app/Contents/PlugIns/frontend-tools.plugin/Contents/Resources/scripts/
+        >>> print(Path(f'{script_path()}bilibili-live') / "config.json")
+        /Applications/OBS.app/Contents/PlugIns/frontend-tools.plugin/Contents/Resources/scripts/bilibili-live/config.json
+    """
+    return f"{Path(__file__).parent}\\"
+
+
+def log_save(log_level, log_str: str) -> None:
+    """
+    输出并保存日志
+    Args:
+        log_level: 日志等级
+
+            - obs.LOG_INFO
+            - obs.LOG_DEBUG
+            - obs.LOG_WARNING
+            - obs.LOG_ERROR
+        log_str: 日志内容
+    Returns: None
+    """
+    now: datetime = datetime.now()
+    formatted: str = now.strftime("%Y/%m/%d %H:%M:%S")
+    log_text: str = f"{script_version} 【{formatted}】【{ExplanatoryDictionary.log_type[log_level]}】 \t{log_str}"
+    obs.script_log(log_level, log_str)
+    GlobalVariableOfData.logRecording += log_text + "\n"
+
 
 @dataclass
 class ControlBase:
