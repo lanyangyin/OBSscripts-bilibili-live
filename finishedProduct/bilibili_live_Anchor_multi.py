@@ -53,6 +53,23 @@ from PIL import Image, ImageOps
 
 # import websockets
 
+def script_path():
+    """
+    用于获取脚本所在文件夹的路径，这其实是一个obs插件内置函数，
+    只在obs插件指定的函数内部使用有效,
+    这里构建这个函数是没必要的，写在这里只是为了避免IDE出现error提示
+    Example:
+        假如脚本路径在 "/Applications/OBS.app/Contents/PlugIns/frontend-tools.plugin/Contents/Resources/scripts/bilibili_live.py"
+        >>> print(script_path())
+        /Applications/OBS.app/Contents/PlugIns/frontend-tools.plugin/Contents/Resources/scripts/
+        >>> print(Path(f'{script_path()}bilibili-live') / "config.json")
+        /Applications/OBS.app/Contents/PlugIns/frontend-tools.plugin/Contents/Resources/scripts/bilibili-live/config.json
+    """
+    return f"{Path(__file__).parent}\\"
+
+# import 结束 ====================================================================================================
+
+
 class NetworkErrorCode:
     """定义网络错误码"""
     NETWORK_CONNECTION_SUCCESS: int = 0
@@ -2459,14 +2476,6 @@ class ExplanatoryDictionary:
     }
     """只读文本框的消息类型 说明字典"""
 
-    information4login_qr_return_code: Dict[int, str] = {
-        0: "登录成功",
-        86101: "未扫码",
-        86090: "二维码已扫码未确认",
-        86038: "二维码已失效",
-    }
-    """登陆二维码返回码 说明字典"""
-
     information4frontend_event: Dict[int, str] = {
         # 推流相关事件
         obs.OBS_FRONTEND_EVENT_STREAMING_STARTING: "推流正在启动",
@@ -2543,20 +2552,13 @@ class ExplanatoryDictionary:
     }
     """obs日志警告等级 说明字典"""
 
-
-def script_path():
-    """
-    用于获取脚本所在文件夹的路径，这其实是一个obs插件内置函数，
-    只在obs插件指定的函数内部使用有效,
-    这里构建这个函数是没必要的，写在这里只是为了避免IDE出现error提示
-    Example:
-        假如脚本路径在 "/Applications/OBS.app/Contents/PlugIns/frontend-tools.plugin/Contents/Resources/scripts/bilibili_live.py"
-        >>> print(script_path())
-        /Applications/OBS.app/Contents/PlugIns/frontend-tools.plugin/Contents/Resources/scripts/
-        >>> print(Path(f'{script_path()}bilibili-live') / "config.json")
-        /Applications/OBS.app/Contents/PlugIns/frontend-tools.plugin/Contents/Resources/scripts/bilibili-live/config.json
-    """
-    return f"{Path(__file__).parent}\\"
+    information4login_qr_return_code: Dict[int, str] = {
+        0: "登录成功",
+        86101: "未扫码",
+        86090: "二维码已扫码未确认",
+        86038: "二维码已失效",
+    }
+    """登陆二维码返回码 说明字典"""
 
 
 def log_save(log_level, log_str: str) -> None:
@@ -4010,6 +4012,7 @@ def script_unload():
 
 
 class ButtonFunction:
+    """按钮回调函数"""
     @staticmethod
     def button_function_start_script(*args):
         if len(args) == 2:
