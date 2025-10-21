@@ -8,7 +8,7 @@ from urllib.parse import quote, unquote
 class MultiUserCookieManager:
     """多人 Cookies 管理器，支持多种格式的导入导出和快速查询"""
 
-    def __init__(self, file_path: str = "cookies.json"):
+    def __init__(self, file_path: str = ""):
         self.file_path = file_path
         self.data = {
             "version": "1.0",
@@ -30,7 +30,12 @@ class MultiUserCookieManager:
         """从文件加载 cookies 数据"""
         try:
             with open(self.file_path, 'r', encoding='utf-8') as f:
-                self.data = json.load(f)
+                loaded_data = json.load(f)
+                # 确保向后兼容，如果旧数据没有simplified_json字段，则添加
+                for user_key, user_data in loaded_data.get("users", {}).items():
+                    if "simplified_json" not in user_data:
+                        user_data["simplified_json"] = {}
+                self.data.update(loaded_data)
             return True
         except (FileNotFoundError, json.JSONDecodeError):
             # 文件不存在或格式错误，使用默认数据
@@ -59,7 +64,8 @@ class MultiUserCookieManager:
             "platform": platform or "",
             "cookies": [],
             "cookie_string": "",
-            "netscape_format": ""
+            "netscape_format": "",
+            "simplified_json": {}  # 新增简化JSON字段
         }
 
         # 更新索引
@@ -75,14 +81,7 @@ class MultiUserCookieManager:
             return False
 
         self.data["users"][user_key]["cookies"] = cookies
-
-        # 更新其他格式
-        self._update_cookie_string(user_key)
-        self._update_netscape_format(user_key)
-
-        # 更新索引
-        self._update_cookie_indexes(user_key)
-
+        self._update_all_formats(user_key)
         return True
 
     def import_cookie_string(self, user_key: str, cookie_string: str) -> bool:
@@ -112,9 +111,7 @@ class MultiUserCookieManager:
                 })
 
         self.data["users"][user_key]["cookies"] = cookies
-        self._update_netscape_format(user_key)
-        self._update_cookie_indexes(user_key)
-
+        self._update_all_formats(user_key)
         return True
 
     def import_netscape_format(self, user_key: str, netscape_text: str) -> bool:
@@ -144,9 +141,40 @@ class MultiUserCookieManager:
                 })
 
         self.data["users"][user_key]["cookies"] = cookies
-        self._update_cookie_string(user_key)
-        self._update_cookie_indexes(user_key)
+        self._update_all_formats(user_key)
+        return True
 
+    def import_simplified_json(self, user_key: str, simplified_cookies: Dict[str, Any]) -> bool:
+        """导入简化的 JSON 格式 cookie 数据"""
+        if user_key not in self.data["users"]:
+            return False
+
+        # 获取现有的完整 cookies
+        existing_cookies = self.data["users"][user_key]["cookies"]
+
+        # 更新或添加简化的 cookie 值
+        for name, value in simplified_cookies.items():
+            found = False
+            for cookie in existing_cookies:
+                if cookie.get("name") == name:
+                    cookie["value"] = str(value)  # 确保值为字符串
+                    found = True
+                    break
+
+            # 如果不存在，添加新的 cookie
+            if not found:
+                existing_cookies.append({
+                    "name": name,
+                    "value": str(value),
+                    "domain": ".bilibili.com",
+                    "path": "/",
+                    "secure": False,
+                    "httpOnly": False,
+                    "session": True
+                })
+
+        # 更新所有格式和索引
+        self._update_all_formats(user_key)
         return True
 
     def _update_cookie_string(self, user_key: str):
@@ -178,6 +206,27 @@ class MultiUserCookieManager:
 
         self.data["users"][user_key]["netscape_format"] = "\n".join(lines)
 
+    def _update_simplified_json(self, user_key: str, keys: List[str] = None):
+        """更新简化 JSON 格式"""
+        cookies = self.data["users"][user_key]["cookies"]
+
+        # 默认导出的关键 cookie 键
+        default_keys = ["DedeUserID", "DedeUserID__ckMd5", "SESSDATA", "bili_jct", "b_nut", "buvid3"]
+        target_keys = keys or default_keys
+
+        result = {}
+        for cookie in cookies:
+            cookie_name = cookie.get("name")
+            if cookie_name in target_keys:
+                # 尝试将数字字符串转换为整数
+                value = cookie.get("value", "")
+                if cookie_name == "DedeUserID" and value.isdigit():
+                    result[cookie_name] = int(value)
+                else:
+                    result[cookie_name] = value
+
+        self.data["users"][user_key]["simplified_json"] = result
+
     def _update_cookie_indexes(self, user_key: str):
         """更新 cookie 索引"""
         user_data = self.data["users"][user_key]
@@ -197,6 +246,13 @@ class MultiUserCookieManager:
                     self.data["indexes"]["by_cookie_name"][cookie_name] = []
                 if user_key not in self.data["indexes"]["by_cookie_name"][cookie_name]:
                     self.data["indexes"]["by_cookie_name"][cookie_name].append(user_key)
+
+    def _update_all_formats(self, user_key: str):
+        """更新所有需要预计算的 cookie 格式"""
+        self._update_cookie_string(user_key)
+        self._update_netscape_format(user_key)
+        self._update_simplified_json(user_key)  # 新增：更新简化JSON格式
+        self._update_cookie_indexes(user_key)
 
     def get_cookie_value(self, user_identifier: str, cookie_name: str) -> Optional[str]:
         """获取指定用户的特定 cookie 值"""
@@ -240,7 +296,43 @@ class MultiUserCookieManager:
 
         return result
 
-    def export_user_cookies(self, user_identifier: str, format_type: str = "json") -> Optional[Union[Dict, str]]:
+    def export_simplified_json(self, user_identifier: str, keys: List[str] = None) -> Optional[Dict[str, Any]]:
+        """导出简化的 JSON 格式，包含指定的 cookie 键值对"""
+        user_key = None
+
+        if user_identifier in self.data["indexes"]["by_user_id"]:
+            user_key = self.data["indexes"]["by_user_id"][user_identifier]
+        elif user_identifier in self.data["indexes"]["by_username"]:
+            user_key = self.data["indexes"]["by_username"][user_identifier]
+        elif user_identifier in self.data["users"]:
+            user_key = user_identifier
+
+        if not user_key or user_key not in self.data["users"]:
+            return None
+
+        # 如果指定了键，则实时生成
+        if keys:
+            # 默认导出的关键 cookie 键
+            target_keys = keys
+
+            result = {}
+            for cookie in self.data["users"][user_key]["cookies"]:
+                cookie_name = cookie.get("name")
+                if cookie_name in target_keys:
+                    # 尝试将数字字符串转换为整数
+                    value = cookie.get("value", "")
+                    if cookie_name == "DedeUserID" and value.isdigit():
+                        result[cookie_name] = int(value)
+                    else:
+                        result[cookie_name] = value
+
+            return result if result else None
+        else:
+            # 返回存储的简化JSON
+            return self.data["users"][user_key]["simplified_json"]
+
+    def export_user_cookies(self, user_identifier: str, format_type: str = "json", **kwargs) -> Optional[
+        Union[Dict, str]]:
         """导出指定用户的 cookies，支持多种格式"""
         user_key = None
 
@@ -260,44 +352,33 @@ class MultiUserCookieManager:
             return self.data["users"][user_key]["cookie_string"]
         elif format_type == "netscape":
             return self.data["users"][user_key]["netscape_format"]
+        elif format_type == "simplified_json":
+            keys = kwargs.get('keys', None)
+            return self.export_simplified_json(user_identifier, keys)
         else:
             return None
 
 
 # 使用示例
 if __name__ == "__main__":
+    from _Input.function.tools.ConfigControl import JSONCookiesManager
     # 创建管理器实例
-    manager = MultiUserCookieManager("./TestOutput/JSONCookiesManager/cookies.json")
+    manager = MultiUserCookieManager(JSONCookiesManager.path)
 
-    # 添加用户
-    user_key = manager.add_user("143474500", "example_user", "bilibili")
+    # 添加用户1
+    user_key = manager.add_user(JSONCookiesManager.user1.id, JSONCookiesManager.user1.name, JSONCookiesManager.user1.platform)
 
-    # 导入 JSON 格式的 cookies
-    json_cookies = [
-        {
-            "domain": ".bilibili.com",
-            "expirationDate": 1780906990,
-            "hostOnly": False,
-            "httpOnly": False,
-            "name": "_uuid",
-            "path": "/",
-            "sameSite": "unspecified",
-            "secure": False,
-            "session": False,
-            "storeId": "0",
-            "value": "DC6101E21-B1E9-8934-97CE-5AB10D3110C51890364infoc",
-            "id": 1
-        }
-        # 更多 cookies...
-    ]
-    manager.import_cookies_json(user_key, json_cookies)
+    # # 导入 JSON 格式的 cookies
+    # manager.import_cookies_json(user_key, JSONCookiesManager.json_cookies)
+    #
+    # # 导入字符串格式的 cookies
+    # manager.import_cookie_string(user_key, JSONCookiesManager.cookie_string)
 
-    # 导入字符串格式的 cookies
-    cookie_string = r"buvid3=24B878AA-65D8-B50F-115F-93620321758D34011infoc; b_nut=1756097834; _uuid=63397FF4-FC4C-8C5E-9D47-17799AB2610D529737infoc; buvid_fp=0909838887fa47f5d59a246818cf1969; enable_web_push=DISABLE; buvid4=6214F410-3FE8-53F4-D104-4838A446323434991-025082512-c55Uq60Y364aMkJdw+nh+WWaSElXXo+lKz1+lLtT33nfw+HhY7joPxfdJLNTR4mu; theme-tip-show=SHOWED; theme-avatar-tip-show=SHOWED; LIVE_BUVID=AUTO7917560980008599; theme-switch-show=SHOWED; DedeUserID=3546974607379019; DedeUserID__ckMd5=220bc66fcc74f43e; home_feed_column=4; browser_resolution=1059-1629; SESSDATA=85b3171d%2C1774179577%2C6cab5%2A91CjBSVIR17iygOYBCeeja3TZnjvDOadTlt0hGLBKOsrR4SzOrIWsyUpN9WBEq4XjCepMSVkZSSi01Rmx6RjhNaXNDS2Znd0s3TUdjR2Z5MWN3NGQ0WHFTaG5abXVoOEY0WVNnckRDa1RMU2E1bUg3YmZzd2Q0a2tUekJfNXVWMl9RZmZ3cGRqcV93IIEC; bili_jct=3ec9b89f79456a4c50ed068bf22f3eac; b_lsid=33D57815_199768D9C1D; bsource=search_bing; bili_ticket=eyJhbGciOiJIUzI1NiIsImtpZCI6InMwMyIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTg4ODk4NTAsImlhdCI6MTc1ODYzMDU5MCwicGx0IjotMX0.FSW68IsOnr5suB8iRNRQ0zbQCPNZi21Z-JL8LUVJtaI; bili_ticket_expires=1758889790; CURRENT_QUALITY=0; rpdid=0zbfAKYWU2|v4zZtxHq|4fY|3w1V12aH; CURRENT_FNVAL=2000; sid=8l716553; PVID=3"
-    manager.import_cookie_string(user_key, cookie_string)
+    # 导入 简化JSON 格式的 cookies
+    manager.import_simplified_json(user_key, JSONCookiesManager.simplified_cookies)
 
     # 查找特定 cookie 的值
-    sessdata = manager.get_cookie_value("143474500", "SESSDATA")
+    sessdata = manager.get_cookie_value(JSONCookiesManager.user1.id, "SESSDATA")
     print(f"SESSDATA: {sessdata}")
 
     # 通过 cookie 查找用户
@@ -305,14 +386,24 @@ if __name__ == "__main__":
     print(f"Users with SESSDATA: {users_with_sessdata}")
 
     # 导出特定格式的 cookies
-    netscape_cookies = manager.export_user_cookies("143474500", "netscape")
+    netscape_cookies = manager.export_user_cookies(JSONCookiesManager.user1.id, "netscape")
     print("Netscape format:")
     print(netscape_cookies)
 
     # 导出特定格式的 cookies
-    netscape_cookies = manager.export_user_cookies("143474500", "string")
+    json_cookies = manager.export_user_cookies(JSONCookiesManager.user1.id, "json")
+    print("json format:")
+    print(json_cookies)
+
+    # 导出特定格式的 cookies
+    string_cookies = manager.export_user_cookies(JSONCookiesManager.user1.id, "string")
     print("string format:")
-    print(netscape_cookies)
+    print(string_cookies)
+
+    # 导出特定格式的 cookies
+    simplified_json_cookies = manager.export_user_cookies(JSONCookiesManager.user1.id, "simplified_json")
+    print("simplified_json format:")
+    print(simplified_json_cookies)
 
     # 保存到文件
     manager.save()
