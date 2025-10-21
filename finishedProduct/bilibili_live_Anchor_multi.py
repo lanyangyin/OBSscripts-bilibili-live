@@ -57,6 +57,41 @@ script_version = bytes.fromhex('302e322e36').decode('utf-8')
 """脚本版本.encode().hex()"""
 
 
+def script_path():
+    """
+    用于获取脚本所在文件夹的路径，这其实是一个obs插件内置函数，
+    只在obs插件指定的函数内部使用有效,
+    这里构建这个函数是没必要的，写在这里只是为了避免IDE出现error提示
+    Example:
+        假如脚本路径在 "/Applications/OBS.app/Contents/PlugIns/frontend-tools.plugin/Contents/Resources/scripts/bilibili_live.py"
+        >>> print(script_path())
+        /Applications/OBS.app/Contents/PlugIns/frontend-tools.plugin/Contents/Resources/scripts/
+        >>> print(Path(f'{script_path()}bilibili-live') / "config.json")
+        /Applications/OBS.app/Contents/PlugIns/frontend-tools.plugin/Contents/Resources/scripts/bilibili-live/config.json
+    """
+    return f"{Path(__file__).parent}\\"
+
+
+def log_save(log_level, log_str: str) -> None:
+    """
+    输出并保存日志
+    Args:
+        log_level: 日志等级
+
+            - obs.LOG_INFO
+            - obs.LOG_DEBUG
+            - obs.LOG_WARNING
+            - obs.LOG_ERROR
+        log_str: 日志内容
+    Returns: None
+    """
+    now: datetime = datetime.now()
+    formatted: str = now.strftime("%Y/%m/%d %H:%M:%S")
+    log_text: str = f"{script_version} 【{formatted}】【{ExplanatoryDictionary.log_type[log_level]}】 \t{log_str}"
+    obs.script_log(log_level, log_str)
+    GlobalVariableOfData.logRecording += log_text + "\n"
+
+
 class NetworkErrorCode:
     """定义网络错误码"""
     NETWORK_CONNECTION_SUCCESS: int = 0
@@ -81,112 +116,97 @@ class SslErrorCode:
     """SSL未知错误"""
 
 
-# 全局变量
-textBox_type_name4textBox_type: Dict[int, str] = {
-    obs.OBS_TEXT_INFO_NORMAL: '正常信息',
-    obs.OBS_TEXT_INFO_WARNING: '警告信息',
-    obs.OBS_TEXT_INFO_ERROR: '错误信息'
-}
-"""只读文本框的消息类型 说明字典"""
+class ExplanatoryDictionary:
+    textBox_type_name4textBox_type: Dict[int, str] = {
+        obs.OBS_TEXT_INFO_NORMAL: '正常信息',
+        obs.OBS_TEXT_INFO_WARNING: '警告信息',
+        obs.OBS_TEXT_INFO_ERROR: '错误信息'
+    }
+    """只读文本框的消息类型 说明字典"""
 
-information4login_qr_return_code: Dict[int, str] = {
-    0: "登录成功",
-    86101: "未扫码",
-    86090: "二维码已扫码未确认",
-    86038: "二维码已失效",
-}
-"""登陆二维码被调用后轮询函数返回值对应的含义"""
+    information4login_qr_return_code: Dict[int, str] = {
+        0: "登录成功",
+        86101: "未扫码",
+        86090: "二维码已扫码未确认",
+        86038: "二维码已失效",
+    }
+    """登陆二维码返回码 说明字典"""
 
-information4frontend_event: Dict[int, str] = {
-    # 推流相关事件
-    obs.OBS_FRONTEND_EVENT_STREAMING_STARTING: "推流正在启动",
-    obs.OBS_FRONTEND_EVENT_STREAMING_STARTED: "推流已开始",
-    obs.OBS_FRONTEND_EVENT_STREAMING_STOPPING: "推流正在停止",
-    obs.OBS_FRONTEND_EVENT_STREAMING_STOPPED: "推流已停止",
+    information4frontend_event: Dict[int, str] = {
+        # 推流相关事件
+        obs.OBS_FRONTEND_EVENT_STREAMING_STARTING: "推流正在启动",
+        obs.OBS_FRONTEND_EVENT_STREAMING_STARTED: "推流已开始",
+        obs.OBS_FRONTEND_EVENT_STREAMING_STOPPING: "推流正在停止",
+        obs.OBS_FRONTEND_EVENT_STREAMING_STOPPED: "推流已停止",
 
-    # 录制相关事件
-    obs.OBS_FRONTEND_EVENT_RECORDING_STARTING: "录制正在启动",
-    obs.OBS_FRONTEND_EVENT_RECORDING_STARTED: "录制已开始",
-    obs.OBS_FRONTEND_EVENT_RECORDING_STOPPING: "录制正在停止",
-    obs.OBS_FRONTEND_EVENT_RECORDING_STOPPED: "录制已停止",
-    obs.OBS_FRONTEND_EVENT_RECORDING_PAUSED: "录制已暂停",
-    obs.OBS_FRONTEND_EVENT_RECORDING_UNPAUSED: "录制已恢复",
+        # 录制相关事件
+        obs.OBS_FRONTEND_EVENT_RECORDING_STARTING: "录制正在启动",
+        obs.OBS_FRONTEND_EVENT_RECORDING_STARTED: "录制已开始",
+        obs.OBS_FRONTEND_EVENT_RECORDING_STOPPING: "录制正在停止",
+        obs.OBS_FRONTEND_EVENT_RECORDING_STOPPED: "录制已停止",
+        obs.OBS_FRONTEND_EVENT_RECORDING_PAUSED: "录制已暂停",
+        obs.OBS_FRONTEND_EVENT_RECORDING_UNPAUSED: "录制已恢复",
 
-    # 回放缓存相关事件
-    obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTING: "回放缓存正在启动",
-    obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTED: "回放缓存已开始",
-    obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPING: "回放缓存正在停止",
-    obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPED: "回放缓存已停止",
-    obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED: "回放已保存",
+        # 回放缓存相关事件
+        obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTING: "回放缓存正在启动",
+        obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTED: "回放缓存已开始",
+        obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPING: "回放缓存正在停止",
+        obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPED: "回放缓存已停止",
+        obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED: "回放已保存",
 
-    # 场景相关事件
-    obs.OBS_FRONTEND_EVENT_SCENE_CHANGED: "当前场景已改变",
-    obs.OBS_FRONTEND_EVENT_PREVIEW_SCENE_CHANGED: "预览场景已改变",
-    obs.OBS_FRONTEND_EVENT_SCENE_LIST_CHANGED: "场景列表已改变",
+        # 场景相关事件
+        obs.OBS_FRONTEND_EVENT_SCENE_CHANGED: "当前场景已改变",
+        obs.OBS_FRONTEND_EVENT_PREVIEW_SCENE_CHANGED: "预览场景已改变",
+        obs.OBS_FRONTEND_EVENT_SCENE_LIST_CHANGED: "场景列表已改变",
 
-    # 转场相关事件
-    obs.OBS_FRONTEND_EVENT_TRANSITION_CHANGED: "转场效果已改变",
-    obs.OBS_FRONTEND_EVENT_TRANSITION_STOPPED: "转场效果已停止",
-    obs.OBS_FRONTEND_EVENT_TRANSITION_LIST_CHANGED: "转场列表已改变",
-    obs.OBS_FRONTEND_EVENT_TRANSITION_DURATION_CHANGED: "转场持续时间已更改",
+        # 转场相关事件
+        obs.OBS_FRONTEND_EVENT_TRANSITION_CHANGED: "转场效果已改变",
+        obs.OBS_FRONTEND_EVENT_TRANSITION_STOPPED: "转场效果已停止",
+        obs.OBS_FRONTEND_EVENT_TRANSITION_LIST_CHANGED: "转场列表已改变",
+        obs.OBS_FRONTEND_EVENT_TRANSITION_DURATION_CHANGED: "转场持续时间已更改",
 
-    # 配置文件相关事件
-    obs.OBS_FRONTEND_EVENT_PROFILE_CHANGING: "配置文件即将切换",
-    obs.OBS_FRONTEND_EVENT_PROFILE_CHANGED: "配置文件已切换",
-    obs.OBS_FRONTEND_EVENT_PROFILE_LIST_CHANGED: "配置文件列表已改变",
-    obs.OBS_FRONTEND_EVENT_PROFILE_RENAMED: "配置文件已重命名",
+        # 配置文件相关事件
+        obs.OBS_FRONTEND_EVENT_PROFILE_CHANGING: "配置文件即将切换",
+        obs.OBS_FRONTEND_EVENT_PROFILE_CHANGED: "配置文件已切换",
+        obs.OBS_FRONTEND_EVENT_PROFILE_LIST_CHANGED: "配置文件列表已改变",
+        obs.OBS_FRONTEND_EVENT_PROFILE_RENAMED: "配置文件已重命名",
 
-    # 场景集合相关事件
-    obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_CHANGING: "场景集合即将切换",
-    obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_CHANGED: "场景集合已切换",
-    obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_LIST_CHANGED: "场景集合列表已改变",
-    obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_RENAMED: "场景集合已重命名",
-    obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_CLEANUP: "场景集合清理完成",
+        # 场景集合相关事件
+        obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_CHANGING: "场景集合即将切换",
+        obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_CHANGED: "场景集合已切换",
+        obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_LIST_CHANGED: "场景集合列表已改变",
+        obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_RENAMED: "场景集合已重命名",
+        obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_CLEANUP: "场景集合清理完成",
 
-    # 工作室模式事件
-    obs.OBS_FRONTEND_EVENT_STUDIO_MODE_ENABLED: "工作室模式已启用",
-    obs.OBS_FRONTEND_EVENT_STUDIO_MODE_DISABLED: "工作室模式已禁用",
+        # 工作室模式事件
+        obs.OBS_FRONTEND_EVENT_STUDIO_MODE_ENABLED: "工作室模式已启用",
+        obs.OBS_FRONTEND_EVENT_STUDIO_MODE_DISABLED: "工作室模式已禁用",
 
-    # 系统级事件
-    obs.OBS_FRONTEND_EVENT_EXIT: "OBS 即将退出",
-    obs.OBS_FRONTEND_EVENT_FINISHED_LOADING: "OBS 完成加载",
-    obs.OBS_FRONTEND_EVENT_SCRIPTING_SHUTDOWN: "脚本关闭中",
+        # 系统级事件
+        obs.OBS_FRONTEND_EVENT_EXIT: "OBS 即将退出",
+        obs.OBS_FRONTEND_EVENT_FINISHED_LOADING: "OBS 完成加载",
+        obs.OBS_FRONTEND_EVENT_SCRIPTING_SHUTDOWN: "脚本关闭中",
 
-    # 虚拟摄像头事件
-    obs.OBS_FRONTEND_EVENT_VIRTUALCAM_STARTED: "虚拟摄像头已启动",
-    obs.OBS_FRONTEND_EVENT_VIRTUALCAM_STOPPED: "虚拟摄像头已停止",
+        # 虚拟摄像头事件
+        obs.OBS_FRONTEND_EVENT_VIRTUALCAM_STARTED: "虚拟摄像头已启动",
+        obs.OBS_FRONTEND_EVENT_VIRTUALCAM_STOPPED: "虚拟摄像头已停止",
 
-    # 控制条事件
-    obs.OBS_FRONTEND_EVENT_TBAR_VALUE_CHANGED: "转场控制条(T-Bar)值已改变",
+        # 控制条事件
+        obs.OBS_FRONTEND_EVENT_TBAR_VALUE_CHANGED: "转场控制条(T-Bar)值已改变",
 
-    # OBS 28+ 新增事件
-    obs.OBS_FRONTEND_EVENT_SCREENSHOT_TAKEN: "截图已完成",
-    obs.OBS_FRONTEND_EVENT_THEME_CHANGED: "主题已更改"
-}
-"""obs前台事件 说明字典"""
+        # OBS 28+ 新增事件
+        obs.OBS_FRONTEND_EVENT_SCREENSHOT_TAKEN: "截图已完成",
+        obs.OBS_FRONTEND_EVENT_THEME_CHANGED: "主题已更改"
+    }
+    """obs前台事件 说明字典"""
 
-log_type: Dict[int, str] = {
-    obs.LOG_INFO: "INFO",
-    obs.LOG_DEBUG: "DEBUG",
-    obs.LOG_WARNING: "WARNING",
-    obs.LOG_ERROR: "ERROR"
-}
-"""obs日志警告等级 说明字典"""
-
-
-def script_path():
-    """
-    用于获取脚本所在文件夹的路径，这其实是一个obs插件内置函数，
-    只在obs插件指定的函数内部使用有效,
-    这里构建这个函数是没必要的，写在这里只是为了避免IDE出现error提示
-    Example:
-        假如脚本路径在 "/Applications/OBS.app/Contents/PlugIns/frontend-tools.plugin/Contents/Resources/scripts/bilibili_live.py"
-        >>> print(script_path())
-        /Applications/OBS.app/Contents/PlugIns/frontend-tools.plugin/Contents/Resources/scripts/
-        >>> print(Path(f'{script_path()}bilibili-live') / "config.json")
-        /Applications/OBS.app/Contents/PlugIns/frontend-tools.plugin/Contents/Resources/scripts/bilibili-live/config.json
-    """
-    return f"{Path(__file__).parent}\\"
+    log_type: Dict[int, str] = {
+        obs.LOG_INFO: "INFO",
+        obs.LOG_DEBUG: "DEBUG",
+        obs.LOG_WARNING: "WARNING",
+        obs.LOG_ERROR: "ERROR"
+    }
+    """obs日志警告等级 说明字典"""
 
 
 class GlobalVariableOfData:
@@ -227,26 +247,6 @@ class GlobalVariableOfData:
     """登陆二维码返回数据"""
     loginQRCodePillowImg = None  # ##登录二维码的pillow_img实例
     """登录二维码的pillow_img实例"""
-
-
-def log_save(log_level, log_str: str) -> None:
-    """
-    输出并保存日志
-    Args:
-        log_level: 日志等级
-        
-            - obs.LOG_INFO
-            - obs.LOG_DEBUG
-            - obs.LOG_WARNING
-            - obs.LOG_ERROR
-        log_str: 日志内容
-    Returns: None
-    """
-    now: datetime = datetime.now()
-    formatted: str = now.strftime("%Y/%m/%d %H:%M:%S")
-    log_text: str = f"{script_version} 【{formatted}】【{log_type[log_level]}】 \t{log_str}"
-    obs.script_log(log_level, log_str)
-    GlobalVariableOfData.logRecording += log_text + "\n"
 
 
 @dataclass
@@ -928,11 +928,11 @@ class Widget:
         for basic_types_controls in self.widget_dict_all:
             log_save(obs.LOG_INFO, f"{basic_types_controls}")
             for Ps in self.widget_dict_all[basic_types_controls]:
-                log_save(obs.LOG_INFO, f"  {Ps}")
+                log_save(obs.LOG_INFO, f"\t{Ps}")
                 for name in self.widget_dict_all[basic_types_controls][Ps]:
                     widget_types_controls = getattr(self, basic_types_controls)
                     widget_types_controls.add(name)
-                    log_save(obs.LOG_INFO, f"      添加{name}")
+                    log_save(obs.LOG_INFO, f"\t\t添加{name}")
                     obj = getattr(widget_types_controls, name)
                     obj.Name = self.widget_dict_all[basic_types_controls][Ps][name]["Name"]
                     if obj.ControlType in ["DigitalDisplay", "TextBox", "Button", "ComboBox", "PathBox", "Group"]:
@@ -1332,796 +1332,799 @@ class CommonTitlesManager:
         return json.dumps(self.data, ensure_ascii=False, indent=2)
 
 
-def check_network_connection() -> Dict[str, Union[Dict[str, Union[bool, list, float, str]], bool, str, int]]:
-    """
-    检查网络连接，通过多个服务提供者的链接验证
+class Tools:
+    """工具函数"""
+    @staticmethod
+    def check_network_connection() -> Dict[str, Union[Dict[str, Union[bool, list, float, str]], bool, str, int]]:
+        """
+        检查网络连接，通过多个服务提供者的链接验证
 
-    Returns:
-        dict: 包含以下键的字典:
-            - 'connected': bool, 网络是否连通
-            - 'code': int, 错误码 (0表示成功)
-            - 'data': dict, 包含详细信息如延迟、使用的服务等
-            - 'message': str, 描述性消息
-    """
-    result: Dict[str, Union[Dict[str, Union[bool, list, float, str]], NetworkErrorCode, bool, str, int]] = {
-        'connected': False,
-        'code': NetworkErrorCode.NETWORK_ALL_SERVICES_FAILED,
-        'data': {
-            'dns_checked': False,
-            'services_checked': [],
-            'successful_service': None,
-            'latency_ms': None
-        },
-        'message': '所有连接尝试均失败'
-    }
+        Returns:
+            dict: 包含以下键的字典:
+                - 'connected': bool, 网络是否连通
+                - 'code': int, 错误码 (0表示成功)
+                - 'data': dict, 包含详细信息如延迟、使用的服务等
+                - 'message': str, 描述性消息
+        """
+        result: Dict[str, Union[Dict[str, Union[bool, list, float, str]], NetworkErrorCode, bool, str, int]] = {
+            'connected': False,
+            'code': NetworkErrorCode.NETWORK_ALL_SERVICES_FAILED,
+            'data': {
+                'dns_checked': False,
+                'services_checked': [],
+                'successful_service': None,
+                'latency_ms': None
+            },
+            'message': '所有连接尝试均失败'
+        }
 
-    # 1. 首先尝试快速DNS连接检查
-    try:
-        start_time = time.time()
-        socket.create_connection(("8.8.8.8", 53), timeout=2)
-        elapsed = (time.time() - start_time) * 1000
+        # 1. 首先尝试快速DNS连接检查
+        try:
+            start_time = time.time()
+            socket.create_connection(("8.8.8.8", 53), timeout=2)
+            elapsed = (time.time() - start_time) * 1000
 
-        result['connected'] = True
-        result['code'] = NetworkErrorCode.NETWORK_CONNECTION_SUCCESS
-        result['data']['dns_checked'] = True
-        result['data']['latency_ms'] = elapsed
-        result['data']['successful_service'] = 'DNS (8.8.8.8:53)'
-        result['message'] = f'DNS连接成功，延迟: {elapsed:.2f}ms'
+            result['connected'] = True
+            result['code'] = NetworkErrorCode.NETWORK_CONNECTION_SUCCESS
+            result['data']['dns_checked'] = True
+            result['data']['latency_ms'] = elapsed
+            result['data']['successful_service'] = 'DNS (8.8.8.8:53)'
+            result['message'] = f'DNS连接成功，延迟: {elapsed:.2f}ms'
 
-        return result
-    except OSError as e:
-        result['code'] = NetworkErrorCode.NETWORK_DNS_FAILED
-        result['message'] = f'DNS连接失败: {str(e)}'
-        # 继续尝试其他方法
+            return result
+        except OSError as e:
+            result['code'] = NetworkErrorCode.NETWORK_DNS_FAILED
+            result['message'] = f'DNS连接失败: {str(e)}'
+            # 继续尝试其他方法
 
-    # 2. 尝试多个服务提供者的链接
-    test_services = [
-        {"url": "http://www.gstatic.com/generate_204", "provider": "Google"},
-        {"url": "http://www.google-analytics.com/generate_204", "provider": "Google"},
-        {"url": "http://connectivitycheck.gstatic.com/generate_204", "provider": "Google"},
-        {"url": "http://captive.apple.com", "provider": "Apple"},
-        {"url": "http://www.msftconnecttest.com/connecttest.txt", "provider": "Microsoft"},
-        {"url": "http://cp.cloudflare.com/", "provider": "Cloudflare"},
-        {"url": "http://detectportal.firefox.com/success.txt", "provider": "Firefox"},
-        {"url": "http://www.v2ex.com/generate_204", "provider": "V2ex"},
-        {"url": "http://connect.rom.miui.com/generate_204", "provider": "小米"},
-        {"url": "http://connectivitycheck.platform.hicloud.com/generate_204", "provider": "华为"},
-        {"url": "http://wifi.vivo.com.cn/generate_204", "provider": "Vivo"}
-    ]
+        # 2. 尝试多个服务提供者的链接
+        test_services = [
+            {"url": "http://www.gstatic.com/generate_204", "provider": "Google"},
+            {"url": "http://www.google-analytics.com/generate_204", "provider": "Google"},
+            {"url": "http://connectivitycheck.gstatic.com/generate_204", "provider": "Google"},
+            {"url": "http://captive.apple.com", "provider": "Apple"},
+            {"url": "http://www.msftconnecttest.com/connecttest.txt", "provider": "Microsoft"},
+            {"url": "http://cp.cloudflare.com/", "provider": "Cloudflare"},
+            {"url": "http://detectportal.firefox.com/success.txt", "provider": "Firefox"},
+            {"url": "http://www.v2ex.com/generate_204", "provider": "V2ex"},
+            {"url": "http://connect.rom.miui.com/generate_204", "provider": "小米"},
+            {"url": "http://connectivitycheck.platform.hicloud.com/generate_204", "provider": "华为"},
+            {"url": "http://wifi.vivo.com.cn/generate_204", "provider": "Vivo"}
+        ]
 
-    for service in test_services:
-        url = service["url"]
-        provider = service["provider"]
+        for service in test_services:
+            url = service["url"]
+            provider = service["provider"]
 
-        service_result = {
-            'provider': provider,
-            'url': url,
+            service_result = {
+                'provider': provider,
+                'url': url,
+                'success': False,
+                'error': None,
+                'status_code': None
+            }
+
+            try:
+                # 发送HEAD请求减少数据传输量
+                start_time = time.time()
+                req = urllib.request.Request(url, method="HEAD")
+                with urllib.request.urlopen(req, timeout=3) as response:
+                    elapsed = (time.time() - start_time) * 1000
+
+                    # 检查响应状态
+                    if response.status < 500:  # 排除服务器错误
+                        result['connected'] = True
+                        result['code'] = NetworkErrorCode.NETWORK_CONNECTION_SUCCESS
+                        result['data']['successful_service'] = provider
+                        result['data']['latency_ms'] = elapsed
+                        result['message'] = f'通过 {provider} 服务连接成功，延迟: {elapsed:.2f}ms'
+
+                        service_result['success'] = True
+                        service_result['status_code'] = response.status
+                        result['data']['services_checked'].append(service_result)
+
+                        return result
+                    else:
+                        service_result['error'] = f'服务器错误: 状态码 {response.status}'
+                        service_result['status_code'] = response.status
+            except TimeoutError:
+                service_result['error'] = '连接超时 (3秒)'
+            except ConnectionError:
+                service_result['error'] = '连接错误 (网络问题)'
+            except URLError as e:
+                service_result['error'] = f'URL错误: {str(e.reason)}'
+            except Exception as e:
+                service_result['error'] = f'未知错误: {str(e)}'
+
+            result['data']['services_checked'].append(service_result)
+
+        # 3. 最后尝试基本HTTP连接
+        http_result = {
+            'provider': 'example.com',
+            'url': 'http://example.com',
             'success': False,
             'error': None,
             'status_code': None
         }
 
         try:
-            # 发送HEAD请求减少数据传输量
             start_time = time.time()
-            req = urllib.request.Request(url, method="HEAD")
-            with urllib.request.urlopen(req, timeout=3) as response:
-                elapsed = (time.time() - start_time) * 1000
+            response = urllib.request.urlopen("http://example.com", timeout=3)
+            elapsed = (time.time() - start_time) * 1000
 
-                # 检查响应状态
-                if response.status < 500:  # 排除服务器错误
-                    result['connected'] = True
-                    result['code'] = NetworkErrorCode.NETWORK_CONNECTION_SUCCESS
-                    result['data']['successful_service'] = provider
-                    result['data']['latency_ms'] = elapsed
-                    result['message'] = f'通过 {provider} 服务连接成功，延迟: {elapsed:.2f}ms'
+            result['connected'] = True
+            result['code'] = NetworkErrorCode.NETWORK_CONNECTION_SUCCESS
+            result['data']['successful_service'] = 'example.com'
+            result['data']['latency_ms'] = elapsed
+            result['message'] = f'HTTP连接成功! 耗时: {elapsed:.2f}ms'
 
-                    service_result['success'] = True
-                    service_result['status_code'] = response.status
-                    result['data']['services_checked'].append(service_result)
+            http_result['success'] = True
+            http_result['status_code'] = response.status
+            result['data']['services_checked'].append(http_result)
 
-                    return result
-                else:
-                    service_result['error'] = f'服务器错误: 状态码 {response.status}'
-                    service_result['status_code'] = response.status
-        except TimeoutError:
-            service_result['error'] = '连接超时 (3秒)'
-        except ConnectionError:
-            service_result['error'] = '连接错误 (网络问题)'
+            return result
         except URLError as e:
-            service_result['error'] = f'URL错误: {str(e.reason)}'
+            http_result['error'] = f'URL错误: {str(e.reason)}'
+            result['code'] = NetworkErrorCode.NETWORK_HTTP_FAILED
+            result['message'] = f'所有连接尝试失败: {str(e)}'
         except Exception as e:
-            service_result['error'] = f'未知错误: {str(e)}'
+            http_result['error'] = f'未知错误: {str(e)}'
+            result['code'] = NetworkErrorCode.NETWORK_HTTP_FAILED
+            result['message'] = f'所有连接尝试失败: {str(e)}'
 
-        result['data']['services_checked'].append(service_result)
-
-    # 3. 最后尝试基本HTTP连接
-    http_result = {
-        'provider': 'example.com',
-        'url': 'http://example.com',
-        'success': False,
-        'error': None,
-        'status_code': None
-    }
-
-    try:
-        start_time = time.time()
-        response = urllib.request.urlopen("http://example.com", timeout=3)
-        elapsed = (time.time() - start_time) * 1000
-
-        result['connected'] = True
-        result['code'] = NetworkErrorCode.NETWORK_CONNECTION_SUCCESS
-        result['data']['successful_service'] = 'example.com'
-        result['data']['latency_ms'] = elapsed
-        result['message'] = f'HTTP连接成功! 耗时: {elapsed:.2f}ms'
-
-        http_result['success'] = True
-        http_result['status_code'] = response.status
         result['data']['services_checked'].append(http_result)
-
         return result
-    except URLError as e:
-        http_result['error'] = f'URL错误: {str(e.reason)}'
-        result['code'] = NetworkErrorCode.NETWORK_HTTP_FAILED
-        result['message'] = f'所有连接尝试失败: {str(e)}'
-    except Exception as e:
-        http_result['error'] = f'未知错误: {str(e)}'
-        result['code'] = NetworkErrorCode.NETWORK_HTTP_FAILED
-        result['message'] = f'所有连接尝试失败: {str(e)}'
 
-    result['data']['services_checked'].append(http_result)
-    return result
+    @staticmethod
+    def check_ssl_verification(test_url="https://api.bilibili.com", timeout=5) -> Dict[str, Union[str, int, bool, Dict[str, Optional[Union[str, int, bool]]]]]:
+        """
+        检测 SSL 证书验证是否可用
 
+        参数:
+        test_url (str): 用于测试的 URL（默认为 Bilibili API）
+        timeout (int): 测试请求的超时时间（秒）
 
-def check_ssl_verification(test_url="https://api.bilibili.com", timeout=5) -> Dict[str, Union[str, int, bool, Dict[str, Optional[Union[str, int, bool]]]]]:
-    """
-    检测 SSL 证书验证是否可用
+        返回:
+        dict: 包含以下键的字典:
+            - 'success': bool, SSL 验证是否成功
+            - 'code': int, 错误码
+            - 'data': dict, 包含测试URL、响应状态码等详细信息
+            - 'message': str, 描述性消息
+        """
+        result: Dict[str, Union[str, int, bool, SslErrorCode, Dict[str, Optional[Union[str, int, bool]]]]] = {
+            'success': True,
+            'code': SslErrorCode.SSL_VERIFICATION_SUCCESS,
+            'data': {
+                'test_url': test_url,
+                'timeout': timeout,
+                'status_code': None,
+                'ssl_verification_enabled': True
+            },
+            'message': 'SSL 证书验证正常'
+        }
 
-    参数:
-    test_url (str): 用于测试的 URL（默认为 Bilibili API）
-    timeout (int): 测试请求的超时时间（秒）
+        try:
+            # 尝试使用 SSL 验证进行请求
+            response = requests.head(
+                test_url,
+                timeout=timeout,
+                verify=True  # 强制启用验证
+            )
 
-    返回:
-    dict: 包含以下键的字典:
-        - 'success': bool, SSL 验证是否成功
-        - 'code': int, 错误码
-        - 'data': dict, 包含测试URL、响应状态码等详细信息
-        - 'message': str, 描述性消息
-    """
-    result: Dict[str, Union[str, int, bool, SslErrorCode, Dict[str, Optional[Union[str, int, bool]]]]] = {
-        'success': True,
-        'code': SslErrorCode.SSL_VERIFICATION_SUCCESS,
-        'data': {
-            'test_url': test_url,
-            'timeout': timeout,
-            'status_code': None,
-            'ssl_verification_enabled': True
-        },
-        'message': 'SSL 证书验证正常'
-    }
+            # 记录响应状态码
+            result['data']['status_code'] = response.status_code
 
-    try:
-        # 尝试使用 SSL 验证进行请求
-        response = requests.head(
-            test_url,
-            timeout=timeout,
-            verify=True  # 强制启用验证
-        )
+            # 检查响应状态
+            if response.status_code >= 400:
+                result['success'] = False
+                result['code'] = SslErrorCode.SSL_NETWORK_ERROR
+                result['message'] = f"测试请求返回错误状态: {response.status_code}"
 
-        # 记录响应状态码
-        result['data']['status_code'] = response.status_code
+        except SSLError as e:
+            # 捕获 SSL 验证错误
+            result['success'] = False
+            result['code'] = SslErrorCode.SSL_CERTIFICATE_ERROR
+            result['data']['ssl_verification_enabled'] = False
+            result['message'] = f"SSL 证书验证失败: {str(e)}"
 
-        # 检查响应状态
-        if response.status_code >= 400:
+            # 禁用 SSL 验证警告
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+            # 配置全局 SSL 上下文为不验证
+            try:
+                ssl._create_default_https_context = ssl._create_unverified_context
+                result['data']['ssl_context_modified'] = True
+            except Exception as context_error:
+                result['data']['ssl_context_modified'] = False
+                result['message'] += f"。配置全局 SSL 上下文失败: {str(context_error)}"
+
+        except requests.exceptions.RequestException as e:
+            # 其他网络错误
             result['success'] = False
             result['code'] = SslErrorCode.SSL_NETWORK_ERROR
-            result['message'] = f"测试请求返回错误状态: {response.status_code}"
+            result['data']['ssl_verification_enabled'] = False
+            result['message'] = f"网络请求错误: {str(e)}"
 
-    except SSLError as e:
-        # 捕获 SSL 验证错误
-        result['success'] = False
-        result['code'] = SslErrorCode.SSL_CERTIFICATE_ERROR
-        result['data']['ssl_verification_enabled'] = False
-        result['message'] = f"SSL 证书验证失败: {str(e)}"
+        except Exception as e:
+            # 其他未知错误
+            result['success'] = False
+            result['code'] = SslErrorCode.SSL_UNKNOWN_ERROR
+            result['data']['ssl_verification_enabled'] = False
+            result['message'] = f"未知错误: {str(e)}"
 
-        # 禁用 SSL 验证警告
-        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        return result
 
-        # 配置全局 SSL 上下文为不验证
+    @staticmethod
+    def get_future_timestamp(days=0, hours=0, minutes=0):
+        """
+        获取当前时间加上指定天数、小时、分钟后的10位Unix时间戳
+
+        参数:
+        days (int): 要添加的天数
+        hours (int): 要添加的小时数
+        minutes (int): 要添加的分钟数
+
+        返回:
+        int: 10位Unix时间戳（秒级）
+        """
+        # 获取当前时间（本地时区）
+        current_time = datetime.now()
+
+        # 创建时间增量（x天y小时z分钟）
+        time_delta = timedelta(
+            days=days,
+            hours=hours,
+            minutes=minutes
+        )
+
+        # 计算未来时间
+        future_time = current_time + time_delta
+
+        # 转换为Unix时间戳（10位整数）
+        timestamp = int(future_time.timestamp())
+
+        return timestamp
+
+    @staticmethod
+    def url2pillow_image(url, ssl_verification: bool = True) -> Optional[ImageFile]:
+        """
+        将url图片转换为pillow_image实例
+        Args:
+            ssl_verification:
+            url:
+        Returns:
+            pillow_image实例
+        """
         try:
-            ssl._create_default_https_context = ssl._create_unverified_context
-            result['data']['ssl_context_modified'] = True
-        except Exception as context_error:
-            result['data']['ssl_context_modified'] = False
-            result['message'] += f"。配置全局 SSL 上下文失败: {str(context_error)}"
+            # 添加请求头模拟浏览器访问，避免被拒绝
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                              '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+            }
+            # 发送 GET 请求
+            response = requests.get(verify=ssl_verification, url=url, headers=headers, stream=True)
+            response.raise_for_status()  # 检查 HTTP 错误
+            # 将响应内容转为字节流
+            image_data = io.BytesIO(response.content)
+            # 用 Pillow 打开图像
+            img = Image.open(image_data)
+            return img
+        except requests.exceptions.RequestException as e:
+            print(f"网络请求失败: {e}")
+        except Exception as e:
+            print(f"处理图像时出错: {e}")
 
-    except requests.exceptions.RequestException as e:
-        # 其他网络错误
-        result['success'] = False
-        result['code'] = SslErrorCode.SSL_NETWORK_ERROR
-        result['data']['ssl_verification_enabled'] = False
-        result['message'] = f"网络请求错误: {str(e)}"
+    @staticmethod
+    def dict2cookie(jsondict: Dict[str, Union[str, int, float, bool]], safe: str = "/:") -> str:
+        """
+        将字典转换为符合HTTP标准的Cookie字符串格式
+        Args:
+            jsondict: 包含Cookie键值对的字典
+                - 示例: {"name": "value", "age": 20, "secure": True}
+            safe: URL编码中保留的安全字符（默认保留/和:）
+        Returns:
+            str: 符合Cookie规范的字符串
+                - 示例: "name=value; age=20; secure"
+        Raises:
+            TypeError: 当输入不是字典时抛出
+        """
+        if not isinstance(jsondict, dict):
+            raise TypeError("输入必须是字典类型")
 
-    except Exception as e:
-        # 其他未知错误
-        result['success'] = False
-        result['code'] = SslErrorCode.SSL_UNKNOWN_ERROR
-        result['data']['ssl_verification_enabled'] = False
-        result['message'] = f"未知错误: {str(e)}"
+        cookie_parts = []
 
-    return result
+        for key, value in jsondict.items():
+            # 处理键
+            encoded_key = quote(str(key), safe=safe, encoding='utf-8')
 
+            # 处理不同类型的值
+            if value is True:
+                # 布尔值True表示为标志属性
+                cookie_parts.append(encoded_key)
+            elif value is False or value is None:
+                # 跳过False和None值
+                continue
+            else:
+                # 其他类型转换为字符串并编码
+                str_value = str(value)
+                encoded_value = quote(str_value, safe=safe, encoding='utf-8')
+                cookie_parts.append(f"{encoded_key}={encoded_value}")
 
-def get_future_timestamp(days=0, hours=0, minutes=0):
-    """
-    获取当前时间加上指定天数、小时、分钟后的10位Unix时间戳
+        return "; ".join(cookie_parts)
 
-    参数:
-    days (int): 要添加的天数
-    hours (int): 要添加的小时数
-    minutes (int): 要添加的分钟数
+    @staticmethod
+    def cookie2dict(cookie: str) -> Dict[str, str]:
+        """
+        将符合HTTP标准的Cookie字符串转换为字典
+        Args:
+            cookie: Cookie字符串
+                示例: "name=value; age=20; token=abc%20123"
+        Returns:
+            解析后的字典，键值均为字符串类型
+            示例: {'name': 'value', 'age': '20', 'token': 'abc 123'}
+        Raises:
+            TypeError: 当输入不是字符串时抛出
+        Features:
+            - 自动处理URL解码
+            - 兼容不同分隔符（; 或 ; ）
+            - 过滤空键和空值条目
+            - 保留重复键的最后出现值（符合HTTP规范）
+            - 处理值中的等号
+            - 更健壮的解码错误处理
+        """
+        if not isinstance(cookie, str):
+            raise TypeError("输入必须是字符串类型")
 
-    返回:
-    int: 10位Unix时间戳（秒级）
-    """
-    # 获取当前时间（本地时区）
-    current_time = datetime.now()
+        cookie_dict = {}
+        # 处理空字符串
+        if not cookie.strip():
+            return cookie_dict
 
-    # 创建时间增量（x天y小时z分钟）
-    time_delta = timedelta(
-        days=days,
-        hours=hours,
-        minutes=minutes
-    )
+        # 分割Cookie字符串
+        for pair in cookie.split(';'):
+            pair = pair.strip()
+            if not pair:
+                continue
 
-    # 计算未来时间
-    future_time = current_time + time_delta
+            # 仅分割第一个等号，正确处理含等号的值
+            parts = pair.split('=', 1)
+            if len(parts) != 2:
+                continue  # 跳过无效条目
 
-    # 转换为Unix时间戳（10位整数）
-    timestamp = int(future_time.timestamp())
+            key, value = parts
+            key = key.strip()
+            if not key:  # 过滤空键
+                continue
 
-    return timestamp
+            # 值处理：去除首尾空格
+            value = value.strip()
 
+            # 处理带引号的值 (如: "value")
+            if len(value) >= 2 and value.startswith('"') and value.endswith('"'):
+                value = value[1:-1]
 
-def url2pillow_image(url, ssl_verification: bool = True) -> Optional[ImageFile]:
-    """
-    将url图片转换为pillow_image实例
-    Args:
-        ssl_verification:
-        url:
-    Returns:
-        pillow_image实例
-    """
-    try:
-        # 添加请求头模拟浏览器访问，避免被拒绝
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-                          '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
-        }
-        # 发送 GET 请求
-        response = requests.get(verify=ssl_verification, url=url, headers=headers, stream=True)
-        response.raise_for_status()  # 检查 HTTP 错误
-        # 将响应内容转为字节流
-        image_data = io.BytesIO(response.content)
-        # 用 Pillow 打开图像
-        img = Image.open(image_data)
-        return img
-    except requests.exceptions.RequestException as e:
-        print(f"网络请求失败: {e}")
-    except Exception as e:
-        print(f"处理图像时出错: {e}")
+            # 执行URL解码
+            try:
+                decoded_value = urllib.parse.unquote(value)
+            except Exception:
+                decoded_value = value  # 解码失败保留原始值
 
+            # 过滤空值（空字符串）
+            if decoded_value == "":
+                continue
 
-def dict2cookie(jsondict: Dict[str, Union[str, int, float, bool]], safe: str = "/:") -> str:
-    """
-    将字典转换为符合HTTP标准的Cookie字符串格式
-    Args:
-        jsondict: 包含Cookie键值对的字典
-            - 示例: {"name": "value", "age": 20, "secure": True}
-        safe: URL编码中保留的安全字符（默认保留/和:）
-    Returns:
-        str: 符合Cookie规范的字符串
-            - 示例: "name=value; age=20; secure"
-    Raises:
-        TypeError: 当输入不是字典时抛出
-    """
-    if not isinstance(jsondict, dict):
-        raise TypeError("输入必须是字典类型")
+            cookie_dict[key] = decoded_value
 
-    cookie_parts = []
-
-    for key, value in jsondict.items():
-        # 处理键
-        encoded_key = quote(str(key), safe=safe, encoding='utf-8')
-
-        # 处理不同类型的值
-        if value is True:
-            # 布尔值True表示为标志属性
-            cookie_parts.append(encoded_key)
-        elif value is False or value is None:
-            # 跳过False和None值
-            continue
-        else:
-            # 其他类型转换为字符串并编码
-            str_value = str(value)
-            encoded_value = quote(str_value, safe=safe, encoding='utf-8')
-            cookie_parts.append(f"{encoded_key}={encoded_value}")
-
-    return "; ".join(cookie_parts)
-
-
-def cookie2dict(cookie: str) -> Dict[str, str]:
-    """
-    将符合HTTP标准的Cookie字符串转换为字典
-    Args:
-        cookie: Cookie字符串
-            示例: "name=value; age=20; token=abc%20123"
-    Returns:
-        解析后的字典，键值均为字符串类型
-        示例: {'name': 'value', 'age': '20', 'token': 'abc 123'}
-    Raises:
-        TypeError: 当输入不是字符串时抛出
-    Features:
-        - 自动处理URL解码
-        - 兼容不同分隔符（; 或 ; ）
-        - 过滤空键和空值条目
-        - 保留重复键的最后出现值（符合HTTP规范）
-        - 处理值中的等号
-        - 更健壮的解码错误处理
-    """
-    if not isinstance(cookie, str):
-        raise TypeError("输入必须是字符串类型")
-
-    cookie_dict = {}
-    # 处理空字符串
-    if not cookie.strip():
         return cookie_dict
 
-    # 分割Cookie字符串
-    for pair in cookie.split(';'):
-        pair = pair.strip()
-        if not pair:
-            continue
+    @staticmethod
+    def utf_8_to_url(text: str, safe: str = "/:") -> str:
+        """
+        将字符串编码为 URL 安全的 UTF-8 格式
 
-        # 仅分割第一个等号，正确处理含等号的值
-        parts = pair.split('=', 1)
-        if len(parts) != 2:
-            continue  # 跳过无效条目
+        改进点:
+        1. 添加安全字符参数
+        2. 更清晰的函数名
+        3. 更好的错误处理
 
-        key, value = parts
-        key = key.strip()
-        if not key:  # 过滤空键
-            continue
-
-        # 值处理：去除首尾空格
-        value = value.strip()
-
-        # 处理带引号的值 (如: "value")
-        if len(value) >= 2 and value.startswith('"') and value.endswith('"'):
-            value = value[1:-1]
-
-        # 执行URL解码
+        @param string: 要编码的字符串
+        @param safe: 编码中保留的安全字符（默认保留/和:）
+        @return: URL编码的字符串
+        """
         try:
-            decoded_value = urllib.parse.unquote(value)
+            return quote(text, safe=safe, encoding='utf-8')
         except Exception:
-            decoded_value = value  # 解码失败保留原始值
+            # 编码失败时返回原始字符串
+            return text
 
-        # 过滤空值（空字符串）
-        if decoded_value == "":
-            continue
+    @staticmethod
+    def url2dict(url: str, decode: bool = True, handle_multiple: bool = True) -> Dict[str, Union[str, int, float, bool, None, List[Any]]]:
+        """
+        将 URL 参数解析为字典，支持复杂参数处理
 
-        cookie_dict[key] = decoded_value
+        功能特点：
+        1. 自动处理 URL 编码参数
+        2. 支持多值参数（保留所有值）
+        3. 处理空值和缺失值
+        4. 支持 URL 片段(#)和完整 URL
+        5. 自动类型转换尝试
+        6. 查询参数优先级高于片段参数
 
-    return cookie_dict
+        Args:
+            url: 包含查询参数的 URL 字符串
+            decode: 是否自动 URL 解码参数值（默认 True）
+            handle_multiple: 是否保留多值参数的所有值（默认 True）
 
+        Returns:
+            解析后的参数字典，单值参数为基本类型，多值参数为列表
 
-def utf_8_to_url(text: str, safe: str = "/:") -> str:
-    """
-    将字符串编码为 URL 安全的 UTF-8 格式
+        Examples:
+            >>> Tools.url2dict("https://example.com?name=John&age=30&lang=Python&lang=Java")
+            {'name': 'John', 'age': 30, 'lang': ['Python', 'Java']}
 
-    改进点:
-    1. 添加安全字符参数
-    2. 更清晰的函数名
-    3. 更好的错误处理
+            >>> Tools.url2dict("search?q=hello%20world&safe=on&price=")
+            {'q': 'hello world', 'safe': True, 'price': None}
+        """
 
-    @param string: 要编码的字符串
-    @param safe: 编码中保留的安全字符（默认保留/和:）
-    @return: URL编码的字符串
-    """
-    try:
-        return quote(text, safe=safe, encoding='utf-8')
-    except Exception:
-        # 编码失败时返回原始字符串
-        return text
+        # 内部辅助函数
+        def _convert_types(value: str) -> Union[str, int, float, bool, None]:
+            """尝试将字符串值转换为合适的类型（修复类型转换顺序）"""
+            if value == '':
+                return None
 
+            # 先尝试数字转换（避免数字被误转为布尔值）
+            if value.isdigit():
+                try:
+                    return int(value)
+                except (ValueError, TypeError):
+                    pass
 
-def url2dict(url: str, decode: bool = True, handle_multiple: bool = True) -> Dict[str, Union[str, int, float, bool, None, List[Any]]]:
-    """
-    将 URL 参数解析为字典，支持复杂参数处理
+            if '.' in value or 'e' in value.lower():
+                try:
+                    return float(value)
+                except (ValueError, TypeError):
+                    pass
 
-    功能特点：
-    1. 自动处理 URL 编码参数
-    2. 支持多值参数（保留所有值）
-    3. 处理空值和缺失值
-    4. 支持 URL 片段(#)和完整 URL
-    5. 自动类型转换尝试
-    6. 查询参数优先级高于片段参数
+            if value.endswith('%') and value[:-1].replace('.', '', 1).isdigit():
+                try:
+                    return float(value[:-1]) / 100.0
+                except (ValueError, TypeError):
+                    pass
 
-    Args:
-        url: 包含查询参数的 URL 字符串
-        decode: 是否自动 URL 解码参数值（默认 True）
-        handle_multiple: 是否保留多值参数的所有值（默认 True）
+            # 最后尝试布尔值
+            if value.lower() in {'true', 'yes', 'on', '1'}:
+                return True
+            if value.lower() in {'false', 'no', 'off', '0'}:
+                return False
 
-    Returns:
-        解析后的参数字典，单值参数为基本类型，多值参数为列表
+            return value
 
-    Examples:
-        >>> url2dict("https://example.com?name=John&age=30&lang=Python&lang=Java")
-        {'name': 'John', 'age': 30, 'lang': ['Python', 'Java']}
+        def _fallback_parse(query_str: str) -> Dict[str, Any]:
+            """手动解析回退方案"""
+            result = {}
+            if not query_str:
+                return result
 
-        >>> url2dict("search?q=hello%20world&safe=on&price=")
-        {'q': 'hello world', 'safe': True, 'price': None}
-    """
+            pairs = [p for p in query_str.split('&') if p]
 
-    # 内部辅助函数
-    def _convert_types(value: str) -> Union[str, int, float, bool, None]:
-        """尝试将字符串值转换为合适的类型（修复类型转换顺序）"""
-        if value == '':
-            return None
+            for pair in pairs:
+                parts = pair.split('=', 1)
+                key = parts[0]
+                value = parts[1] if len(parts) > 1 else ''
 
-        # 先尝试数字转换（避免数字被误转为布尔值）
-        if value.isdigit():
-            try:
-                return int(value)
-            except (ValueError, TypeError):
-                pass
+                key = unquote(key) if decode else key
+                value_str = unquote(value) if decode else value
+                converted_value = _convert_types(value_str)
 
-        if '.' in value or 'e' in value.lower():
-            try:
-                return float(value)
-            except (ValueError, TypeError):
-                pass
+                if handle_multiple and key in result:
+                    existing = result[key]
+                    if isinstance(existing, list):
+                        existing.append(converted_value)
+                    else:
+                        result[key] = [existing, converted_value]
+                else:
+                    result[key] = converted_value
 
-        if value.endswith('%') and value[:-1].replace('.', '', 1).isdigit():
-            try:
-                return float(value[:-1]) / 100.0
-            except (ValueError, TypeError):
-                pass
-
-        # 最后尝试布尔值
-        if value.lower() in {'true', 'yes', 'on', '1'}:
-            return True
-        if value.lower() in {'false', 'no', 'off', '0'}:
-            return False
-
-        return value
-
-    def _fallback_parse(query_str: str) -> Dict[str, Any]:
-        """手动解析回退方案"""
-        result = {}
-        if not query_str:
             return result
 
-        pairs = [p for p in query_str.split('&') if p]
+        def _parse_query_string(query_str: str) -> Dict[str, Any]:
+            """解析查询字符串为字典"""
+            if not query_str:
+                return {}
 
-        for pair in pairs:
-            parts = pair.split('=', 1)
-            key = parts[0]
-            value = parts[1] if len(parts) > 1 else ''
+            try:
+                params_dict = parse_qs(query_str, keep_blank_values=True)
+            except Exception:
+                return _fallback_parse(query_str)
 
-            key = unquote(key) if decode else key
-            value_str = unquote(value) if decode else value
-            converted_value = _convert_types(value_str)
+            result = {}
+            for key, values in params_dict.items():
+                clean_key = unquote(key) if decode else key
 
-            if handle_multiple and key in result:
-                existing = result[key]
-                if isinstance(existing, list):
-                    existing.append(converted_value)
+                if handle_multiple and len(values) > 1:
+                    converted_values = [_convert_types(unquote(v) if decode else v) for v in values]
+                    result[clean_key] = converted_values
                 else:
-                    result[key] = [existing, converted_value]
-            else:
-                result[key] = converted_value
+                    value = values[0] if values else ''
+                    clean_value = unquote(value) if decode else value
+                    result[clean_key] = _convert_types(clean_value)
 
-        return result
+            return result
 
-    def _parse_query_string(query_str: str) -> Dict[str, Any]:
-        """解析查询字符串为字典"""
-        if not query_str:
+        # 主函数逻辑开始
+        if not url or not isinstance(url, str):
             return {}
 
-        try:
-            params_dict = parse_qs(query_str, keep_blank_values=True)
-        except Exception:
-            return _fallback_parse(query_str)
+        parsed = urlparse(url)
+        query_str = parsed.query
+        fragment_str = parsed.fragment
 
+        # 处理片段中的参数
+        frag_query_str = None
+        if fragment_str:
+            if '?' in fragment_str:
+                _, frag_query = fragment_str.split('?', 1)
+                frag_query_str = frag_query
+            elif '=' in fragment_str:
+                frag_query_str = fragment_str
+
+        # 分别解析查询参数和片段参数
+        query_dict = _parse_query_string(query_str)
+        frag_dict = _parse_query_string(frag_query_str) if frag_query_str else {}
+
+        # 合并参数：查询参数优先于片段参数
         result = {}
-        for key, values in params_dict.items():
-            clean_key = unquote(key) if decode else key
-
-            if handle_multiple and len(values) > 1:
-                converted_values = [_convert_types(unquote(v) if decode else v) for v in values]
-                result[clean_key] = converted_values
-            else:
-                value = values[0] if values else ''
-                clean_value = unquote(value) if decode else value
-                result[clean_key] = _convert_types(clean_value)
+        result.update(frag_dict)
+        result.update(query_dict)
 
         return result
 
-    # 主函数逻辑开始
-    if not url or not isinstance(url, str):
-        return {}
+    @staticmethod
+    def qr_text8pil_img(qr_str: str, border: int = 2, error_correction: Literal[0, 1, 2, 3] = 1, invert: bool = False) -> Dict[str, Union[str, Image.Image]]:
+        """
+        字符串转二维码（返回包含 PIL 图像对象的字典）
+        Args:
+            qr_str: 二维码文本（必须是有效的非空字符串）
+            border: 边框大小（必须是非负整数，默认2）
+            error_correction: 纠错级别（默认L）
+                - ERROR_CORRECT_L: 1
+                - ERROR_CORRECT_M: 0
+                - ERROR_CORRECT_Q: 3
+                - ERROR_CORRECT_H: 2
+            invert: 是否反转颜色（默认False）
+        Returns:
+            Dict: 包含以下键的字典
+                - str: ASCII 字符串形式的二维码
+                - img: PIL.Image 对象（二维码图像）
+        Raises:
+            ValueError: 输入参数不合法时抛出
+        """
+        # 验证输入参数
+        if not isinstance(qr_str, str) or not qr_str:
+            raise ValueError("qr_str 必须是有效的非空字符串")
+        if not isinstance(border, int) or border < 0:
+            raise ValueError("border 必须是非负整数")
 
-    parsed = urlparse(url)
-    query_str = parsed.query
-    fragment_str = parsed.fragment
+        # 创建 QRCode 对象
+        qr = qrcode.main.QRCode(
+            version=1,
+            box_size=10,
+            border=border,
+            error_correction=error_correction,
+        )
 
-    # 处理片段中的参数
-    frag_query_str = None
-    if fragment_str:
-        if '?' in fragment_str:
-            _, frag_query = fragment_str.split('?', 1)
-            frag_query_str = frag_query
-        elif '=' in fragment_str:
-            frag_query_str = fragment_str
+        # 添加数据并生成二维码
+        qr.add_data(qr_str)
+        qr.make(fit=True)
 
-    # 分别解析查询参数和片段参数
-    query_dict = _parse_query_string(query_str)
-    frag_dict = _parse_query_string(frag_query_str) if frag_query_str else {}
+        # 生成二维码图像
+        img = qr.make_image()
 
-    # 合并参数：查询参数优先于片段参数
-    result = {}
-    result.update(frag_dict)
-    result.update(query_dict)
+        # 创建内存缓冲区用于ASCII输出
+        output = io.StringIO()
+        sys.stdout = output
 
-    return result
+        try:
+            # 生成ASCII表示
+            qr.print_ascii(out=None, tty=False, invert=invert)
+            output_str = output.getvalue()
+        finally:
+            # 确保恢复标准输出
+            sys.stdout = sys.__stdout__
 
+        # 处理颜色反转
+        if invert:
+            # 将二维码图像转换为RGBA模式以便正确处理反转
+            if img.mode == '1':
+                img = img.convert('L')
+            img = ImageOps.invert(img)
 
-def qr_text8pil_img(qr_str: str, border: int = 2, error_correction: Literal[0, 1, 2, 3] = 1, invert: bool = False) -> Dict[str, Union[str, Image.Image]]:
-    """
-    字符串转二维码（返回包含 PIL 图像对象的字典）
-    Args:
-        qr_str: 二维码文本（必须是有效的非空字符串）
-        border: 边框大小（必须是非负整数，默认2）
-        error_correction: 纠错级别（默认L）
-            - ERROR_CORRECT_L: 1
-            - ERROR_CORRECT_M: 0
-            - ERROR_CORRECT_Q: 3
-            - ERROR_CORRECT_H: 2
-        invert: 是否反转颜色（默认False）
-    Returns:
-        Dict: 包含以下键的字典
-            - str: ASCII 字符串形式的二维码
-            - img: PIL.Image 对象（二维码图像）
-    Raises:
-        ValueError: 输入参数不合法时抛出
-    """
-    # 验证输入参数
-    if not isinstance(qr_str, str) or not qr_str:
-        raise ValueError("qr_str 必须是有效的非空字符串")
-    if not isinstance(border, int) or border < 0:
-        raise ValueError("border 必须是非负整数")
+        return {"str": output_str, "img": img}
 
-    # 创建 QRCode 对象
-    qr = qrcode.main.QRCode(
-        version=1,
-        box_size=10,
-        border=border,
-        error_correction=error_correction,
-    )
+    @staticmethod
+    def pil_image2central_proportion_cutting(pil_image: Image.Image, target_width2height_ratio: float) -> Optional[Image.Image]:
+        """
+        对图像进行中心比例裁切，保持目标宽高比
+        Args:
+            pil_image: 要处理的 PIL 图像对象
+            target_width2height_ratio: 目标宽高比（宽度/高度的比值）
+                示例：
+                - 16:9 → 16/9 ≈ 1.778
+                - 1:1 → 1.0
+                - 4:3 → 1.333
+        Returns:
+            Image.Image: 裁切后的新图像对象，如果裁切失败返回 None
+        Raises:
+            TypeError: 输入不是有效的 PIL 图像对象
+            ValueError: 目标比例不是正数或裁切尺寸无效
+        """
+        # 参数验证
+        if not isinstance(pil_image, Image.Image):
+            raise TypeError("输入必须是有效的 PIL.Image.Image 对象")
 
-    # 添加数据并生成二维码
-    qr.add_data(qr_str)
-    qr.make(fit=True)
+        if target_width2height_ratio <= 0:
+            raise ValueError("目标比例必须是正数")
 
-    # 生成二维码图像
-    img = qr.make_image()
+        # 获取原始尺寸
+        original_width, original_height = pil_image.size
+        original_ratio = original_width / original_height
 
-    # 创建内存缓冲区用于ASCII输出
-    output = io.StringIO()
-    sys.stdout = output
+        try:
+            # 计算裁切区域
+            if original_ratio > target_width2height_ratio:
+                # 过宽：固定高度，计算宽度
+                crop_height = original_height
+                crop_width = int(round(crop_height * target_width2height_ratio))
+            else:
+                # 过高：固定宽度，计算高度
+                crop_width = original_width
+                crop_height = int(round(crop_width / target_width2height_ratio))
 
-    try:
-        # 生成ASCII表示
-        qr.print_ascii(out=None, tty=False, invert=invert)
-        output_str = output.getvalue()
-    finally:
-        # 确保恢复标准输出
-        sys.stdout = sys.__stdout__
+            # 验证裁切尺寸
+            if crop_width <= 0 or crop_height <= 0:
+                raise ValueError("计算出的裁切尺寸无效")
+            if crop_width > original_width or crop_height > original_height:
+                raise ValueError("原始图片尺寸不足以完成裁切")
 
-    # 处理颜色反转
-    if invert:
-        # 将二维码图像转换为RGBA模式以便正确处理反转
-        if img.mode == '1':
-            img = img.convert('L')
-        img = ImageOps.invert(img)
+            # 计算裁切坐标
+            left = (original_width - crop_width) // 2
+            top = (original_height - crop_height) // 2
+            right = left + crop_width
+            bottom = top + crop_height
 
-    return {"str": output_str, "img": img}
+            return pil_image.crop((left, top, right, bottom))
 
+        except ValueError as e:
+            raise ValueError(f"裁切失败: {str(e)}")
+        except Exception as e:
+            raise ValueError(f"未知错误: {str(e)}")
 
-def pil_image2central_proportion_cutting(pil_image: Image.Image, target_width2height_ratio: float) -> Optional[Image.Image]:
-    """
-    对图像进行中心比例裁切，保持目标宽高比
-    Args:
-        pil_image: 要处理的 PIL 图像对象
-        target_width2height_ratio: 目标宽高比（宽度/高度的比值）
-            示例：
-            - 16:9 → 16/9 ≈ 1.778
-            - 1:1 → 1.0
-            - 4:3 → 1.333
-    Returns:
-        Image.Image: 裁切后的新图像对象，如果裁切失败返回 None
-    Raises:
-        TypeError: 输入不是有效的 PIL 图像对象
-        ValueError: 目标比例不是正数或裁切尺寸无效
-    """
-    # 参数验证
-    if not isinstance(pil_image, Image.Image):
-        raise TypeError("输入必须是有效的 PIL.Image.Image 对象")
+    @staticmethod
+    def pil_image2zooming(
+            pil_image: Image.Image,
+            zooming_quality: Literal[1, 2, 3, 4],
+            target_width: Optional[int] = None,  # Optional[int] 可以简写为 int | None(3.9中为Union[int, None])
+            scale_factor: Optional[int] = None  # Optional[int] 可以简写为 int | None(3.9中为Union[int, None])
+    ) -> Image.Image:
+        """
+        对 PIL 图像进行缩放操作，支持指定目标宽度或缩小倍数
 
-    if target_width2height_ratio <= 0:
-        raise ValueError("目标比例必须是正数")
+        Args:
+            pil_image: 要缩放的 PIL 图像对象
+            zooming_quality: 缩放质量等级 (1-4)
+                1 = 最近邻 (速度快质量低)
+                2 = 双线性 (平衡模式)
+                3 = 双三次 (高质量放大)
+                4 = Lanczos (最高质量)
+            target_width: 目标宽度（与 scale_factor 二选一）
+            scale_factor: 缩小倍数（与 target_width 二选一）
 
-    # 获取原始尺寸
-    original_width, original_height = pil_image.size
-    original_ratio = original_width / original_height
+        Returns:
+            Dict: 包含两种缩放结果的字典
+                widthZoomingPIL_Image: 按宽度缩放的结果图像（如参数有效）
+                timesZoomingPIL_Image: 按比例缩放的结果图像（如参数有效）
 
-    try:
-        # 计算裁切区域
-        if original_ratio > target_width2height_ratio:
-            # 过宽：固定高度，计算宽度
-            crop_height = original_height
-            crop_width = int(round(crop_height * target_width2height_ratio))
-        else:
-            # 过高：固定宽度，计算高度
-            crop_width = original_width
-            crop_height = int(round(crop_width / target_width2height_ratio))
-
-        # 验证裁切尺寸
-        if crop_width <= 0 or crop_height <= 0:
-            raise ValueError("计算出的裁切尺寸无效")
-        if crop_width > original_width or crop_height > original_height:
-            raise ValueError("原始图片尺寸不足以完成裁切")
-
-        # 计算裁切坐标
-        left = (original_width - crop_width) // 2
-        top = (original_height - crop_height) // 2
-        right = left + crop_width
-        bottom = top + crop_height
-
-        return pil_image.crop((left, top, right, bottom))
-
-    except ValueError as e:
-        raise ValueError(f"裁切失败: {str(e)}")
-    except Exception as e:
-        raise ValueError(f"未知错误: {str(e)}")
-
-
-def pil_image2zooming(
-        pil_image: Image.Image,
-        zooming_quality: Literal[1, 2, 3, 4],
-        target_width: Optional[int] = None,  # Optional[int] 可以简写为 int | None(3.9中为Union[int, None])
-        scale_factor: Optional[int] = None  # Optional[int] 可以简写为 int | None(3.9中为Union[int, None])
-) -> Image.Image:
-    """
-    对 PIL 图像进行缩放操作，支持指定目标宽度或缩小倍数
-
-    Args:
-        pil_image: 要缩放的 PIL 图像对象
-        zooming_quality: 缩放质量等级 (1-4)
-            1 = 最近邻 (速度快质量低)
-            2 = 双线性 (平衡模式)
-            3 = 双三次 (高质量放大)
-            4 = Lanczos (最高质量)
-        target_width: 目标宽度（与 scale_factor 二选一）
-        scale_factor: 缩小倍数（与 target_width 二选一）
-
-    Returns:
-        Dict: 包含两种缩放结果的字典
-            widthZoomingPIL_Image: 按宽度缩放的结果图像（如参数有效）
-            timesZoomingPIL_Image: 按比例缩放的结果图像（如参数有效）
-
-    Raises:
-        ValueError: 参数不符合要求时抛出
-        TypeError: 输入图像类型错误时抛出
-    """
-    # 参数验证
-    if not isinstance(pil_image, Image.Image):
-        raise TypeError("输入必须是 PIL.Image.Image 对象")
-    if zooming_quality not in (1, 2, 3, 4):
-        raise ValueError("缩放质量等级必须是 1-4 的整数")
-    if not (False if bool(target_width) == bool(scale_factor) else True):
-        raise ValueError("正确使用参数 target_width 或 scale_factor")
-    # 选择重采样滤波器
-    resampling_filter4zooming_quality = {
-        1: Image.Resampling.NEAREST,
-        2: Image.Resampling.BILINEAR,
-        3: Image.Resampling.BICUBIC,
-        4: Image.Resampling.LANCZOS,
-    }
-    resampling_filter = resampling_filter4zooming_quality[zooming_quality]
-    # """
-    # 滤波器名称	        质量	速度	适用场景
-    # Image.NEAREST	    低	最快	像素艺术/保留原始像素值
-    # Image.BILINEAR	中	较快	通用缩放（默认选项）
-    # Image.BICUBIC	    高	较慢	高质量放大
-    # Image.LANCZOS	    最高	最慢	超高精度缩放（推荐选项）
-    # """
-    original_width, original_height = pil_image.size
-    width_height_ratio = original_width / original_height
-    new_width = None
-    if target_width:
-        if target_width > original_width:
-            raise ValueError("目标宽度必须小于原宽度")
-        new_width = target_width
-    elif scale_factor:
-        if scale_factor < original_height:
-            raise ValueError("比例因子必须小于原高度")
-        if 1 < scale_factor:
-            raise ValueError("比例因子必须大于1")
-        new_width = original_width / scale_factor
-    new_height = new_width / width_height_ratio
-    zooming_pil_image = pil_image.resize((round(new_width), round(new_height)), resampling_filter)
-    return zooming_pil_image
-
-
-def pil_image2binary(
-        pil_image: Image.Image,
-        img_format: Literal["PNG", "JPEG"],
-        compress_level: Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-) -> bytes:
-    """
-    将 PIL 图像对象转换为指定格式的二进制数据
-
-    Args:
-        pil_image: PIL 图像对象
-        img_format: 输出图像格式
-            "PNG" - 使用无损压缩
-            "JPEG" - 使用有损压缩
-        compress_level: 压缩等级 (不同格式有不同表现)
-            对于 PNG: 压缩级别 0-9 (0=无压缩，9=最大压缩)
-            对于 JPEG: 质量等级 5-95 (自动映射压缩级别到质量参数)
-
-    Returns:
-        bytes: 图像二进制数据
-
-    Raises:
-        ValueError: 参数不合法时抛出
-        OSError: 图像保存失败时抛出
-    """
-    # 参数验证
-    if not isinstance(pil_image, Image.Image):
-        raise ValueError("输入必须是有效的 PIL.Image.Image 对象")
-    if img_format not in ("PNG", "JPEG"):
-        raise ValueError(f"不支持的图像格式: {img_format}，只支持 PNG/JPEG")
-    if compress_level not in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9):
-        raise ValueError(f"不支持的压缩级别: {compress_level}，只支持 0～9")
-    # 准备保存参数
-    save_kwargs = {}
-    if img_format == "PNG":
-        save_kwargs = {
-            "format": "PNG",
-            "compress_level": compress_level  # 将压缩级别映射到质量参数 (0=最高压缩，9=最高质量)
+        Raises:
+            ValueError: 参数不符合要求时抛出
+            TypeError: 输入图像类型错误时抛出
+        """
+        # 参数验证
+        if not isinstance(pil_image, Image.Image):
+            raise TypeError("输入必须是 PIL.Image.Image 对象")
+        if zooming_quality not in (1, 2, 3, 4):
+            raise ValueError("缩放质量等级必须是 1-4 的整数")
+        if not (False if bool(target_width) == bool(scale_factor) else True):
+            raise ValueError("正确使用参数 target_width 或 scale_factor")
+        # 选择重采样滤波器
+        resampling_filter4zooming_quality = {
+            1: Image.Resampling.NEAREST,
+            2: Image.Resampling.BILINEAR,
+            3: Image.Resampling.BICUBIC,
+            4: Image.Resampling.LANCZOS,
         }
-    if img_format == "JPEG":
-        quality = 95 - (compress_level * 10)
-        quality = max(5, min(95, quality))  # 确保在有效范围内
-        # 转换图像模式为 RGB
-        if pil_image.mode != "RGB":
-            pil_image = pil_image.convert("RGB")
-        save_kwargs = {
-            "format": "JPEG",
-            "quality": quality,
-            "subsampling": 0 if quality >= 90 else 1  # 高质量使用全采样
-        }
-    # 执行转换
-    buffer = io.BytesIO()
-    try:
-        pil_image.save(buffer, **save_kwargs)
-    except Exception as e:
-        raise OSError(f"图像保存失败: {str(e)}") from e
-    image_bytes = buffer.getvalue()  # 转换为字节流
-    return image_bytes
+        resampling_filter = resampling_filter4zooming_quality[zooming_quality]
+        # """
+        # 滤波器名称	        质量	速度	适用场景
+        # Image.NEAREST	    低	最快	像素艺术/保留原始像素值
+        # Image.BILINEAR	中	较快	通用缩放（默认选项）
+        # Image.BICUBIC	    高	较慢	高质量放大
+        # Image.LANCZOS	    最高	最慢	超高精度缩放（推荐选项）
+        # """
+        original_width, original_height = pil_image.size
+        width_height_ratio = original_width / original_height
+        new_width = None
+        if target_width:
+            if target_width > original_width:
+                raise ValueError("目标宽度必须小于原宽度")
+            new_width = target_width
+        elif scale_factor:
+            if scale_factor < original_height:
+                raise ValueError("比例因子必须小于原高度")
+            if 1 < scale_factor:
+                raise ValueError("比例因子必须大于1")
+            new_width = original_width / scale_factor
+        new_height = new_width / width_height_ratio
+        zooming_pil_image = pil_image.resize((round(new_width), round(new_height)), resampling_filter)
+        return zooming_pil_image
+
+    @staticmethod
+    def pil_image2binary(
+            pil_image: Image.Image,
+            img_format: Literal["PNG", "JPEG"],
+            compress_level: Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    ) -> bytes:
+        """
+        将 PIL 图像对象转换为指定格式的二进制数据
+
+        Args:
+            pil_image: PIL 图像对象
+            img_format: 输出图像格式
+                "PNG" - 使用无损压缩
+                "JPEG" - 使用有损压缩
+            compress_level: 压缩等级 (不同格式有不同表现)
+                对于 PNG: 压缩级别 0-9 (0=无压缩，9=最大压缩)
+                对于 JPEG: 质量等级 5-95 (自动映射压缩级别到质量参数)
+
+        Returns:
+            bytes: 图像二进制数据
+
+        Raises:
+            ValueError: 参数不合法时抛出
+            OSError: 图像保存失败时抛出
+        """
+        # 参数验证
+        if not isinstance(pil_image, Image.Image):
+            raise ValueError("输入必须是有效的 PIL.Image.Image 对象")
+        if img_format not in ("PNG", "JPEG"):
+            raise ValueError(f"不支持的图像格式: {img_format}，只支持 PNG/JPEG")
+        if compress_level not in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9):
+            raise ValueError(f"不支持的压缩级别: {compress_level}，只支持 0～9")
+        # 准备保存参数
+        save_kwargs = {}
+        if img_format == "PNG":
+            save_kwargs = {
+                "format": "PNG",
+                "compress_level": compress_level  # 将压缩级别映射到质量参数 (0=最高压缩，9=最高质量)
+            }
+        if img_format == "JPEG":
+            quality = 95 - (compress_level * 10)
+            quality = max(5, min(95, quality))  # 确保在有效范围内
+            # 转换图像模式为 RGB
+            if pil_image.mode != "RGB":
+                pil_image = pil_image.convert("RGB")
+            save_kwargs = {
+                "format": "JPEG",
+                "quality": quality,
+                "subsampling": 0 if quality >= 90 else 1  # 高质量使用全采样
+            }
+        # 执行转换
+        buffer = io.BytesIO()
+        try:
+            pil_image.save(buffer, **save_kwargs)
+        except Exception as e:
+            raise OSError(f"图像保存失败: {str(e)}") from e
+        image_bytes = buffer.getvalue()  # 转换为字节流
+        return image_bytes
 
 
 # 不登录也能用的api
@@ -2606,7 +2609,7 @@ class BilibiliApiGeneric:
         - 86101：未扫码
         """
         if code == 0:  # code = 0 代表登陆成功
-            data_dict = url2dict(data['url'])
+            data_dict = Tools.url2dict(data['url'])
             cookies["DedeUserID"] = data_dict['DedeUserID']
             cookies["DedeUserID__ckMd5"] = data_dict['DedeUserID__ckMd5']
             cookies["SESSDATA"] = data_dict['SESSDATA']
@@ -2634,7 +2637,7 @@ class BilibiliApiMaster:
             "User-Agent": user_agent,
             "cookie": cookie,
         }
-        self.cookies = cookie2dict(cookie)
+        self.cookies = Tools.cookie2dict(cookie)
         self.cookie = cookie
         self.csrf = self.cookies.get("bili_jct", "")
         self.sslVerification = ssl_verification
@@ -2706,7 +2709,7 @@ class BilibiliApiMaster:
         api = "https://api.live.bilibili.com/xlive/app-blink/v1/index/getRoomNews"
         params = {
             'room_id': self.get_room_highlight_state(),
-            'uid': cookie2dict(self.headers["cookie"])["DedeUserID"]
+            'uid': Tools.cookie2dict(self.headers["cookie"])["DedeUserID"]
         }
         room_news = requests.get(verify=self.sslVerification, url=api, headers=headers, params=params).json()
         return room_news["data"]["content"]
@@ -3293,7 +3296,7 @@ def trigger_frontend_event(event):
     Returns:
 
     """
-    log_save(obs.LOG_INFO, f"监测到obs前端事件: {information4frontend_event[event]}")
+    log_save(obs.LOG_INFO, f"监测到obs前端事件: {ExplanatoryDictionary.information4frontend_event[event]}")
     if event == obs.OBS_FRONTEND_EVENT_STREAMING_STARTED:
         last_status_change = time.time()
         log_save(obs.LOG_INFO, f"监控到推流开始事件: {last_status_change}")
@@ -3362,7 +3365,7 @@ def script_defaults(settings):  # 设置其默认值
         log_save(obs.LOG_ERROR, "⚾控件数量检测不通过：设定控件载入顺序时的控件数量 和 创建的控件对象数量 不统一")
         return None
     # 检查网络连接
-    network_connection_info = check_network_connection()
+    network_connection_info = Tools.check_network_connection()
     GlobalVariableOfData.networkConnectionStatus = network_connection_info["connected"]
     if GlobalVariableOfData.networkConnectionStatus:
         log_save(obs.LOG_INFO, f"⭐检查网络连接: {network_connection_info['message']}⭐")
@@ -3370,7 +3373,7 @@ def script_defaults(settings):  # 设置其默认值
         log_save(obs.LOG_ERROR,
                  f"⚠️检查网络连接: {network_connection_info['message']}❌{network_connection_info.get('error', '')}")
         return None
-    ssl_verification_info = check_ssl_verification()
+    ssl_verification_info = Tools.check_ssl_verification()
     GlobalVariableOfData.sslVerification = ssl_verification_info['success']
     log_save(obs.LOG_DEBUG, f"[SSL] {ssl_verification_info['message']}")
 
@@ -3405,7 +3408,7 @@ def script_defaults(settings):  # 设置其默认值
         return True
 
     b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    b_a_m = BilibiliApiMaster(dict2cookie(b_u_l_c.get_cookies()),
+    b_a_m = BilibiliApiMaster(Tools.dict2cookie(b_u_l_c.get_cookies()),
                               GlobalVariableOfData.sslVerification) if b_u_l_c.get_cookies() else None
     b_a_g = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification)
     # 获取 用户配置文件 中 每一个 用户 的 昵称
@@ -3415,7 +3418,7 @@ def script_defaults(settings):  # 设置其默认值
     for uid in b_u_l_c.get_users().values():
         if uid:
             all_is_login4uid[uid] = BilibiliApiMaster(
-                dict2cookie(b_u_l_c.get_cookies(int(uid))), GlobalVariableOfData.sslVerification
+                Tools.dict2cookie(b_u_l_c.get_cookies(int(uid))), GlobalVariableOfData.sslVerification
             ).get_nav_info()
             all_uname4uid[uid] = b_a_g.get_bilibili_user_card(uid)['basic_info']['name']
     log_save(obs.LOG_INFO, f"║║载入账号字典：{all_uname4uid}")
@@ -4007,6 +4010,7 @@ def script_unload():
 
 
 class ButtonFunction:
+    @staticmethod
     def button_function_start_script(*args):
         if len(args) == 2:
             props = args[0]
@@ -4021,6 +4025,7 @@ class ButtonFunction:
         update_ui_interface_data()
         return True
 
+    @staticmethod
     def button_function_login(*args):
         if len(args) == 2:
             props = args[0]
@@ -4067,6 +4072,7 @@ class ButtonFunction:
         update_ui_interface_data()
         return True
 
+    @staticmethod
     def button_function_update_account_list(*args):
         if len(args) == 2:
             props = args[0]
@@ -4088,7 +4094,7 @@ class ButtonFunction:
         b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
         # 获取 用户配置文件 中 每一个用户 导航栏用户信息 排除空值
         user_interface_nav4uid = {uid: BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                                         cookie=dict2cookie(
+                                                         cookie=Tools.dict2cookie(
                                                              b_u_l_c.get_cookies(int(uid))), ).get_nav_info()
                                   for uid in [x for x in b_u_l_c.get_users().values() if x]}
         # 获取 用户配置文件 中 每一个 用户 的 昵称
@@ -4181,7 +4187,7 @@ class ButtonFunction:
         # 设置 只读文本框【登录状态】 信息类型
         if obs.obs_property_text_info_type(widget.TextBox.loginStatus.Obj) != widget.TextBox.loginStatus.Type:
             log_save(obs.LOG_INFO,
-                     f"　│││✏️ 只读文本框【登录状态】 信息类型 发生变动: {textBox_type_name4textBox_type[obs.obs_property_text_info_type(widget.TextBox.loginStatus.Obj)]}➡️{textBox_type_name4textBox_type[widget.TextBox.loginStatus.Type]}")
+                     f"　│││✏️ 只读文本框【登录状态】 信息类型 发生变动: {ExplanatoryDictionary.textBox_type_name4textBox_type[obs.obs_property_text_info_type(widget.TextBox.loginStatus.Obj)]}➡️{ExplanatoryDictionary.textBox_type_name4textBox_type[widget.TextBox.loginStatus.Type]}")
             obs.obs_property_text_set_info_type(widget.TextBox.loginStatus.Obj, widget.TextBox.loginStatus.Type)
         else:
             log_save(obs.LOG_INFO, f"　│││🧩 只读文本框【登录状态】 信息类型 未 发生变动")
@@ -4387,6 +4393,7 @@ class ButtonFunction:
         log_save(obs.LOG_INFO, f"╲────────────────────────更新UI界面数据────────────────────────╱")
         return True
 
+    @staticmethod
     def button_function_qr_add_account(*args):
         if len(args) == 2:
             props = args[0]
@@ -4413,7 +4420,7 @@ class ButtonFunction:
         GlobalVariableOfData.loginQrCode_key = url8qrkey['qrcode_key']
         log_save(obs.LOG_INFO, f"获取登录二维码密钥{GlobalVariableOfData.loginQrCode_key}")
         # 获取二维码对象
-        qr = qr_text8pil_img(url)
+        qr = Tools.qr_text8pil_img(url)
         # 获取登录二维码的pillow img实例
         GlobalVariableOfData.loginQRCodePillowImg = qr["img"]
         # 输出二维码图形字符串
@@ -4424,7 +4431,7 @@ class ButtonFunction:
             ssl_verification=GlobalVariableOfData.sslVerification).poll(GlobalVariableOfData.loginQrCode_key)
         log_save(obs.LOG_INFO, f"开始轮询登录状态")
         # 轮询登录状态
-        log_save(obs.LOG_WARNING, str(information4login_qr_return_code[GlobalVariableOfData.loginQrCodeReturn['code']]))
+        log_save(obs.LOG_WARNING, str(ExplanatoryDictionary.information4login_qr_return_code[GlobalVariableOfData.loginQrCodeReturn['code']]))
 
         def check_poll():
             """
@@ -4439,7 +4446,7 @@ class ButtonFunction:
                 ssl_verification=GlobalVariableOfData.sslVerification).poll(GlobalVariableOfData.loginQrCode_key)
             # 二维码扫描登陆状态改变时，输出改变后状态
             log_save(obs.LOG_WARNING,
-                     str(information4login_qr_return_code[
+                     str(ExplanatoryDictionary.information4login_qr_return_code[
                              GlobalVariableOfData.loginQrCodeReturn['code']])) if code_old != \
                                                                                   GlobalVariableOfData.loginQrCodeReturn[
                                                                                       'code'] else None
@@ -4469,6 +4476,7 @@ class ButtonFunction:
         obs.timer_add(check_poll, 1000)
         return True
 
+    @staticmethod
     def button_function_show_qr_picture(*args):
         if len(args) == 2:
             props = args[0]
@@ -4486,6 +4494,7 @@ class ButtonFunction:
             log_save(obs.LOG_WARNING, f"没有可展示的登录二维码图片，请点击按钮 【二维码添加账号】创建")
             return False
 
+    @staticmethod
     def button_function_del_user(*args):
         if len(args) == 2:
             props = args[0]
@@ -4520,6 +4529,7 @@ class ButtonFunction:
         update_ui_interface_data()
         return True
 
+    @staticmethod
     def button_function_backup_users(*args):
         if len(args) == 2:
             props = args[0]
@@ -4535,6 +4545,7 @@ class ButtonFunction:
         """
         pass
 
+    @staticmethod
     def button_function_restore_user(*args):
         if len(args) == 2:
             props = args[0]
@@ -4550,6 +4561,7 @@ class ButtonFunction:
         """
         pass
 
+    @staticmethod
     def button_function_logout(*args):
         if len(args) == 2:
             props = args[0]
@@ -4585,6 +4597,7 @@ class ButtonFunction:
         update_ui_interface_data()
         return True
 
+    @staticmethod
     def button_function_opened_room(*args):
         if len(args) == 2:
             props = args[0]
@@ -4596,7 +4609,7 @@ class ButtonFunction:
         b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
         # 开通直播间
         create_live_room_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                                    cookie=dict2cookie(b_u_l_c.get_cookies())).create_live_room()
+                                                    cookie=Tools.dict2cookie(b_u_l_c.get_cookies())).create_live_room()
         log_save(obs.LOG_INFO, f"开通直播间返回值: {create_live_room_return}")
         # 处理API响应
         code = create_live_room_return.get("code", -1)
@@ -4615,6 +4628,7 @@ class ButtonFunction:
             log_save(obs.LOG_INFO, f"开通直播间失败: {message} (代码: {code})")
         return True
 
+    @staticmethod
     def button_function_check_room_cover(*args):
         if len(args) == 2:
             props = args[0]
@@ -4673,16 +4687,17 @@ class ButtonFunction:
         log_save(obs.LOG_INFO, f"")
 
         # # 获取'默认账户'直播间的基础信息
-        room_cover_pillow_img = url2pillow_image(room_cover_url, GlobalVariableOfData.sslVerification)
+        room_cover_pillow_img = Tools.url2pillow_image(room_cover_url, GlobalVariableOfData.sslVerification)
         if room_cover_pillow_img:
             log_save(obs.LOG_INFO,
                      f"显示16:9封面，格式: {room_cover_pillow_img.format}，尺寸: {room_cover_pillow_img.size}")
             room_cover_pillow_img.show()
-            room_cover_pillow_img0403 = pil_image2central_proportion_cutting(room_cover_pillow_img, 4 / 3)
+            room_cover_pillow_img0403 = Tools.pil_image2central_proportion_cutting(room_cover_pillow_img, 4 / 3)
             log_save(obs.LOG_INFO, f"展示4:3图片")
             room_cover_pillow_img0403.show()
         pass
 
+    @staticmethod
     def button_function_update_room_cover(*args):
         if len(args) == 2:
             props = args[0]
@@ -4697,26 +4712,26 @@ class ButtonFunction:
         if widget.PathBox.roomCover.Text:
             pil_image = Image.open(widget.PathBox.roomCover.Text)
             log_save(obs.LOG_INFO, f"图片文件PIL_Image实例化，当前文件大小(宽X高)：{pil_image.size}")
-            pil_image1609 = pil_image2central_proportion_cutting(pil_image, 16 / 9)
+            pil_image1609 = Tools.pil_image2central_proportion_cutting(pil_image, 16 / 9)
             pil_image1609_w, pil_image1609_h = pil_image1609.size
             log_save(obs.LOG_INFO, f"图片16:9裁切后大小(宽X高)：{pil_image1609.size}")
-            pil_image1609zooming_width1020 = pil_image1609 if pil_image1609_w < 1020 else pil_image2zooming(
+            pil_image1609zooming_width1020 = pil_image1609 if pil_image1609_w < 1020 else Tools.pil_image2zooming(
                 pil_image1609,
                 4,
                 target_width=1020)
             log_save(obs.LOG_INFO, f"限制宽<1020，进行缩放，缩放后大小：{pil_image1609zooming_width1020.size}")
-            pil_image1609 = pil_image2central_proportion_cutting(pil_image1609zooming_width1020, 16 / 9)
+            pil_image1609 = Tools.pil_image2central_proportion_cutting(pil_image1609zooming_width1020, 16 / 9)
             log_save(obs.LOG_INFO, f"缩放后图片16:9裁切后大小(宽X高)：{pil_image1609.size}")
-            pil_image0403 = pil_image2central_proportion_cutting(pil_image1609zooming_width1020, 4 / 3)
+            pil_image0403 = Tools.pil_image2central_proportion_cutting(pil_image1609zooming_width1020, 4 / 3)
             log_save(obs.LOG_INFO, f"缩放后图片4:3裁切后大小(宽X高)：{pil_image0403.size}")
 
             log_save(obs.LOG_INFO, f"图片二进制化")
-            pil_image1609zooming_width1020_binary = pil_image2binary(pil_image1609zooming_width1020, img_format="JPEG",
+            pil_image1609zooming_width1020_binary = Tools.pil_image2binary(pil_image1609zooming_width1020, img_format="JPEG",
                                                                      compress_level=0)
             # 创建用户配置文件实例
             b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
             b_a_c_authentication = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                                     cookie=dict2cookie(b_u_l_c.get_cookies()))
+                                                     cookie=Tools.dict2cookie(b_u_l_c.get_cookies()))
             # 上传封面图片返回
             upload_cover_return = b_a_c_authentication.upload_cover(pil_image1609zooming_width1020_binary)
             log_save(obs.LOG_INFO, f"上传封面返回：{upload_cover_return}")
@@ -4744,6 +4759,7 @@ class ButtonFunction:
             return False
         return True
 
+    @staticmethod
     def button_function_face_auth(*args):
         if len(args) == 2:
             props = args[0]
@@ -4761,11 +4777,12 @@ class ButtonFunction:
         log_save(obs.LOG_INFO, f"获取人脸认证的链接：{qr_url}")
         if uid:
             # 获取二维码对象
-            qr = qr_text8pil_img(qr_url)
+            qr = Tools.qr_text8pil_img(qr_url)
             qr['img'].show()
         else:
             log_save(obs.LOG_ERROR, f"未登录")
 
+    @staticmethod
     def button_function_true_live_room_title(*args):
         if len(args) == 2:
             props = args[0]
@@ -4781,6 +4798,7 @@ class ButtonFunction:
         log_save(obs.LOG_INFO, f"更新 普通文本框【直播间标题】 的 文本")
         return True
 
+    @staticmethod
     def button_function_change_live_room_title(*args):
         if len(args) == 2:
             props = args[0]
@@ -4852,7 +4870,7 @@ class ButtonFunction:
             log_save(obs.LOG_INFO, f"直播间标题未更改")
             return False
         turn_title_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                              cookie=dict2cookie(b_u_l_c.get_cookies())).change_room_title(
+                                              cookie=Tools.dict2cookie(b_u_l_c.get_cookies())).change_room_title(
             live_room_title_textbox_string)
         log_save(obs.LOG_INFO, f"更改直播间标题返回消息：{turn_title_return}")
         if turn_title_return['code'] == 0:
@@ -5047,6 +5065,7 @@ class ButtonFunction:
         log_save(obs.LOG_INFO, f"　└{30 * '─'}👌普通文本框 UI{30 * '─'}┘")
         return True
 
+    @staticmethod
     def button_function_change_live_room_news(*args):
         if len(args) == 2:
             props = args[0]
@@ -5093,7 +5112,7 @@ class ButtonFunction:
                  f"║║登录账户 的 直播间基本信息：{room_base_info if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
         # 获取 直播间公告
         room_news = (BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=
-        dict2cookie(b_u_l_c.get_cookies())).get_room_news() if room_status else None) if b_u_l_c.get_cookies() else None
+        Tools.dict2cookie(b_u_l_c.get_cookies())).get_room_news() if room_status else None) if b_u_l_c.get_cookies() else None
         """直播间公告"""
         log_save(obs.LOG_INFO,
                  f"║║登录账户 的 直播间公告：{(room_news if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
@@ -5111,7 +5130,7 @@ class ButtonFunction:
         b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
         cookies = b_u_l_c.get_cookies()
         turn_news_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                             cookie=dict2cookie(cookies), ).change_room_news(
+                                             cookie=Tools.dict2cookie(cookies), ).change_room_news(
             live_room_news_textbox_string)
         log_save(obs.LOG_INFO, f'更改直播间公告返回消息：{turn_news_return}')
         if turn_news_return['code'] == 0:
@@ -5155,7 +5174,7 @@ class ButtonFunction:
                  f"║║登录账户 的 直播间基本信息：{room_base_info if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
         # 获取 直播间公告
         room_news = (BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=
-        dict2cookie(b_u_l_c.get_cookies())).get_room_news() if room_status else None) if b_u_l_c.get_cookies() else None
+        Tools.dict2cookie(b_u_l_c.get_cookies())).get_room_news() if room_status else None) if b_u_l_c.get_cookies() else None
         """直播间公告"""
         log_save(obs.LOG_INFO,
                  f"║║登录账户 的 直播间公告：{(room_news if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
@@ -5221,6 +5240,7 @@ class ButtonFunction:
         log_save(obs.LOG_INFO, f"　└{30 * '─'}👌普通文本框 UI{30 * '─'}┘")
         return True
 
+    @staticmethod
     def button_function_true_live_room_area(*args):
         if len(args) == 2:
             props = args[0]
@@ -5247,6 +5267,7 @@ class ButtonFunction:
         obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'room_subArea_comboBox', room_common_sub_area_id)
         return True
 
+    @staticmethod
     def button_function_start_parent_area(*args):
         if len(args) == 2:
             props = args[0]
@@ -5307,6 +5328,7 @@ class ButtonFunction:
         widget.ComboBox.roomSubArea.Dictionary = sub_live_area_name4sub_live_area_id_old
         return True
 
+    @staticmethod
     def button_function_start_sub_area(*args):
         if len(args) == 2:
             props = args[0]
@@ -5369,7 +5391,7 @@ class ButtonFunction:
         # 获取默认账户
         b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
         change_room_area_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                                    cookie=dict2cookie(b_u_l_c.get_cookies())).change_room_area(
+                                                    cookie=Tools.dict2cookie(b_u_l_c.get_cookies())).change_room_area(
             int(sub_live_area_combobox_value))
         log_save(obs.LOG_INFO, f"更新直播间分区返回：{change_room_area_return}")
         if change_room_area_return["code"] == 0:
@@ -5664,6 +5686,7 @@ class ButtonFunction:
         log_save(obs.LOG_INFO, f"　└{30 * '─'}👌组合框 UI{30 * '─'}┘")
         return True
 
+    @staticmethod
     def button_function_jump_blive_web(*args):
         if len(args) == 2:
             props = args[0]
@@ -5681,7 +5704,7 @@ class ButtonFunction:
         pass
 
     # ____________________-------------------____________________---------------------_______________________---------------
-
+    @staticmethod
     def button_function_start_live(*args):
         if len(args) == 2:
             props = args[0]
@@ -5708,7 +5731,7 @@ class ButtonFunction:
                                                           'live_streaming_platform_comboBox')
         log_save(obs.LOG_INFO, f"使用【{live_streaming_platform}】平台 开播")
         start_live = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                       cookie=dict2cookie(b_u_l_c.get_cookies())).start_live(
+                                       cookie=Tools.dict2cookie(b_u_l_c.get_cookies())).start_live(
             int(sub_live_area_combobox_value), live_streaming_platform)
         log_save(obs.LOG_INFO, f"开播返回：{start_live}")
         if start_live["code"] == 0:
@@ -6090,6 +6113,7 @@ class ButtonFunction:
         log_save(obs.LOG_INFO, f"　└{30 * '─'}👌按钮 UI{30 * '─'}┘")
         return True
 
+    @staticmethod
     def button_function_rtmp_address_copy(*args):
         if len(args) == 2:
             props = args[0]
@@ -6106,7 +6130,7 @@ class ButtonFunction:
         # 获取默认账户
         b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
         stream_addr = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                        cookie=dict2cookie(b_u_l_c.get_cookies())).get_live_stream_info()
+                                        cookie=Tools.dict2cookie(b_u_l_c.get_cookies())).get_live_stream_info()
         log_save(obs.LOG_INFO, f"获取直播服务器返回：{stream_addr}")
         if stream_addr["code"] == 0:
             log_save(obs.LOG_INFO, f"获取直播服务器成功")
@@ -6117,6 +6141,7 @@ class ButtonFunction:
             log_save(obs.LOG_ERROR, f"获取直播服务器失败：{stream_addr['error']}")
         return True
 
+    @staticmethod
     def button_function_rtmp_stream_code_copy(*args):
         if len(args) == 2:
             props = args[0]
@@ -6133,7 +6158,7 @@ class ButtonFunction:
         # 获取默认账户
         b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
         stream_addr = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                        cookie=dict2cookie(b_u_l_c.get_cookies())).get_live_stream_info()
+                                        cookie=Tools.dict2cookie(b_u_l_c.get_cookies())).get_live_stream_info()
         log_save(obs.LOG_INFO, f"获取直播推流码返回：{stream_addr}")
         if stream_addr["code"] == 0:
             log_save(obs.LOG_INFO, f"获取直播推流码成功")
@@ -6145,6 +6170,7 @@ class ButtonFunction:
             return False
         return True
 
+    @staticmethod
     def button_function_rtmp_stream_code_update(*args):
         if len(args) == 2:
             props = args[0]
@@ -6165,7 +6191,7 @@ class ButtonFunction:
         # 获取默认账户
         b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
         stream_addr = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                        cookie=dict2cookie(b_u_l_c.get_cookies())).fetch_stream_addr(
+                                        cookie=Tools.dict2cookie(b_u_l_c.get_cookies())).fetch_stream_addr(
             live_streaming_platform, True)
         log_save(obs.LOG_INFO, f"更新直播推流码返回：{stream_addr}")
         if stream_addr["code"] == 0:
@@ -6180,6 +6206,7 @@ class ButtonFunction:
         ButtonFunction.button_function_stop_live()
         return True
 
+    @staticmethod
     def button_function_stop_live(*args):
         if len(args) == 2:
             props = args[0]
@@ -6201,7 +6228,7 @@ class ButtonFunction:
 
         b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
         stop_live = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                      cookie=dict2cookie(b_u_l_c.get_cookies())).stop_live(live_streaming_platform)
+                                      cookie=Tools.dict2cookie(b_u_l_c.get_cookies())).stop_live(live_streaming_platform)
         log_save(obs.LOG_INFO, f"停播返回：{stop_live}")
         if stop_live["code"] == 0:
             log_save(obs.LOG_INFO, f"停播成功。")
@@ -6506,6 +6533,7 @@ class ButtonFunction:
         log_save(obs.LOG_INFO, f"　└{30 * '─'}👌按钮 UI{30 * '─'}┘")
         return True
 
+    @staticmethod
     def button_function_true_live_appointment_day(*args):
         if len(args) == 2:
             props = args[0]
@@ -6556,6 +6584,7 @@ class ButtonFunction:
             return True
         return False
 
+    @staticmethod
     def button_function_true_live_appointment_hour(*args):
         if len(args) == 2:
             props = args[0]
@@ -6564,6 +6593,7 @@ class ButtonFunction:
             settings = args[2]
         return ButtonFunction.button_function_true_live_appointment_day()
 
+    @staticmethod
     def button_function_true_live_appointment_minute(*args):
         if len(args) == 2:
             props = args[0]
@@ -6572,6 +6602,7 @@ class ButtonFunction:
             settings = args[2]
         return ButtonFunction.button_function_true_live_appointment_day()
 
+    @staticmethod
     def button_function_creat_live_appointment(*args):
         if len(args) == 2:
             props = args[0]
@@ -6612,8 +6643,8 @@ class ButtonFunction:
         b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
         # 创建直播预约
         create_reserve_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=
-        dict2cookie(b_u_l_c.get_cookies())).create_reserve(title=live_bookings_title,
-                                                           live_plan_start_time=get_future_timestamp(live_bookings_day,
+        Tools.dict2cookie(b_u_l_c.get_cookies())).create_reserve(title=live_bookings_title,
+                                                           live_plan_start_time=Tools.get_future_timestamp(live_bookings_day,
                                                                                                      live_bookings_hour,
                                                                                                      live_bookings_minute),
                                                            create_dynamic=live_bookings_dynamic_is)
@@ -6650,7 +6681,7 @@ class ButtonFunction:
                  f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
         # 登录用户的直播预约列表信息
         reserve_list = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                         cookie=dict2cookie(b_u_l_c.get_cookies())).get_reserve_list()
+                                         cookie=Tools.dict2cookie(b_u_l_c.get_cookies())).get_reserve_list()
         """获取 '登录用户' 的 直播预约列表信息"""
         log_save(obs.LOG_INFO,
                  f"║║登录账户 的 直播预约列表信息：{(reserve_list if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
@@ -7061,6 +7092,7 @@ class ButtonFunction:
         log_save(obs.LOG_INFO, f"　└{30 * '─'}👌组合框 UI{30 * '─'}┘")
         return True
 
+    @staticmethod
     def button_function_cancel_live_appointment(*args):
         if len(args) == 2:
             props = args[0]
@@ -7077,7 +7109,7 @@ class ButtonFunction:
         # 获取默认账户
         b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
         cancel_reserve_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                                  cookie=dict2cookie(b_u_l_c.get_cookies())).cancel_reserve(
+                                                  cookie=Tools.dict2cookie(b_u_l_c.get_cookies())).cancel_reserve(
             live_bookings_sid)
         log_save(obs.LOG_INFO, f"取消直播预约返回: {cancel_reserve_return}")
         if cancel_reserve_return['code'] == 0:
@@ -7110,7 +7142,7 @@ class ButtonFunction:
                  f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
         # 登录用户的直播预约列表信息
         reserve_list = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                         cookie=dict2cookie(b_u_l_c.get_cookies())).get_reserve_list()
+                                         cookie=Tools.dict2cookie(b_u_l_c.get_cookies())).get_reserve_list()
         """获取 '登录用户' 的 直播预约列表信息"""
         log_save(obs.LOG_INFO,
                  f"║║登录账户 的 直播预约列表信息：{(reserve_list if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
