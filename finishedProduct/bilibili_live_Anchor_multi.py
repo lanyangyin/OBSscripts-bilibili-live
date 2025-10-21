@@ -957,230 +957,6 @@ class Widget:
         return f"<Widget controls={len(self._all_controls)}>"
 
 
-# 创建控件表单
-widget = Widget()
-
-widget.widget_Group_dict = {
-    "props": {
-        "account": {
-            "Name": "account_group",
-            "Description": "账号",
-            "Type": obs.OBS_GROUP_NORMAL,
-            "GroupProps": "account_props",
-            "ModifiedIs": False
-        },
-        "room": {
-            "Name": "room_group",
-            "Description": "直播间",
-            "Type": obs.OBS_GROUP_NORMAL,
-            "GroupProps": "room_props",
-            "ModifiedIs": False
-        },
-        "live": {
-            "Name": "live_group",
-            "Description": "直播",
-            "Type": obs.OBS_GROUP_NORMAL,
-            "GroupProps": "live_props",
-            "ModifiedIs": False
-        },
-    },
-}
-
-widget.widget_TextBox_dict = {
-    "account_props": {
-        "loginStatus": {
-            "Name": "login_status_textBox",
-            "Description": "登录状态",
-            "Type": obs.OBS_TEXT_INFO,
-            "ModifiedIs": True
-        },
-    },
-    "room_props": {
-        "roomStatus": {
-            "Name": "room_status_textBox",
-            "Description": "查看直播间封面",
-            "Type": obs.OBS_TEXT_INFO,
-            "ModifiedIs": False
-        },
-        "roomTitle": {
-            "Name": "room_title_textBox",
-            "Description": "直播间标题",
-            "Type": obs.OBS_TEXT_DEFAULT,
-            "ModifiedIs": True
-        },
-        "roomNews": {
-            "Name": "room_news_textBox",
-            "Description": "直播间公告",
-            "Type": obs.OBS_TEXT_DEFAULT,
-            "ModifiedIs": True
-        },
-    },
-    "live_props": {
-        "liveBookingsTitle": {
-            "Name": "live_bookings_title_textBox",
-            "Description": "直播预约标题",
-            "Type": obs.OBS_TEXT_DEFAULT,
-            "ModifiedIs": True
-        },
-    },
-}
-
-widget.widget_ComboBox_dict = {
-    "account_props": {
-        "uid": {
-            "Name": "uid_comboBox",
-            "Description": "用户",
-            "Type": obs.OBS_COMBO_TYPE_LIST,
-            "ModifiedIs": True
-        },
-    },
-    "room_props": {
-        "roomCommonTitles": {
-            "Name": "room_commonTitles_comboBox",
-            "Description": "常用标题",
-            "Type": obs.OBS_COMBO_TYPE_EDITABLE,
-            "ModifiedIs": True
-        },
-        "roomCommonAreas": {
-            "Name": "room_commonAreas_comboBox",
-            "Description": "常用分区",
-            "Type": obs.OBS_COMBO_TYPE_LIST,
-            "ModifiedIs": True
-        },
-        "roomParentArea": {
-            "Name": "room_parentArea_comboBox",
-            "Description": "一级分区",
-            "Type": obs.OBS_COMBO_TYPE_LIST,
-            "ModifiedIs": True
-        },
-        "roomSubArea": {
-            "Name": "room_subArea_comboBox",
-            "Description": "二级分区",
-            "Type": obs.OBS_COMBO_TYPE_LIST,
-            "ModifiedIs": True
-        },
-    },
-    "live_props": {
-        "liveStreamingPlatform": {
-            "Name": "live_streaming_platform_comboBox",
-            "Description": "直播平台",
-            "Type": obs.OBS_COMBO_TYPE_LIST,
-            "ModifiedIs": True
-        },
-        "liveBookings": {
-            "Name": "live_bookings_comboBox",
-            "Description": "直播预约列表",
-            "Type": obs.OBS_COMBO_TYPE_LIST,
-            "ModifiedIs": True
-        },
-    },
-}
-
-widget.widget_PathBox_dict = {
-    "room_props": {
-        "roomCover": {
-            "Name": "room_cover_fileDialogBox",
-            "Description": "直播间封面",
-            "Type": obs.OBS_PATH_FILE,
-            "Filter": "图片(*.jpg *.jpeg *.png)",
-            "StartPath": "",
-            "ModifiedIs": False
-        },
-    },
-}
-
-widget.widget_DigitalDisplay_dict = {
-    "live_props": {
-        "liveBookingsDay": {
-            "Name": "live_bookings_day_digitalSlider",
-            "Description": "预约天",
-            "Type": "ThereIsASlider",
-            "Suffix": "天",
-            "ModifiedIs": True
-        },
-        "liveBookingsHour": {
-            "Name": "live_bookings_hour_digitalSlider",
-            "Description": "预约时",
-            "Type": "ThereIsASlider",
-            "Suffix": "时",
-            "ModifiedIs": True
-        },
-        "liveBookingsMinute": {
-            "Name": "live_bookings_minute_digitalSlider",
-            "Description": "预约分",
-            "Type": "ThereIsASlider",
-            "Suffix": "分",
-            "ModifiedIs": True
-        },
-    },
-}
-
-widget.widget_CheckBox_dict = {
-    "live_props": {
-        "liveBookingsDynamic": {
-            "Name": "live_bookings_dynamic_checkBox",
-            "Description": "是否发直播预约动态",
-            "ModifiedIs": True
-        },
-    },
-}
-
-widget.widget_list = [
-    "top_button",
-    "start_script_button",
-    "account_group",
-    "login_status_textBox",
-    "uid_comboBox",
-    "login_button",
-    "account_list_update_button",
-    "qr_add_account_button",
-    "qr_picture_display_button",
-    "account_delete_button",
-    "account_backup_button",
-    "account_restore_button",
-    "logout_button",
-    "room_group",
-    "room_status_textBox",
-    "room_opened_button",
-    "room_cover_view_button",
-    "room_cover_fileDialogBox",
-    "room_cover_update_button",
-    "room_commonTitles_comboBox",
-    "room_commonTitles_true_button",
-    "room_title_textBox",
-    "room_title_change_button",
-    "room_news_textBox",
-    "room_news_change_button",
-    "room_commonAreas_comboBox",
-    "room_commonAreas_true_button",
-    "room_parentArea_comboBox",
-    "room_parentArea_true_button",
-    "room_subArea_comboBox",
-    "room_subArea_true_button",
-    "blive_web_jump_button",
-    "live_group",
-    "live_face_auth_button",
-    "live_streaming_platform_comboBox",
-    "live_start_button",
-    "live_rtmp_address_copy_button",
-    "live_rtmp_code_copy_button",
-    "live_rtmp_code_update_button",
-    "live_stop_button",
-    "live_bookings_day_digitalSlider",
-    "live_bookings_day_true_button",
-    "live_bookings_hour_digitalSlider",
-    "live_bookings_hour_true_button",
-    "live_bookings_minute_digitalSlider",
-    "live_bookings_minute_true_button",
-    "live_bookings_dynamic_checkBox",
-    "live_bookings_title_textBox",
-    "live_bookings_create_button",
-    "live_bookings_comboBox",
-    "live_bookings_cancel_button",
-    "bottom_button",
-]
-
-
 # 工具类函数
 class BilibiliUserLogsIn2ConfigFile:
     """
@@ -1697,8 +1473,7 @@ def check_network_connection() -> Dict[str, Union[Dict[str, Union[bool, list, fl
     return result
 
 
-def check_ssl_verification(test_url="https://api.bilibili.com", timeout=5) -> Dict[
-    str, Union[str, int, bool, Dict[str, Optional[Union[str, int, bool]]]]]:
+def check_ssl_verification(test_url="https://api.bilibili.com", timeout=5) -> Dict[str, Union[str, int, bool, Dict[str, Optional[Union[str, int, bool]]]]]:
     """
     检测 SSL 证书验证是否可用
 
@@ -1960,8 +1735,7 @@ def utf_8_to_url(text: str, safe: str = "/:") -> str:
         return text
 
 
-def url2dict(url: str, decode: bool = True, handle_multiple: bool = True) -> Dict[
-    str, Union[str, int, float, bool, None, List[Any]]]:
+def url2dict(url: str, decode: bool = True, handle_multiple: bool = True) -> Dict[str, Union[str, int, float, bool, None, List[Any]]]:
     """
     将 URL 参数解析为字典，支持复杂参数处理
 
@@ -2103,12 +1877,7 @@ def url2dict(url: str, decode: bool = True, handle_multiple: bool = True) -> Dic
     return result
 
 
-def qr_text8pil_img(
-        qr_str: str,
-        border: int = 2,
-        error_correction: Literal[0, 1, 2, 3] = 1,
-        invert: bool = False
-) -> Dict[str, Union[str, Image.Image]]:
+def qr_text8pil_img(qr_str: str, border: int = 2, error_correction: Literal[0, 1, 2, 3] = 1, invert: bool = False) -> Dict[str, Union[str, Image.Image]]:
     """
     字符串转二维码（返回包含 PIL 图像对象的字典）
     Args:
@@ -2170,10 +1939,7 @@ def qr_text8pil_img(
     return {"str": output_str, "img": img}
 
 
-def pil_image2central_proportion_cutting(
-        pil_image: Image.Image,
-        target_width2height_ratio: float
-) -> Optional[Image.Image]:
+def pil_image2central_proportion_cutting(pil_image: Image.Image, target_width2height_ratio: float) -> Optional[Image.Image]:
     """
     对图像进行中心比例裁切，保持目标宽高比
     Args:
@@ -3543,7 +3309,7 @@ def trigger_frontend_event(event):
                      f"推流状态发生变化: {GlobalVariableOfData.streaming_active}➡️{obs.obs_frontend_streaming_active()}")
             GlobalVariableOfData.streaming_active = obs.obs_frontend_streaming_active()
             log_save(obs.LOG_INFO, f"尝试关闭直播")
-            button_function_stop_live()
+            ButtonFunction.button_function_stop_live()
     return True
 
 
@@ -3565,19 +3331,19 @@ def property_modified(t: str) -> bool:
         GlobalVariableOfData.isScript_propertiesIs = False
     if not GlobalVariableOfData.isScript_propertiesIs:
         if t == "room_parentArea_comboBox":
-            return button_function_start_parent_area()
+            return ButtonFunction.button_function_start_parent_area()
         elif t == "room_cover_fileDialogBox":
-            return button_function_update_room_cover()
+            return ButtonFunction.button_function_update_room_cover()
         elif t == "room_commonTitles_comboBox":
-            return button_function_true_live_room_title()
+            return ButtonFunction.button_function_true_live_room_title()
         elif t == "room_commonAreas_comboBox":
-            return button_function_true_live_room_area()
+            return ButtonFunction.button_function_true_live_room_area()
         elif t == "live_bookings_day_digitalSlider":
-            return button_function_true_live_appointment_day()
+            return ButtonFunction.button_function_true_live_appointment_day()
         elif t == "live_bookings_hour_digitalSlider":
-            return button_function_true_live_appointment_hour()
+            return ButtonFunction.button_function_true_live_appointment_hour()
         elif t == "live_bookings_minute_digitalSlider":
-            return button_function_true_live_appointment_minute()
+            return ButtonFunction.button_function_true_live_appointment_minute()
     else:
         log_save(obs.LOG_INFO, f"控件事件钩子已断开")
         return False
@@ -4163,13 +3929,13 @@ def script_properties():  # 建立控件
             log_save(obs.LOG_INFO, f"为{w.ControlType}: 【{w.Description}】添加钩子函数")
             obs.obs_property_set_modified_callback(w.Obj, lambda ps, p, st, name=w.Name: property_modified(name))
     # 更新UI界面数据#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
-    update_ui_interface_data(is_script_properties=True)
+    update_ui_interface_data()
     log_save(obs.LOG_INFO, f"╚{'═' * 20}构造控件体 结束{'═' * 20}╝")
     log_save(obs.LOG_INFO, f"")
     return props
 
 
-def update_ui_interface_data(is_script_properties=False):
+def update_ui_interface_data() -> bool:
     """
     更新UI界面数据
     Returns:
@@ -4221,6 +3987,25 @@ def update_ui_interface_data(is_script_properties=False):
     return True
 
 
+def script_unload():
+    """
+    在脚本被卸载时调用。
+    """
+    # """注销事件回调"""
+    log_save(obs.LOG_INFO, "┌——停止监视obs事件——┐")
+    log_save(obs.LOG_INFO, "│  停止监视obs事件  │")
+    log_save(obs.LOG_INFO, "└——停止监视obs事件——┘")
+    obs.obs_frontend_remove_event_callback(trigger_frontend_event)
+    log_save(obs.LOG_INFO, "╔══已卸载: bilibili-live══╗")
+    log_save(obs.LOG_INFO, "║  已卸载: bilibili-live  ║")
+    log_save(obs.LOG_INFO, "╚══已卸载: bilibili-live══╝")
+    log_save(obs.LOG_INFO, "==保存日志文件==")
+    log_save(obs.LOG_INFO, f"{'═' * 120}\n")
+    with open(Path(GlobalVariableOfData.scriptsLogDir) / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.log", "w",
+              encoding="utf-8") as f:
+        f.write(str(GlobalVariableOfData.logRecording))
+
+
 class ButtonFunction:
     def button_function_start_script(*args):
         if len(args) == 2:
@@ -4235,7 +4020,6 @@ class ButtonFunction:
         log_save(obs.LOG_INFO, f"更新控件UI")
         update_ui_interface_data()
         return True
-
 
     def button_function_login(*args):
         if len(args) == 2:
@@ -4283,7 +4067,6 @@ class ButtonFunction:
         update_ui_interface_data()
         return True
 
-
     def button_function_update_account_list(*args):
         if len(args) == 2:
             props = args[0]
@@ -4296,7 +4079,7 @@ class ButtonFunction:
             settings:
             props:
             prop:
-    
+
         Returns:
         """
         # 调整控件数据
@@ -4305,7 +4088,8 @@ class ButtonFunction:
         b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
         # 获取 用户配置文件 中 每一个用户 导航栏用户信息 排除空值
         user_interface_nav4uid = {uid: BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                                         cookie=dict2cookie(b_u_l_c.get_cookies(int(uid))), ).get_nav_info()
+                                                         cookie=dict2cookie(
+                                                             b_u_l_c.get_cookies(int(uid))), ).get_nav_info()
                                   for uid in [x for x in b_u_l_c.get_users().values() if x]}
         # 获取 用户配置文件 中 每一个 用户 的 昵称
         all_uname4uid = {uid: user_interface_nav4uid[uid]["uname"] for uid in user_interface_nav4uid}
@@ -4440,7 +4224,7 @@ class ButtonFunction:
         # 判断 组合框【用户】字典数据 和 当前数据是否有变化
         if widget.ComboBox.uid.Dictionary != {
             obs.obs_property_list_item_string(widget.ComboBox.uid.Obj, idx): obs.obs_property_list_item_name(
-                    widget.ComboBox.uid.Obj, idx) for idx in
+                widget.ComboBox.uid.Obj, idx) for idx in
             range(obs.obs_property_list_item_count(widget.ComboBox.uid.Obj))}:
             log_save(obs.LOG_INFO,
                      f"　│││✏️ 组合框【用户】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.uid.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.uid.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.uid.Obj))})}个元素➡️{len(widget.ComboBox.uid.Dictionary)}个元素")
@@ -4603,7 +4387,6 @@ class ButtonFunction:
         log_save(obs.LOG_INFO, f"╲────────────────────────更新UI界面数据────────────────────────╱")
         return True
 
-
     def button_function_qr_add_account(*args):
         if len(args) == 2:
             props = args[0]
@@ -4656,9 +4439,10 @@ class ButtonFunction:
                 ssl_verification=GlobalVariableOfData.sslVerification).poll(GlobalVariableOfData.loginQrCode_key)
             # 二维码扫描登陆状态改变时，输出改变后状态
             log_save(obs.LOG_WARNING,
-                     str(information4login_qr_return_code[GlobalVariableOfData.loginQrCodeReturn['code']])) if code_old != \
-                                                                                                               GlobalVariableOfData.loginQrCodeReturn[
-                                                                                                                   'code'] else None
+                     str(information4login_qr_return_code[
+                             GlobalVariableOfData.loginQrCodeReturn['code']])) if code_old != \
+                                                                                  GlobalVariableOfData.loginQrCodeReturn[
+                                                                                      'code'] else None
             if GlobalVariableOfData.loginQrCodeReturn['code'] == 0 or GlobalVariableOfData.loginQrCodeReturn[
                 'code'] == 86038:
                 log_save(obs.LOG_INFO, "轮询结束")
@@ -4685,7 +4469,6 @@ class ButtonFunction:
         obs.timer_add(check_poll, 1000)
         return True
 
-
     def button_function_show_qr_picture(*args):
         if len(args) == 2:
             props = args[0]
@@ -4702,7 +4485,6 @@ class ButtonFunction:
         else:
             log_save(obs.LOG_WARNING, f"没有可展示的登录二维码图片，请点击按钮 【二维码添加账号】创建")
             return False
-
 
     def button_function_del_user(*args):
         if len(args) == 2:
@@ -4738,2981 +4520,3175 @@ class ButtonFunction:
         update_ui_interface_data()
         return True
 
+    def button_function_backup_users(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """
+        备份用户
+        Args:
+            props:
+            prop:
+        Returns:
+        """
+        pass
 
-def button_function_backup_users(*args):
-    if len(args) == 2:
-        props = args[0]
-        prop = args[1]
-    if len(args) == 3:
-        settings = args[2]
-    """
-    备份用户
-    Args:
-        props:
-        prop:
-    Returns:
-    """
-    pass
+    def button_function_restore_user(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """
+        恢复用户
+        Args:
+            props:
+            prop:
+        Returns:
+        """
+        pass
 
+    def button_function_logout(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """
+        登出
+        Args:
+            props:
+            prop:
+        Returns:
+        """
+        uid = obs.obs_data_get_string(GlobalVariableOfData.script_settings, 'uid_comboBox')
+        if uid in ["-1"]:
+            log_save(obs.LOG_ERROR, "未登陆账号")
+            return False
+        # ＝＝＝＝＝＝＝＝＝＝＝＝
+        # 　　　　登出        ＝
+        # ＝＝＝＝＝＝＝＝＝＝＝＝
+        # 移除默认账户
+        log_save(obs.LOG_INFO, f"即将登出的账号：{uid}")
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        b_u_l_c.update_user(None)
+        # ＝＝＝＝＝＝＝＝＝＝＝＝
+        # 　　　　更新     　　＝
+        # ＝＝＝＝＝＝＝＝＝＝＝＝
+        # 调用script_defaults更新obs默认配置信息
+        log_save(obs.LOG_INFO, f"更新控件配置信息")
+        script_defaults(GlobalVariableOfData.script_settings)
+        # 更新脚本用户小部件
+        log_save(obs.LOG_INFO, f"更新控件UI")
+        update_ui_interface_data()
+        return True
 
-def button_function_restore_user(*args):
-    if len(args) == 2:
-        props = args[0]
-        prop = args[1]
-    if len(args) == 3:
-        settings = args[2]
-    """
-    恢复用户
-    Args:
-        props:
-        prop:
-    Returns:
-    """
-    pass
-
-
-def button_function_logout(*args):
-    if len(args) == 2:
-        props = args[0]
-        prop = args[1]
-    if len(args) == 3:
-        settings = args[2]
-    """
-    登出
-    Args:
-        props:
-        prop:
-    Returns:
-    """
-    uid = obs.obs_data_get_string(GlobalVariableOfData.script_settings, 'uid_comboBox')
-    if uid in ["-1"]:
-        log_save(obs.LOG_ERROR, "未登陆账号")
-        return False
-    # ＝＝＝＝＝＝＝＝＝＝＝＝
-    # 　　　　登出        ＝
-    # ＝＝＝＝＝＝＝＝＝＝＝＝
-    # 移除默认账户
-    log_save(obs.LOG_INFO, f"即将登出的账号：{uid}")
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    b_u_l_c.update_user(None)
-    # ＝＝＝＝＝＝＝＝＝＝＝＝
-    # 　　　　更新     　　＝
-    # ＝＝＝＝＝＝＝＝＝＝＝＝
-    # 调用script_defaults更新obs默认配置信息
-    log_save(obs.LOG_INFO, f"更新控件配置信息")
-    script_defaults(GlobalVariableOfData.script_settings)
-    # 更新脚本用户小部件
-    log_save(obs.LOG_INFO, f"更新控件UI")
-    update_ui_interface_data()
-    return True
-
-
-def button_function_opened_room(*args):
-    if len(args) == 2:
-        props = args[0]
-        prop = args[1]
-    if len(args) == 3:
-        settings = args[2]
-    """创建直播间"""
-    # 创建用户配置文件实例
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    # 开通直播间
-    create_live_room_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                                cookie=dict2cookie(b_u_l_c.get_cookies())).create_live_room()
-    log_save(obs.LOG_INFO, f"开通直播间返回值: {create_live_room_return}")
-    # 处理API响应
-    code = create_live_room_return.get("code", -1)
-    message = create_live_room_return.get("message", "未知错误")
-    if code == 0:
-        # 成功开通，返回房间号
-        room_id = create_live_room_return.get("data", {}).get("roomID", "")
-        if not room_id:
-            log_save(obs.LOG_INFO, "API返回了空房间号")
-        log_save(obs.LOG_INFO, room_id)
-    elif code == 1531193016:
-        # 已经创建过直播间
-        log_save(obs.LOG_INFO, "已经创建过直播间")
-    else:
-        # 其他错误
-        log_save(obs.LOG_INFO, f"开通直播间失败: {message} (代码: {code})")
-    return True
-
-
-def button_function_check_room_cover(*args):
-    if len(args) == 2:
-        props = args[0]
-        prop = args[1]
-    if len(args) == 3:
-        settings = args[2]
-    """
-    查看直播间封面
-    Args:
-        props:
-        prop:
-    Returns:
-    """
-    # 调整控件数据
-    log_save(obs.LOG_INFO, f"")
-    log_save(obs.LOG_INFO, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
-    log_save(obs.LOG_INFO, f"║{25 * ' '}调整控件数据{25 * ' '}║")
-    # 设置控件前准备（获取数据） 开始
-    log_save(obs.LOG_INFO, f"║")
-    log_save(obs.LOG_DEBUG, f"║设置控件前准备（获取数据）")
-    log_save(obs.LOG_INFO, f"║╔{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╗")
-    # 创建用户配置文件实例
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    # 获取 '登录用户' 对应的直播间基础信息
-    room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(
-        int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
-    """直播间基础信息"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 的 直播间状态
-    room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
-    """登录用户的直播间存在状态"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 的 直播间id
-    room_id = (room_info_old["roomid"] if room_status else None) if b_u_l_c.get_cookies() else None
-    """登录用户的直播间id"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间id：{(room_id if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 直播间基本信息
-    room_base_info = (
-        BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_base_info(
-            room_id) if room_status else None) if b_u_l_c.get_cookies() else None
-    """直播间基本信息"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间基本信息：{room_base_info if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 直播间封面链接
-    room_cover_url = (room_base_info["cover"] if room_status else None) if b_u_l_c.get_cookies() else None
-    """登录用户直播间封面链接"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间封面链接：{(room_cover_url if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 设置控件前准备（获取数据）结束
-    log_save(obs.LOG_INFO, f"║╚{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╝")
-    # 调整控件数据 结束
-    log_save(obs.LOG_INFO, f"╚{25 * '═'}调整控件数据{25 * '═'}╝")
-    log_save(obs.LOG_INFO, f"")
-
-    # # 获取'默认账户'直播间的基础信息
-    room_cover_pillow_img = url2pillow_image(room_cover_url, GlobalVariableOfData.sslVerification)
-    if room_cover_pillow_img:
-        log_save(obs.LOG_INFO, f"显示16:9封面，格式: {room_cover_pillow_img.format}，尺寸: {room_cover_pillow_img.size}")
-        room_cover_pillow_img.show()
-        room_cover_pillow_img0403 = pil_image2central_proportion_cutting(room_cover_pillow_img, 4 / 3)
-        log_save(obs.LOG_INFO, f"展示4:3图片")
-        room_cover_pillow_img0403.show()
-    pass
-
-
-def button_function_update_room_cover(*args):
-    if len(args) == 2:
-        props = args[0]
-        prop = args[1]
-    if len(args) == 3:
-        settings = args[2]
-    """上传直播间封面"""
-    # 获取文件对话框内容
-    widget.PathBox.roomCover.Text = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
-                                                            'room_cover_fileDialogBox')
-    log_save(obs.LOG_INFO, f"获得图片文件：{widget.PathBox.roomCover.Text}")
-    if widget.PathBox.roomCover.Text:
-        pil_image = Image.open(widget.PathBox.roomCover.Text)
-        log_save(obs.LOG_INFO, f"图片文件PIL_Image实例化，当前文件大小(宽X高)：{pil_image.size}")
-        pil_image1609 = pil_image2central_proportion_cutting(pil_image, 16 / 9)
-        pil_image1609_w, pil_image1609_h = pil_image1609.size
-        log_save(obs.LOG_INFO, f"图片16:9裁切后大小(宽X高)：{pil_image1609.size}")
-        pil_image1609zooming_width1020 = pil_image1609 if pil_image1609_w < 1020 else pil_image2zooming(pil_image1609,
-                                                                                                        4,
-                                                                                                        target_width=1020)
-        log_save(obs.LOG_INFO, f"限制宽<1020，进行缩放，缩放后大小：{pil_image1609zooming_width1020.size}")
-        pil_image1609 = pil_image2central_proportion_cutting(pil_image1609zooming_width1020, 16 / 9)
-        log_save(obs.LOG_INFO, f"缩放后图片16:9裁切后大小(宽X高)：{pil_image1609.size}")
-        pil_image0403 = pil_image2central_proportion_cutting(pil_image1609zooming_width1020, 4 / 3)
-        log_save(obs.LOG_INFO, f"缩放后图片4:3裁切后大小(宽X高)：{pil_image0403.size}")
-
-        log_save(obs.LOG_INFO, f"图片二进制化")
-        pil_image1609zooming_width1020_binary = pil_image2binary(pil_image1609zooming_width1020, img_format="JPEG",
-                                                                 compress_level=0)
+    def button_function_opened_room(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """创建直播间"""
         # 创建用户配置文件实例
         b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-        b_a_c_authentication = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                                 cookie=dict2cookie(b_u_l_c.get_cookies()))
-        # 上传封面图片返回
-        upload_cover_return = b_a_c_authentication.upload_cover(pil_image1609zooming_width1020_binary)
-        log_save(obs.LOG_INFO, f"上传封面返回：{upload_cover_return}")
-        if upload_cover_return["code"] == 0:
+        # 开通直播间
+        create_live_room_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
+                                                    cookie=dict2cookie(b_u_l_c.get_cookies())).create_live_room()
+        log_save(obs.LOG_INFO, f"开通直播间返回值: {create_live_room_return}")
+        # 处理API响应
+        code = create_live_room_return.get("code", -1)
+        message = create_live_room_return.get("message", "未知错误")
+        if code == 0:
+            # 成功开通，返回房间号
+            room_id = create_live_room_return.get("data", {}).get("roomID", "")
+            if not room_id:
+                log_save(obs.LOG_INFO, "API返回了空房间号")
+            log_save(obs.LOG_INFO, room_id)
+        elif code == 1531193016:
+            # 已经创建过直播间
+            log_save(obs.LOG_INFO, "已经创建过直播间")
+        else:
+            # 其他错误
+            log_save(obs.LOG_INFO, f"开通直播间失败: {message} (代码: {code})")
+        return True
+
+    def button_function_check_room_cover(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """
+        查看直播间封面
+        Args:
+            props:
+            prop:
+        Returns:
+        """
+        # 调整控件数据
+        log_save(obs.LOG_INFO, f"")
+        log_save(obs.LOG_INFO, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
+        log_save(obs.LOG_INFO, f"║{25 * ' '}调整控件数据{25 * ' '}║")
+        # 设置控件前准备（获取数据） 开始
+        log_save(obs.LOG_INFO, f"║")
+        log_save(obs.LOG_DEBUG, f"║设置控件前准备（获取数据）")
+        log_save(obs.LOG_INFO, f"║╔{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╗")
+        # 创建用户配置文件实例
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        # 获取 '登录用户' 对应的直播间基础信息
+        room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(
+            int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
+        """直播间基础信息"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 的 直播间状态
+        room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
+        """登录用户的直播间存在状态"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 的 直播间id
+        room_id = (room_info_old["roomid"] if room_status else None) if b_u_l_c.get_cookies() else None
+        """登录用户的直播间id"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间id：{(room_id if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 直播间基本信息
+        room_base_info = (
+            BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_base_info(
+                room_id) if room_status else None) if b_u_l_c.get_cookies() else None
+        """直播间基本信息"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间基本信息：{room_base_info if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 直播间封面链接
+        room_cover_url = (room_base_info["cover"] if room_status else None) if b_u_l_c.get_cookies() else None
+        """登录用户直播间封面链接"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间封面链接：{(room_cover_url if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 设置控件前准备（获取数据）结束
+        log_save(obs.LOG_INFO, f"║╚{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╝")
+        # 调整控件数据 结束
+        log_save(obs.LOG_INFO, f"╚{25 * '═'}调整控件数据{25 * '═'}╝")
+        log_save(obs.LOG_INFO, f"")
+
+        # # 获取'默认账户'直播间的基础信息
+        room_cover_pillow_img = url2pillow_image(room_cover_url, GlobalVariableOfData.sslVerification)
+        if room_cover_pillow_img:
+            log_save(obs.LOG_INFO,
+                     f"显示16:9封面，格式: {room_cover_pillow_img.format}，尺寸: {room_cover_pillow_img.size}")
+            room_cover_pillow_img.show()
+            room_cover_pillow_img0403 = pil_image2central_proportion_cutting(room_cover_pillow_img, 4 / 3)
             log_save(obs.LOG_INFO, f"展示4:3图片")
-            pil_image0403.show()
-            log_save(obs.LOG_INFO, f"展示16:9图片")
-            pil_image1609.show()
-            log_save(obs.LOG_INFO, f"上传封面成功")
-            # 获得封面图片链接
-            cover_url = upload_cover_return['data']['location']
-            log_save(obs.LOG_INFO, f"获得封面链接：{cover_url}")
-            update_cover_return = b_a_c_authentication.update_cover(cover_url)
-            log_save(obs.LOG_INFO, f"更改封面返回：{upload_cover_return}")
-            if update_cover_return["code"] == 0:
-                log_save(obs.LOG_INFO, f"更改封面成功")
+            room_cover_pillow_img0403.show()
+        pass
+
+    def button_function_update_room_cover(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """上传直播间封面"""
+        # 获取文件对话框内容
+        widget.PathBox.roomCover.Text = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
+                                                                'room_cover_fileDialogBox')
+        log_save(obs.LOG_INFO, f"获得图片文件：{widget.PathBox.roomCover.Text}")
+        if widget.PathBox.roomCover.Text:
+            pil_image = Image.open(widget.PathBox.roomCover.Text)
+            log_save(obs.LOG_INFO, f"图片文件PIL_Image实例化，当前文件大小(宽X高)：{pil_image.size}")
+            pil_image1609 = pil_image2central_proportion_cutting(pil_image, 16 / 9)
+            pil_image1609_w, pil_image1609_h = pil_image1609.size
+            log_save(obs.LOG_INFO, f"图片16:9裁切后大小(宽X高)：{pil_image1609.size}")
+            pil_image1609zooming_width1020 = pil_image1609 if pil_image1609_w < 1020 else pil_image2zooming(
+                pil_image1609,
+                4,
+                target_width=1020)
+            log_save(obs.LOG_INFO, f"限制宽<1020，进行缩放，缩放后大小：{pil_image1609zooming_width1020.size}")
+            pil_image1609 = pil_image2central_proportion_cutting(pil_image1609zooming_width1020, 16 / 9)
+            log_save(obs.LOG_INFO, f"缩放后图片16:9裁切后大小(宽X高)：{pil_image1609.size}")
+            pil_image0403 = pil_image2central_proportion_cutting(pil_image1609zooming_width1020, 4 / 3)
+            log_save(obs.LOG_INFO, f"缩放后图片4:3裁切后大小(宽X高)：{pil_image0403.size}")
+
+            log_save(obs.LOG_INFO, f"图片二进制化")
+            pil_image1609zooming_width1020_binary = pil_image2binary(pil_image1609zooming_width1020, img_format="JPEG",
+                                                                     compress_level=0)
+            # 创建用户配置文件实例
+            b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+            b_a_c_authentication = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
+                                                     cookie=dict2cookie(b_u_l_c.get_cookies()))
+            # 上传封面图片返回
+            upload_cover_return = b_a_c_authentication.upload_cover(pil_image1609zooming_width1020_binary)
+            log_save(obs.LOG_INFO, f"上传封面返回：{upload_cover_return}")
+            if upload_cover_return["code"] == 0:
+                log_save(obs.LOG_INFO, f"展示4:3图片")
+                pil_image0403.show()
+                log_save(obs.LOG_INFO, f"展示16:9图片")
+                pil_image1609.show()
+                log_save(obs.LOG_INFO, f"上传封面成功")
+                # 获得封面图片链接
+                cover_url = upload_cover_return['data']['location']
+                log_save(obs.LOG_INFO, f"获得封面链接：{cover_url}")
+                update_cover_return = b_a_c_authentication.update_cover(cover_url)
+                log_save(obs.LOG_INFO, f"更改封面返回：{upload_cover_return}")
+                if update_cover_return["code"] == 0:
+                    log_save(obs.LOG_INFO, f"更改封面成功")
+                else:
+                    log_save(obs.LOG_ERROR, f"更改封面失败：{update_cover_return['message']}")
+                    return False
             else:
-                log_save(obs.LOG_ERROR, f"更改封面失败：{update_cover_return['message']}")
+                log_save(obs.LOG_ERROR, f"上传封面失败：{upload_cover_return['message']}")
                 return False
         else:
-            log_save(obs.LOG_ERROR, f"上传封面失败：{upload_cover_return['message']}")
+            log_save(obs.LOG_WARNING, "未获取到图片")
             return False
-    else:
-        log_save(obs.LOG_WARNING, "未获取到图片")
-        return False
-    return True
-
-
-def button_function_face_auth(*args):
-    if len(args) == 2:
-        props = args[0]
-        prop = args[1]
-    if len(args) == 3:
-        settings = args[2]
-    """展示人脸认证的二维码"""
-    # 创建用户配置文件实例
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    # 获取登录用户的uid
-    uid = b_u_l_c.get_users()[0]
-    log_save(obs.LOG_INFO, f"获取登录用户的uid：{uid}")
-    # 获取人脸认证的链接
-    qr_url = f"https://www.bilibili.com/blackboard/live/face-auth-middle.html?source_event=400&mid={uid}"
-    log_save(obs.LOG_INFO, f"获取人脸认证的链接：{qr_url}")
-    if uid:
-        # 获取二维码对象
-        qr = qr_text8pil_img(qr_url)
-        qr['img'].show()
-    else:
-        log_save(obs.LOG_ERROR, f"未登录")
-
-
-def button_function_true_live_room_title(*args):
-    if len(args) == 2:
-        props = args[0]
-        prop = args[1]
-    if len(args) == 3:
-        settings = args[2]
-    """将可 可编辑组合框【常用标题】 中的文本 复制到 普通文本框【直播间标题】 """
-    # 获取 可编辑组合框【常用标题】 当前 显示文本
-    title_text = obs.obs_data_get_string(GlobalVariableOfData.script_settings, 'room_commonTitles_comboBox')
-    log_save(obs.LOG_INFO, f"获取 可编辑组合框【常用标题】 当前 显示文本：{title_text}")
-    # 更新 普通文本框【直播间标题】 的 文本
-    obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'room_title_textBox', title_text)
-    log_save(obs.LOG_INFO, f"更新 普通文本框【直播间标题】 的 文本")
-    return True
-
-
-def button_function_change_live_room_title(*args):
-    if len(args) == 2:
-        props = args[0]
-        prop = args[1]
-    if len(args) == 3:
-        settings = args[2]
-    """
-    更改直播间标题
-    Args:
-    Returns:
-    """
-    # 获取当前直播间标题
-    # 调整控件数据
-    log_save(obs.LOG_INFO, f"")
-    log_save(obs.LOG_INFO, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
-    log_save(obs.LOG_INFO, f"║{25 * ' '}调整控件数据{25 * ' '}║")
-    # 设置控件前准备（获取数据） 开始
-    log_save(obs.LOG_INFO, f"║")
-    log_save(obs.LOG_DEBUG, f"║设置控件前准备（获取数据）")
-    log_save(obs.LOG_INFO, f"║╔{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╗")
-    # 获取 '默认账户' cookie
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    # 获取 '登录用户' 对应的直播间基础信息
-    room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(
-        int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 的 直播间状态
-    room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 的 直播间id
-    room_id = (room_info_old["roomid"] if room_status else None) if b_u_l_c.get_cookies() else None
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间id：{(room_id if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 直播间基本信息
-    room_base_info = (
-        BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_base_info(
-            room_id) if room_status else None) if b_u_l_c.get_cookies() else None
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间基本信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 直播间标题
-    room_title = (room_base_info["title"] if room_status else None) if b_u_l_c.get_cookies() else None
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间标题：{(room_title if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 设置控件前准备（获取数据）结束
-    log_save(obs.LOG_INFO, f"║╚{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╝")
-    # 调整控件数据 结束
-    log_save(obs.LOG_INFO, f"╚{25 * '═'}调整控件数据{25 * '═'}╝")
-    log_save(obs.LOG_INFO, f"")
-
-    # 设置 普通文本框【直播间标题】 可见状态
-    widget.TextBox.roomTitle.Visible = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播间标题】 可见状态：{str(widget.TextBox.roomTitle.Visible)}")
-    # 设置 普通文本框【直播间标题】 可用状态
-    widget.TextBox.roomTitle.Enabled = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播间标题】 可用状态：{str(widget.TextBox.roomTitle.Enabled)}")
-    # 设置 普通文本框【直播间标题】 内容
-    widget.TextBox.roomTitle.Text = room_title if bool(room_status) else ""
-    log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播间标题】 内容：{str(widget.TextBox.roomTitle.Text)}")
-
-    # 将当前直播间标题和目标直播间标题做对比
-    # 获取 普通文本框【直播间标题】 当前 文本
-    live_room_title_textbox_string = obs.obs_data_get_string(GlobalVariableOfData.script_settings, 'room_title_textBox')
-    log_save(obs.LOG_INFO, f"获取 普通文本框【直播间标题】 当前 文本：{live_room_title_textbox_string}")
-    # 更新直播间标题
-    if room_title == live_room_title_textbox_string:
-        log_save(obs.LOG_INFO, f"直播间标题未更改")
-        return False
-    turn_title_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                          cookie=dict2cookie(b_u_l_c.get_cookies())).change_room_title(
-        live_room_title_textbox_string)
-    log_save(obs.LOG_INFO, f"更改直播间标题返回消息：{turn_title_return}")
-    if turn_title_return['code'] == 0:
-        log_save(obs.LOG_INFO, "直播间标题更改成功")
-    else:
-        log_save(obs.LOG_INFO, f"直播间标题更改失败{turn_title_return['message']}")
-        return False
-
-    # 刷新一下 可编辑组合框【常用标题】 和 普通文本框【直播间标题】
-    # 调整控件数据
-    log_save(obs.LOG_INFO, f"")
-    log_save(obs.LOG_INFO, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
-    log_save(obs.LOG_INFO, f"║{25 * ' '}调整控件数据{25 * ' '}║")
-    # 设置控件前准备（获取数据） 开始
-    log_save(obs.LOG_INFO, f"║")
-    log_save(obs.LOG_DEBUG, f"║设置控件前准备（获取数据）")
-    log_save(obs.LOG_INFO, f"║╔{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╗")
-    # 获取 '默认账户' cookie
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    # 获取 '登录用户' 对应的直播间基础信息
-    room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(
-        int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 的 直播间状态
-    room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 的 直播间id
-    room_id = (room_info_old["roomid"] if room_status else None) if b_u_l_c.get_cookies() else None
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间id：{(room_id if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 直播间基本信息
-    room_base_info = (
-        BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_base_info(
-            room_id) if room_status else None) if b_u_l_c.get_cookies() else None
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间基本信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 直播间标题
-    room_title = (room_base_info["title"] if room_status else None) if b_u_l_c.get_cookies() else None
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间标题：{(room_title if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 创建用户常用直播间标题实例
-    c_t_m = CommonTitlesManager(directory=Path(GlobalVariableOfData.scriptsDataDirpath))
-    # 添加当前直播间标题 到 常用直播间标 题配置文件
-    (c_t_m.add_title(b_u_l_c.get_users()[0], room_title) if room_status else None) if b_u_l_c.get_cookies() else None
-    # 获取 常用直播间标题
-    common_title4number = {str(number): commonTitle for number, commonTitle in
-                           enumerate(c_t_m.get_titles(b_u_l_c.get_users()[0]))}
-    """常用直播间标题】{'0': 't1', '1': 't2', '2': 't3',}"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 常用直播间标题：{(common_title4number if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 设置控件前准备（获取数据）结束
-    log_save(obs.LOG_INFO, f"║╚{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╝")
-    # 设置控件属性
-    log_save(obs.LOG_INFO, f"║")
-    log_save(obs.LOG_INFO, f"║╔{15 * '═'}设置 控件属性{15 * '═'}╗")
-    # 分组框【直播间】
-    # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    log_save(obs.LOG_INFO, f"║║")
-    log_save(obs.LOG_INFO, f"║║设置 分组框【直播间】 中 控件属性")
-    log_save(obs.LOG_INFO, f"║║╔{7 * '═'}设置 分组框【直播间】 中控件属性{7 * '═'}╗")
-    # 设置 可编辑组合框【常用标题】 可见状态
-    widget.ComboBox.roomCommonTitles.Visible = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 可编辑组合框【常用标题】 可见状态：{str(widget.ComboBox.roomCommonTitles.Visible)}")
-    # 设置 可编辑组合框【常用标题】 可用状态
-    widget.ComboBox.roomCommonTitles.Enabled = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 可编辑组合框【常用标题】 可用状态：{str(widget.ComboBox.roomCommonTitles.Enabled)}")
-    # 设置 可编辑组合框【常用标题】 的数据字典
-    widget.ComboBox.roomCommonTitles.Dictionary = common_title4number
-    log_save(obs.LOG_INFO,
-             f"║║║设置 可编辑组合框【常用标题】 数据字典：{str(widget.ComboBox.roomCommonTitles.Dictionary)}")
-    # 设置 可编辑组合框【常用标题】 默认显示内容
-    widget.ComboBox.roomCommonTitles.Text = room_title if bool(room_status) else ""
-    log_save(obs.LOG_INFO, f"║║║设置 可编辑组合框【常用标题】 默认显示内容：{str(widget.ComboBox.roomCommonTitles.Text)}")
-    # 设置 可编辑组合框【常用标题】 默认显示内容 的 列表值
-    widget.ComboBox.roomCommonTitles.Value = "0"
-    log_save(obs.LOG_INFO,
-             f"║║║设置 可编辑组合框【常用标题】 默认显示内容 的 列表值：{str(widget.ComboBox.roomCommonTitles.Value)}")
-
-    # 设置 普通文本框【直播间标题】 可见状态
-    widget.TextBox.roomTitle.Visible = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播间标题】 可见状态：{str(widget.TextBox.roomTitle.Visible)}")
-    # 设置 普通文本框【直播间标题】 可用状态
-    widget.TextBox.roomTitle.Enabled = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播间标题】 可用状态：{str(widget.TextBox.roomTitle.Enabled)}")
-    # 设置 普通文本框【直播间标题】 内容
-    widget.TextBox.roomTitle.Text = room_title if bool(room_status) else ""
-    log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播间标题】 内容：{str(widget.TextBox.roomTitle.Text)}")
-    # 设置 分组框【直播间】 中控件属性结束
-    log_save(obs.LOG_INFO, f"║║╚{7 * '═'}设置 分组框【直播间】 中控件属性{7 * '═'}╝")
-    # 设置 控件属性 结束
-    log_save(obs.LOG_INFO, f"║╚{15 * '═'}设置 控件属性{15 * '═'}╝")
-    # 调整控件数据 结束
-    log_save(obs.LOG_INFO, f"╚{25 * '═'}调整控件数据{25 * '═'}╝")
-    log_save(obs.LOG_INFO, f"")
-
-    # 可编辑组合框++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐可编辑组合框 UI{30 * '─'}┐")
-    # 【直播间】分组———————————————————————————————————————————————————————————————————————————————————————————————————————
-    log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
-    log_save(obs.LOG_INFO, f"　││▶️分组框【直播间】")
-    # 可编辑组合框【常用标题】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️可编辑组合框【常用标题】 UI")
-    # 设置 可编辑组合框【常用标题】 可见状态
-    if obs.obs_property_visible(widget.ComboBox.roomCommonTitles.Obj) != widget.ComboBox.roomCommonTitles.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 可编辑组合框【常用标题】 可见状态 发生变动: {obs.obs_property_visible(widget.ComboBox.roomCommonTitles.Obj)}➡️{widget.ComboBox.roomCommonTitles.Visible}")
-        obs.obs_property_set_visible(widget.ComboBox.roomCommonTitles.Obj, widget.ComboBox.roomCommonTitles.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 可编辑组合框【常用标题】 可见状态 未 发生变动")
-    # 设置 可编辑组合框【常用标题】 可用状态
-    if obs.obs_property_enabled(widget.ComboBox.roomCommonTitles.Obj) != widget.ComboBox.roomCommonTitles.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 可编辑组合框【常用标题】 可用状态 发生变动: {obs.obs_property_enabled(widget.ComboBox.roomCommonTitles.Obj)}➡️{widget.ComboBox.roomCommonTitles.Enabled}")
-        obs.obs_property_set_enabled(widget.ComboBox.roomCommonTitles.Obj, widget.ComboBox.roomCommonTitles.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 可编辑组合框【常用标题】 可用状态 未 发生变动")
-    # 判断 可编辑组合框【常用标题】字典数据 和 当前数据是否有变化
-    if widget.ComboBox.roomCommonTitles.Dictionary != {
-        obs.obs_property_list_item_string(widget.ComboBox.roomCommonTitles.Obj, idx): obs.obs_property_list_item_name(
-                widget.ComboBox.roomCommonTitles.Obj, idx) for idx in
-        range(obs.obs_property_list_item_count(widget.ComboBox.roomCommonTitles.Obj))}:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 可编辑组合框【常用标题】列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.roomCommonTitles.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomCommonTitles.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomCommonTitles.Obj))})}个元素➡️{len(widget.ComboBox.roomCommonTitles.Dictionary)}个元素")
-        # 清空 可编辑组合框【常用标题】
-        log_save(obs.LOG_INFO, f"　│││更新 可编辑组合框【常用标题】数据 第一步：清空 可编辑组合框【常用标题】")
-        obs.obs_property_list_clear(widget.ComboBox.roomCommonTitles.Obj)
-        # 添加 可编辑组合框【常用标题】 列表选项  默认值会被设置在第一位
-        log_save(obs.LOG_INFO,
-                 f"　│││更新 可编辑组合框【常用标题】数据 第二步：添加 可编辑组合框【常用标题】 列表选项  如果有默认值，会被设置在第一位")
-        for number in widget.ComboBox.roomCommonTitles.Dictionary:
-            obs.obs_property_list_add_string(widget.ComboBox.roomCommonTitles.Obj,
-                                             widget.ComboBox.roomCommonTitles.Dictionary[number],
-                                             number) if number != widget.ComboBox.roomCommonTitles.Value else obs.obs_property_list_insert_string(
-                widget.ComboBox.roomCommonTitles.Obj, 0, widget.ComboBox.roomCommonTitles.Text,
-                widget.ComboBox.roomCommonTitles.Value)
-        # 设置 可编辑组合框【常用标题】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
-        log_save(obs.LOG_INFO,
-                 f"　│││更新 可编辑组合框【常用标题】数据 第三步：更新 可编辑组合框【常用标题】 显示文本：{obs.obs_property_list_item_name(widget.ComboBox.roomCommonTitles.Obj, 0)}")
-        obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'room_commonTitles_comboBox',
-                                obs.obs_property_list_item_name(widget.ComboBox.roomCommonTitles.Obj, 0))
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 可编辑组合框【常用标题】列表数据 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
-    # 普通文本框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐普通文本框 UI{30 * '─'}┐")
-    # 【账号】分组————————————————————————————————————————————————————————————————————————————————————————————————————————
-    log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
-    log_save(obs.LOG_INFO, f"　││▶️分组框【账号】")
-    log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
-    # 【直播间】分组———————————————————————————————————————————————————————————————————————————————————————————————————————
-    log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
-    log_save(obs.LOG_INFO, f"　││▶️分组框【直播间】")
-    # 普通文本框【直播间标题】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️普通文本框【直播间标题】 UI")
-    # 设置 普通文本框【直播间标题】 可见状态
-    if obs.obs_property_visible(widget.TextBox.roomTitle.Obj) != widget.TextBox.roomTitle.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 普通文本框【直播间标题】 可见状态 发生变动: {obs.obs_property_visible(widget.TextBox.roomTitle.Obj)}➡️{widget.TextBox.roomTitle.Visible}")
-        obs.obs_property_set_visible(widget.TextBox.roomTitle.Obj, widget.TextBox.roomTitle.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 普通文本框【直播间标题】 可见状态 未 发生变动")
-    # 设置 普通文本框【直播间标题】 可用状态
-    if obs.obs_property_enabled(widget.TextBox.roomTitle.Obj) != widget.TextBox.roomTitle.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 普通文本框【直播间标题】 可用状态 发生变动: {obs.obs_property_enabled(widget.TextBox.roomTitle.Obj)}➡️{widget.TextBox.roomTitle.Enabled}")
-        obs.obs_property_set_enabled(widget.TextBox.roomTitle.Obj, widget.TextBox.roomTitle.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 普通文本框【直播间标题】 可用状态 未 发生变动")
-    # 设置 普通文本框【直播间标题】 文本
-    if obs.obs_data_get_string(GlobalVariableOfData.script_settings,
-                               'room_title_textBox') != widget.TextBox.roomTitle.Text:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 普通文本框【直播间标题】 文本 发生变动: {obs.obs_data_get_string(GlobalVariableOfData.script_settings, 'room_title_textBox')}➡️{widget.TextBox.roomTitle.Text}")
-        obs.obs_data_set_string(GlobalVariableOfData.script_settings, "room_title_textBox",
-                                widget.TextBox.roomTitle.Text)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 普通文本框【直播间标题】 文本 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
-    log_save(obs.LOG_INFO, f"　└{30 * '─'}👌普通文本框 UI{30 * '─'}┘")
-    return True
-
-
-def button_function_change_live_room_news(*args):
-    if len(args) == 2:
-        props = args[0]
-        prop = args[1]
-    if len(args) == 3:
-        settings = args[2]
-    """
-    更改直播间公告
-    Args:
-    Returns:
-    """
-    # 调整控件数据
-    log_save(obs.LOG_INFO, f"")
-    log_save(obs.LOG_INFO, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
-    log_save(obs.LOG_INFO, f"║{25 * ' '}调整控件数据{25 * ' '}║")
-    # 设置控件前准备（获取数据） 开始
-    log_save(obs.LOG_INFO, f"║")
-    log_save(obs.LOG_DEBUG, f"║设置控件前准备（获取数据）")
-    log_save(obs.LOG_INFO, f"║╔{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╗")
-    # 创建用户配置文件实例
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    # 获取 '登录用户' 对应的直播间基础信息
-    room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(
-        int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
-    """直播间基础信息"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 的 直播间状态
-    room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
-    """登录用户的直播间存在状态"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 的 直播间id
-    room_id = (room_info_old["roomid"] if room_status else None) if b_u_l_c.get_cookies() else None
-    """登录用户的直播间id"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间id：{(room_id if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 直播间基本信息
-    room_base_info = (
-        BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_base_info(
-            room_id) if room_status else None) if b_u_l_c.get_cookies() else None
-    """直播间基本信息"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间基本信息：{room_base_info if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 直播间公告
-    room_news = (BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=
-    dict2cookie(b_u_l_c.get_cookies())).get_room_news() if room_status else None) if b_u_l_c.get_cookies() else None
-    """直播间公告"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间公告：{(room_news if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 设置控件前准备（获取数据）结束
-    log_save(obs.LOG_INFO, f"║╚{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╝")
-    # 调整控件数据 结束
-    log_save(obs.LOG_INFO, f"╚{25 * '═'}调整控件数据{25 * '═'}╝")
-
-    live_room_news_textbox_string = obs.obs_data_get_string(GlobalVariableOfData.script_settings, 'room_news_textBox')
-    if room_news == live_room_news_textbox_string:
-        log_save(obs.LOG_INFO, "直播间公告未改变")
-        return False
-    # 获取 '默认账户' cookie
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    cookies = b_u_l_c.get_cookies()
-    turn_news_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                         cookie=dict2cookie(cookies), ).change_room_news(
-        live_room_news_textbox_string)
-    log_save(obs.LOG_INFO, f'更改直播间公告返回消息：{turn_news_return}')
-    if turn_news_return['code'] == 0:
-        log_save(obs.LOG_INFO, "直播间公告更改成功")
-    else:
-        log_save(obs.LOG_INFO, f"直播间公告更改失败{turn_news_return['message']}")
-        return False
-
-    # 调整控件数据
-    log_save(obs.LOG_INFO, f"")
-    log_save(obs.LOG_INFO, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
-    log_save(obs.LOG_INFO, f"║{25 * ' '}调整控件数据{25 * ' '}║")
-    # 设置控件前准备（获取数据） 开始
-    log_save(obs.LOG_INFO, f"║")
-    log_save(obs.LOG_DEBUG, f"║设置控件前准备（获取数据）")
-    log_save(obs.LOG_INFO, f"║╔{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╗")
-    # 创建用户配置文件实例
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    # 获取 '登录用户' 对应的直播间基础信息
-    room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(
-        int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
-    """直播间基础信息"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 的 直播间状态
-    room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
-    """登录用户的直播间存在状态"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 的 直播间id
-    room_id = (room_info_old["roomid"] if room_status else None) if b_u_l_c.get_cookies() else None
-    """登录用户的直播间id"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间id：{(room_id if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 直播间基本信息
-    room_base_info = (
-        BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_base_info(
-            room_id) if room_status else None) if b_u_l_c.get_cookies() else None
-    """直播间基本信息"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间基本信息：{room_base_info if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 直播间公告
-    room_news = (BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=
-    dict2cookie(b_u_l_c.get_cookies())).get_room_news() if room_status else None) if b_u_l_c.get_cookies() else None
-    """直播间公告"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间公告：{(room_news if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 设置控件前准备（获取数据）结束
-    log_save(obs.LOG_INFO, f"║╚{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╝")
-    # 设置控件属性
-    log_save(obs.LOG_INFO, f"║")
-    log_save(obs.LOG_INFO, f"║╔{15 * '═'}设置 控件属性{15 * '═'}╗")
-    # 分组框【直播间】
-    # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    log_save(obs.LOG_INFO, f"║║")
-    log_save(obs.LOG_INFO, f"║║设置 分组框【直播间】 中 控件属性")
-    log_save(obs.LOG_INFO, f"║║╔{7 * '═'}设置 分组框【直播间】 中控件属性{7 * '═'}╗")
-    # 设置 普通文本框【直播间公告】 可见状态
-    widget.TextBox.roomNews.Visible = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播间公告】 可见状态：{str(widget.TextBox.roomNews.Visible)}")
-    # 设置 普通文本框【直播间公告】 可用状态
-    widget.TextBox.roomNews.Enabled = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播间公告】 可用状态：{str(widget.TextBox.roomNews.Enabled)}")
-    # 设置 普通文本框【直播间公告】 内容
-    widget.TextBox.roomNews.Text = room_news if bool(room_status) else ""
-    log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播间公告】 内容：{str(widget.TextBox.roomNews.Text)}")
-    log_save(obs.LOG_INFO, f"║║╚{7 * '═'}设置 分组框【直播间】 中控件属性{7 * '═'}╝")
-    log_save(obs.LOG_INFO, f"║╚{15 * '═'}设置 控件属性{15 * '═'}╝")
-    # 调整控件数据 结束
-    log_save(obs.LOG_INFO, f"╚{25 * '═'}调整控件数据{25 * '═'}╝")
-    log_save(obs.LOG_INFO, f"")
-
-    # 普通文本框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐普通文本框 UI{30 * '─'}┐")
-    # 【直播间】分组———————————————————————————————————————————————————————————————————————————————————————————————————————
-    log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
-    log_save(obs.LOG_INFO, f"　││▶️分组框【直播间】")
-    # 普通文本框【直播间公告】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️普通文本框【直播间公告】 UI")
-    # 设置 普通文本框【直播间公告】 可见状态
-    if obs.obs_property_visible(widget.TextBox.roomNews.Obj) != widget.TextBox.roomNews.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 普通文本框【直播间公告】 可见状态 发生变动: {obs.obs_property_visible(widget.TextBox.roomNews.Obj)}➡️{widget.TextBox.roomNews.Visible}")
-        obs.obs_property_set_visible(widget.TextBox.roomNews.Obj, widget.TextBox.roomNews.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 普通文本框【直播间公告】 可见状态 未 发生变动")
-    # 设置 普通文本框【直播间公告】 可用状态
-    if obs.obs_property_enabled(widget.TextBox.roomNews.Obj) != widget.TextBox.roomNews.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 普通文本框【直播间公告】 可用状态 发生变动: {obs.obs_property_enabled(widget.TextBox.roomNews.Obj)}➡️{widget.TextBox.roomNews.Enabled}")
-        obs.obs_property_set_enabled(widget.TextBox.roomNews.Obj, widget.TextBox.roomNews.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 普通文本框【直播间公告】 可用状态 未 发生变动")
-    # 设置 普通文本框【直播间公告】 文本
-    if obs.obs_data_get_string(GlobalVariableOfData.script_settings,
-                               'room_news_textBox') != widget.TextBox.roomNews.Text:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 普通文本框【直播间公告】 文本 发生变动: {obs.obs_data_get_string(GlobalVariableOfData.script_settings, 'room_news_textBox')}➡️{widget.TextBox.roomNews.Text}")
-        obs.obs_data_set_string(GlobalVariableOfData.script_settings, "room_news_textBox", widget.TextBox.roomNews.Text)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 普通文本框【直播间公告】 文本 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
-    log_save(obs.LOG_INFO, f"　└{30 * '─'}👌普通文本框 UI{30 * '─'}┘")
-    return True
-
-
-def button_function_true_live_room_area(*args):
-    if len(args) == 2:
-        props = args[0]
-        prop = args[1]
-    if len(args) == 3:
-        settings = args[2]
-    """将可 组合框【常用分区】 中的值 映射到 组合框【一级分区】 和 组合框【二级分区】 """
-    # #获取 组合框【常用分区】 当前选项的值
-    room_common_areas_combobox_value = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
-                                                               'room_commonAreas_comboBox')
-    log_save(obs.LOG_INFO, f"获取 组合框【常用分区】 当前选项的值: {room_common_areas_combobox_value}")
-    if room_common_areas_combobox_value == "-1":
-        log_save(obs.LOG_INFO, f"无常用分区")
-        return False
-    room_common_parent_area_id = list(json.loads(room_common_areas_combobox_value).keys())[0]
-    log_save(obs.LOG_INFO, f"获取 常用分区 父分区id: {room_common_parent_area_id}")
-    room_common_sub_area_id = list(json.loads(room_common_areas_combobox_value).values())[0]
-    log_save(obs.LOG_INFO, f"获取 常用分区 子分区id: {room_common_sub_area_id}")
-    # 更新 组合框【一级分区】
-    obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'room_parentArea_comboBox',
-                            room_common_parent_area_id)
-    obs.obs_property_modified(widget.ComboBox.roomParentArea.Obj, GlobalVariableOfData.script_settings)
-    # 更新 组合框【二级分区】
-    obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'room_subArea_comboBox', room_common_sub_area_id)
-    return True
-
-
-def button_function_start_parent_area(*args):
-    if len(args) == 2:
-        props = args[0]
-        prop = args[1]
-    if len(args) == 3:
-        settings = args[2]
-    """确认一级分区"""
-    # #获取 组合框【一级分区】 当前选项的值
-    parent_live_area_combobox_value = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
-                                                              'room_parentArea_comboBox')
-    log_save(obs.LOG_INFO, f"获取 组合框【一级分区】 当前选项的值: {parent_live_area_combobox_value}")
-    if parent_live_area_combobox_value in ["-1"]:
-        log_save(obs.LOG_WARNING, "请选择一级分区")
-        return False
-
-    # 记录旧的 组合框【二级分区】 数据字典
-    sub_live_area_name4sub_live_area_id_old = widget.ComboBox.roomSubArea.Dictionary
-    # 获取B站直播分区信息
-    area_obj_list = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_area_obj_list()
-    # 获取 组合框【二级分区】 数据字典
-    sub_live_area_name4sub_live_area_id = {str(subAreaObj["id"]): subAreaObj["name"] for subAreaObj in
-                                           [AreaObj["list"] for AreaObj in area_obj_list["data"] if
-                                            str(parent_live_area_combobox_value) == str(AreaObj["id"])][0]}
-    log_save(obs.LOG_INFO, f"获取 当前父分区对应的子分区数据{sub_live_area_name4sub_live_area_id}")
-    #  设置 临时 组合框【二级分区】 数据字典
-    widget.ComboBox.roomSubArea.Dictionary = sub_live_area_name4sub_live_area_id
-
-    # 临时 更新 组合框【二级分区】 数据
-    # 组合框【二级分区】 UI
-    log_save(obs.LOG_INFO, f"　│┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　││组合框【二级分区】 UI")
-    # 判断 组合框【二级分区】字典数据 和 当前数据是否有变化
-    if widget.ComboBox.roomSubArea.Dictionary != {
-        obs.obs_property_list_item_string(widget.ComboBox.roomSubArea.Obj, idx): obs.obs_property_list_item_name(
-                widget.ComboBox.roomSubArea.Obj, idx) for idx in
-        range(obs.obs_property_list_item_count(widget.ComboBox.roomSubArea.Obj))}:
-        log_save(obs.LOG_INFO,
-                 f"　││组合框【二级分区】数据发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.roomSubArea.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomSubArea.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomSubArea.Obj))})}个元素➡️{len(widget.ComboBox.roomSubArea.Dictionary)}个元素")
-        # 清空 组合框【二级分区】
-        log_save(obs.LOG_INFO, f"　││更新 组合框【二级分区】数据 第一步：清空 组合框【二级分区】")
-        obs.obs_property_list_clear(widget.ComboBox.roomSubArea.Obj)
-        # 添加 组合框【二级分区】 列表选项  默认值会被设置在第一位
-        log_save(obs.LOG_INFO,
-                 f"　││更新 组合框【二级分区】数据 第二步：添加 组合框【二级分区】 列表选项  如果有默认值，会被设置在第一位")
-        for subLiveAreaId in widget.ComboBox.roomSubArea.Dictionary:
-            obs.obs_property_list_add_string(widget.ComboBox.roomSubArea.Obj,
-                                             widget.ComboBox.roomSubArea.Dictionary[subLiveAreaId],
-                                             subLiveAreaId) if subLiveAreaId != widget.ComboBox.roomSubArea.Value else obs.obs_property_list_insert_string(
-                widget.ComboBox.roomSubArea.Obj, 0, widget.ComboBox.roomSubArea.Text, widget.ComboBox.roomSubArea.Value)
-        # 设置 组合框【二级分区】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
-        log_save(obs.LOG_INFO, f"　││更新 组合框【二级分区】数据 第三步：更新 组合框【二级分区】 文本")
-        obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'room_subArea_comboBox',
-                                obs.obs_property_list_item_string(widget.ComboBox.roomSubArea.Obj, 0))
-    log_save(obs.LOG_INFO, f"　│└{'─' * 55}")
-
-    # 返还旧的 组合框【二级分区】 数据字典
-    widget.ComboBox.roomSubArea.Dictionary = sub_live_area_name4sub_live_area_id_old
-    return True
-
-
-def button_function_start_sub_area(*args):
-    if len(args) == 2:
-        props = args[0]
-        prop = args[1]
-    if len(args) == 3:
-        settings = args[2]
-    # 调整控件数据
-    log_save(obs.LOG_INFO, f"")
-    log_save(obs.LOG_INFO, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
-    log_save(obs.LOG_INFO, f"║{25 * ' '}调整控件数据{25 * ' '}║")
-    # 设置控件前准备（获取数据） 开始
-    log_save(obs.LOG_INFO, f"║")
-    log_save(obs.LOG_DEBUG, f"║设置控件前准备（获取数据）")
-    log_save(obs.LOG_INFO, f"║╔{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╗")
-    log_save(obs.LOG_INFO, f"║║")
-    # 创建用户配置文件实例
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    # 获取 '登录用户' 对应的直播间基础信息
-    room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(
-        int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
-    """直播间基础信息"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 的 直播间状态
-    room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
-    """登录用户的直播间存在状态"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 的 直播间id
-    room_id = (room_info_old["roomid"] if room_status else None) if b_u_l_c.get_cookies() else None
-    """登录用户的直播间id"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间id：{(room_id if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 直播间基本信息
-    room_base_info = (BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_base_info(
-        room_id) if room_status else None) if b_u_l_c.get_cookies() else None
-    """直播间基本信息"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间基本信息：{room_base_info if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 直播间的分区
-    area = ({"parent_area_id": room_base_info["parent_area_id"], "parent_area_name": room_base_info["parent_area_name"],
-             "area_id": room_base_info["area_id"],
-             "area_name": room_base_info["area_name"], } if room_status else None) if b_u_l_c.get_cookies() else None
-    """登录用户的直播间分区】{"parent_area_id": 3, "parent_area_name": "手游", "area_id": 255, "area_name": "明日方舟"}"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间分区数据：{(area if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 设置控件前准备（获取数据）结束
-    log_save(obs.LOG_INFO, f"║╚{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╝")
-    # 调整控件数据 结束
-    log_save(obs.LOG_INFO, f"╚{25 * '═'}调整控件数据{25 * '═'}╝")
-    log_save(obs.LOG_INFO, f"")
-
-    # #获取 组合框【二级分区】 当前选项的值
-    sub_live_area_combobox_value = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
-                                                           'room_subArea_comboBox')
-    if sub_live_area_combobox_value == str(area["area_id"]):
-        log_save(obs.LOG_INFO, "分区未变化")
-        return False
-    # 获取默认账户
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    change_room_area_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                                cookie=dict2cookie(b_u_l_c.get_cookies())).change_room_area(
-        int(sub_live_area_combobox_value))
-    log_save(obs.LOG_INFO, f"更新直播间分区返回：{change_room_area_return}")
-    if change_room_area_return["code"] == 0:
-        log_save(obs.LOG_INFO, "直播间分区更改成功")
-    else:
-        if change_room_area_return["code"] == 60024:
-            button_function_face_auth()
-        log_save(obs.LOG_WARNING, f"直播间分区更改失败：{change_room_area_return['message']}")
-        return False
-
-    # 调整控件数据
-    log_save(obs.LOG_INFO, f"")
-    log_save(obs.LOG_INFO, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
-    log_save(obs.LOG_INFO, f"║{25 * ' '}调整控件数据{25 * ' '}║")
-    log_save(obs.LOG_INFO, f"║")
-    log_save(obs.LOG_DEBUG, f"║设置控件前准备（获取数据）")
-    log_save(obs.LOG_INFO, f"║╔{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╗")
-    # 创建用户配置文件实例
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    # 获取 '登录用户' 对应的直播间基础信息
-    room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(
-        int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
-    """直播间基础信息"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 的 直播间状态
-    room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
-    """登录用户的直播间存在状态"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 的 直播间id
-    room_id = (room_info_old["roomid"] if room_status else None) if b_u_l_c.get_cookies() else None
-    """登录用户的直播间id"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间id：{(room_id if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 直播间基本信息
-    room_base_info = (
-        BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_base_info(
-            room_id) if room_status else None) if b_u_l_c.get_cookies() else None
-    """直播间基本信息"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间基本信息：{room_base_info if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 直播间的分区
-    area = ({"parent_area_id": room_base_info["parent_area_id"], "parent_area_name": room_base_info["parent_area_name"],
-             "area_id": room_base_info["area_id"],
-             "area_name": room_base_info["area_name"], } if room_status else None) if b_u_l_c.get_cookies() else None
-    """登录用户的直播间分区】{"parent_area_id": 3, "parent_area_name": "手游", "area_id": 255, "area_name": "明日方舟"}"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间分区数据：{(area if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 直播间 常用分区信息
-    common_areas = \
-    BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_anchor_common_areas(room_id)["data"]
-    """获取 '登录用户' 直播间 常用分区信息】[{"id": "255", "name": "明日方舟", "parent_id": "3", "parent_name": "手游",}, ]"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 常用分区信息：{(common_areas if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 常用直播间分区
-    common_area_id_dict_str4common_area_name_dict_str = (({json.dumps({area['parent_id']: area['id']},
-                                                                      ensure_ascii=False): json.dumps(
-        {area['parent_name']: area['name']}, ensure_ascii=False) for area in common_areas} if common_areas else {
-        "-1": "无常用分区"}) if room_status else {"-1": '⚠️无直播间'}) if b_u_l_c.get_cookies() else {
-        "-1": "⚠️未登录账号"}
-    """登录用户的常用直播间分区字典】{'{parent_id: id}': '{parent_name: name}', }"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 常用直播间分区：{(common_area_id_dict_str4common_area_name_dict_str.values() if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 B站直播分区信息
-    area_obj_list = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_area_obj_list()
-    """B站直播分区信息"""
-    log_save(obs.LOG_INFO, f"║║获取B站直播分区信息：{area_obj_list if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 直播间父分区数据
-    parent_live_area_name4parent_live_area_id = (({str(AreaObj["id"]): AreaObj["name"] for AreaObj in
-                                                   area_obj_list['data']} | {} if area else {
-        "-1": "请选择一级分区"}) if room_status else {"-1": '⚠️无直播间'}) if b_u_l_c.get_cookies() else {
-        "-1": "⚠️未登录账号"}
-    """直播间父分区数据"""
-    log_save(obs.LOG_INFO,
-             f"║║获取 直播间父分区数据：{(parent_live_area_name4parent_live_area_id if room_status else '⚠️无直播间') if b_u_l_c.get_cookies() else '⚠️未登录账号'}")
-    # 获取 登录账户 的 直播间父分区 对应的 直播间子分区数据
-    sub_live_area_name4sub_live_area_id = (({str(subAreaObj["id"]): subAreaObj["name"] for subAreaObj in
-                                             [AreaObj["list"] for AreaObj in area_obj_list["data"] if
-                                              str(area["parent_area_id"]) == str(AreaObj["id"])][0]} if area else {
-        "-1": "请选择一级分区"}) if room_status else {"-1": '⚠️无直播间'}) if b_u_l_c.get_cookies() else {
-        "-1": "⚠️未登录账号"}
-    """登录账户 的 直播间父分区 对应的 直播间子分区数据"""
-    log_save(obs.LOG_INFO,
-             f"║║获取 登录账户 的 直播间父分区 对应的 直播间子分区数据：{(sub_live_area_name4sub_live_area_id if room_status else '⚠️无直播间') if b_u_l_c.get_cookies() else '⚠️未登录账号'}")
-    log_save(obs.LOG_INFO, f"║╚{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╝")
-    # 设置控件属性
-    log_save(obs.LOG_INFO, f"║")
-    log_save(obs.LOG_INFO, f"║╔{15 * '═'}设置 控件属性{15 * '═'}╗")
-    # 分组框【账号】
-    # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    log_save(obs.LOG_INFO, f"║║")
-    log_save(obs.LOG_INFO, f"║║设置 分组框【直播间】 中 控件属性")
-    log_save(obs.LOG_INFO, f"║║╔{7 * '═'}设置 分组框【直播间】 中控件属性{7 * '═'}╗")
-    # 设置 组合框【常用分区】 可见状态
-    widget.ComboBox.roomCommonAreas.Visible = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【常用分区】 可见状态：{str(widget.ComboBox.roomCommonAreas.Visible)}")
-    # 设置 组合框【常用分区】 可用状态
-    widget.ComboBox.roomCommonAreas.Enabled = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【常用分区】 可用状态：{str(widget.ComboBox.roomCommonAreas.Enabled)}")
-    # 设置 组合框【常用分区】 的数据字典
-    widget.ComboBox.roomCommonAreas.Dictionary = common_area_id_dict_str4common_area_name_dict_str
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【常用分区】 数据字典：{str(widget.ComboBox.roomCommonAreas.Dictionary)}")
-    # 设置 组合框【常用分区】 默认显示内容
-    widget.ComboBox.roomCommonAreas.Text = common_area_id_dict_str4common_area_name_dict_str[
-        json.dumps({area["parent_area_id"]: str(area["area_id"])})] if common_areas else "无常用分区"
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【常用分区】 默认显示内容：{str(widget.ComboBox.roomCommonAreas.Text)}")
-    # 设置 组合框【常用分区】 默认显示内容 的 列表值
-    widget.ComboBox.roomCommonAreas.Value = json.dumps({area["parent_area_id"]: str(area["area_id"])},
-                                                       ensure_ascii=False) if common_areas else "-1"
-    log_save(obs.LOG_INFO,
-             f"║║║设置 组合框【常用分区】 默认显示内容 的 列表值：{str(widget.ComboBox.roomCommonAreas.Value)}")
-
-    # 设置 组合框【一级分区】 可见状态
-    widget.ComboBox.roomParentArea.Visible = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【一级分区】 可见状态：{str(widget.ComboBox.roomParentArea.Visible)}")
-    # 设置 组合框【一级分区】 可用状态
-    widget.ComboBox.roomParentArea.Enabled = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【一级分区】 可用状态：{str(widget.ComboBox.roomParentArea.Enabled)}")
-    # 设置 组合框【一级分区】 的数据字典
-    widget.ComboBox.roomParentArea.Dictionary = parent_live_area_name4parent_live_area_id
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【一级分区】 数据字典：{str(widget.ComboBox.roomParentArea.Dictionary)}")
-    # 设置 组合框【一级分区】 默认显示内容
-    widget.ComboBox.roomParentArea.Text = str(area["parent_area_name"]) if bool(area) else "请选择一级分区"
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【一级分区】 默认显示内容：{str(widget.ComboBox.roomParentArea.Text)}")
-    # 设置 组合框【一级分区】 默认显示内容 的 列表值
-    widget.ComboBox.roomParentArea.Value = str(area["parent_area_id"]) if bool(area) else "-1"
-    log_save(obs.LOG_INFO,
-             f"║║║设置 组合框【一级分区】 默认显示内容 的 列表值：{str(widget.ComboBox.roomParentArea.Value)}")
-
-    # 设置 组合框【二级分区】 可见状态
-    widget.ComboBox.roomSubArea.Visible = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【二级分区】 可见状态：{str(widget.ComboBox.roomSubArea.Visible)}")
-    # 设置 组合框【二级分区】 可用状态
-    widget.ComboBox.roomSubArea.Obj_enabled = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【二级分区】 可用状态：{str(widget.ComboBox.roomSubArea.Obj_enabled)}")
-    # 设置 组合框【二级分区】 数据字典
-    widget.ComboBox.roomSubArea.Dictionary = sub_live_area_name4sub_live_area_id
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【二级分区】 数据字典：{str(widget.ComboBox.roomSubArea.Dictionary)}")
-    # 设置 组合框【二级分区】 默认显示内容
-    widget.ComboBox.roomSubArea.Text = str(area["area_name"]) if bool(area) else "请确认一级分区"
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【二级分区】 默认显示内容：{str(widget.ComboBox.roomSubArea.Text)}")
-    # 设置 组合框【二级分区】 默认显示内容 的 列表值
-    widget.ComboBox.roomSubArea.Value = str(area["area_id"]) if bool(area) else "-1"
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【二级分区】 默认显示内容 的 列表值：{str(widget.ComboBox.roomSubArea.Value)}")
-    log_save(obs.LOG_INFO, f"║║╚{7 * '═'}设置 分组框【直播间】 中控件属性{7 * '═'}╝")
-    log_save(obs.LOG_INFO, f"║╚{15 * '═'}设置 控件属性{15 * '═'}╝")
-    # 调整控件数据 结束
-    log_save(obs.LOG_INFO, f"╚{25 * '═'}调整控件数据{25 * '═'}╝")
-    log_save(obs.LOG_INFO, f"")
-
-    # 组合框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐组合框 UI{30 * '─'}┐")
-    # 【直播间】分组———————————————————————————————————————————————————————————————————————————————————————————————————————
-    log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
-    log_save(obs.LOG_INFO, f"　││▶️分组框【直播间】")
-    # 组合框【一级分区】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛组合框【常用分区】 UI")
-    # 设置 组合框【常用分区 可见状态
-    if obs.obs_property_visible(widget.ComboBox.roomCommonAreas.Obj) != widget.ComboBox.roomCommonAreas.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 组合框【常用分区】 可见状态 发生变动: {obs.obs_property_visible(widget.ComboBox.roomCommonAreas.Obj)}➡️{widget.ComboBox.roomCommonAreas.Visible}")
-        obs.obs_property_set_visible(widget.ComboBox.roomCommonAreas.Obj, widget.ComboBox.roomCommonAreas.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 组合框【常用分区】 可见状态 未 发生变动")
-    # 设置 组合框【常用分区】 可用状态
-    if obs.obs_property_enabled(widget.ComboBox.roomCommonAreas.Obj) != widget.ComboBox.roomCommonAreas.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 组合框【常用分区】 可用状态 发生变动: {obs.obs_property_enabled(widget.ComboBox.roomCommonAreas.Obj)}➡️{widget.ComboBox.roomCommonAreas.Enabled}")
-        obs.obs_property_set_enabled(widget.ComboBox.roomCommonAreas.Obj, widget.ComboBox.roomCommonAreas.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 组合框【常用分区】 可用状态 未 发生变动")
-    # 判断 组合框【常用分区】字典数据 和 当前数据是否有变化
-    if widget.ComboBox.roomCommonAreas.Dictionary != {
-        obs.obs_property_list_item_string(widget.ComboBox.roomCommonAreas.Obj, idx): obs.obs_property_list_item_name(
-                widget.ComboBox.roomCommonAreas.Obj, idx) for idx in
-        range(obs.obs_property_list_item_count(widget.ComboBox.roomCommonAreas.Obj))}:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 组合框【常用分区】列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.roomCommonAreas.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomCommonAreas.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomCommonAreas.Obj))})}个元素➡️{len(widget.ComboBox.roomCommonAreas.Dictionary)}个元素")
-        # 清空 组合框【常用分区】
-        log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【常用分区】数据 第一步：清空 组合框【常用分区】")
-        obs.obs_property_list_clear(widget.ComboBox.roomCommonAreas.Obj)
-        # 添加 组合框【常用分区】 列表选项  默认值会被设置在第一位
-        log_save(obs.LOG_INFO,
-                 f"　│││📑  更新 组合框【常用分区】数据 第二步：添加 组合框【常用分区】 列表选项  如果有默认值，会被设置在第一位")
-        for common_area_id_dict_str in widget.ComboBox.roomCommonAreas.Dictionary:
-            obs.obs_property_list_add_string(widget.ComboBox.roomCommonAreas.Obj,
-                                             widget.ComboBox.roomCommonAreas.Dictionary[common_area_id_dict_str],
-                                             common_area_id_dict_str) if common_area_id_dict_str != widget.ComboBox.roomCommonAreas.Value else obs.obs_property_list_insert_string(
-                widget.ComboBox.roomCommonAreas.Obj, 0, widget.ComboBox.roomCommonAreas.Text,
-                widget.ComboBox.roomCommonAreas.Value)
-        # 设置 组合框【常用分区】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
-        log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【常用分区】数据 第三步：更新 组合框【常用分区】 文本")
-        obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'room_commonAreas_comboBox',
-                                obs.obs_property_list_item_string(widget.ComboBox.roomCommonAreas.Obj, 0))
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 组合框【常用分区】列表数据 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    # 组合框【一级分区】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️组合框【一级分区】 UI")
-    # 设置 组合框【一级分区】 可见状态
-    if obs.obs_property_visible(widget.ComboBox.roomParentArea.Obj) != widget.ComboBox.roomParentArea.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 组合框【一级分区】 可见状态 发生变动: {obs.obs_property_visible(widget.ComboBox.roomParentArea.Obj)}➡️{widget.ComboBox.roomParentArea.Visible}")
-        obs.obs_property_set_visible(widget.ComboBox.roomParentArea.Obj, widget.ComboBox.roomParentArea.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 组合框【一级分区】 可见状态 未 发生变动")
-    # 设置 组合框【一级分区】 可用状态
-    if obs.obs_property_enabled(widget.ComboBox.roomParentArea.Obj) != widget.ComboBox.roomParentArea.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 组合框【一级分区】 可用状态 发生变动: {obs.obs_property_enabled(widget.ComboBox.roomParentArea.Obj)}➡️{widget.ComboBox.roomParentArea.Enabled}")
-        obs.obs_property_set_enabled(widget.ComboBox.roomParentArea.Obj, widget.ComboBox.roomParentArea.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 组合框【一级分区】 可用状态 未 发生变动")
-    # 判断 组合框【一级分区】字典数据 和 当前数据是否有变化
-    if widget.ComboBox.roomParentArea.Dictionary != {
-        obs.obs_property_list_item_string(widget.ComboBox.roomParentArea.Obj, idx): obs.obs_property_list_item_name(
-                widget.ComboBox.roomParentArea.Obj, idx) for idx in
-        range(obs.obs_property_list_item_count(widget.ComboBox.roomParentArea.Obj))}:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 组合框【一级分区】列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.roomParentArea.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomParentArea.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomParentArea.Obj))})}个元素➡️{len(widget.ComboBox.roomParentArea.Dictionary)}个元素")
-        # 清空 组合框【一级分区】
-        log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【一级分区】数据 第一步：清空 组合框【一级分区】")
-        obs.obs_property_list_clear(widget.ComboBox.roomParentArea.Obj)
-        # 添加 组合框【一级分区】 列表选项  默认值会被设置在第一位
-        log_save(obs.LOG_INFO,
-                 f"　│││📑  更新 组合框【一级分区】数据 第二步：添加 组合框【一级分区】 列表选项  如果有默认值，会被设置在第一位")
-        for common_area_id_dict_str in widget.ComboBox.roomParentArea.Dictionary:
-            obs.obs_property_list_add_string(widget.ComboBox.roomParentArea.Obj,
-                                             widget.ComboBox.roomParentArea.Dictionary[common_area_id_dict_str],
-                                             common_area_id_dict_str) if common_area_id_dict_str != widget.ComboBox.roomParentArea.Value else obs.obs_property_list_insert_string(
-                widget.ComboBox.roomParentArea.Obj, 0, widget.ComboBox.roomParentArea.Text,
-                widget.ComboBox.roomParentArea.Value)
-        # 设置 组合框【一级分区】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
-        log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【一级分区】数据 第三步：更新 组合框【一级分区】 文本")
-        obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'room_parentArea_comboBox',
-                                obs.obs_property_list_item_string(widget.ComboBox.roomParentArea.Obj, 0))
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 组合框【一级分区】列表数据 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    # 组合框【二级分区】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️组合框【二级分区】 UI")
-    # 设置 组合框【二级分区】 可见状态
-    if obs.obs_property_visible(widget.ComboBox.roomSubArea.Obj) != widget.ComboBox.roomSubArea.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 组合框【二级分区】 可见状态 发生变动: {obs.obs_property_visible(widget.ComboBox.roomSubArea.Obj)}➡️{widget.ComboBox.roomSubArea.Visible}")
-        obs.obs_property_set_visible(widget.ComboBox.roomSubArea.Obj, widget.ComboBox.roomSubArea.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 组合框【二级分区】 可见状态 未 发生变动")
-    # 设置 组合框【二级分区】 可用状态
-    if obs.obs_property_enabled(widget.ComboBox.roomSubArea.Obj) != widget.ComboBox.roomSubArea.Obj_enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 组合框【二级分区】 可用状态 发生变动: {obs.obs_property_enabled(widget.ComboBox.roomSubArea.Obj)}➡️{widget.ComboBox.roomSubArea.Obj_enabled}")
-        obs.obs_property_set_enabled(widget.ComboBox.roomSubArea.Obj, widget.ComboBox.roomSubArea.Obj_enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 组合框【二级分区】 可用状态 未 发生变动")
-    # 判断 组合框【二级分区】字典数据 和 当前数据是否有变化
-    if widget.ComboBox.roomSubArea.Dictionary != {
-        obs.obs_property_list_item_string(widget.ComboBox.roomSubArea.Obj, idx): obs.obs_property_list_item_name(
-                widget.ComboBox.roomSubArea.Obj, idx) for idx in
-        range(obs.obs_property_list_item_count(widget.ComboBox.roomSubArea.Obj))}:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 组合框【二级分区】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.roomSubArea.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomSubArea.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomSubArea.Obj))})}个元素➡️{len(widget.ComboBox.roomSubArea.Dictionary)}个元素")
-        # 清空 组合框【二级分区】
-        log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【二级分区】数据 第一步：清空 组合框【二级分区】")
-        obs.obs_property_list_clear(widget.ComboBox.roomSubArea.Obj)
-        # 添加 组合框【二级分区】 列表选项  默认值会被设置在第一位
-        log_save(obs.LOG_INFO,
-                 f"　│││📑  更新 组合框【二级分区】数据 第二步：添加 组合框【二级分区】 列表选项  如果有默认值，会被设置在第一位")
-        for subLiveAreaId in widget.ComboBox.roomSubArea.Dictionary:
-            obs.obs_property_list_add_string(widget.ComboBox.roomSubArea.Obj,
-                                             widget.ComboBox.roomSubArea.Dictionary[subLiveAreaId],
-                                             subLiveAreaId) if subLiveAreaId != widget.ComboBox.roomSubArea.Value else obs.obs_property_list_insert_string(
-                widget.ComboBox.roomSubArea.Obj, 0, widget.ComboBox.roomSubArea.Text, widget.ComboBox.roomSubArea.Value)
-        # 设置 组合框【二级分区】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
-        log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【二级分区】数据 第三步：更新 组合框【二级分区】 文本")
-        obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'room_subArea_comboBox',
-                                obs.obs_property_list_item_string(widget.ComboBox.roomSubArea.Obj, 0))
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 组合框【二级分区】 列表数据 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
-    log_save(obs.LOG_INFO, f"　└{30 * '─'}👌组合框 UI{30 * '─'}┘")
-    return True
-
-
-def button_function_jump_blive_web(*args):
-    if len(args) == 2:
-        props = args[0]
-        prop = args[1]
-    if len(args) == 3:
-        settings = args[2]
-    """
-    跳转直播间后台网页
-    Args:
-        props:
-        prop:
-    Returns:
-    """
-    log_save(obs.LOG_INFO, f"即将跳转到网页{widget.Button.bliveWebJump.Url}")
-    pass
-
-
-# ____________________-------------------____________________---------------------_______________________---------------
-
-def button_function_start_live(*args):
-    if len(args) == 2:
-        props = args[0]
-        prop = args[1]
-    if len(args) == 3:
-        settings = args[2]
-    """
-    开始直播
-    """
-    # 执行更改直播间标题
-    button_function_change_live_room_title()
-    # 执行更改直播间公告
-    button_function_change_live_room_news()
-    # 执行更改直播间分区
-    button_function_start_sub_area()
-    # 获取默认账户
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    # 获取二级分区id
-    sub_live_area_combobox_value = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
-                                                           'room_subArea_comboBox')
-    log_save(obs.LOG_INFO, f"在【{sub_live_area_combobox_value}】分区 开播")
-    # 获取开播平台
-    live_streaming_platform = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
-                                                      'live_streaming_platform_comboBox')
-    log_save(obs.LOG_INFO, f"使用【{live_streaming_platform}】平台 开播")
-    start_live = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                   cookie=dict2cookie(b_u_l_c.get_cookies())).start_live(
-        int(sub_live_area_combobox_value), live_streaming_platform)
-    log_save(obs.LOG_INFO, f"开播返回：{start_live}")
-    if start_live["code"] == 0:
-        log_save(obs.LOG_INFO, f"开播成功。")
-    else:
-        if start_live["code"] == 60024:
-            button_function_face_auth()
-        log_save(obs.LOG_ERROR, f"开播失败：【{start_live['message']}】。")
         return True
 
-    # 推流地址
-    rtmp_server = start_live["data"]["rtmp"]["addr"]
-    log_save(obs.LOG_INFO, f"B站rtmp推流地址：{rtmp_server}")
-    # 将 rtmp推流码
-    rtmp_push_code = start_live["data"]["rtmp"]["code"]
-    log_save(obs.LOG_INFO, f"B站rtmp推流码：{rtmp_push_code}")
-    # 复制到剪贴板
-    cb.copy(rtmp_push_code)
-    log_save(obs.LOG_INFO, f"已将rtmp推流码复制到剪贴板")
-
-    # 获取当前流服务
-    streaming_service = obs.obs_frontend_get_streaming_service()
-    # 获取当前流服务设置
-    streaming_service_settings = obs.obs_service_get_settings(streaming_service)
-    currently_service_string = obs.obs_data_get_string(streaming_service_settings, "service")
-    log_save(obs.LOG_INFO, f"目前obs的推流服务：【{currently_service_string}】")
-    currently_rtmp_server = obs.obs_data_get_string(streaming_service_settings, "server")
-    log_save(obs.LOG_INFO, f"目前obs的rtmp推流地址：【{currently_rtmp_server}】")
-    currently_rtmp_push_code = obs.obs_data_get_string(streaming_service_settings, "key")
-    log_save(obs.LOG_INFO, f"目前obs的rtmp推流码：【{currently_rtmp_push_code}】")
-    log_save(obs.LOG_INFO, f"obs推流状态：{obs.obs_frontend_streaming_active()}")
-    if currently_rtmp_push_code == rtmp_push_code and currently_rtmp_server == rtmp_server and currently_service_string == "Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP":
-        log_save(obs.LOG_INFO, f"推流信息未发生变化")
-        if obs.obs_frontend_streaming_active():
-            log_save(obs.LOG_INFO, f"正处于推流状态中。。。")
-            pass
+    def button_function_face_auth(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """展示人脸认证的二维码"""
+        # 创建用户配置文件实例
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        # 获取登录用户的uid
+        uid = b_u_l_c.get_users()[0]
+        log_save(obs.LOG_INFO, f"获取登录用户的uid：{uid}")
+        # 获取人脸认证的链接
+        qr_url = f"https://www.bilibili.com/blackboard/live/face-auth-middle.html?source_event=400&mid={uid}"
+        log_save(obs.LOG_INFO, f"获取人脸认证的链接：{qr_url}")
+        if uid:
+            # 获取二维码对象
+            qr = qr_text8pil_img(qr_url)
+            qr['img'].show()
         else:
-            log_save(obs.LOG_INFO, f"直接开始推流")
-            obs.obs_frontend_streaming_start()
-    else:
-        log_save(obs.LOG_INFO, f"推流信息发生变化")
-        # 写入推流服务
-        obs.obs_data_set_string(streaming_service_settings, "service", "Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP")
-        log_save(obs.LOG_INFO, f"向obs写入推流服务：【Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP】")
-        # 写入推流地址
-        obs.obs_data_set_string(streaming_service_settings, "server", rtmp_server)
-        log_save(obs.LOG_INFO, f"向obs写入推流地址：【{rtmp_server}】")
-        # 写入rtmp推流码
-        obs.obs_data_set_string(streaming_service_settings, "key", rtmp_push_code)
-        log_save(obs.LOG_INFO, f"向obs写入rtmp推流码：【{rtmp_push_code}】")
-        # 应用更新
-        obs.obs_service_update(streaming_service, streaming_service_settings)
-        # 检查是否需要重启推流
+            log_save(obs.LOG_ERROR, f"未登录")
+
+    def button_function_true_live_room_title(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """将可 可编辑组合框【常用标题】 中的文本 复制到 普通文本框【直播间标题】 """
+        # 获取 可编辑组合框【常用标题】 当前 显示文本
+        title_text = obs.obs_data_get_string(GlobalVariableOfData.script_settings, 'room_commonTitles_comboBox')
+        log_save(obs.LOG_INFO, f"获取 可编辑组合框【常用标题】 当前 显示文本：{title_text}")
+        # 更新 普通文本框【直播间标题】 的 文本
+        obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'room_title_textBox', title_text)
+        log_save(obs.LOG_INFO, f"更新 普通文本框【直播间标题】 的 文本")
+        return True
+
+    def button_function_change_live_room_title(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """
+        更改直播间标题
+        Args:
+        Returns:
+        """
+        # 获取当前直播间标题
+        # 调整控件数据
+        log_save(obs.LOG_INFO, f"")
+        log_save(obs.LOG_INFO, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
+        log_save(obs.LOG_INFO, f"║{25 * ' '}调整控件数据{25 * ' '}║")
+        # 设置控件前准备（获取数据） 开始
+        log_save(obs.LOG_INFO, f"║")
+        log_save(obs.LOG_DEBUG, f"║设置控件前准备（获取数据）")
+        log_save(obs.LOG_INFO, f"║╔{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╗")
+        # 获取 '默认账户' cookie
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        # 获取 '登录用户' 对应的直播间基础信息
+        room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(
+            int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 的 直播间状态
+        room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 的 直播间id
+        room_id = (room_info_old["roomid"] if room_status else None) if b_u_l_c.get_cookies() else None
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间id：{(room_id if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 直播间基本信息
+        room_base_info = (
+            BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_base_info(
+                room_id) if room_status else None) if b_u_l_c.get_cookies() else None
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间基本信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 直播间标题
+        room_title = (room_base_info["title"] if room_status else None) if b_u_l_c.get_cookies() else None
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间标题：{(room_title if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 设置控件前准备（获取数据）结束
+        log_save(obs.LOG_INFO, f"║╚{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╝")
+        # 调整控件数据 结束
+        log_save(obs.LOG_INFO, f"╚{25 * '═'}调整控件数据{25 * '═'}╝")
+        log_save(obs.LOG_INFO, f"")
+
+        # 设置 普通文本框【直播间标题】 可见状态
+        widget.TextBox.roomTitle.Visible = bool(room_status)
+        log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播间标题】 可见状态：{str(widget.TextBox.roomTitle.Visible)}")
+        # 设置 普通文本框【直播间标题】 可用状态
+        widget.TextBox.roomTitle.Enabled = bool(room_status)
+        log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播间标题】 可用状态：{str(widget.TextBox.roomTitle.Enabled)}")
+        # 设置 普通文本框【直播间标题】 内容
+        widget.TextBox.roomTitle.Text = room_title if bool(room_status) else ""
+        log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播间标题】 内容：{str(widget.TextBox.roomTitle.Text)}")
+
+        # 将当前直播间标题和目标直播间标题做对比
+        # 获取 普通文本框【直播间标题】 当前 文本
+        live_room_title_textbox_string = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
+                                                                 'room_title_textBox')
+        log_save(obs.LOG_INFO, f"获取 普通文本框【直播间标题】 当前 文本：{live_room_title_textbox_string}")
+        # 更新直播间标题
+        if room_title == live_room_title_textbox_string:
+            log_save(obs.LOG_INFO, f"直播间标题未更改")
+            return False
+        turn_title_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
+                                              cookie=dict2cookie(b_u_l_c.get_cookies())).change_room_title(
+            live_room_title_textbox_string)
+        log_save(obs.LOG_INFO, f"更改直播间标题返回消息：{turn_title_return}")
+        if turn_title_return['code'] == 0:
+            log_save(obs.LOG_INFO, "直播间标题更改成功")
+        else:
+            log_save(obs.LOG_INFO, f"直播间标题更改失败{turn_title_return['message']}")
+            return False
+
+        # 刷新一下 可编辑组合框【常用标题】 和 普通文本框【直播间标题】
+        # 调整控件数据
+        log_save(obs.LOG_INFO, f"")
+        log_save(obs.LOG_INFO, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
+        log_save(obs.LOG_INFO, f"║{25 * ' '}调整控件数据{25 * ' '}║")
+        # 设置控件前准备（获取数据） 开始
+        log_save(obs.LOG_INFO, f"║")
+        log_save(obs.LOG_DEBUG, f"║设置控件前准备（获取数据）")
+        log_save(obs.LOG_INFO, f"║╔{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╗")
+        # 获取 '默认账户' cookie
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        # 获取 '登录用户' 对应的直播间基础信息
+        room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(
+            int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 的 直播间状态
+        room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 的 直播间id
+        room_id = (room_info_old["roomid"] if room_status else None) if b_u_l_c.get_cookies() else None
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间id：{(room_id if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 直播间基本信息
+        room_base_info = (
+            BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_base_info(
+                room_id) if room_status else None) if b_u_l_c.get_cookies() else None
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间基本信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 直播间标题
+        room_title = (room_base_info["title"] if room_status else None) if b_u_l_c.get_cookies() else None
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间标题：{(room_title if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 创建用户常用直播间标题实例
+        c_t_m = CommonTitlesManager(directory=Path(GlobalVariableOfData.scriptsDataDirpath))
+        # 添加当前直播间标题 到 常用直播间标 题配置文件
+        (c_t_m.add_title(b_u_l_c.get_users()[0],
+                         room_title) if room_status else None) if b_u_l_c.get_cookies() else None
+        # 获取 常用直播间标题
+        common_title4number = {str(number): commonTitle for number, commonTitle in
+                               enumerate(c_t_m.get_titles(b_u_l_c.get_users()[0]))}
+        """常用直播间标题】{'0': 't1', '1': 't2', '2': 't3',}"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 常用直播间标题：{(common_title4number if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 设置控件前准备（获取数据）结束
+        log_save(obs.LOG_INFO, f"║╚{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╝")
+        # 设置控件属性
+        log_save(obs.LOG_INFO, f"║")
+        log_save(obs.LOG_INFO, f"║╔{15 * '═'}设置 控件属性{15 * '═'}╗")
+        # 分组框【直播间】
+        # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+        log_save(obs.LOG_INFO, f"║║")
+        log_save(obs.LOG_INFO, f"║║设置 分组框【直播间】 中 控件属性")
+        log_save(obs.LOG_INFO, f"║║╔{7 * '═'}设置 分组框【直播间】 中控件属性{7 * '═'}╗")
+        # 设置 可编辑组合框【常用标题】 可见状态
+        widget.ComboBox.roomCommonTitles.Visible = bool(room_status)
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 可编辑组合框【常用标题】 可见状态：{str(widget.ComboBox.roomCommonTitles.Visible)}")
+        # 设置 可编辑组合框【常用标题】 可用状态
+        widget.ComboBox.roomCommonTitles.Enabled = bool(room_status)
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 可编辑组合框【常用标题】 可用状态：{str(widget.ComboBox.roomCommonTitles.Enabled)}")
+        # 设置 可编辑组合框【常用标题】 的数据字典
+        widget.ComboBox.roomCommonTitles.Dictionary = common_title4number
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 可编辑组合框【常用标题】 数据字典：{str(widget.ComboBox.roomCommonTitles.Dictionary)}")
+        # 设置 可编辑组合框【常用标题】 默认显示内容
+        widget.ComboBox.roomCommonTitles.Text = room_title if bool(room_status) else ""
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 可编辑组合框【常用标题】 默认显示内容：{str(widget.ComboBox.roomCommonTitles.Text)}")
+        # 设置 可编辑组合框【常用标题】 默认显示内容 的 列表值
+        widget.ComboBox.roomCommonTitles.Value = "0"
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 可编辑组合框【常用标题】 默认显示内容 的 列表值：{str(widget.ComboBox.roomCommonTitles.Value)}")
+
+        # 设置 普通文本框【直播间标题】 可见状态
+        widget.TextBox.roomTitle.Visible = bool(room_status)
+        log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播间标题】 可见状态：{str(widget.TextBox.roomTitle.Visible)}")
+        # 设置 普通文本框【直播间标题】 可用状态
+        widget.TextBox.roomTitle.Enabled = bool(room_status)
+        log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播间标题】 可用状态：{str(widget.TextBox.roomTitle.Enabled)}")
+        # 设置 普通文本框【直播间标题】 内容
+        widget.TextBox.roomTitle.Text = room_title if bool(room_status) else ""
+        log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播间标题】 内容：{str(widget.TextBox.roomTitle.Text)}")
+        # 设置 分组框【直播间】 中控件属性结束
+        log_save(obs.LOG_INFO, f"║║╚{7 * '═'}设置 分组框【直播间】 中控件属性{7 * '═'}╝")
+        # 设置 控件属性 结束
+        log_save(obs.LOG_INFO, f"║╚{15 * '═'}设置 控件属性{15 * '═'}╝")
+        # 调整控件数据 结束
+        log_save(obs.LOG_INFO, f"╚{25 * '═'}调整控件数据{25 * '═'}╝")
+        log_save(obs.LOG_INFO, f"")
+
+        # 可编辑组合框++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐可编辑组合框 UI{30 * '─'}┐")
+        # 【直播间】分组———————————————————————————————————————————————————————————————————————————————————————————————————————
+        log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
+        log_save(obs.LOG_INFO, f"　││▶️分组框【直播间】")
+        # 可编辑组合框【常用标题】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️可编辑组合框【常用标题】 UI")
+        # 设置 可编辑组合框【常用标题】 可见状态
+        if obs.obs_property_visible(widget.ComboBox.roomCommonTitles.Obj) != widget.ComboBox.roomCommonTitles.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 可编辑组合框【常用标题】 可见状态 发生变动: {obs.obs_property_visible(widget.ComboBox.roomCommonTitles.Obj)}➡️{widget.ComboBox.roomCommonTitles.Visible}")
+            obs.obs_property_set_visible(widget.ComboBox.roomCommonTitles.Obj, widget.ComboBox.roomCommonTitles.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 可编辑组合框【常用标题】 可见状态 未 发生变动")
+        # 设置 可编辑组合框【常用标题】 可用状态
+        if obs.obs_property_enabled(widget.ComboBox.roomCommonTitles.Obj) != widget.ComboBox.roomCommonTitles.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 可编辑组合框【常用标题】 可用状态 发生变动: {obs.obs_property_enabled(widget.ComboBox.roomCommonTitles.Obj)}➡️{widget.ComboBox.roomCommonTitles.Enabled}")
+            obs.obs_property_set_enabled(widget.ComboBox.roomCommonTitles.Obj, widget.ComboBox.roomCommonTitles.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 可编辑组合框【常用标题】 可用状态 未 发生变动")
+        # 判断 可编辑组合框【常用标题】字典数据 和 当前数据是否有变化
+        if widget.ComboBox.roomCommonTitles.Dictionary != {
+            obs.obs_property_list_item_string(widget.ComboBox.roomCommonTitles.Obj,
+                                              idx): obs.obs_property_list_item_name(
+                widget.ComboBox.roomCommonTitles.Obj, idx) for idx in
+            range(obs.obs_property_list_item_count(widget.ComboBox.roomCommonTitles.Obj))}:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 可编辑组合框【常用标题】列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.roomCommonTitles.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomCommonTitles.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomCommonTitles.Obj))})}个元素➡️{len(widget.ComboBox.roomCommonTitles.Dictionary)}个元素")
+            # 清空 可编辑组合框【常用标题】
+            log_save(obs.LOG_INFO, f"　│││更新 可编辑组合框【常用标题】数据 第一步：清空 可编辑组合框【常用标题】")
+            obs.obs_property_list_clear(widget.ComboBox.roomCommonTitles.Obj)
+            # 添加 可编辑组合框【常用标题】 列表选项  默认值会被设置在第一位
+            log_save(obs.LOG_INFO,
+                     f"　│││更新 可编辑组合框【常用标题】数据 第二步：添加 可编辑组合框【常用标题】 列表选项  如果有默认值，会被设置在第一位")
+            for number in widget.ComboBox.roomCommonTitles.Dictionary:
+                obs.obs_property_list_add_string(widget.ComboBox.roomCommonTitles.Obj,
+                                                 widget.ComboBox.roomCommonTitles.Dictionary[number],
+                                                 number) if number != widget.ComboBox.roomCommonTitles.Value else obs.obs_property_list_insert_string(
+                    widget.ComboBox.roomCommonTitles.Obj, 0, widget.ComboBox.roomCommonTitles.Text,
+                    widget.ComboBox.roomCommonTitles.Value)
+            # 设置 可编辑组合框【常用标题】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
+            log_save(obs.LOG_INFO,
+                     f"　│││更新 可编辑组合框【常用标题】数据 第三步：更新 可编辑组合框【常用标题】 显示文本：{obs.obs_property_list_item_name(widget.ComboBox.roomCommonTitles.Obj, 0)}")
+            obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'room_commonTitles_comboBox',
+                                    obs.obs_property_list_item_name(widget.ComboBox.roomCommonTitles.Obj, 0))
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 可编辑组合框【常用标题】列表数据 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
+        # 普通文本框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐普通文本框 UI{30 * '─'}┐")
+        # 【账号】分组————————————————————————————————————————————————————————————————————————————————————————————————————————
+        log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
+        log_save(obs.LOG_INFO, f"　││▶️分组框【账号】")
+        log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
+        # 【直播间】分组———————————————————————————————————————————————————————————————————————————————————————————————————————
+        log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
+        log_save(obs.LOG_INFO, f"　││▶️分组框【直播间】")
+        # 普通文本框【直播间标题】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️普通文本框【直播间标题】 UI")
+        # 设置 普通文本框【直播间标题】 可见状态
+        if obs.obs_property_visible(widget.TextBox.roomTitle.Obj) != widget.TextBox.roomTitle.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 普通文本框【直播间标题】 可见状态 发生变动: {obs.obs_property_visible(widget.TextBox.roomTitle.Obj)}➡️{widget.TextBox.roomTitle.Visible}")
+            obs.obs_property_set_visible(widget.TextBox.roomTitle.Obj, widget.TextBox.roomTitle.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 普通文本框【直播间标题】 可见状态 未 发生变动")
+        # 设置 普通文本框【直播间标题】 可用状态
+        if obs.obs_property_enabled(widget.TextBox.roomTitle.Obj) != widget.TextBox.roomTitle.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 普通文本框【直播间标题】 可用状态 发生变动: {obs.obs_property_enabled(widget.TextBox.roomTitle.Obj)}➡️{widget.TextBox.roomTitle.Enabled}")
+            obs.obs_property_set_enabled(widget.TextBox.roomTitle.Obj, widget.TextBox.roomTitle.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 普通文本框【直播间标题】 可用状态 未 发生变动")
+        # 设置 普通文本框【直播间标题】 文本
+        if obs.obs_data_get_string(GlobalVariableOfData.script_settings,
+                                   'room_title_textBox') != widget.TextBox.roomTitle.Text:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 普通文本框【直播间标题】 文本 发生变动: {obs.obs_data_get_string(GlobalVariableOfData.script_settings, 'room_title_textBox')}➡️{widget.TextBox.roomTitle.Text}")
+            obs.obs_data_set_string(GlobalVariableOfData.script_settings, "room_title_textBox",
+                                    widget.TextBox.roomTitle.Text)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 普通文本框【直播间标题】 文本 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
+        log_save(obs.LOG_INFO, f"　└{30 * '─'}👌普通文本框 UI{30 * '─'}┘")
+        return True
+
+    def button_function_change_live_room_news(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """
+        更改直播间公告
+        Args:
+        Returns:
+        """
+        # 调整控件数据
+        log_save(obs.LOG_INFO, f"")
+        log_save(obs.LOG_INFO, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
+        log_save(obs.LOG_INFO, f"║{25 * ' '}调整控件数据{25 * ' '}║")
+        # 设置控件前准备（获取数据） 开始
+        log_save(obs.LOG_INFO, f"║")
+        log_save(obs.LOG_DEBUG, f"║设置控件前准备（获取数据）")
+        log_save(obs.LOG_INFO, f"║╔{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╗")
+        # 创建用户配置文件实例
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        # 获取 '登录用户' 对应的直播间基础信息
+        room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(
+            int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
+        """直播间基础信息"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 的 直播间状态
+        room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
+        """登录用户的直播间存在状态"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 的 直播间id
+        room_id = (room_info_old["roomid"] if room_status else None) if b_u_l_c.get_cookies() else None
+        """登录用户的直播间id"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间id：{(room_id if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 直播间基本信息
+        room_base_info = (
+            BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_base_info(
+                room_id) if room_status else None) if b_u_l_c.get_cookies() else None
+        """直播间基本信息"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间基本信息：{room_base_info if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 直播间公告
+        room_news = (BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=
+        dict2cookie(b_u_l_c.get_cookies())).get_room_news() if room_status else None) if b_u_l_c.get_cookies() else None
+        """直播间公告"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间公告：{(room_news if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 设置控件前准备（获取数据）结束
+        log_save(obs.LOG_INFO, f"║╚{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╝")
+        # 调整控件数据 结束
+        log_save(obs.LOG_INFO, f"╚{25 * '═'}调整控件数据{25 * '═'}╝")
+
+        live_room_news_textbox_string = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
+                                                                'room_news_textBox')
+        if room_news == live_room_news_textbox_string:
+            log_save(obs.LOG_INFO, "直播间公告未改变")
+            return False
+        # 获取 '默认账户' cookie
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        cookies = b_u_l_c.get_cookies()
+        turn_news_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
+                                             cookie=dict2cookie(cookies), ).change_room_news(
+            live_room_news_textbox_string)
+        log_save(obs.LOG_INFO, f'更改直播间公告返回消息：{turn_news_return}')
+        if turn_news_return['code'] == 0:
+            log_save(obs.LOG_INFO, "直播间公告更改成功")
+        else:
+            log_save(obs.LOG_INFO, f"直播间公告更改失败{turn_news_return['message']}")
+            return False
+
+        # 调整控件数据
+        log_save(obs.LOG_INFO, f"")
+        log_save(obs.LOG_INFO, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
+        log_save(obs.LOG_INFO, f"║{25 * ' '}调整控件数据{25 * ' '}║")
+        # 设置控件前准备（获取数据） 开始
+        log_save(obs.LOG_INFO, f"║")
+        log_save(obs.LOG_DEBUG, f"║设置控件前准备（获取数据）")
+        log_save(obs.LOG_INFO, f"║╔{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╗")
+        # 创建用户配置文件实例
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        # 获取 '登录用户' 对应的直播间基础信息
+        room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(
+            int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
+        """直播间基础信息"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 的 直播间状态
+        room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
+        """登录用户的直播间存在状态"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 的 直播间id
+        room_id = (room_info_old["roomid"] if room_status else None) if b_u_l_c.get_cookies() else None
+        """登录用户的直播间id"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间id：{(room_id if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 直播间基本信息
+        room_base_info = (
+            BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_base_info(
+                room_id) if room_status else None) if b_u_l_c.get_cookies() else None
+        """直播间基本信息"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间基本信息：{room_base_info if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 直播间公告
+        room_news = (BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=
+        dict2cookie(b_u_l_c.get_cookies())).get_room_news() if room_status else None) if b_u_l_c.get_cookies() else None
+        """直播间公告"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间公告：{(room_news if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 设置控件前准备（获取数据）结束
+        log_save(obs.LOG_INFO, f"║╚{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╝")
+        # 设置控件属性
+        log_save(obs.LOG_INFO, f"║")
+        log_save(obs.LOG_INFO, f"║╔{15 * '═'}设置 控件属性{15 * '═'}╗")
+        # 分组框【直播间】
+        # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+        log_save(obs.LOG_INFO, f"║║")
+        log_save(obs.LOG_INFO, f"║║设置 分组框【直播间】 中 控件属性")
+        log_save(obs.LOG_INFO, f"║║╔{7 * '═'}设置 分组框【直播间】 中控件属性{7 * '═'}╗")
+        # 设置 普通文本框【直播间公告】 可见状态
+        widget.TextBox.roomNews.Visible = bool(room_status)
+        log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播间公告】 可见状态：{str(widget.TextBox.roomNews.Visible)}")
+        # 设置 普通文本框【直播间公告】 可用状态
+        widget.TextBox.roomNews.Enabled = bool(room_status)
+        log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播间公告】 可用状态：{str(widget.TextBox.roomNews.Enabled)}")
+        # 设置 普通文本框【直播间公告】 内容
+        widget.TextBox.roomNews.Text = room_news if bool(room_status) else ""
+        log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播间公告】 内容：{str(widget.TextBox.roomNews.Text)}")
+        log_save(obs.LOG_INFO, f"║║╚{7 * '═'}设置 分组框【直播间】 中控件属性{7 * '═'}╝")
+        log_save(obs.LOG_INFO, f"║╚{15 * '═'}设置 控件属性{15 * '═'}╝")
+        # 调整控件数据 结束
+        log_save(obs.LOG_INFO, f"╚{25 * '═'}调整控件数据{25 * '═'}╝")
+        log_save(obs.LOG_INFO, f"")
+
+        # 普通文本框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐普通文本框 UI{30 * '─'}┐")
+        # 【直播间】分组———————————————————————————————————————————————————————————————————————————————————————————————————————
+        log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
+        log_save(obs.LOG_INFO, f"　││▶️分组框【直播间】")
+        # 普通文本框【直播间公告】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️普通文本框【直播间公告】 UI")
+        # 设置 普通文本框【直播间公告】 可见状态
+        if obs.obs_property_visible(widget.TextBox.roomNews.Obj) != widget.TextBox.roomNews.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 普通文本框【直播间公告】 可见状态 发生变动: {obs.obs_property_visible(widget.TextBox.roomNews.Obj)}➡️{widget.TextBox.roomNews.Visible}")
+            obs.obs_property_set_visible(widget.TextBox.roomNews.Obj, widget.TextBox.roomNews.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 普通文本框【直播间公告】 可见状态 未 发生变动")
+        # 设置 普通文本框【直播间公告】 可用状态
+        if obs.obs_property_enabled(widget.TextBox.roomNews.Obj) != widget.TextBox.roomNews.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 普通文本框【直播间公告】 可用状态 发生变动: {obs.obs_property_enabled(widget.TextBox.roomNews.Obj)}➡️{widget.TextBox.roomNews.Enabled}")
+            obs.obs_property_set_enabled(widget.TextBox.roomNews.Obj, widget.TextBox.roomNews.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 普通文本框【直播间公告】 可用状态 未 发生变动")
+        # 设置 普通文本框【直播间公告】 文本
+        if obs.obs_data_get_string(GlobalVariableOfData.script_settings,
+                                   'room_news_textBox') != widget.TextBox.roomNews.Text:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 普通文本框【直播间公告】 文本 发生变动: {obs.obs_data_get_string(GlobalVariableOfData.script_settings, 'room_news_textBox')}➡️{widget.TextBox.roomNews.Text}")
+            obs.obs_data_set_string(GlobalVariableOfData.script_settings, "room_news_textBox",
+                                    widget.TextBox.roomNews.Text)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 普通文本框【直播间公告】 文本 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
+        log_save(obs.LOG_INFO, f"　└{30 * '─'}👌普通文本框 UI{30 * '─'}┘")
+        return True
+
+    def button_function_true_live_room_area(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """将可 组合框【常用分区】 中的值 映射到 组合框【一级分区】 和 组合框【二级分区】 """
+        # #获取 组合框【常用分区】 当前选项的值
+        room_common_areas_combobox_value = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
+                                                                   'room_commonAreas_comboBox')
+        log_save(obs.LOG_INFO, f"获取 组合框【常用分区】 当前选项的值: {room_common_areas_combobox_value}")
+        if room_common_areas_combobox_value == "-1":
+            log_save(obs.LOG_INFO, f"无常用分区")
+            return False
+        room_common_parent_area_id = list(json.loads(room_common_areas_combobox_value).keys())[0]
+        log_save(obs.LOG_INFO, f"获取 常用分区 父分区id: {room_common_parent_area_id}")
+        room_common_sub_area_id = list(json.loads(room_common_areas_combobox_value).values())[0]
+        log_save(obs.LOG_INFO, f"获取 常用分区 子分区id: {room_common_sub_area_id}")
+        # 更新 组合框【一级分区】
+        obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'room_parentArea_comboBox',
+                                room_common_parent_area_id)
+        obs.obs_property_modified(widget.ComboBox.roomParentArea.Obj, GlobalVariableOfData.script_settings)
+        # 更新 组合框【二级分区】
+        obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'room_subArea_comboBox', room_common_sub_area_id)
+        return True
+
+    def button_function_start_parent_area(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """确认一级分区"""
+        # #获取 组合框【一级分区】 当前选项的值
+        parent_live_area_combobox_value = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
+                                                                  'room_parentArea_comboBox')
+        log_save(obs.LOG_INFO, f"获取 组合框【一级分区】 当前选项的值: {parent_live_area_combobox_value}")
+        if parent_live_area_combobox_value in ["-1"]:
+            log_save(obs.LOG_WARNING, "请选择一级分区")
+            return False
+
+        # 记录旧的 组合框【二级分区】 数据字典
+        sub_live_area_name4sub_live_area_id_old = widget.ComboBox.roomSubArea.Dictionary
+        # 获取B站直播分区信息
+        area_obj_list = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_area_obj_list()
+        # 获取 组合框【二级分区】 数据字典
+        sub_live_area_name4sub_live_area_id = {str(subAreaObj["id"]): subAreaObj["name"] for subAreaObj in
+                                               [AreaObj["list"] for AreaObj in area_obj_list["data"] if
+                                                str(parent_live_area_combobox_value) == str(AreaObj["id"])][0]}
+        log_save(obs.LOG_INFO, f"获取 当前父分区对应的子分区数据{sub_live_area_name4sub_live_area_id}")
+        #  设置 临时 组合框【二级分区】 数据字典
+        widget.ComboBox.roomSubArea.Dictionary = sub_live_area_name4sub_live_area_id
+
+        # 临时 更新 组合框【二级分区】 数据
+        # 组合框【二级分区】 UI
+        log_save(obs.LOG_INFO, f"　│┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　││组合框【二级分区】 UI")
+        # 判断 组合框【二级分区】字典数据 和 当前数据是否有变化
+        if widget.ComboBox.roomSubArea.Dictionary != {
+            obs.obs_property_list_item_string(widget.ComboBox.roomSubArea.Obj, idx): obs.obs_property_list_item_name(
+                widget.ComboBox.roomSubArea.Obj, idx) for idx in
+            range(obs.obs_property_list_item_count(widget.ComboBox.roomSubArea.Obj))}:
+            log_save(obs.LOG_INFO,
+                     f"　││组合框【二级分区】数据发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.roomSubArea.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomSubArea.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomSubArea.Obj))})}个元素➡️{len(widget.ComboBox.roomSubArea.Dictionary)}个元素")
+            # 清空 组合框【二级分区】
+            log_save(obs.LOG_INFO, f"　││更新 组合框【二级分区】数据 第一步：清空 组合框【二级分区】")
+            obs.obs_property_list_clear(widget.ComboBox.roomSubArea.Obj)
+            # 添加 组合框【二级分区】 列表选项  默认值会被设置在第一位
+            log_save(obs.LOG_INFO,
+                     f"　││更新 组合框【二级分区】数据 第二步：添加 组合框【二级分区】 列表选项  如果有默认值，会被设置在第一位")
+            for subLiveAreaId in widget.ComboBox.roomSubArea.Dictionary:
+                obs.obs_property_list_add_string(widget.ComboBox.roomSubArea.Obj,
+                                                 widget.ComboBox.roomSubArea.Dictionary[subLiveAreaId],
+                                                 subLiveAreaId) if subLiveAreaId != widget.ComboBox.roomSubArea.Value else obs.obs_property_list_insert_string(
+                    widget.ComboBox.roomSubArea.Obj, 0, widget.ComboBox.roomSubArea.Text,
+                    widget.ComboBox.roomSubArea.Value)
+            # 设置 组合框【二级分区】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
+            log_save(obs.LOG_INFO, f"　││更新 组合框【二级分区】数据 第三步：更新 组合框【二级分区】 文本")
+            obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'room_subArea_comboBox',
+                                    obs.obs_property_list_item_string(widget.ComboBox.roomSubArea.Obj, 0))
+        log_save(obs.LOG_INFO, f"　│└{'─' * 55}")
+
+        # 返还旧的 组合框【二级分区】 数据字典
+        widget.ComboBox.roomSubArea.Dictionary = sub_live_area_name4sub_live_area_id_old
+        return True
+
+    def button_function_start_sub_area(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        # 调整控件数据
+        log_save(obs.LOG_INFO, f"")
+        log_save(obs.LOG_INFO, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
+        log_save(obs.LOG_INFO, f"║{25 * ' '}调整控件数据{25 * ' '}║")
+        # 设置控件前准备（获取数据） 开始
+        log_save(obs.LOG_INFO, f"║")
+        log_save(obs.LOG_DEBUG, f"║设置控件前准备（获取数据）")
+        log_save(obs.LOG_INFO, f"║╔{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╗")
+        log_save(obs.LOG_INFO, f"║║")
+        # 创建用户配置文件实例
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        # 获取 '登录用户' 对应的直播间基础信息
+        room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(
+            int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
+        """直播间基础信息"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 的 直播间状态
+        room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
+        """登录用户的直播间存在状态"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 的 直播间id
+        room_id = (room_info_old["roomid"] if room_status else None) if b_u_l_c.get_cookies() else None
+        """登录用户的直播间id"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间id：{(room_id if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 直播间基本信息
+        room_base_info = (BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_base_info(
+            room_id) if room_status else None) if b_u_l_c.get_cookies() else None
+        """直播间基本信息"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间基本信息：{room_base_info if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 直播间的分区
+        area = (
+            {"parent_area_id": room_base_info["parent_area_id"], "parent_area_name": room_base_info["parent_area_name"],
+             "area_id": room_base_info["area_id"],
+             "area_name": room_base_info["area_name"], } if room_status else None) if b_u_l_c.get_cookies() else None
+        """登录用户的直播间分区】{"parent_area_id": 3, "parent_area_name": "手游", "area_id": 255, "area_name": "明日方舟"}"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间分区数据：{(area if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 设置控件前准备（获取数据）结束
+        log_save(obs.LOG_INFO, f"║╚{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╝")
+        # 调整控件数据 结束
+        log_save(obs.LOG_INFO, f"╚{25 * '═'}调整控件数据{25 * '═'}╝")
+        log_save(obs.LOG_INFO, f"")
+
+        # #获取 组合框【二级分区】 当前选项的值
+        sub_live_area_combobox_value = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
+                                                               'room_subArea_comboBox')
+        if sub_live_area_combobox_value == str(area["area_id"]):
+            log_save(obs.LOG_INFO, "分区未变化")
+            return False
+        # 获取默认账户
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        change_room_area_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
+                                                    cookie=dict2cookie(b_u_l_c.get_cookies())).change_room_area(
+            int(sub_live_area_combobox_value))
+        log_save(obs.LOG_INFO, f"更新直播间分区返回：{change_room_area_return}")
+        if change_room_area_return["code"] == 0:
+            log_save(obs.LOG_INFO, "直播间分区更改成功")
+        else:
+            if change_room_area_return["code"] == 60024:
+                ButtonFunction.button_function_face_auth()
+            log_save(obs.LOG_WARNING, f"直播间分区更改失败：{change_room_area_return['message']}")
+            return False
+
+        # 调整控件数据
+        log_save(obs.LOG_INFO, f"")
+        log_save(obs.LOG_INFO, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
+        log_save(obs.LOG_INFO, f"║{25 * ' '}调整控件数据{25 * ' '}║")
+        log_save(obs.LOG_INFO, f"║")
+        log_save(obs.LOG_DEBUG, f"║设置控件前准备（获取数据）")
+        log_save(obs.LOG_INFO, f"║╔{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╗")
+        # 创建用户配置文件实例
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        # 获取 '登录用户' 对应的直播间基础信息
+        room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(
+            int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
+        """直播间基础信息"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 的 直播间状态
+        room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
+        """登录用户的直播间存在状态"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 的 直播间id
+        room_id = (room_info_old["roomid"] if room_status else None) if b_u_l_c.get_cookies() else None
+        """登录用户的直播间id"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间id：{(room_id if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 直播间基本信息
+        room_base_info = (
+            BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_base_info(
+                room_id) if room_status else None) if b_u_l_c.get_cookies() else None
+        """直播间基本信息"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间基本信息：{room_base_info if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 直播间的分区
+        area = (
+            {"parent_area_id": room_base_info["parent_area_id"], "parent_area_name": room_base_info["parent_area_name"],
+             "area_id": room_base_info["area_id"],
+             "area_name": room_base_info["area_name"], } if room_status else None) if b_u_l_c.get_cookies() else None
+        """登录用户的直播间分区】{"parent_area_id": 3, "parent_area_name": "手游", "area_id": 255, "area_name": "明日方舟"}"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间分区数据：{(area if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 直播间 常用分区信息
+        common_areas = \
+            BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_anchor_common_areas(room_id)[
+                "data"]
+        """获取 '登录用户' 直播间 常用分区信息】[{"id": "255", "name": "明日方舟", "parent_id": "3", "parent_name": "手游",}, ]"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 常用分区信息：{(common_areas if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 常用直播间分区
+        common_area_id_dict_str4common_area_name_dict_str = (({json.dumps({area['parent_id']: area['id']},
+                                                                          ensure_ascii=False): json.dumps(
+            {area['parent_name']: area['name']}, ensure_ascii=False) for area in common_areas} if common_areas else {
+            "-1": "无常用分区"}) if room_status else {"-1": '⚠️无直播间'}) if b_u_l_c.get_cookies() else {
+            "-1": "⚠️未登录账号"}
+        """登录用户的常用直播间分区字典】{'{parent_id: id}': '{parent_name: name}', }"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 常用直播间分区：{(common_area_id_dict_str4common_area_name_dict_str.values() if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 B站直播分区信息
+        area_obj_list = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_area_obj_list()
+        """B站直播分区信息"""
+        log_save(obs.LOG_INFO, f"║║获取B站直播分区信息：{area_obj_list if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 直播间父分区数据
+        parent_live_area_name4parent_live_area_id = (({str(AreaObj["id"]): AreaObj["name"] for AreaObj in
+                                                       area_obj_list['data']} | {} if area else {
+            "-1": "请选择一级分区"}) if room_status else {"-1": '⚠️无直播间'}) if b_u_l_c.get_cookies() else {
+            "-1": "⚠️未登录账号"}
+        """直播间父分区数据"""
+        log_save(obs.LOG_INFO,
+                 f"║║获取 直播间父分区数据：{(parent_live_area_name4parent_live_area_id if room_status else '⚠️无直播间') if b_u_l_c.get_cookies() else '⚠️未登录账号'}")
+        # 获取 登录账户 的 直播间父分区 对应的 直播间子分区数据
+        sub_live_area_name4sub_live_area_id = (({str(subAreaObj["id"]): subAreaObj["name"] for subAreaObj in
+                                                 [AreaObj["list"] for AreaObj in area_obj_list["data"] if
+                                                  str(area["parent_area_id"]) == str(AreaObj["id"])][0]} if area else {
+            "-1": "请选择一级分区"}) if room_status else {"-1": '⚠️无直播间'}) if b_u_l_c.get_cookies() else {
+            "-1": "⚠️未登录账号"}
+        """登录账户 的 直播间父分区 对应的 直播间子分区数据"""
+        log_save(obs.LOG_INFO,
+                 f"║║获取 登录账户 的 直播间父分区 对应的 直播间子分区数据：{(sub_live_area_name4sub_live_area_id if room_status else '⚠️无直播间') if b_u_l_c.get_cookies() else '⚠️未登录账号'}")
+        log_save(obs.LOG_INFO, f"║╚{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╝")
+        # 设置控件属性
+        log_save(obs.LOG_INFO, f"║")
+        log_save(obs.LOG_INFO, f"║╔{15 * '═'}设置 控件属性{15 * '═'}╗")
+        # 分组框【账号】
+        # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+        log_save(obs.LOG_INFO, f"║║")
+        log_save(obs.LOG_INFO, f"║║设置 分组框【直播间】 中 控件属性")
+        log_save(obs.LOG_INFO, f"║║╔{7 * '═'}设置 分组框【直播间】 中控件属性{7 * '═'}╗")
+        # 设置 组合框【常用分区】 可见状态
+        widget.ComboBox.roomCommonAreas.Visible = bool(room_status)
+        log_save(obs.LOG_INFO, f"║║║设置 组合框【常用分区】 可见状态：{str(widget.ComboBox.roomCommonAreas.Visible)}")
+        # 设置 组合框【常用分区】 可用状态
+        widget.ComboBox.roomCommonAreas.Enabled = bool(room_status)
+        log_save(obs.LOG_INFO, f"║║║设置 组合框【常用分区】 可用状态：{str(widget.ComboBox.roomCommonAreas.Enabled)}")
+        # 设置 组合框【常用分区】 的数据字典
+        widget.ComboBox.roomCommonAreas.Dictionary = common_area_id_dict_str4common_area_name_dict_str
+        log_save(obs.LOG_INFO, f"║║║设置 组合框【常用分区】 数据字典：{str(widget.ComboBox.roomCommonAreas.Dictionary)}")
+        # 设置 组合框【常用分区】 默认显示内容
+        widget.ComboBox.roomCommonAreas.Text = common_area_id_dict_str4common_area_name_dict_str[
+            json.dumps({area["parent_area_id"]: str(area["area_id"])})] if common_areas else "无常用分区"
+        log_save(obs.LOG_INFO, f"║║║设置 组合框【常用分区】 默认显示内容：{str(widget.ComboBox.roomCommonAreas.Text)}")
+        # 设置 组合框【常用分区】 默认显示内容 的 列表值
+        widget.ComboBox.roomCommonAreas.Value = json.dumps({area["parent_area_id"]: str(area["area_id"])},
+                                                           ensure_ascii=False) if common_areas else "-1"
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 组合框【常用分区】 默认显示内容 的 列表值：{str(widget.ComboBox.roomCommonAreas.Value)}")
+
+        # 设置 组合框【一级分区】 可见状态
+        widget.ComboBox.roomParentArea.Visible = bool(room_status)
+        log_save(obs.LOG_INFO, f"║║║设置 组合框【一级分区】 可见状态：{str(widget.ComboBox.roomParentArea.Visible)}")
+        # 设置 组合框【一级分区】 可用状态
+        widget.ComboBox.roomParentArea.Enabled = bool(room_status)
+        log_save(obs.LOG_INFO, f"║║║设置 组合框【一级分区】 可用状态：{str(widget.ComboBox.roomParentArea.Enabled)}")
+        # 设置 组合框【一级分区】 的数据字典
+        widget.ComboBox.roomParentArea.Dictionary = parent_live_area_name4parent_live_area_id
+        log_save(obs.LOG_INFO, f"║║║设置 组合框【一级分区】 数据字典：{str(widget.ComboBox.roomParentArea.Dictionary)}")
+        # 设置 组合框【一级分区】 默认显示内容
+        widget.ComboBox.roomParentArea.Text = str(area["parent_area_name"]) if bool(area) else "请选择一级分区"
+        log_save(obs.LOG_INFO, f"║║║设置 组合框【一级分区】 默认显示内容：{str(widget.ComboBox.roomParentArea.Text)}")
+        # 设置 组合框【一级分区】 默认显示内容 的 列表值
+        widget.ComboBox.roomParentArea.Value = str(area["parent_area_id"]) if bool(area) else "-1"
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 组合框【一级分区】 默认显示内容 的 列表值：{str(widget.ComboBox.roomParentArea.Value)}")
+
+        # 设置 组合框【二级分区】 可见状态
+        widget.ComboBox.roomSubArea.Visible = bool(room_status)
+        log_save(obs.LOG_INFO, f"║║║设置 组合框【二级分区】 可见状态：{str(widget.ComboBox.roomSubArea.Visible)}")
+        # 设置 组合框【二级分区】 可用状态
+        widget.ComboBox.roomSubArea.Obj_enabled = bool(room_status)
+        log_save(obs.LOG_INFO, f"║║║设置 组合框【二级分区】 可用状态：{str(widget.ComboBox.roomSubArea.Obj_enabled)}")
+        # 设置 组合框【二级分区】 数据字典
+        widget.ComboBox.roomSubArea.Dictionary = sub_live_area_name4sub_live_area_id
+        log_save(obs.LOG_INFO, f"║║║设置 组合框【二级分区】 数据字典：{str(widget.ComboBox.roomSubArea.Dictionary)}")
+        # 设置 组合框【二级分区】 默认显示内容
+        widget.ComboBox.roomSubArea.Text = str(area["area_name"]) if bool(area) else "请确认一级分区"
+        log_save(obs.LOG_INFO, f"║║║设置 组合框【二级分区】 默认显示内容：{str(widget.ComboBox.roomSubArea.Text)}")
+        # 设置 组合框【二级分区】 默认显示内容 的 列表值
+        widget.ComboBox.roomSubArea.Value = str(area["area_id"]) if bool(area) else "-1"
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 组合框【二级分区】 默认显示内容 的 列表值：{str(widget.ComboBox.roomSubArea.Value)}")
+        log_save(obs.LOG_INFO, f"║║╚{7 * '═'}设置 分组框【直播间】 中控件属性{7 * '═'}╝")
+        log_save(obs.LOG_INFO, f"║╚{15 * '═'}设置 控件属性{15 * '═'}╝")
+        # 调整控件数据 结束
+        log_save(obs.LOG_INFO, f"╚{25 * '═'}调整控件数据{25 * '═'}╝")
+        log_save(obs.LOG_INFO, f"")
+
+        # 组合框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐组合框 UI{30 * '─'}┐")
+        # 【直播间】分组———————————————————————————————————————————————————————————————————————————————————————————————————————
+        log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
+        log_save(obs.LOG_INFO, f"　││▶️分组框【直播间】")
+        # 组合框【一级分区】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛组合框【常用分区】 UI")
+        # 设置 组合框【常用分区 可见状态
+        if obs.obs_property_visible(widget.ComboBox.roomCommonAreas.Obj) != widget.ComboBox.roomCommonAreas.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 组合框【常用分区】 可见状态 发生变动: {obs.obs_property_visible(widget.ComboBox.roomCommonAreas.Obj)}➡️{widget.ComboBox.roomCommonAreas.Visible}")
+            obs.obs_property_set_visible(widget.ComboBox.roomCommonAreas.Obj, widget.ComboBox.roomCommonAreas.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 组合框【常用分区】 可见状态 未 发生变动")
+        # 设置 组合框【常用分区】 可用状态
+        if obs.obs_property_enabled(widget.ComboBox.roomCommonAreas.Obj) != widget.ComboBox.roomCommonAreas.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 组合框【常用分区】 可用状态 发生变动: {obs.obs_property_enabled(widget.ComboBox.roomCommonAreas.Obj)}➡️{widget.ComboBox.roomCommonAreas.Enabled}")
+            obs.obs_property_set_enabled(widget.ComboBox.roomCommonAreas.Obj, widget.ComboBox.roomCommonAreas.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 组合框【常用分区】 可用状态 未 发生变动")
+        # 判断 组合框【常用分区】字典数据 和 当前数据是否有变化
+        if widget.ComboBox.roomCommonAreas.Dictionary != {
+            obs.obs_property_list_item_string(widget.ComboBox.roomCommonAreas.Obj,
+                                              idx): obs.obs_property_list_item_name(
+                widget.ComboBox.roomCommonAreas.Obj, idx) for idx in
+            range(obs.obs_property_list_item_count(widget.ComboBox.roomCommonAreas.Obj))}:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 组合框【常用分区】列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.roomCommonAreas.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomCommonAreas.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomCommonAreas.Obj))})}个元素➡️{len(widget.ComboBox.roomCommonAreas.Dictionary)}个元素")
+            # 清空 组合框【常用分区】
+            log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【常用分区】数据 第一步：清空 组合框【常用分区】")
+            obs.obs_property_list_clear(widget.ComboBox.roomCommonAreas.Obj)
+            # 添加 组合框【常用分区】 列表选项  默认值会被设置在第一位
+            log_save(obs.LOG_INFO,
+                     f"　│││📑  更新 组合框【常用分区】数据 第二步：添加 组合框【常用分区】 列表选项  如果有默认值，会被设置在第一位")
+            for common_area_id_dict_str in widget.ComboBox.roomCommonAreas.Dictionary:
+                obs.obs_property_list_add_string(widget.ComboBox.roomCommonAreas.Obj,
+                                                 widget.ComboBox.roomCommonAreas.Dictionary[common_area_id_dict_str],
+                                                 common_area_id_dict_str) if common_area_id_dict_str != widget.ComboBox.roomCommonAreas.Value else obs.obs_property_list_insert_string(
+                    widget.ComboBox.roomCommonAreas.Obj, 0, widget.ComboBox.roomCommonAreas.Text,
+                    widget.ComboBox.roomCommonAreas.Value)
+            # 设置 组合框【常用分区】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
+            log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【常用分区】数据 第三步：更新 组合框【常用分区】 文本")
+            obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'room_commonAreas_comboBox',
+                                    obs.obs_property_list_item_string(widget.ComboBox.roomCommonAreas.Obj, 0))
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 组合框【常用分区】列表数据 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        # 组合框【一级分区】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️组合框【一级分区】 UI")
+        # 设置 组合框【一级分区】 可见状态
+        if obs.obs_property_visible(widget.ComboBox.roomParentArea.Obj) != widget.ComboBox.roomParentArea.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 组合框【一级分区】 可见状态 发生变动: {obs.obs_property_visible(widget.ComboBox.roomParentArea.Obj)}➡️{widget.ComboBox.roomParentArea.Visible}")
+            obs.obs_property_set_visible(widget.ComboBox.roomParentArea.Obj, widget.ComboBox.roomParentArea.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 组合框【一级分区】 可见状态 未 发生变动")
+        # 设置 组合框【一级分区】 可用状态
+        if obs.obs_property_enabled(widget.ComboBox.roomParentArea.Obj) != widget.ComboBox.roomParentArea.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 组合框【一级分区】 可用状态 发生变动: {obs.obs_property_enabled(widget.ComboBox.roomParentArea.Obj)}➡️{widget.ComboBox.roomParentArea.Enabled}")
+            obs.obs_property_set_enabled(widget.ComboBox.roomParentArea.Obj, widget.ComboBox.roomParentArea.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 组合框【一级分区】 可用状态 未 发生变动")
+        # 判断 组合框【一级分区】字典数据 和 当前数据是否有变化
+        if widget.ComboBox.roomParentArea.Dictionary != {
+            obs.obs_property_list_item_string(widget.ComboBox.roomParentArea.Obj, idx): obs.obs_property_list_item_name(
+                widget.ComboBox.roomParentArea.Obj, idx) for idx in
+            range(obs.obs_property_list_item_count(widget.ComboBox.roomParentArea.Obj))}:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 组合框【一级分区】列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.roomParentArea.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomParentArea.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomParentArea.Obj))})}个元素➡️{len(widget.ComboBox.roomParentArea.Dictionary)}个元素")
+            # 清空 组合框【一级分区】
+            log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【一级分区】数据 第一步：清空 组合框【一级分区】")
+            obs.obs_property_list_clear(widget.ComboBox.roomParentArea.Obj)
+            # 添加 组合框【一级分区】 列表选项  默认值会被设置在第一位
+            log_save(obs.LOG_INFO,
+                     f"　│││📑  更新 组合框【一级分区】数据 第二步：添加 组合框【一级分区】 列表选项  如果有默认值，会被设置在第一位")
+            for common_area_id_dict_str in widget.ComboBox.roomParentArea.Dictionary:
+                obs.obs_property_list_add_string(widget.ComboBox.roomParentArea.Obj,
+                                                 widget.ComboBox.roomParentArea.Dictionary[common_area_id_dict_str],
+                                                 common_area_id_dict_str) if common_area_id_dict_str != widget.ComboBox.roomParentArea.Value else obs.obs_property_list_insert_string(
+                    widget.ComboBox.roomParentArea.Obj, 0, widget.ComboBox.roomParentArea.Text,
+                    widget.ComboBox.roomParentArea.Value)
+            # 设置 组合框【一级分区】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
+            log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【一级分区】数据 第三步：更新 组合框【一级分区】 文本")
+            obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'room_parentArea_comboBox',
+                                    obs.obs_property_list_item_string(widget.ComboBox.roomParentArea.Obj, 0))
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 组合框【一级分区】列表数据 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        # 组合框【二级分区】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️组合框【二级分区】 UI")
+        # 设置 组合框【二级分区】 可见状态
+        if obs.obs_property_visible(widget.ComboBox.roomSubArea.Obj) != widget.ComboBox.roomSubArea.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 组合框【二级分区】 可见状态 发生变动: {obs.obs_property_visible(widget.ComboBox.roomSubArea.Obj)}➡️{widget.ComboBox.roomSubArea.Visible}")
+            obs.obs_property_set_visible(widget.ComboBox.roomSubArea.Obj, widget.ComboBox.roomSubArea.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 组合框【二级分区】 可见状态 未 发生变动")
+        # 设置 组合框【二级分区】 可用状态
+        if obs.obs_property_enabled(widget.ComboBox.roomSubArea.Obj) != widget.ComboBox.roomSubArea.Obj_enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 组合框【二级分区】 可用状态 发生变动: {obs.obs_property_enabled(widget.ComboBox.roomSubArea.Obj)}➡️{widget.ComboBox.roomSubArea.Obj_enabled}")
+            obs.obs_property_set_enabled(widget.ComboBox.roomSubArea.Obj, widget.ComboBox.roomSubArea.Obj_enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 组合框【二级分区】 可用状态 未 发生变动")
+        # 判断 组合框【二级分区】字典数据 和 当前数据是否有变化
+        if widget.ComboBox.roomSubArea.Dictionary != {
+            obs.obs_property_list_item_string(widget.ComboBox.roomSubArea.Obj, idx): obs.obs_property_list_item_name(
+                widget.ComboBox.roomSubArea.Obj, idx) for idx in
+            range(obs.obs_property_list_item_count(widget.ComboBox.roomSubArea.Obj))}:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 组合框【二级分区】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.roomSubArea.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomSubArea.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomSubArea.Obj))})}个元素➡️{len(widget.ComboBox.roomSubArea.Dictionary)}个元素")
+            # 清空 组合框【二级分区】
+            log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【二级分区】数据 第一步：清空 组合框【二级分区】")
+            obs.obs_property_list_clear(widget.ComboBox.roomSubArea.Obj)
+            # 添加 组合框【二级分区】 列表选项  默认值会被设置在第一位
+            log_save(obs.LOG_INFO,
+                     f"　│││📑  更新 组合框【二级分区】数据 第二步：添加 组合框【二级分区】 列表选项  如果有默认值，会被设置在第一位")
+            for subLiveAreaId in widget.ComboBox.roomSubArea.Dictionary:
+                obs.obs_property_list_add_string(widget.ComboBox.roomSubArea.Obj,
+                                                 widget.ComboBox.roomSubArea.Dictionary[subLiveAreaId],
+                                                 subLiveAreaId) if subLiveAreaId != widget.ComboBox.roomSubArea.Value else obs.obs_property_list_insert_string(
+                    widget.ComboBox.roomSubArea.Obj, 0, widget.ComboBox.roomSubArea.Text,
+                    widget.ComboBox.roomSubArea.Value)
+            # 设置 组合框【二级分区】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
+            log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【二级分区】数据 第三步：更新 组合框【二级分区】 文本")
+            obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'room_subArea_comboBox',
+                                    obs.obs_property_list_item_string(widget.ComboBox.roomSubArea.Obj, 0))
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 组合框【二级分区】 列表数据 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
+        log_save(obs.LOG_INFO, f"　└{30 * '─'}👌组合框 UI{30 * '─'}┘")
+        return True
+
+    def button_function_jump_blive_web(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """
+        跳转直播间后台网页
+        Args:
+            props:
+            prop:
+        Returns:
+        """
+        log_save(obs.LOG_INFO, f"即将跳转到网页{widget.Button.bliveWebJump.Url}")
+        pass
+
+    # ____________________-------------------____________________---------------------_______________________---------------
+
+    def button_function_start_live(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """
+        开始直播
+        """
+        # 执行更改直播间标题
+        ButtonFunction.button_function_change_live_room_title()
+        # 执行更改直播间公告
+        ButtonFunction.button_function_change_live_room_news()
+        # 执行更改直播间分区
+        ButtonFunction.button_function_start_sub_area()
+        # 获取默认账户
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        # 获取二级分区id
+        sub_live_area_combobox_value = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
+                                                               'room_subArea_comboBox')
+        log_save(obs.LOG_INFO, f"在【{sub_live_area_combobox_value}】分区 开播")
+        # 获取开播平台
+        live_streaming_platform = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
+                                                          'live_streaming_platform_comboBox')
+        log_save(obs.LOG_INFO, f"使用【{live_streaming_platform}】平台 开播")
+        start_live = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
+                                       cookie=dict2cookie(b_u_l_c.get_cookies())).start_live(
+            int(sub_live_area_combobox_value), live_streaming_platform)
+        log_save(obs.LOG_INFO, f"开播返回：{start_live}")
+        if start_live["code"] == 0:
+            log_save(obs.LOG_INFO, f"开播成功。")
+        else:
+            if start_live["code"] == 60024:
+                ButtonFunction.button_function_face_auth()
+            log_save(obs.LOG_ERROR, f"开播失败：【{start_live['message']}】。")
+            return True
+
+        # 推流地址
+        rtmp_server = start_live["data"]["rtmp"]["addr"]
+        log_save(obs.LOG_INFO, f"B站rtmp推流地址：{rtmp_server}")
+        # 将 rtmp推流码
+        rtmp_push_code = start_live["data"]["rtmp"]["code"]
+        log_save(obs.LOG_INFO, f"B站rtmp推流码：{rtmp_push_code}")
+        # 复制到剪贴板
+        cb.copy(rtmp_push_code)
+        log_save(obs.LOG_INFO, f"已将rtmp推流码复制到剪贴板")
+
+        # 获取当前流服务
+        streaming_service = obs.obs_frontend_get_streaming_service()
+        # 获取当前流服务设置
+        streaming_service_settings = obs.obs_service_get_settings(streaming_service)
+        currently_service_string = obs.obs_data_get_string(streaming_service_settings, "service")
+        log_save(obs.LOG_INFO, f"目前obs的推流服务：【{currently_service_string}】")
+        currently_rtmp_server = obs.obs_data_get_string(streaming_service_settings, "server")
+        log_save(obs.LOG_INFO, f"目前obs的rtmp推流地址：【{currently_rtmp_server}】")
+        currently_rtmp_push_code = obs.obs_data_get_string(streaming_service_settings, "key")
+        log_save(obs.LOG_INFO, f"目前obs的rtmp推流码：【{currently_rtmp_push_code}】")
+        log_save(obs.LOG_INFO, f"obs推流状态：{obs.obs_frontend_streaming_active()}")
+        if currently_rtmp_push_code == rtmp_push_code and currently_rtmp_server == rtmp_server and currently_service_string == "Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP":
+            log_save(obs.LOG_INFO, f"推流信息未发生变化")
+            if obs.obs_frontend_streaming_active():
+                log_save(obs.LOG_INFO, f"正处于推流状态中。。。")
+                pass
+            else:
+                log_save(obs.LOG_INFO, f"直接开始推流")
+                obs.obs_frontend_streaming_start()
+        else:
+            log_save(obs.LOG_INFO, f"推流信息发生变化")
+            # 写入推流服务
+            obs.obs_data_set_string(streaming_service_settings, "service", "Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP")
+            log_save(obs.LOG_INFO, f"向obs写入推流服务：【Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP】")
+            # 写入推流地址
+            obs.obs_data_set_string(streaming_service_settings, "server", rtmp_server)
+            log_save(obs.LOG_INFO, f"向obs写入推流地址：【{rtmp_server}】")
+            # 写入rtmp推流码
+            obs.obs_data_set_string(streaming_service_settings, "key", rtmp_push_code)
+            log_save(obs.LOG_INFO, f"向obs写入rtmp推流码：【{rtmp_push_code}】")
+            # 应用更新
+            obs.obs_service_update(streaming_service, streaming_service_settings)
+            # 检查是否需要重启推流
+            if obs.obs_frontend_streaming_active():
+                log_save(obs.LOG_INFO, f"由于：正处于推流状态中】➡️开始重启推流")
+                # 停止推流
+                log_save(obs.LOG_INFO, f"重启推流第一步：停止推流")
+                obs.obs_frontend_streaming_stop()
+
+                # 设置定时器稍后重启
+                def restart_streaming():
+                    """重启推流"""
+                    if not obs.obs_frontend_streaming_active():
+                        log_save(obs.LOG_INFO, f"重启推流第三步：开始推流")
+                        obs.obs_frontend_streaming_start()
+                        log_save(obs.LOG_INFO, f"重启推流第4️⃣步：关闭重启推流的计时器")
+                        obs.remove_current_callback()
+
+                log_save(obs.LOG_INFO, f"重启推流第二步：开启重启推流的计时器，3s间隔")
+                obs.timer_add(restart_streaming, 3000)
+            else:
+                log_save(obs.LOG_INFO, f"由于：当前并未正在推流】➡️直接开始推流")
+                obs.obs_frontend_streaming_start()
+        currently_service_string = obs.obs_data_get_string(streaming_service_settings, "service")
+        log_save(obs.LOG_INFO, f"目前obs的推流服务：【{currently_service_string}】")
+        currently_rtmp_server = obs.obs_data_get_string(streaming_service_settings, "server")
+        log_save(obs.LOG_INFO, f"目前obs的rtmp推流地址：【{currently_rtmp_server}】")
+        currently_rtmp_push_code = obs.obs_data_get_string(streaming_service_settings, "key")
+        log_save(obs.LOG_INFO, f"目前obs的rtmp推流码：【{currently_rtmp_push_code}】")
+        # 释放流服务设置
+        obs.obs_data_release(streaming_service_settings)
+        # 保存到配置文件
+        obs.obs_frontend_save_streaming_service()
+
+        # 调整控件数据
+        log_save(obs.LOG_INFO, f"")
+        log_save(obs.LOG_INFO, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
+        log_save(obs.LOG_INFO, f"║{25 * ' '}调整控件数据{25 * ' '}║")
+        # 设置控件前准备（获取数据） 开始
+        log_save(obs.LOG_INFO, f"║")
+        log_save(obs.LOG_DEBUG, f"║设置控件前准备（获取数据）")
+        log_save(obs.LOG_INFO, f"║╔{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╗")
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        # 获取 '登录用户' 对应的直播间基础信息
+        room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(
+            int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
+        """直播间基础信息"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 的 直播间状态
+        room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
+        """登录用户的直播间存在状态"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 的 直播状态
+        live_status = (room_info_old["liveStatus"] if room_status else None) if b_u_l_c.get_cookies() else None
+        """登录用户的直播状态】0：未开播 1：直播中"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播状态：{(('直播中' if live_status else '未开播') if room_status else '⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 设置控件前准备（获取数据）结束
+        log_save(obs.LOG_INFO, f"║╚{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╝")
+
+        # 设置控件属性
+        log_save(obs.LOG_INFO, f"║")
+        log_save(obs.LOG_INFO, f"║╔{15 * '═'}设置 控件属性{15 * '═'}╗")
+        # 分组框【直播】
+        # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+        log_save(obs.LOG_INFO, f"║║")
+        log_save(obs.LOG_INFO, f"║║设置 分组框【直播】 中 控件属性")
+        log_save(obs.LOG_INFO, f"║║╔{7 * '═'}设置 分组框【直播】 中控件属性{7 * '═'}╗")
+        # 设置 分组框【直播】 可见状态
+        widget.Group.live.Visible = bool(room_status)
+        log_save(obs.LOG_INFO, f"║║║设置 分组框【直播】 可见状态：{widget.Group.live.Visible}")
+        # 设置 分组框【直播】 可用状态
+        widget.Group.live.Enabled = bool(room_status)
+        log_save(obs.LOG_INFO, f"║║║设置 分组框【直播】 可用状态：{widget.Group.live.Enabled}")
+
+        # 设置 组合框【直播平台】 可见状态
+        widget.ComboBox.liveStreamingPlatform.Visible = bool(room_status)
+        log_save(obs.LOG_INFO, f"║║║设置 组合框【直播平台】 可见状态：{str(widget.Button.bliveWebJump.Visible)}")
+        # 设置 组合框【直播平台】 可用状态
+        widget.ComboBox.liveStreamingPlatform.Enabled = True if ((not live_status) and room_status) else False
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 组合框【直播平台】 可用状态：{str(widget.ComboBox.liveStreamingPlatform.Enabled)}")
+        # 设置 组合框【直播平台】 的数据字典
+        widget.ComboBox.liveStreamingPlatform.Dictionary = {"pc_link": "直播姬（pc）", "web_link": "web在线直播",
+                                                            "android_link": "bililink"}
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 组合框【直播平台】 的数据字典：{str(widget.ComboBox.liveStreamingPlatform.Dictionary)}")
+        # 设置 组合框【直播平台】 的内容
+        widget.ComboBox.liveStreamingPlatform.Text = ""
+        log_save(obs.LOG_INFO, f"║║║设置 组合框【直播平台】 的内容：{str(widget.ComboBox.liveStreamingPlatform.Text)}")
+        # 设置 组合框【直播平台】 的内容 的 列表值
+        widget.ComboBox.liveStreamingPlatform.Value = ""
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 组合框【直播平台】 的内容 的 列表值：{str(widget.ComboBox.liveStreamingPlatform.Value)}")
+
+        # 设置 按钮【开始直播并复制推流码】 可见状态
+        widget.Button.liveStart.Visible = True if ((not live_status) and room_status) else False
+        log_save(obs.LOG_INFO, f"║║║设置 按钮【开始直播并复制推流码】 可见状态：{str(widget.Button.liveStart.Visible)}")
+        # 设置 按钮【开始直播并复制推流码】 可用状态
+        widget.Button.liveStart.Enabled = True if ((not live_status) and room_status) else False
+        log_save(obs.LOG_INFO, f"║║║设置 按钮【开始直播并复制推流码】 可用状态：{str(widget.Button.liveStart.Enabled)}")
+
+        # 设置 按钮【复制直播服务器】 可见状态
+        widget.Button.liveRtmpAddressCopy.Visible = True if (live_status and room_status) else False
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 按钮【复制直播服务器】 可见状态：{str(widget.Button.liveRtmpAddressCopy.Visible)}")
+        # 设置 按钮【复制直播服务器】 可用状态
+        widget.Button.liveRtmpAddressCopy.Enabled = True if (live_status and room_status) else False
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 按钮【复制直播服务器】 可用状态：{str(widget.Button.liveRtmpAddressCopy.Enabled)}")
+
+        # 设置 按钮【复制直播推流码】 可见状态
+        widget.Button.liveRtmpCodeCopy.Visible = True if (live_status and room_status) else False
+        log_save(obs.LOG_INFO, f"║║║设置 按钮【复制直播推流码】 可见状态：{str(widget.Button.liveRtmpCodeCopy.Visible)}")
+        # 设置 按钮【复制直播推流码】 可用状态
+        widget.Button.liveRtmpCodeCopy.Enabled = True if (live_status and room_status) else False
+        log_save(obs.LOG_INFO, f"║║║设置 按钮【复制直播推流码】 可用状态：{str(widget.Button.liveRtmpCodeCopy.Enabled)}")
+
+        # 设置 按钮【更新推流码并复制】 可见状态
+        widget.Button.liveRtmpCodeUpdate.Visible = True if (live_status and room_status) else False
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 按钮【更新推流码并复制】 可见状态：{str(widget.Button.liveRtmpCodeUpdate.Visible)}")
+        # 设置 按钮【更新推流码并复制】 可用状态
+        widget.Button.liveRtmpCodeUpdate.Obj_enabled = True if (live_status and room_status) else False
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 按钮【更新推流码并复制】 可用状态：{str(widget.Button.liveRtmpCodeUpdate.Obj_enabled)}")
+
+        # 设置 按钮【结束直播】 可见状态
+        widget.Button.liveStop.Visible = True if (live_status and room_status) else False
+        log_save(obs.LOG_INFO, f"║║║设置 按钮【结束直播】 可见状态：{str(widget.Button.liveStop.Visible)}")
+        # 设置 按钮【结束直播】 可用状态
+        widget.Button.liveStop.Enabled = True if (live_status and room_status) else False
+        log_save(obs.LOG_INFO, f"║║║设置 按钮【结束直播】 可用状态：{str(widget.Button.liveStop.Enabled)}")
+        # 设置 分组框【直播】 中控件属性 结束
+        log_save(obs.LOG_INFO, f"║║╚{7 * '═'}设置 分组框【直播】 中控件属性{7 * '═'}╝")
+        # 设置 控件属性 结束
+        log_save(obs.LOG_INFO, f"║╚{15 * '═'}设置 控件属性{15 * '═'}╝")
+        # 调整控件数据 结束
+        log_save(obs.LOG_INFO, f"╚{25 * '═'}调整控件数据{25 * '═'}╝")
+        log_save(obs.LOG_INFO, f"")
+
+        # 分组框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐分组框 UI{30 * '─'}┐")
+        # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
+        log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
+        log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
+        # 分组框【直播】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️分组框【直播】 UI")
+        # 设置 分组框【直播】 可见状态
+        if obs.obs_property_visible(widget.Group.live.Obj) != widget.Group.live.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 分组框【直播】 可见状态 发生变动: {obs.obs_property_visible(widget.Group.live.Obj)}➡️{widget.Group.live.Visible}")
+            obs.obs_property_set_visible(widget.Group.live.Obj, widget.Group.live.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 分组框【直播】 可见状态 未 发生变动")
+        # 设置 分组框【直播】 可用状态
+        if obs.obs_property_enabled(widget.Group.live.Obj) != widget.Group.live.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 分组框【直播】 可用状态 发生变动: {obs.obs_property_enabled(widget.Group.live.Obj)}➡️{widget.Group.live.Enabled}")
+            obs.obs_property_set_enabled(widget.Group.live.Obj, widget.Group.live.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 分组框【直播】 可用状态 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
+        log_save(obs.LOG_INFO, f"　└{30 * '─'}👌分组框 UI{30 * '─'}┘")
+
+        # 组合框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐组合框 UI{30 * '─'}┐")
+        # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
+        log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
+        log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
+        # 组合框【直播平台】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️组合框【直播平台】 UI")
+        # 设置 组合框【直播平台】 可见状态
+        if obs.obs_property_visible(
+                widget.ComboBox.liveStreamingPlatform.Obj) != widget.ComboBox.liveStreamingPlatform.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 组合框【直播平台】 可见状态 发生变动: {obs.obs_property_visible(widget.ComboBox.liveStreamingPlatform.Obj)}➡️{widget.ComboBox.liveStreamingPlatform.Visible}")
+            obs.obs_property_set_visible(widget.ComboBox.liveStreamingPlatform.Obj,
+                                         widget.ComboBox.liveStreamingPlatform.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 组合框【直播平台】 可见状态 未 发生变动")
+        # 设置 组合框【直播平台】 可用状态
+        if obs.obs_property_enabled(
+                widget.ComboBox.liveStreamingPlatform.Obj) != widget.ComboBox.liveStreamingPlatform.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 组合框【直播平台】 可用状态 发生变动: {obs.obs_property_enabled(widget.ComboBox.liveStreamingPlatform.Obj)}➡️{widget.ComboBox.liveStreamingPlatform.Enabled}")
+            obs.obs_property_set_enabled(widget.ComboBox.liveStreamingPlatform.Obj,
+                                         widget.ComboBox.liveStreamingPlatform.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 组合框【直播平台】 可用状态 未 发生变动")
+        # 判断 组合框【直播平台】字典数据 和 当前数据是否有变化
+        if widget.ComboBox.liveStreamingPlatform.Dictionary != {
+            obs.obs_property_list_item_string(widget.ComboBox.liveStreamingPlatform.Obj,
+                                              idx): obs.obs_property_list_item_name(
+                widget.ComboBox.liveStreamingPlatform.Obj, idx) for idx in
+            range(obs.obs_property_list_item_count(widget.ComboBox.liveStreamingPlatform.Obj))}:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 组合框【直播平台】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.liveStreamingPlatform.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.liveStreamingPlatform.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.liveStreamingPlatform.Obj))})}个元素➡️{len(widget.ComboBox.liveStreamingPlatform.Dictionary)}个元素")
+            # 清空 组合框【直播平台】
+            log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【直播平台】数据 第一步：清空 组合框【直播平台】")
+            obs.obs_property_list_clear(widget.ComboBox.liveStreamingPlatform.Obj)
+            # 添加 组合框【直播平台】 列表选项  默认值会被设置在第一位
+            log_save(obs.LOG_INFO,
+                     f"　│││📑 更新 组合框【直播平台】数据 第二步：添加 组合框【直播平台】 列表选项  如果有默认值，会被设置在第一位")
+            for LivePlatforms in widget.ComboBox.liveStreamingPlatform.Dictionary:
+                obs.obs_property_list_add_string(widget.ComboBox.liveStreamingPlatform.Obj,
+                                                 widget.ComboBox.liveStreamingPlatform.Dictionary[LivePlatforms],
+                                                 LivePlatforms) if LivePlatforms != widget.ComboBox.liveStreamingPlatform.Value else obs.obs_property_list_insert_string(
+                    widget.ComboBox.liveStreamingPlatform.Obj, 0, widget.ComboBox.liveStreamingPlatform.Text,
+                    widget.ComboBox.liveStreamingPlatform.Value)
+            # 设置 组合框【直播平台】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
+            log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【直播平台】数据 第三步：更新 组合框【直播平台】 文本")
+            obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'live_streaming_platform_comboBox',
+                                    obs.obs_property_list_item_string(widget.ComboBox.liveStreamingPlatform.Obj, 0))
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 组合框【直播平台】 列表数据 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
+        log_save(obs.LOG_INFO, f"　└{30 * '─'}👌组合框 UI{30 * '─'}┘")
+
+        # 按钮+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐按钮 UI{30 * '─'}┐")
+        # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
+        log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
+        log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
+        # 按钮【开始直播并复制推流码】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️按钮【开始直播并复制推流码】 UI")
+        # 设置 按钮【开始直播并复制推流码】 可见状态
+        if obs.obs_property_visible(widget.Button.liveStart.Obj) != widget.Button.liveStart.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【开始直播并复制推流码】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.liveStart.Obj)}➡️{widget.Button.liveStart.Visible}")
+            obs.obs_property_set_visible(widget.Button.liveStart.Obj, widget.Button.liveStart.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【开始直播并复制推流码】 可见状态 未 发生变动")
+        # 设置 按钮【开始直播并复制推流码】 可用状态
+        if obs.obs_property_enabled(widget.Button.liveStart.Obj) != widget.Button.liveStart.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【开始直播并复制推流码】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.liveStart.Obj)}➡️{widget.Button.liveStart.Enabled}")
+            obs.obs_property_set_enabled(widget.Button.liveStart.Obj, widget.Button.liveStart.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【开始直播并复制推流码】 可用状态 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        # 按钮【复制直播服务器】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️按钮【复制直播服务器】 UI")
+        # 设置 按钮【复制直播服务器】 可见状态
+        if obs.obs_property_visible(widget.Button.liveRtmpAddressCopy.Obj) != widget.Button.liveRtmpAddressCopy.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【复制直播服务器】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.liveRtmpAddressCopy.Obj)}➡️{widget.Button.liveRtmpAddressCopy.Visible}")
+            obs.obs_property_set_visible(widget.Button.liveRtmpAddressCopy.Obj,
+                                         widget.Button.liveRtmpAddressCopy.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【复制直播服务器】 可见状态 未 发生变动")
+        # 设置 按钮【复制直播服务器】 可用状态
+        if obs.obs_property_enabled(widget.Button.liveRtmpAddressCopy.Obj) != widget.Button.liveRtmpAddressCopy.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【复制直播服务器】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.liveRtmpAddressCopy.Obj)}➡️{widget.Button.liveRtmpAddressCopy.Enabled}")
+            obs.obs_property_set_enabled(widget.Button.liveRtmpAddressCopy.Obj,
+                                         widget.Button.liveRtmpAddressCopy.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【复制直播服务器】 可用状态 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        # 按钮【复制直播推流码】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️按钮【复制直播推流码】 UI")
+        # 设置 按钮【复制直播推流码】 可见状态
+        if obs.obs_property_visible(widget.Button.liveRtmpCodeCopy.Obj) != widget.Button.liveRtmpCodeCopy.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【复制直播推流码】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.liveRtmpCodeCopy.Obj)}➡️{widget.Button.liveRtmpCodeCopy.Visible}")
+            obs.obs_property_set_visible(widget.Button.liveRtmpCodeCopy.Obj, widget.Button.liveRtmpCodeCopy.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【复制直播推流码】 可见状态 未 发生变动")
+        # 设置 按钮【复制直播推流码】 可用状态
+        if obs.obs_property_enabled(widget.Button.liveRtmpCodeCopy.Obj) != widget.Button.liveRtmpCodeCopy.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【复制直播推流码】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.liveRtmpCodeCopy.Obj)}➡️{widget.Button.liveRtmpCodeCopy.Enabled}")
+            obs.obs_property_set_enabled(widget.Button.liveRtmpCodeCopy.Obj, widget.Button.liveRtmpCodeCopy.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【复制直播推流码】 可用状态 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        # 按钮【更新推流码并复制】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️按钮【更新推流码并复制】 UI")
+        # 设置 按钮【更新推流码并复制】 可见状态
+        if obs.obs_property_visible(widget.Button.liveRtmpCodeUpdate.Obj) != widget.Button.liveRtmpCodeUpdate.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【更新推流码并复制】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.liveRtmpCodeUpdate.Obj)}➡️{widget.Button.liveRtmpCodeUpdate.Visible}")
+            obs.obs_property_set_visible(widget.Button.liveRtmpCodeUpdate.Obj, widget.Button.liveRtmpCodeUpdate.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【更新推流码并复制】 可见状态 未 发生变动")
+        # 设置 按钮【更新推流码并复制】 可用状态
+        if obs.obs_property_enabled(
+                widget.Button.liveRtmpCodeUpdate.Obj) != widget.Button.liveRtmpCodeUpdate.Obj_enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【更新推流码并复制】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.liveRtmpCodeUpdate.Obj)}➡️{widget.Button.liveRtmpCodeUpdate.Obj_enabled}")
+            obs.obs_property_set_enabled(widget.Button.liveRtmpCodeUpdate.Obj,
+                                         widget.Button.liveRtmpCodeUpdate.Obj_enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【更新推流码并复制】 可用状态 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        # 按钮【结束直播】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️按钮【结束直播】 UI")
+        # 设置 按钮【结束直播】 可见状态
+        if obs.obs_property_visible(widget.Button.liveStop.Obj) != widget.Button.liveStop.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【结束直播】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.liveStop.Obj)}➡️{widget.Button.liveStop.Visible}")
+            obs.obs_property_set_visible(widget.Button.liveStop.Obj, widget.Button.liveStop.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【结束直播】 可见状态 未 发生变动")
+        # 设置 按钮【结束直播】 可用状态
+        if obs.obs_property_enabled(widget.Button.liveStop.Obj) != widget.Button.liveStop.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【结束直播】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.liveStop.Obj)}➡️{widget.Button.liveStop.Enabled}")
+            obs.obs_property_set_enabled(widget.Button.liveStop.Obj, widget.Button.liveStop.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【结束直播】 可用状态 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
+        log_save(obs.LOG_INFO, f"　└{30 * '─'}👌按钮 UI{30 * '─'}┘")
+        return True
+
+    def button_function_rtmp_address_copy(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """
+        复制直播服务器
+        Args:
+            props:
+            prop:
+        Returns:
+        """
+        # 获取默认账户
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        stream_addr = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
+                                        cookie=dict2cookie(b_u_l_c.get_cookies())).get_live_stream_info()
+        log_save(obs.LOG_INFO, f"获取直播服务器返回：{stream_addr}")
+        if stream_addr["code"] == 0:
+            log_save(obs.LOG_INFO, f"获取直播服务器成功")
+            log_save(obs.LOG_INFO, f"直播服务器：【{stream_addr['data']['rtmp']['addr']}】")
+            cb.copy(stream_addr['data']['rtmp']['addr'])
+            log_save(obs.LOG_INFO, f"已将 直播服务器 复制到剪贴板")
+        else:
+            log_save(obs.LOG_ERROR, f"获取直播服务器失败：{stream_addr['error']}")
+        return True
+
+    def button_function_rtmp_stream_code_copy(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """
+        复制直播推流码
+        Args:
+            props:
+            prop:
+        Returns:
+        """
+        # 获取默认账户
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        stream_addr = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
+                                        cookie=dict2cookie(b_u_l_c.get_cookies())).get_live_stream_info()
+        log_save(obs.LOG_INFO, f"获取直播推流码返回：{stream_addr}")
+        if stream_addr["code"] == 0:
+            log_save(obs.LOG_INFO, f"获取直播推流码成功")
+            log_save(obs.LOG_INFO, f"直播推流码：【{stream_addr['data']['rtmp']['code']}】")
+            cb.copy(stream_addr['data']['rtmp']['code'])
+            log_save(obs.LOG_INFO, f"已将 直播推流码 复制到剪贴板")
+        else:
+            log_save(obs.LOG_ERROR, f"获取直播推流码失败：{stream_addr['message']}")
+            return False
+        return True
+
+    def button_function_rtmp_stream_code_update(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """
+        更新推流码并复制
+        Args:
+            props:
+            prop:
+        Returns:
+        """
+        # 获取开播平台
+        live_streaming_platform = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
+                                                          'live_streaming_platform_comboBox')
+        log_save(obs.LOG_INFO, f"使用【{live_streaming_platform}】平台 开播")
+        # 获取默认账户
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        stream_addr = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
+                                        cookie=dict2cookie(b_u_l_c.get_cookies())).fetch_stream_addr(
+            live_streaming_platform, True)
+        log_save(obs.LOG_INFO, f"更新直播推流码返回：{stream_addr}")
+        if stream_addr["code"] == 0:
+            log_save(obs.LOG_INFO, f"更新直播推流码成功")
+            log_save(obs.LOG_INFO, f"直播推流码：【{stream_addr['data']['addr']['code']}】")
+            cb.copy(stream_addr['data']['addr']['code'])
+            log_save(obs.LOG_INFO, f"已将 直播推流码 复制到剪贴板")
+        else:
+            log_save(obs.LOG_ERROR, f"更新直播推流码失败：{stream_addr['message']}")
+            return False
+        # 重新开播
+        ButtonFunction.button_function_stop_live()
+        return True
+
+    def button_function_stop_live(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """
+        结束直播
+        """
+        # 停止推流
         if obs.obs_frontend_streaming_active():
-            log_save(obs.LOG_INFO, f"由于：正处于推流状态中】➡️开始重启推流")
-            # 停止推流
-            log_save(obs.LOG_INFO, f"重启推流第一步：停止推流")
+            log_save(obs.LOG_INFO, f"停止推流")
             obs.obs_frontend_streaming_stop()
 
-            # 设置定时器稍后重启
-            def restart_streaming():
-                """重启推流"""
-                if not obs.obs_frontend_streaming_active():
-                    log_save(obs.LOG_INFO, f"重启推流第三步：开始推流")
-                    obs.obs_frontend_streaming_start()
-                    log_save(obs.LOG_INFO, f"重启推流第4️⃣步：关闭重启推流的计时器")
-                    obs.remove_current_callback()
+        # 获取开播平台
+        live_streaming_platform = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
+                                                          'live_streaming_platform_comboBox')
+        log_save(obs.LOG_INFO, f"使用【{live_streaming_platform}】平台 开播")
 
-            log_save(obs.LOG_INFO, f"重启推流第二步：开启重启推流的计时器，3s间隔")
-            obs.timer_add(restart_streaming, 3000)
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        stop_live = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
+                                      cookie=dict2cookie(b_u_l_c.get_cookies())).stop_live(live_streaming_platform)
+        log_save(obs.LOG_INFO, f"停播返回：{stop_live}")
+        if stop_live["code"] == 0:
+            log_save(obs.LOG_INFO, f"停播成功。")
         else:
-            log_save(obs.LOG_INFO, f"由于：当前并未正在推流】➡️直接开始推流")
-            obs.obs_frontend_streaming_start()
-    currently_service_string = obs.obs_data_get_string(streaming_service_settings, "service")
-    log_save(obs.LOG_INFO, f"目前obs的推流服务：【{currently_service_string}】")
-    currently_rtmp_server = obs.obs_data_get_string(streaming_service_settings, "server")
-    log_save(obs.LOG_INFO, f"目前obs的rtmp推流地址：【{currently_rtmp_server}】")
-    currently_rtmp_push_code = obs.obs_data_get_string(streaming_service_settings, "key")
-    log_save(obs.LOG_INFO, f"目前obs的rtmp推流码：【{currently_rtmp_push_code}】")
-    # 释放流服务设置
-    obs.obs_data_release(streaming_service_settings)
-    # 保存到配置文件
-    obs.obs_frontend_save_streaming_service()
+            log_save(obs.LOG_ERROR, f"停播失败：【{stop_live['message']}】。")
+            return False
 
-    # 调整控件数据
-    log_save(obs.LOG_INFO, f"")
-    log_save(obs.LOG_INFO, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
-    log_save(obs.LOG_INFO, f"║{25 * ' '}调整控件数据{25 * ' '}║")
-    # 设置控件前准备（获取数据） 开始
-    log_save(obs.LOG_INFO, f"║")
-    log_save(obs.LOG_DEBUG, f"║设置控件前准备（获取数据）")
-    log_save(obs.LOG_INFO, f"║╔{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╗")
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    # 获取 '登录用户' 对应的直播间基础信息
-    room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(
-        int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
-    """直播间基础信息"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 的 直播间状态
-    room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
-    """登录用户的直播间存在状态"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 的 直播状态
-    live_status = (room_info_old["liveStatus"] if room_status else None) if b_u_l_c.get_cookies() else None
-    """登录用户的直播状态】0：未开播 1：直播中"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播状态：{(('直播中' if live_status else '未开播') if room_status else '⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 设置控件前准备（获取数据）结束
-    log_save(obs.LOG_INFO, f"║╚{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╝")
-
-    # 设置控件属性
-    log_save(obs.LOG_INFO, f"║")
-    log_save(obs.LOG_INFO, f"║╔{15 * '═'}设置 控件属性{15 * '═'}╗")
-    # 分组框【直播】
-    # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    log_save(obs.LOG_INFO, f"║║")
-    log_save(obs.LOG_INFO, f"║║设置 分组框【直播】 中 控件属性")
-    log_save(obs.LOG_INFO, f"║║╔{7 * '═'}设置 分组框【直播】 中控件属性{7 * '═'}╗")
-    # 设置 分组框【直播】 可见状态
-    widget.Group.live.Visible = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 分组框【直播】 可见状态：{widget.Group.live.Visible}")
-    # 设置 分组框【直播】 可用状态
-    widget.Group.live.Enabled = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 分组框【直播】 可用状态：{widget.Group.live.Enabled}")
-
-    # 设置 组合框【直播平台】 可见状态
-    widget.ComboBox.liveStreamingPlatform.Visible = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【直播平台】 可见状态：{str(widget.Button.bliveWebJump.Visible)}")
-    # 设置 组合框【直播平台】 可用状态
-    widget.ComboBox.liveStreamingPlatform.Enabled = True if ((not live_status) and room_status) else False
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【直播平台】 可用状态：{str(widget.ComboBox.liveStreamingPlatform.Enabled)}")
-    # 设置 组合框【直播平台】 的数据字典
-    widget.ComboBox.liveStreamingPlatform.Dictionary = {"pc_link": "直播姬（pc）", "web_link": "web在线直播",
-                                                        "android_link": "bililink"}
-    log_save(obs.LOG_INFO,
-             f"║║║设置 组合框【直播平台】 的数据字典：{str(widget.ComboBox.liveStreamingPlatform.Dictionary)}")
-    # 设置 组合框【直播平台】 的内容
-    widget.ComboBox.liveStreamingPlatform.Text = ""
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【直播平台】 的内容：{str(widget.ComboBox.liveStreamingPlatform.Text)}")
-    # 设置 组合框【直播平台】 的内容 的 列表值
-    widget.ComboBox.liveStreamingPlatform.Value = ""
-    log_save(obs.LOG_INFO,
-             f"║║║设置 组合框【直播平台】 的内容 的 列表值：{str(widget.ComboBox.liveStreamingPlatform.Value)}")
-
-    # 设置 按钮【开始直播并复制推流码】 可见状态
-    widget.Button.liveStart.Visible = True if ((not live_status) and room_status) else False
-    log_save(obs.LOG_INFO, f"║║║设置 按钮【开始直播并复制推流码】 可见状态：{str(widget.Button.liveStart.Visible)}")
-    # 设置 按钮【开始直播并复制推流码】 可用状态
-    widget.Button.liveStart.Enabled = True if ((not live_status) and room_status) else False
-    log_save(obs.LOG_INFO, f"║║║设置 按钮【开始直播并复制推流码】 可用状态：{str(widget.Button.liveStart.Enabled)}")
-
-    # 设置 按钮【复制直播服务器】 可见状态
-    widget.Button.liveRtmpAddressCopy.Visible = True if (live_status and room_status) else False
-    log_save(obs.LOG_INFO, f"║║║设置 按钮【复制直播服务器】 可见状态：{str(widget.Button.liveRtmpAddressCopy.Visible)}")
-    # 设置 按钮【复制直播服务器】 可用状态
-    widget.Button.liveRtmpAddressCopy.Enabled = True if (live_status and room_status) else False
-    log_save(obs.LOG_INFO, f"║║║设置 按钮【复制直播服务器】 可用状态：{str(widget.Button.liveRtmpAddressCopy.Enabled)}")
-
-    # 设置 按钮【复制直播推流码】 可见状态
-    widget.Button.liveRtmpCodeCopy.Visible = True if (live_status and room_status) else False
-    log_save(obs.LOG_INFO, f"║║║设置 按钮【复制直播推流码】 可见状态：{str(widget.Button.liveRtmpCodeCopy.Visible)}")
-    # 设置 按钮【复制直播推流码】 可用状态
-    widget.Button.liveRtmpCodeCopy.Enabled = True if (live_status and room_status) else False
-    log_save(obs.LOG_INFO, f"║║║设置 按钮【复制直播推流码】 可用状态：{str(widget.Button.liveRtmpCodeCopy.Enabled)}")
-
-    # 设置 按钮【更新推流码并复制】 可见状态
-    widget.Button.liveRtmpCodeUpdate.Visible = True if (live_status and room_status) else False
-    log_save(obs.LOG_INFO, f"║║║设置 按钮【更新推流码并复制】 可见状态：{str(widget.Button.liveRtmpCodeUpdate.Visible)}")
-    # 设置 按钮【更新推流码并复制】 可用状态
-    widget.Button.liveRtmpCodeUpdate.Obj_enabled = True if (live_status and room_status) else False
-    log_save(obs.LOG_INFO,
-             f"║║║设置 按钮【更新推流码并复制】 可用状态：{str(widget.Button.liveRtmpCodeUpdate.Obj_enabled)}")
-
-    # 设置 按钮【结束直播】 可见状态
-    widget.Button.liveStop.Visible = True if (live_status and room_status) else False
-    log_save(obs.LOG_INFO, f"║║║设置 按钮【结束直播】 可见状态：{str(widget.Button.liveStop.Visible)}")
-    # 设置 按钮【结束直播】 可用状态
-    widget.Button.liveStop.Enabled = True if (live_status and room_status) else False
-    log_save(obs.LOG_INFO, f"║║║设置 按钮【结束直播】 可用状态：{str(widget.Button.liveStop.Enabled)}")
-    # 设置 分组框【直播】 中控件属性 结束
-    log_save(obs.LOG_INFO, f"║║╚{7 * '═'}设置 分组框【直播】 中控件属性{7 * '═'}╝")
-    # 设置 控件属性 结束
-    log_save(obs.LOG_INFO, f"║╚{15 * '═'}设置 控件属性{15 * '═'}╝")
-    # 调整控件数据 结束
-    log_save(obs.LOG_INFO, f"╚{25 * '═'}调整控件数据{25 * '═'}╝")
-    log_save(obs.LOG_INFO, f"")
-
-    # 分组框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐分组框 UI{30 * '─'}┐")
-    # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
-    log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
-    log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
-    # 分组框【直播】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️分组框【直播】 UI")
-    # 设置 分组框【直播】 可见状态
-    if obs.obs_property_visible(widget.Group.live.Obj) != widget.Group.live.Visible:
+        # 调整控件数据
+        log_save(obs.LOG_INFO, f"")
+        log_save(obs.LOG_INFO, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
+        log_save(obs.LOG_INFO, f"║{25 * ' '}调整控件数据{25 * ' '}║")
+        # 设置控件前准备（获取数据） 开始
+        log_save(obs.LOG_INFO, f"║")
+        log_save(obs.LOG_DEBUG, f"║设置控件前准备（获取数据）")
+        log_save(obs.LOG_INFO, f"║╔{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╗")
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        # 获取 '登录用户' 对应的直播间基础信息
+        room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(
+            int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
+        """直播间基础信息"""
         log_save(obs.LOG_INFO,
-                 f"　│││✏️ 分组框【直播】 可见状态 发生变动: {obs.obs_property_visible(widget.Group.live.Obj)}➡️{widget.Group.live.Visible}")
-        obs.obs_property_set_visible(widget.Group.live.Obj, widget.Group.live.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 分组框【直播】 可见状态 未 发生变动")
-    # 设置 分组框【直播】 可用状态
-    if obs.obs_property_enabled(widget.Group.live.Obj) != widget.Group.live.Enabled:
+                 f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 的 直播间状态
+        room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
+        """登录用户的直播间存在状态"""
         log_save(obs.LOG_INFO,
-                 f"　│││✏️ 分组框【直播】 可用状态 发生变动: {obs.obs_property_enabled(widget.Group.live.Obj)}➡️{widget.Group.live.Enabled}")
-        obs.obs_property_set_enabled(widget.Group.live.Obj, widget.Group.live.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 分组框【直播】 可用状态 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
-    log_save(obs.LOG_INFO, f"　└{30 * '─'}👌分组框 UI{30 * '─'}┘")
+                 f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 的 直播状态
+        live_status = (room_info_old["liveStatus"] if room_status else None) if b_u_l_c.get_cookies() else None
+        """登录用户的直播状态】0：未开播 1：直播中"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播状态：{(('直播中' if live_status else '未开播') if room_status else '⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 设置控件前准备（获取数据）结束
+        log_save(obs.LOG_INFO, f"║╚{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╝")
 
-    # 组合框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐组合框 UI{30 * '─'}┐")
-    # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
-    log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
-    log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
-    # 组合框【直播平台】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️组合框【直播平台】 UI")
-    # 设置 组合框【直播平台】 可见状态
-    if obs.obs_property_visible(
-            widget.ComboBox.liveStreamingPlatform.Obj) != widget.ComboBox.liveStreamingPlatform.Visible:
+        # 设置控件属性
+        log_save(obs.LOG_INFO, f"║")
+        log_save(obs.LOG_INFO, f"║╔{15 * '═'}设置 控件属性{15 * '═'}╗")
+        # 分组框【直播】
+        # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+        log_save(obs.LOG_INFO, f"║║")
+        log_save(obs.LOG_INFO, f"║║设置 分组框【直播】 中 控件属性")
+        log_save(obs.LOG_INFO, f"║║╔{7 * '═'}设置 分组框【直播】 中控件属性{7 * '═'}╗")
+        # 设置 分组框【直播】 可见状态
+        widget.Group.live.Visible = bool(room_status)
+        log_save(obs.LOG_INFO, f"║║║设置 分组框【直播】 可见状态：{widget.Group.live.Visible}")
+        # 设置 分组框【直播】 可用状态
+        widget.Group.live.Enabled = bool(room_status)
+        log_save(obs.LOG_INFO, f"║║║设置 分组框【直播】 可用状态：{widget.Group.live.Enabled}")
+
+        # 设置 组合框【直播平台】 可见状态
+        widget.ComboBox.liveStreamingPlatform.Visible = bool(room_status)
+        log_save(obs.LOG_INFO, f"║║║设置 组合框【直播平台】 可见状态：{str(widget.Button.bliveWebJump.Visible)}")
+        # 设置 组合框【直播平台】 可用状态
+        widget.ComboBox.liveStreamingPlatform.Enabled = True if ((not live_status) and room_status) else False
         log_save(obs.LOG_INFO,
-                 f"　│││✏️ 组合框【直播平台】 可见状态 发生变动: {obs.obs_property_visible(widget.ComboBox.liveStreamingPlatform.Obj)}➡️{widget.ComboBox.liveStreamingPlatform.Visible}")
-        obs.obs_property_set_visible(widget.ComboBox.liveStreamingPlatform.Obj,
-                                     widget.ComboBox.liveStreamingPlatform.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 组合框【直播平台】 可见状态 未 发生变动")
-    # 设置 组合框【直播平台】 可用状态
-    if obs.obs_property_enabled(
-            widget.ComboBox.liveStreamingPlatform.Obj) != widget.ComboBox.liveStreamingPlatform.Enabled:
+                 f"║║║设置 组合框【直播平台】 可用状态：{str(widget.ComboBox.liveStreamingPlatform.Enabled)}")
+        # 设置 组合框【直播平台】 的数据字典
+        widget.ComboBox.liveStreamingPlatform.Dictionary = {"pc_link": "直播姬（pc）", "web_link": "web在线直播",
+                                                            "android_link": "bililink"}
         log_save(obs.LOG_INFO,
-                 f"　│││✏️ 组合框【直播平台】 可用状态 发生变动: {obs.obs_property_enabled(widget.ComboBox.liveStreamingPlatform.Obj)}➡️{widget.ComboBox.liveStreamingPlatform.Enabled}")
-        obs.obs_property_set_enabled(widget.ComboBox.liveStreamingPlatform.Obj,
-                                     widget.ComboBox.liveStreamingPlatform.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 组合框【直播平台】 可用状态 未 发生变动")
-    # 判断 组合框【直播平台】字典数据 和 当前数据是否有变化
-    if widget.ComboBox.liveStreamingPlatform.Dictionary != {
-        obs.obs_property_list_item_string(widget.ComboBox.liveStreamingPlatform.Obj,
-                                          idx): obs.obs_property_list_item_name(
+                 f"║║║设置 组合框【直播平台】 的数据字典：{str(widget.ComboBox.liveStreamingPlatform.Dictionary)}")
+        # 设置 组合框【直播平台】 的内容
+        widget.ComboBox.liveStreamingPlatform.Text = ""
+        log_save(obs.LOG_INFO, f"║║║设置 组合框【直播平台】 的内容：{str(widget.ComboBox.liveStreamingPlatform.Text)}")
+        # 设置 组合框【直播平台】 的内容 的 列表值
+        widget.ComboBox.liveStreamingPlatform.Value = ""
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 组合框【直播平台】 的内容 的 列表值：{str(widget.ComboBox.liveStreamingPlatform.Value)}")
+
+        # 设置 按钮【开始直播并复制推流码】 可见状态
+        widget.Button.liveStart.Visible = True if ((not live_status) and room_status) else False
+        log_save(obs.LOG_INFO, f"║║║设置 按钮【开始直播并复制推流码】 可见状态：{str(widget.Button.liveStart.Visible)}")
+        # 设置 按钮【开始直播并复制推流码】 可用状态
+        widget.Button.liveStart.Enabled = True if ((not live_status) and room_status) else False
+        log_save(obs.LOG_INFO, f"║║║设置 按钮【开始直播并复制推流码】 可用状态：{str(widget.Button.liveStart.Enabled)}")
+
+        # 设置 按钮【复制直播服务器】 可见状态
+        widget.Button.liveRtmpAddressCopy.Visible = True if (live_status and room_status) else False
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 按钮【复制直播服务器】 可见状态：{str(widget.Button.liveRtmpAddressCopy.Visible)}")
+        # 设置 按钮【复制直播服务器】 可用状态
+        widget.Button.liveRtmpAddressCopy.Enabled = True if (live_status and room_status) else False
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 按钮【复制直播服务器】 可用状态：{str(widget.Button.liveRtmpAddressCopy.Enabled)}")
+
+        # 设置 按钮【复制直播推流码】 可见状态
+        widget.Button.liveRtmpCodeCopy.Visible = True if (live_status and room_status) else False
+        log_save(obs.LOG_INFO, f"║║║设置 按钮【复制直播推流码】 可见状态：{str(widget.Button.liveRtmpCodeCopy.Visible)}")
+        # 设置 按钮【复制直播推流码】 可用状态
+        widget.Button.liveRtmpCodeCopy.Enabled = True if (live_status and room_status) else False
+        log_save(obs.LOG_INFO, f"║║║设置 按钮【复制直播推流码】 可用状态：{str(widget.Button.liveRtmpCodeCopy.Enabled)}")
+
+        # 设置 按钮【更新推流码并复制】 可见状态
+        widget.Button.liveRtmpCodeUpdate.Visible = True if (live_status and room_status) else False
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 按钮【更新推流码并复制】 可见状态：{str(widget.Button.liveRtmpCodeUpdate.Visible)}")
+        # 设置 按钮【更新推流码并复制】 可用状态
+        widget.Button.liveRtmpCodeUpdate.Obj_enabled = True if (live_status and room_status) else False
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 按钮【更新推流码并复制】 可用状态：{str(widget.Button.liveRtmpCodeUpdate.Obj_enabled)}")
+
+        # 设置 按钮【结束直播】 可见状态
+        widget.Button.liveStop.Visible = True if (live_status and room_status) else False
+        log_save(obs.LOG_INFO, f"║║║设置 按钮【结束直播】 可见状态：{str(widget.Button.liveStop.Visible)}")
+        # 设置 按钮【结束直播】 可用状态
+        widget.Button.liveStop.Enabled = True if (live_status and room_status) else False
+        log_save(obs.LOG_INFO, f"║║║设置 按钮【结束直播】 可用状态：{str(widget.Button.liveStop.Enabled)}")
+        # 设置 分组框【直播】 中控件属性 结束
+        log_save(obs.LOG_INFO, f"║║╚{7 * '═'}设置 分组框【直播】 中控件属性{7 * '═'}╝")
+        # 设置 控件属性 结束
+        log_save(obs.LOG_INFO, f"║╚{15 * '═'}设置 控件属性{15 * '═'}╝")
+        # 调整控件数据 结束
+        log_save(obs.LOG_INFO, f"╚{25 * '═'}调整控件数据{25 * '═'}╝")
+        log_save(obs.LOG_INFO, f"")
+
+        # 分组框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐分组框 UI{30 * '─'}┐")
+        # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
+        log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
+        log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
+        # 分组框【直播】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️分组框【直播】 UI")
+        # 设置 分组框【直播】 可见状态
+        if obs.obs_property_visible(widget.Group.live.Obj) != widget.Group.live.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 分组框【直播】 可见状态 发生变动: {obs.obs_property_visible(widget.Group.live.Obj)}➡️{widget.Group.live.Visible}")
+            obs.obs_property_set_visible(widget.Group.live.Obj, widget.Group.live.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 分组框【直播】 可见状态 未 发生变动")
+        # 设置 分组框【直播】 可用状态
+        if obs.obs_property_enabled(widget.Group.live.Obj) != widget.Group.live.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 分组框【直播】 可用状态 发生变动: {obs.obs_property_enabled(widget.Group.live.Obj)}➡️{widget.Group.live.Enabled}")
+            obs.obs_property_set_enabled(widget.Group.live.Obj, widget.Group.live.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 分组框【直播】 可用状态 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
+        log_save(obs.LOG_INFO, f"　└{30 * '─'}👌分组框 UI{30 * '─'}┘")
+
+        # 组合框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐组合框 UI{30 * '─'}┐")
+        # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
+        log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
+        log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
+        # 组合框【直播平台】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️组合框【直播平台】 UI")
+        # 设置 组合框【直播平台】 可见状态
+        if obs.obs_property_visible(
+                widget.ComboBox.liveStreamingPlatform.Obj) != widget.ComboBox.liveStreamingPlatform.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 组合框【直播平台】 可见状态 发生变动: {obs.obs_property_visible(widget.ComboBox.liveStreamingPlatform.Obj)}➡️{widget.ComboBox.liveStreamingPlatform.Visible}")
+            obs.obs_property_set_visible(widget.ComboBox.liveStreamingPlatform.Obj,
+                                         widget.ComboBox.liveStreamingPlatform.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 组合框【直播平台】 可见状态 未 发生变动")
+        # 设置 组合框【直播平台】 可用状态
+        if obs.obs_property_enabled(
+                widget.ComboBox.liveStreamingPlatform.Obj) != widget.ComboBox.liveStreamingPlatform.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 组合框【直播平台】 可用状态 发生变动: {obs.obs_property_enabled(widget.ComboBox.liveStreamingPlatform.Obj)}➡️{widget.ComboBox.liveStreamingPlatform.Enabled}")
+            obs.obs_property_set_enabled(widget.ComboBox.liveStreamingPlatform.Obj,
+                                         widget.ComboBox.liveStreamingPlatform.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 组合框【直播平台】 可用状态 未 发生变动")
+        # 判断 组合框【直播平台】字典数据 和 当前数据是否有变化
+        if widget.ComboBox.liveStreamingPlatform.Dictionary != {
+            obs.obs_property_list_item_string(widget.ComboBox.liveStreamingPlatform.Obj,
+                                              idx): obs.obs_property_list_item_name(
                 widget.ComboBox.liveStreamingPlatform.Obj, idx) for idx in
-        range(obs.obs_property_list_item_count(widget.ComboBox.liveStreamingPlatform.Obj))}:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 组合框【直播平台】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.liveStreamingPlatform.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.liveStreamingPlatform.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.liveStreamingPlatform.Obj))})}个元素➡️{len(widget.ComboBox.liveStreamingPlatform.Dictionary)}个元素")
-        # 清空 组合框【直播平台】
-        log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【直播平台】数据 第一步：清空 组合框【直播平台】")
-        obs.obs_property_list_clear(widget.ComboBox.liveStreamingPlatform.Obj)
-        # 添加 组合框【直播平台】 列表选项  默认值会被设置在第一位
-        log_save(obs.LOG_INFO,
-                 f"　│││📑 更新 组合框【直播平台】数据 第二步：添加 组合框【直播平台】 列表选项  如果有默认值，会被设置在第一位")
-        for LivePlatforms in widget.ComboBox.liveStreamingPlatform.Dictionary:
-            obs.obs_property_list_add_string(widget.ComboBox.liveStreamingPlatform.Obj,
-                                             widget.ComboBox.liveStreamingPlatform.Dictionary[LivePlatforms],
-                                             LivePlatforms) if LivePlatforms != widget.ComboBox.liveStreamingPlatform.Value else obs.obs_property_list_insert_string(
-                widget.ComboBox.liveStreamingPlatform.Obj, 0, widget.ComboBox.liveStreamingPlatform.Text,
-                widget.ComboBox.liveStreamingPlatform.Value)
-        # 设置 组合框【直播平台】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
-        log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【直播平台】数据 第三步：更新 组合框【直播平台】 文本")
-        obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'live_streaming_platform_comboBox',
-                                obs.obs_property_list_item_string(widget.ComboBox.liveStreamingPlatform.Obj, 0))
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 组合框【直播平台】 列表数据 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
-    log_save(obs.LOG_INFO, f"　└{30 * '─'}👌组合框 UI{30 * '─'}┘")
+            range(obs.obs_property_list_item_count(widget.ComboBox.liveStreamingPlatform.Obj))}:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 组合框【直播平台】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.liveStreamingPlatform.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.liveStreamingPlatform.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.liveStreamingPlatform.Obj))})}个元素➡️{len(widget.ComboBox.liveStreamingPlatform.Dictionary)}个元素")
+            # 清空 组合框【直播平台】
+            log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【直播平台】数据 第一步：清空 组合框【直播平台】")
+            obs.obs_property_list_clear(widget.ComboBox.liveStreamingPlatform.Obj)
+            # 添加 组合框【直播平台】 列表选项  默认值会被设置在第一位
+            log_save(obs.LOG_INFO,
+                     f"　│││📑 更新 组合框【直播平台】数据 第二步：添加 组合框【直播平台】 列表选项  如果有默认值，会被设置在第一位")
+            for LivePlatforms in widget.ComboBox.liveStreamingPlatform.Dictionary:
+                obs.obs_property_list_add_string(widget.ComboBox.liveStreamingPlatform.Obj,
+                                                 widget.ComboBox.liveStreamingPlatform.Dictionary[LivePlatforms],
+                                                 LivePlatforms) if LivePlatforms != widget.ComboBox.liveStreamingPlatform.Value else obs.obs_property_list_insert_string(
+                    widget.ComboBox.liveStreamingPlatform.Obj, 0, widget.ComboBox.liveStreamingPlatform.Text,
+                    widget.ComboBox.liveStreamingPlatform.Value)
+            # 设置 组合框【直播平台】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
+            log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【直播平台】数据 第三步：更新 组合框【直播平台】 文本")
+            obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'live_streaming_platform_comboBox',
+                                    obs.obs_property_list_item_string(widget.ComboBox.liveStreamingPlatform.Obj, 0))
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 组合框【直播平台】 列表数据 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
+        log_save(obs.LOG_INFO, f"　└{30 * '─'}👌组合框 UI{30 * '─'}┘")
 
-    # 按钮+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐按钮 UI{30 * '─'}┐")
-    # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
-    log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
-    log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
-    # 按钮【开始直播并复制推流码】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️按钮【开始直播并复制推流码】 UI")
-    # 设置 按钮【开始直播并复制推流码】 可见状态
-    if obs.obs_property_visible(widget.Button.liveStart.Obj) != widget.Button.liveStart.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【开始直播并复制推流码】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.liveStart.Obj)}➡️{widget.Button.liveStart.Visible}")
-        obs.obs_property_set_visible(widget.Button.liveStart.Obj, widget.Button.liveStart.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【开始直播并复制推流码】 可见状态 未 发生变动")
-    # 设置 按钮【开始直播并复制推流码】 可用状态
-    if obs.obs_property_enabled(widget.Button.liveStart.Obj) != widget.Button.liveStart.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【开始直播并复制推流码】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.liveStart.Obj)}➡️{widget.Button.liveStart.Enabled}")
-        obs.obs_property_set_enabled(widget.Button.liveStart.Obj, widget.Button.liveStart.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【开始直播并复制推流码】 可用状态 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    # 按钮【复制直播服务器】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️按钮【复制直播服务器】 UI")
-    # 设置 按钮【复制直播服务器】 可见状态
-    if obs.obs_property_visible(widget.Button.liveRtmpAddressCopy.Obj) != widget.Button.liveRtmpAddressCopy.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【复制直播服务器】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.liveRtmpAddressCopy.Obj)}➡️{widget.Button.liveRtmpAddressCopy.Visible}")
-        obs.obs_property_set_visible(widget.Button.liveRtmpAddressCopy.Obj, widget.Button.liveRtmpAddressCopy.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【复制直播服务器】 可见状态 未 发生变动")
-    # 设置 按钮【复制直播服务器】 可用状态
-    if obs.obs_property_enabled(widget.Button.liveRtmpAddressCopy.Obj) != widget.Button.liveRtmpAddressCopy.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【复制直播服务器】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.liveRtmpAddressCopy.Obj)}➡️{widget.Button.liveRtmpAddressCopy.Enabled}")
-        obs.obs_property_set_enabled(widget.Button.liveRtmpAddressCopy.Obj, widget.Button.liveRtmpAddressCopy.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【复制直播服务器】 可用状态 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    # 按钮【复制直播推流码】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️按钮【复制直播推流码】 UI")
-    # 设置 按钮【复制直播推流码】 可见状态
-    if obs.obs_property_visible(widget.Button.liveRtmpCodeCopy.Obj) != widget.Button.liveRtmpCodeCopy.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【复制直播推流码】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.liveRtmpCodeCopy.Obj)}➡️{widget.Button.liveRtmpCodeCopy.Visible}")
-        obs.obs_property_set_visible(widget.Button.liveRtmpCodeCopy.Obj, widget.Button.liveRtmpCodeCopy.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【复制直播推流码】 可见状态 未 发生变动")
-    # 设置 按钮【复制直播推流码】 可用状态
-    if obs.obs_property_enabled(widget.Button.liveRtmpCodeCopy.Obj) != widget.Button.liveRtmpCodeCopy.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【复制直播推流码】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.liveRtmpCodeCopy.Obj)}➡️{widget.Button.liveRtmpCodeCopy.Enabled}")
-        obs.obs_property_set_enabled(widget.Button.liveRtmpCodeCopy.Obj, widget.Button.liveRtmpCodeCopy.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【复制直播推流码】 可用状态 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    # 按钮【更新推流码并复制】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️按钮【更新推流码并复制】 UI")
-    # 设置 按钮【更新推流码并复制】 可见状态
-    if obs.obs_property_visible(widget.Button.liveRtmpCodeUpdate.Obj) != widget.Button.liveRtmpCodeUpdate.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【更新推流码并复制】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.liveRtmpCodeUpdate.Obj)}➡️{widget.Button.liveRtmpCodeUpdate.Visible}")
-        obs.obs_property_set_visible(widget.Button.liveRtmpCodeUpdate.Obj, widget.Button.liveRtmpCodeUpdate.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【更新推流码并复制】 可见状态 未 发生变动")
-    # 设置 按钮【更新推流码并复制】 可用状态
-    if obs.obs_property_enabled(widget.Button.liveRtmpCodeUpdate.Obj) != widget.Button.liveRtmpCodeUpdate.Obj_enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【更新推流码并复制】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.liveRtmpCodeUpdate.Obj)}➡️{widget.Button.liveRtmpCodeUpdate.Obj_enabled}")
-        obs.obs_property_set_enabled(widget.Button.liveRtmpCodeUpdate.Obj, widget.Button.liveRtmpCodeUpdate.Obj_enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【更新推流码并复制】 可用状态 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    # 按钮【结束直播】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️按钮【结束直播】 UI")
-    # 设置 按钮【结束直播】 可见状态
-    if obs.obs_property_visible(widget.Button.liveStop.Obj) != widget.Button.liveStop.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【结束直播】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.liveStop.Obj)}➡️{widget.Button.liveStop.Visible}")
-        obs.obs_property_set_visible(widget.Button.liveStop.Obj, widget.Button.liveStop.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【结束直播】 可见状态 未 发生变动")
-    # 设置 按钮【结束直播】 可用状态
-    if obs.obs_property_enabled(widget.Button.liveStop.Obj) != widget.Button.liveStop.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【结束直播】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.liveStop.Obj)}➡️{widget.Button.liveStop.Enabled}")
-        obs.obs_property_set_enabled(widget.Button.liveStop.Obj, widget.Button.liveStop.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【结束直播】 可用状态 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
-    log_save(obs.LOG_INFO, f"　└{30 * '─'}👌按钮 UI{30 * '─'}┘")
-    return True
-
-
-def button_function_rtmp_address_copy(*args):
-    if len(args) == 2:
-        props = args[0]
-        prop = args[1]
-    if len(args) == 3:
-        settings = args[2]
-    """
-    复制直播服务器
-    Args:
-        props:
-        prop:
-    Returns:
-    """
-    # 获取默认账户
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    stream_addr = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                    cookie=dict2cookie(b_u_l_c.get_cookies())).get_live_stream_info()
-    log_save(obs.LOG_INFO, f"获取直播服务器返回：{stream_addr}")
-    if stream_addr["code"] == 0:
-        log_save(obs.LOG_INFO, f"获取直播服务器成功")
-        log_save(obs.LOG_INFO, f"直播服务器：【{stream_addr['data']['rtmp']['addr']}】")
-        cb.copy(stream_addr['data']['rtmp']['addr'])
-        log_save(obs.LOG_INFO, f"已将 直播服务器 复制到剪贴板")
-    else:
-        log_save(obs.LOG_ERROR, f"获取直播服务器失败：{stream_addr['error']}")
-    return True
-
-
-def button_function_rtmp_stream_code_copy(*args):
-    if len(args) == 2:
-        props = args[0]
-        prop = args[1]
-    if len(args) == 3:
-        settings = args[2]
-    """
-    复制直播推流码
-    Args:
-        props:
-        prop:
-    Returns:
-    """
-    # 获取默认账户
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    stream_addr = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                    cookie=dict2cookie(b_u_l_c.get_cookies())).get_live_stream_info()
-    log_save(obs.LOG_INFO, f"获取直播推流码返回：{stream_addr}")
-    if stream_addr["code"] == 0:
-        log_save(obs.LOG_INFO, f"获取直播推流码成功")
-        log_save(obs.LOG_INFO, f"直播推流码：【{stream_addr['data']['rtmp']['code']}】")
-        cb.copy(stream_addr['data']['rtmp']['code'])
-        log_save(obs.LOG_INFO, f"已将 直播推流码 复制到剪贴板")
-    else:
-        log_save(obs.LOG_ERROR, f"获取直播推流码失败：{stream_addr['message']}")
-        return False
-    return True
-
-
-def button_function_rtmp_stream_code_update(*args):
-    if len(args) == 2:
-        props = args[0]
-        prop = args[1]
-    if len(args) == 3:
-        settings = args[2]
-    """
-    更新推流码并复制
-    Args:
-        props:
-        prop:
-    Returns:
-    """
-    # 获取开播平台
-    live_streaming_platform = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
-                                                      'live_streaming_platform_comboBox')
-    log_save(obs.LOG_INFO, f"使用【{live_streaming_platform}】平台 开播")
-    # 获取默认账户
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    stream_addr = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                    cookie=dict2cookie(b_u_l_c.get_cookies())).fetch_stream_addr(
-        live_streaming_platform, True)
-    log_save(obs.LOG_INFO, f"更新直播推流码返回：{stream_addr}")
-    if stream_addr["code"] == 0:
-        log_save(obs.LOG_INFO, f"更新直播推流码成功")
-        log_save(obs.LOG_INFO, f"直播推流码：【{stream_addr['data']['addr']['code']}】")
-        cb.copy(stream_addr['data']['addr']['code'])
-        log_save(obs.LOG_INFO, f"已将 直播推流码 复制到剪贴板")
-    else:
-        log_save(obs.LOG_ERROR, f"更新直播推流码失败：{stream_addr['message']}")
-        return False
-    # 重新开播
-    button_function_stop_live()
-    return True
-
-
-def button_function_stop_live(*args):
-    if len(args) == 2:
-        props = args[0]
-        prop = args[1]
-    if len(args) == 3:
-        settings = args[2]
-    """
-    结束直播
-    """
-    # 停止推流
-    if obs.obs_frontend_streaming_active():
-        log_save(obs.LOG_INFO, f"停止推流")
-        obs.obs_frontend_streaming_stop()
-
-    # 获取开播平台
-    live_streaming_platform = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
-                                                      'live_streaming_platform_comboBox')
-    log_save(obs.LOG_INFO, f"使用【{live_streaming_platform}】平台 开播")
-
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    stop_live = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                  cookie=dict2cookie(b_u_l_c.get_cookies())).stop_live(live_streaming_platform)
-    log_save(obs.LOG_INFO, f"停播返回：{stop_live}")
-    if stop_live["code"] == 0:
-        log_save(obs.LOG_INFO, f"停播成功。")
-    else:
-        log_save(obs.LOG_ERROR, f"停播失败：【{stop_live['message']}】。")
-        return False
-
-    # 调整控件数据
-    log_save(obs.LOG_INFO, f"")
-    log_save(obs.LOG_INFO, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
-    log_save(obs.LOG_INFO, f"║{25 * ' '}调整控件数据{25 * ' '}║")
-    # 设置控件前准备（获取数据） 开始
-    log_save(obs.LOG_INFO, f"║")
-    log_save(obs.LOG_DEBUG, f"║设置控件前准备（获取数据）")
-    log_save(obs.LOG_INFO, f"║╔{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╗")
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    # 获取 '登录用户' 对应的直播间基础信息
-    room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(
-        int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
-    """直播间基础信息"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 的 直播间状态
-    room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
-    """登录用户的直播间存在状态"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 的 直播状态
-    live_status = (room_info_old["liveStatus"] if room_status else None) if b_u_l_c.get_cookies() else None
-    """登录用户的直播状态】0：未开播 1：直播中"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播状态：{(('直播中' if live_status else '未开播') if room_status else '⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 设置控件前准备（获取数据）结束
-    log_save(obs.LOG_INFO, f"║╚{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╝")
-
-    # 设置控件属性
-    log_save(obs.LOG_INFO, f"║")
-    log_save(obs.LOG_INFO, f"║╔{15 * '═'}设置 控件属性{15 * '═'}╗")
-    # 分组框【直播】
-    # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    log_save(obs.LOG_INFO, f"║║")
-    log_save(obs.LOG_INFO, f"║║设置 分组框【直播】 中 控件属性")
-    log_save(obs.LOG_INFO, f"║║╔{7 * '═'}设置 分组框【直播】 中控件属性{7 * '═'}╗")
-    # 设置 分组框【直播】 可见状态
-    widget.Group.live.Visible = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 分组框【直播】 可见状态：{widget.Group.live.Visible}")
-    # 设置 分组框【直播】 可用状态
-    widget.Group.live.Enabled = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 分组框【直播】 可用状态：{widget.Group.live.Enabled}")
-
-    # 设置 组合框【直播平台】 可见状态
-    widget.ComboBox.liveStreamingPlatform.Visible = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【直播平台】 可见状态：{str(widget.Button.bliveWebJump.Visible)}")
-    # 设置 组合框【直播平台】 可用状态
-    widget.ComboBox.liveStreamingPlatform.Enabled = True if ((not live_status) and room_status) else False
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【直播平台】 可用状态：{str(widget.ComboBox.liveStreamingPlatform.Enabled)}")
-    # 设置 组合框【直播平台】 的数据字典
-    widget.ComboBox.liveStreamingPlatform.Dictionary = {"pc_link": "直播姬（pc）", "web_link": "web在线直播",
-                                                        "android_link": "bililink"}
-    log_save(obs.LOG_INFO,
-             f"║║║设置 组合框【直播平台】 的数据字典：{str(widget.ComboBox.liveStreamingPlatform.Dictionary)}")
-    # 设置 组合框【直播平台】 的内容
-    widget.ComboBox.liveStreamingPlatform.Text = ""
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【直播平台】 的内容：{str(widget.ComboBox.liveStreamingPlatform.Text)}")
-    # 设置 组合框【直播平台】 的内容 的 列表值
-    widget.ComboBox.liveStreamingPlatform.Value = ""
-    log_save(obs.LOG_INFO,
-             f"║║║设置 组合框【直播平台】 的内容 的 列表值：{str(widget.ComboBox.liveStreamingPlatform.Value)}")
-
-    # 设置 按钮【开始直播并复制推流码】 可见状态
-    widget.Button.liveStart.Visible = True if ((not live_status) and room_status) else False
-    log_save(obs.LOG_INFO, f"║║║设置 按钮【开始直播并复制推流码】 可见状态：{str(widget.Button.liveStart.Visible)}")
-    # 设置 按钮【开始直播并复制推流码】 可用状态
-    widget.Button.liveStart.Enabled = True if ((not live_status) and room_status) else False
-    log_save(obs.LOG_INFO, f"║║║设置 按钮【开始直播并复制推流码】 可用状态：{str(widget.Button.liveStart.Enabled)}")
-
-    # 设置 按钮【复制直播服务器】 可见状态
-    widget.Button.liveRtmpAddressCopy.Visible = True if (live_status and room_status) else False
-    log_save(obs.LOG_INFO, f"║║║设置 按钮【复制直播服务器】 可见状态：{str(widget.Button.liveRtmpAddressCopy.Visible)}")
-    # 设置 按钮【复制直播服务器】 可用状态
-    widget.Button.liveRtmpAddressCopy.Enabled = True if (live_status and room_status) else False
-    log_save(obs.LOG_INFO, f"║║║设置 按钮【复制直播服务器】 可用状态：{str(widget.Button.liveRtmpAddressCopy.Enabled)}")
-
-    # 设置 按钮【复制直播推流码】 可见状态
-    widget.Button.liveRtmpCodeCopy.Visible = True if (live_status and room_status) else False
-    log_save(obs.LOG_INFO, f"║║║设置 按钮【复制直播推流码】 可见状态：{str(widget.Button.liveRtmpCodeCopy.Visible)}")
-    # 设置 按钮【复制直播推流码】 可用状态
-    widget.Button.liveRtmpCodeCopy.Enabled = True if (live_status and room_status) else False
-    log_save(obs.LOG_INFO, f"║║║设置 按钮【复制直播推流码】 可用状态：{str(widget.Button.liveRtmpCodeCopy.Enabled)}")
-
-    # 设置 按钮【更新推流码并复制】 可见状态
-    widget.Button.liveRtmpCodeUpdate.Visible = True if (live_status and room_status) else False
-    log_save(obs.LOG_INFO, f"║║║设置 按钮【更新推流码并复制】 可见状态：{str(widget.Button.liveRtmpCodeUpdate.Visible)}")
-    # 设置 按钮【更新推流码并复制】 可用状态
-    widget.Button.liveRtmpCodeUpdate.Obj_enabled = True if (live_status and room_status) else False
-    log_save(obs.LOG_INFO,
-             f"║║║设置 按钮【更新推流码并复制】 可用状态：{str(widget.Button.liveRtmpCodeUpdate.Obj_enabled)}")
-
-    # 设置 按钮【结束直播】 可见状态
-    widget.Button.liveStop.Visible = True if (live_status and room_status) else False
-    log_save(obs.LOG_INFO, f"║║║设置 按钮【结束直播】 可见状态：{str(widget.Button.liveStop.Visible)}")
-    # 设置 按钮【结束直播】 可用状态
-    widget.Button.liveStop.Enabled = True if (live_status and room_status) else False
-    log_save(obs.LOG_INFO, f"║║║设置 按钮【结束直播】 可用状态：{str(widget.Button.liveStop.Enabled)}")
-    # 设置 分组框【直播】 中控件属性 结束
-    log_save(obs.LOG_INFO, f"║║╚{7 * '═'}设置 分组框【直播】 中控件属性{7 * '═'}╝")
-    # 设置 控件属性 结束
-    log_save(obs.LOG_INFO, f"║╚{15 * '═'}设置 控件属性{15 * '═'}╝")
-    # 调整控件数据 结束
-    log_save(obs.LOG_INFO, f"╚{25 * '═'}调整控件数据{25 * '═'}╝")
-    log_save(obs.LOG_INFO, f"")
-
-    # 分组框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐分组框 UI{30 * '─'}┐")
-    # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
-    log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
-    log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
-    # 分组框【直播】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️分组框【直播】 UI")
-    # 设置 分组框【直播】 可见状态
-    if obs.obs_property_visible(widget.Group.live.Obj) != widget.Group.live.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 分组框【直播】 可见状态 发生变动: {obs.obs_property_visible(widget.Group.live.Obj)}➡️{widget.Group.live.Visible}")
-        obs.obs_property_set_visible(widget.Group.live.Obj, widget.Group.live.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 分组框【直播】 可见状态 未 发生变动")
-    # 设置 分组框【直播】 可用状态
-    if obs.obs_property_enabled(widget.Group.live.Obj) != widget.Group.live.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 分组框【直播】 可用状态 发生变动: {obs.obs_property_enabled(widget.Group.live.Obj)}➡️{widget.Group.live.Enabled}")
-        obs.obs_property_set_enabled(widget.Group.live.Obj, widget.Group.live.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 分组框【直播】 可用状态 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
-    log_save(obs.LOG_INFO, f"　└{30 * '─'}👌分组框 UI{30 * '─'}┘")
-
-    # 组合框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐组合框 UI{30 * '─'}┐")
-    # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
-    log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
-    log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
-    # 组合框【直播平台】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️组合框【直播平台】 UI")
-    # 设置 组合框【直播平台】 可见状态
-    if obs.obs_property_visible(
-            widget.ComboBox.liveStreamingPlatform.Obj) != widget.ComboBox.liveStreamingPlatform.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 组合框【直播平台】 可见状态 发生变动: {obs.obs_property_visible(widget.ComboBox.liveStreamingPlatform.Obj)}➡️{widget.ComboBox.liveStreamingPlatform.Visible}")
-        obs.obs_property_set_visible(widget.ComboBox.liveStreamingPlatform.Obj,
-                                     widget.ComboBox.liveStreamingPlatform.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 组合框【直播平台】 可见状态 未 发生变动")
-    # 设置 组合框【直播平台】 可用状态
-    if obs.obs_property_enabled(
-            widget.ComboBox.liveStreamingPlatform.Obj) != widget.ComboBox.liveStreamingPlatform.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 组合框【直播平台】 可用状态 发生变动: {obs.obs_property_enabled(widget.ComboBox.liveStreamingPlatform.Obj)}➡️{widget.ComboBox.liveStreamingPlatform.Enabled}")
-        obs.obs_property_set_enabled(widget.ComboBox.liveStreamingPlatform.Obj,
-                                     widget.ComboBox.liveStreamingPlatform.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 组合框【直播平台】 可用状态 未 发生变动")
-    # 判断 组合框【直播平台】字典数据 和 当前数据是否有变化
-    if widget.ComboBox.liveStreamingPlatform.Dictionary != {
-        obs.obs_property_list_item_string(widget.ComboBox.liveStreamingPlatform.Obj,
-                                          idx): obs.obs_property_list_item_name(
-                widget.ComboBox.liveStreamingPlatform.Obj, idx) for idx in
-        range(obs.obs_property_list_item_count(widget.ComboBox.liveStreamingPlatform.Obj))}:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 组合框【直播平台】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.liveStreamingPlatform.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.liveStreamingPlatform.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.liveStreamingPlatform.Obj))})}个元素➡️{len(widget.ComboBox.liveStreamingPlatform.Dictionary)}个元素")
-        # 清空 组合框【直播平台】
-        log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【直播平台】数据 第一步：清空 组合框【直播平台】")
-        obs.obs_property_list_clear(widget.ComboBox.liveStreamingPlatform.Obj)
-        # 添加 组合框【直播平台】 列表选项  默认值会被设置在第一位
-        log_save(obs.LOG_INFO,
-                 f"　│││📑 更新 组合框【直播平台】数据 第二步：添加 组合框【直播平台】 列表选项  如果有默认值，会被设置在第一位")
-        for LivePlatforms in widget.ComboBox.liveStreamingPlatform.Dictionary:
-            obs.obs_property_list_add_string(widget.ComboBox.liveStreamingPlatform.Obj,
-                                             widget.ComboBox.liveStreamingPlatform.Dictionary[LivePlatforms],
-                                             LivePlatforms) if LivePlatforms != widget.ComboBox.liveStreamingPlatform.Value else obs.obs_property_list_insert_string(
-                widget.ComboBox.liveStreamingPlatform.Obj, 0, widget.ComboBox.liveStreamingPlatform.Text,
-                widget.ComboBox.liveStreamingPlatform.Value)
-        # 设置 组合框【直播平台】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
-        log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【直播平台】数据 第三步：更新 组合框【直播平台】 文本")
-        obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'live_streaming_platform_comboBox',
-                                obs.obs_property_list_item_string(widget.ComboBox.liveStreamingPlatform.Obj, 0))
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 组合框【直播平台】 列表数据 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
-    log_save(obs.LOG_INFO, f"　└{30 * '─'}👌组合框 UI{30 * '─'}┘")
-
-    # 按钮+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐按钮 UI{30 * '─'}┐")
-    # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
-    log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
-    log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
-    # 按钮【开始直播并复制推流码】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️按钮【开始直播并复制推流码】 UI")
-    # 设置 按钮【开始直播并复制推流码】 可见状态
-    if obs.obs_property_visible(widget.Button.liveStart.Obj) != widget.Button.liveStart.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【开始直播并复制推流码】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.liveStart.Obj)}➡️{widget.Button.liveStart.Visible}")
-        obs.obs_property_set_visible(widget.Button.liveStart.Obj, widget.Button.liveStart.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【开始直播并复制推流码】 可见状态 未 发生变动")
-    # 设置 按钮【开始直播并复制推流码】 可用状态
-    if obs.obs_property_enabled(widget.Button.liveStart.Obj) != widget.Button.liveStart.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【开始直播并复制推流码】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.liveStart.Obj)}➡️{widget.Button.liveStart.Enabled}")
-        obs.obs_property_set_enabled(widget.Button.liveStart.Obj, widget.Button.liveStart.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【开始直播并复制推流码】 可用状态 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    # 按钮【复制直播服务器】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️按钮【复制直播服务器】 UI")
-    # 设置 按钮【复制直播服务器】 可见状态
-    if obs.obs_property_visible(widget.Button.liveRtmpAddressCopy.Obj) != widget.Button.liveRtmpAddressCopy.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【复制直播服务器】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.liveRtmpAddressCopy.Obj)}➡️{widget.Button.liveRtmpAddressCopy.Visible}")
-        obs.obs_property_set_visible(widget.Button.liveRtmpAddressCopy.Obj, widget.Button.liveRtmpAddressCopy.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【复制直播服务器】 可见状态 未 发生变动")
-    # 设置 按钮【复制直播服务器】 可用状态
-    if obs.obs_property_enabled(widget.Button.liveRtmpAddressCopy.Obj) != widget.Button.liveRtmpAddressCopy.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【复制直播服务器】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.liveRtmpAddressCopy.Obj)}➡️{widget.Button.liveRtmpAddressCopy.Enabled}")
-        obs.obs_property_set_enabled(widget.Button.liveRtmpAddressCopy.Obj, widget.Button.liveRtmpAddressCopy.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【复制直播服务器】 可用状态 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    # 按钮【复制直播推流码】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️按钮【复制直播推流码】 UI")
-    # 设置 按钮【复制直播推流码】 可见状态
-    if obs.obs_property_visible(widget.Button.liveRtmpCodeCopy.Obj) != widget.Button.liveRtmpCodeCopy.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【复制直播推流码】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.liveRtmpCodeCopy.Obj)}➡️{widget.Button.liveRtmpCodeCopy.Visible}")
-        obs.obs_property_set_visible(widget.Button.liveRtmpCodeCopy.Obj, widget.Button.liveRtmpCodeCopy.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【复制直播推流码】 可见状态 未 发生变动")
-    # 设置 按钮【复制直播推流码】 可用状态
-    if obs.obs_property_enabled(widget.Button.liveRtmpCodeCopy.Obj) != widget.Button.liveRtmpCodeCopy.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【复制直播推流码】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.liveRtmpCodeCopy.Obj)}➡️{widget.Button.liveRtmpCodeCopy.Enabled}")
-        obs.obs_property_set_enabled(widget.Button.liveRtmpCodeCopy.Obj, widget.Button.liveRtmpCodeCopy.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【复制直播推流码】 可用状态 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    # 按钮【更新推流码并复制】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️按钮【更新推流码并复制】 UI")
-    # 设置 按钮【更新推流码并复制】 可见状态
-    if obs.obs_property_visible(widget.Button.liveRtmpCodeUpdate.Obj) != widget.Button.liveRtmpCodeUpdate.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【更新推流码并复制】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.liveRtmpCodeUpdate.Obj)}➡️{widget.Button.liveRtmpCodeUpdate.Visible}")
-        obs.obs_property_set_visible(widget.Button.liveRtmpCodeUpdate.Obj, widget.Button.liveRtmpCodeUpdate.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【更新推流码并复制】 可见状态 未 发生变动")
-    # 设置 按钮【更新推流码并复制】 可用状态
-    if obs.obs_property_enabled(widget.Button.liveRtmpCodeUpdate.Obj) != widget.Button.liveRtmpCodeUpdate.Obj_enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【更新推流码并复制】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.liveRtmpCodeUpdate.Obj)}➡️{widget.Button.liveRtmpCodeUpdate.Obj_enabled}")
-        obs.obs_property_set_enabled(widget.Button.liveRtmpCodeUpdate.Obj, widget.Button.liveRtmpCodeUpdate.Obj_enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【更新推流码并复制】 可用状态 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    # 按钮【结束直播】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️按钮【结束直播】 UI")
-    # 设置 按钮【结束直播】 可见状态
-    if obs.obs_property_visible(widget.Button.liveStop.Obj) != widget.Button.liveStop.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【结束直播】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.liveStop.Obj)}➡️{widget.Button.liveStop.Visible}")
-        obs.obs_property_set_visible(widget.Button.liveStop.Obj, widget.Button.liveStop.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【结束直播】 可见状态 未 发生变动")
-    # 设置 按钮【结束直播】 可用状态
-    if obs.obs_property_enabled(widget.Button.liveStop.Obj) != widget.Button.liveStop.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 按钮【结束直播】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.liveStop.Obj)}➡️{widget.Button.liveStop.Enabled}")
-        obs.obs_property_set_enabled(widget.Button.liveStop.Obj, widget.Button.liveStop.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 按钮【结束直播】 可用状态 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
-    log_save(obs.LOG_INFO, f"　└{30 * '─'}👌按钮 UI{30 * '─'}┘")
-    return True
-
-
-def button_function_true_live_appointment_day(*args):
-    if len(args) == 2:
-        props = args[0]
-        prop = args[1]
-    if len(args) == 3:
-        settings = args[2]
-    """确认预约天"""
-    appointment_day_int = obs.obs_data_get_int(GlobalVariableOfData.script_settings, "live_bookings_day_digitalSlider")
-    appointment_day_digital_slider_min = obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsDay.Obj)
-    appointment_day_digital_slider_max = obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsDay.Obj)
-    appointment_hour_int = obs.obs_data_get_int(GlobalVariableOfData.script_settings,
-                                                "live_bookings_hour_digitalSlider")
-    appointment_hour_digital_slider_min = obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsHour.Obj)
-    appointment_hour_digital_slider_max = obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsHour.Obj)
-    appointment_minute_int = obs.obs_data_get_int(GlobalVariableOfData.script_settings,
-                                                  "live_bookings_minute_digitalSlider")
-    appointment_minute_digital_slider_min = obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsMinute.Obj)
-    appointment_minute_digital_slider_max = obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsMinute.Obj)
-
-    if appointment_day_int == 180 and (
-            appointment_hour_digital_slider_min != 0 or appointment_hour_digital_slider_max != 0 or appointment_minute_digital_slider_min != 0 or appointment_minute_digital_slider_max != 0):
-        log_save(obs.LOG_INFO, f"由于【预约天】等于180天了，所以将【预约时】和【预约分】锁定为：0")
-        obs.obs_property_int_set_limits(widget.DigitalDisplay.liveBookingsHour.Obj, 0, 0, 0)
-        if appointment_hour_int > 0:
-            obs.obs_data_set_int(GlobalVariableOfData.script_settings, "live_bookings_hour_digitalSlider", 0)
-        obs.obs_property_int_set_limits(widget.DigitalDisplay.liveBookingsMinute.Obj, 0, 0, 0)
-        if appointment_minute_int > 0:
-            obs.obs_data_set_int(GlobalVariableOfData.script_settings, "live_bookings_minute_digitalSlider", 0)
+        # 按钮+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐按钮 UI{30 * '─'}┐")
+        # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
+        log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
+        log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
+        # 按钮【开始直播并复制推流码】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️按钮【开始直播并复制推流码】 UI")
+        # 设置 按钮【开始直播并复制推流码】 可见状态
+        if obs.obs_property_visible(widget.Button.liveStart.Obj) != widget.Button.liveStart.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【开始直播并复制推流码】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.liveStart.Obj)}➡️{widget.Button.liveStart.Visible}")
+            obs.obs_property_set_visible(widget.Button.liveStart.Obj, widget.Button.liveStart.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【开始直播并复制推流码】 可见状态 未 发生变动")
+        # 设置 按钮【开始直播并复制推流码】 可用状态
+        if obs.obs_property_enabled(widget.Button.liveStart.Obj) != widget.Button.liveStart.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【开始直播并复制推流码】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.liveStart.Obj)}➡️{widget.Button.liveStart.Enabled}")
+            obs.obs_property_set_enabled(widget.Button.liveStart.Obj, widget.Button.liveStart.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【开始直播并复制推流码】 可用状态 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        # 按钮【复制直播服务器】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️按钮【复制直播服务器】 UI")
+        # 设置 按钮【复制直播服务器】 可见状态
+        if obs.obs_property_visible(widget.Button.liveRtmpAddressCopy.Obj) != widget.Button.liveRtmpAddressCopy.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【复制直播服务器】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.liveRtmpAddressCopy.Obj)}➡️{widget.Button.liveRtmpAddressCopy.Visible}")
+            obs.obs_property_set_visible(widget.Button.liveRtmpAddressCopy.Obj,
+                                         widget.Button.liveRtmpAddressCopy.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【复制直播服务器】 可见状态 未 发生变动")
+        # 设置 按钮【复制直播服务器】 可用状态
+        if obs.obs_property_enabled(widget.Button.liveRtmpAddressCopy.Obj) != widget.Button.liveRtmpAddressCopy.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【复制直播服务器】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.liveRtmpAddressCopy.Obj)}➡️{widget.Button.liveRtmpAddressCopy.Enabled}")
+            obs.obs_property_set_enabled(widget.Button.liveRtmpAddressCopy.Obj,
+                                         widget.Button.liveRtmpAddressCopy.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【复制直播服务器】 可用状态 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        # 按钮【复制直播推流码】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️按钮【复制直播推流码】 UI")
+        # 设置 按钮【复制直播推流码】 可见状态
+        if obs.obs_property_visible(widget.Button.liveRtmpCodeCopy.Obj) != widget.Button.liveRtmpCodeCopy.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【复制直播推流码】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.liveRtmpCodeCopy.Obj)}➡️{widget.Button.liveRtmpCodeCopy.Visible}")
+            obs.obs_property_set_visible(widget.Button.liveRtmpCodeCopy.Obj, widget.Button.liveRtmpCodeCopy.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【复制直播推流码】 可见状态 未 发生变动")
+        # 设置 按钮【复制直播推流码】 可用状态
+        if obs.obs_property_enabled(widget.Button.liveRtmpCodeCopy.Obj) != widget.Button.liveRtmpCodeCopy.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【复制直播推流码】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.liveRtmpCodeCopy.Obj)}➡️{widget.Button.liveRtmpCodeCopy.Enabled}")
+            obs.obs_property_set_enabled(widget.Button.liveRtmpCodeCopy.Obj, widget.Button.liveRtmpCodeCopy.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【复制直播推流码】 可用状态 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        # 按钮【更新推流码并复制】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️按钮【更新推流码并复制】 UI")
+        # 设置 按钮【更新推流码并复制】 可见状态
+        if obs.obs_property_visible(widget.Button.liveRtmpCodeUpdate.Obj) != widget.Button.liveRtmpCodeUpdate.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【更新推流码并复制】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.liveRtmpCodeUpdate.Obj)}➡️{widget.Button.liveRtmpCodeUpdate.Visible}")
+            obs.obs_property_set_visible(widget.Button.liveRtmpCodeUpdate.Obj, widget.Button.liveRtmpCodeUpdate.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【更新推流码并复制】 可见状态 未 发生变动")
+        # 设置 按钮【更新推流码并复制】 可用状态
+        if obs.obs_property_enabled(
+                widget.Button.liveRtmpCodeUpdate.Obj) != widget.Button.liveRtmpCodeUpdate.Obj_enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【更新推流码并复制】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.liveRtmpCodeUpdate.Obj)}➡️{widget.Button.liveRtmpCodeUpdate.Obj_enabled}")
+            obs.obs_property_set_enabled(widget.Button.liveRtmpCodeUpdate.Obj,
+                                         widget.Button.liveRtmpCodeUpdate.Obj_enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【更新推流码并复制】 可用状态 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        # 按钮【结束直播】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️按钮【结束直播】 UI")
+        # 设置 按钮【结束直播】 可见状态
+        if obs.obs_property_visible(widget.Button.liveStop.Obj) != widget.Button.liveStop.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【结束直播】 可见状态 发生变动: {obs.obs_property_visible(widget.Button.liveStop.Obj)}➡️{widget.Button.liveStop.Visible}")
+            obs.obs_property_set_visible(widget.Button.liveStop.Obj, widget.Button.liveStop.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【结束直播】 可见状态 未 发生变动")
+        # 设置 按钮【结束直播】 可用状态
+        if obs.obs_property_enabled(widget.Button.liveStop.Obj) != widget.Button.liveStop.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 按钮【结束直播】 可用状态 发生变动: {obs.obs_property_enabled(widget.Button.liveStop.Obj)}➡️{widget.Button.liveStop.Enabled}")
+            obs.obs_property_set_enabled(widget.Button.liveStop.Obj, widget.Button.liveStop.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 按钮【结束直播】 可用状态 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
+        log_save(obs.LOG_INFO, f"　└{30 * '─'}👌按钮 UI{30 * '─'}┘")
         return True
 
-    if (((0 < appointment_day_int < 180) and appointment_hour_int <= 23) or (
-            appointment_day_int == 0 and (0 < appointment_hour_int <= 23))) and (
-            appointment_hour_digital_slider_min != 0 or appointment_hour_digital_slider_max != 23 or appointment_minute_digital_slider_min != 0 or appointment_minute_digital_slider_max != 59):
-        log_save(obs.LOG_INFO, f"由于【预约天】不为180天，且【预约天】和【预约时】其中一个不为0 所以将【预约分】最低值设定为：0")
-        obs.obs_property_int_set_limits(widget.DigitalDisplay.liveBookingsHour.Obj, 0, 23, 1)
-        obs.obs_property_int_set_limits(widget.DigitalDisplay.liveBookingsMinute.Obj, 0, 59, 1)
-        return True
+    def button_function_true_live_appointment_day(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """确认预约天"""
+        appointment_day_int = obs.obs_data_get_int(GlobalVariableOfData.script_settings,
+                                                   "live_bookings_day_digitalSlider")
+        appointment_day_digital_slider_min = obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsDay.Obj)
+        appointment_day_digital_slider_max = obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsDay.Obj)
+        appointment_hour_int = obs.obs_data_get_int(GlobalVariableOfData.script_settings,
+                                                    "live_bookings_hour_digitalSlider")
+        appointment_hour_digital_slider_min = obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsHour.Obj)
+        appointment_hour_digital_slider_max = obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsHour.Obj)
+        appointment_minute_int = obs.obs_data_get_int(GlobalVariableOfData.script_settings,
+                                                      "live_bookings_minute_digitalSlider")
+        appointment_minute_digital_slider_min = obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsMinute.Obj)
+        appointment_minute_digital_slider_max = obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsMinute.Obj)
 
-    if appointment_day_int == 0 and appointment_hour_int == 0 and (
-            appointment_hour_digital_slider_min != 0 or appointment_hour_digital_slider_max != 23 or appointment_minute_digital_slider_min != 5 or appointment_minute_digital_slider_max != 59):
-        log_save(obs.LOG_INFO, f"【预约天】和【预约时】其中均为0 所以将【预约分】最低值设定为：5")
-        obs.obs_property_int_set_limits(widget.DigitalDisplay.liveBookingsHour.Obj, 0, 23, 1)
-        obs.obs_property_int_set_limits(widget.DigitalDisplay.liveBookingsMinute.Obj, 5, 59, 1)
-        if appointment_minute_int < 5:
-            obs.obs_data_set_int(GlobalVariableOfData.script_settings, "live_bookings_minute_digitalSlider", 5)
-        return True
-    return False
+        if appointment_day_int == 180 and (
+                appointment_hour_digital_slider_min != 0 or appointment_hour_digital_slider_max != 0 or appointment_minute_digital_slider_min != 0 or appointment_minute_digital_slider_max != 0):
+            log_save(obs.LOG_INFO, f"由于【预约天】等于180天了，所以将【预约时】和【预约分】锁定为：0")
+            obs.obs_property_int_set_limits(widget.DigitalDisplay.liveBookingsHour.Obj, 0, 0, 0)
+            if appointment_hour_int > 0:
+                obs.obs_data_set_int(GlobalVariableOfData.script_settings, "live_bookings_hour_digitalSlider", 0)
+            obs.obs_property_int_set_limits(widget.DigitalDisplay.liveBookingsMinute.Obj, 0, 0, 0)
+            if appointment_minute_int > 0:
+                obs.obs_data_set_int(GlobalVariableOfData.script_settings, "live_bookings_minute_digitalSlider", 0)
+            return True
 
+        if (((0 < appointment_day_int < 180) and appointment_hour_int <= 23) or (
+                appointment_day_int == 0 and (0 < appointment_hour_int <= 23))) and (
+                appointment_hour_digital_slider_min != 0 or appointment_hour_digital_slider_max != 23 or appointment_minute_digital_slider_min != 0 or appointment_minute_digital_slider_max != 59):
+            log_save(obs.LOG_INFO,
+                     f"由于【预约天】不为180天，且【预约天】和【预约时】其中一个不为0 所以将【预约分】最低值设定为：0")
+            obs.obs_property_int_set_limits(widget.DigitalDisplay.liveBookingsHour.Obj, 0, 23, 1)
+            obs.obs_property_int_set_limits(widget.DigitalDisplay.liveBookingsMinute.Obj, 0, 59, 1)
+            return True
 
-def button_function_true_live_appointment_hour(*args):
-    if len(args) == 2:
-        props = args[0]
-        prop = args[1]
-    if len(args) == 3:
-        settings = args[2]
-    return button_function_true_live_appointment_day()
-
-
-def button_function_true_live_appointment_minute(*args):
-    if len(args) == 2:
-        props = args[0]
-        prop = args[1]
-    if len(args) == 3:
-        settings = args[2]
-    return button_function_true_live_appointment_day()
-
-
-def button_function_creat_live_appointment(*args):
-    if len(args) == 2:
-        props = args[0]
-        prop = args[1]
-    if len(args) == 3:
-        settings = args[2]
-    """创建直播预约"""
-    # 获取直播预约天
-    live_bookings_day = obs.obs_data_get_int(GlobalVariableOfData.script_settings, "live_bookings_day_digitalSlider")
-    log_save(obs.LOG_INFO, f"直播预约天: {live_bookings_day}")
-    # 获取直播预约时
-    live_bookings_hour = obs.obs_data_get_int(GlobalVariableOfData.script_settings, "live_bookings_hour_digitalSlider")
-    log_save(obs.LOG_INFO, f"直播预约时: {live_bookings_hour}")
-    # 获取直播预约分
-    live_bookings_minute = obs.obs_data_get_int(GlobalVariableOfData.script_settings,
-                                                "live_bookings_minute_digitalSlider")
-    log_save(obs.LOG_INFO, f"直播预约分: {live_bookings_minute}")
-    # 限制直播时间内范围
-    if not (5 <= (live_bookings_day * 24 * 60 + live_bookings_hour * 60 + live_bookings_minute) <= 180 * 24 * 60):
-        log_save(obs.LOG_ERROR,
-                 f"直播预约时间: {live_bookings_day}天{live_bookings_hour}时{live_bookings_minute}分，需要大于 5min 以及 小于 59day")
-        return False
-    else:
-        log_save(obs.LOG_INFO, f"直播预约时间: {live_bookings_day}天{live_bookings_hour}时{live_bookings_minute}分")
-    # live_bookings_time = get_future_timestamp(live_bookings_day, live_bookings_hour, live_bookings_minute)
-    # log_save(obs.LOG_INFO, f"直播预约时间戳: {live_bookings_time}，时间: {datetime.fromtimestamp(live_bookings_time)}")
-    # 获取直播预约标题
-    live_bookings_title = obs.obs_data_get_string(GlobalVariableOfData.script_settings, "live_bookings_title_textBox")
-    log_save(obs.LOG_INFO, f"直播预约标题: {live_bookings_title}")
-    # 获取是否发动态
-    live_bookings_dynamic_is = obs.obs_data_get_bool(GlobalVariableOfData.script_settings, "live_bookings_dynamic_bool")
-    log_save(obs.LOG_INFO, f"直播预约是否发动态: {live_bookings_dynamic_is}")
-    # 获取默认账户
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    # 创建直播预约
-    create_reserve_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=
-    dict2cookie(b_u_l_c.get_cookies())).create_reserve(title=live_bookings_title,
-                                                       live_plan_start_time=get_future_timestamp(live_bookings_day,
-                                                                                                 live_bookings_hour,
-                                                                                                 live_bookings_minute),
-                                                       create_dynamic=live_bookings_dynamic_is)
-    log_save(obs.LOG_INFO, f"创建直播预约返回: {create_reserve_return}")
-    if create_reserve_return['code'] == 0:
-        log_save(obs.LOG_INFO, f"创建直播预约成功")
-    else:
-        log_save(obs.LOG_ERROR, f"创建直播预约失败: {create_reserve_return['message']}")
-        if create_reserve_return['code'] == -400:
-            log_save(obs.LOG_ERROR, f"直播预约标题错误: 【{live_bookings_title}】")
+        if appointment_day_int == 0 and appointment_hour_int == 0 and (
+                appointment_hour_digital_slider_min != 0 or appointment_hour_digital_slider_max != 23 or appointment_minute_digital_slider_min != 5 or appointment_minute_digital_slider_max != 59):
+            log_save(obs.LOG_INFO, f"【预约天】和【预约时】其中均为0 所以将【预约分】最低值设定为：5")
+            obs.obs_property_int_set_limits(widget.DigitalDisplay.liveBookingsHour.Obj, 0, 23, 1)
+            obs.obs_property_int_set_limits(widget.DigitalDisplay.liveBookingsMinute.Obj, 5, 59, 1)
+            if appointment_minute_int < 5:
+                obs.obs_data_set_int(GlobalVariableOfData.script_settings, "live_bookings_minute_digitalSlider", 5)
+            return True
         return False
 
-    # 调整控件数据
-    log_save(obs.LOG_INFO, f"")
-    log_save(obs.LOG_INFO, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
-    log_save(obs.LOG_INFO, f"║{25 * ' '}调整控件数据{25 * ' '}║")
-    # 设置控件前准备（获取数据） 开始
-    log_save(obs.LOG_INFO, f"║")
-    log_save(obs.LOG_DEBUG, f"║设置控件前准备（获取数据）")
-    log_save(obs.LOG_INFO, f"║╔{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╗")
-    log_save(obs.LOG_INFO, f"║║")
-    # 获取默认账户
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    # 获取 '登录用户' 对应的直播间基础信息
-    room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(
-        int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
-    """直播间基础信息"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 的 直播间状态
-    room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
-    """登录用户的直播间存在状态"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 登录用户的直播预约列表信息
-    reserve_list = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                     cookie=dict2cookie(b_u_l_c.get_cookies())).get_reserve_list()
-    """获取 '登录用户' 的 直播预约列表信息"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播预约列表信息：{(reserve_list if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 登录用户的直播预约字典
-    reserve_name4reserve_sid = (({str(reserve['reserve_info'][
-                                          'sid']): f"{reserve['reserve_info']['name']}|{datetime.fromtimestamp(reserve['reserve_info']['live_plan_start_time'])}"
-                                  for reserve in reserve_list} if reserve_list else {
-        "-1": "无直播预约"}) if room_status else {"-1": '⚠️无直播间'}) if b_u_l_c.get_cookies() else {
-        "-1": "⚠️未登录账号"}
-    """获取 '登录用户' 的 直播预约字典"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播预约：{(list(reserve_name4reserve_sid.values()) if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 设置控件前准备（获取数据）结束
-    log_save(obs.LOG_INFO, f"║╚{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╝")
-    log_save(obs.LOG_INFO, f"║")
-    # 设置控件属性
-    log_save(obs.LOG_INFO, f"║")
-    log_save(obs.LOG_INFO, f"║╔{15 * '═'}设置 控件属性{15 * '═'}╗")
-    # 分组框【直播】
-    # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    log_save(obs.LOG_INFO, f"║║")
-    log_save(obs.LOG_INFO, f"║║设置 分组框【直播】 中 控件属性")
-    log_save(obs.LOG_INFO, f"║║╔{7 * '═'}设置 分组框【直播】 中控件属性{7 * '═'}╗")
-    # 设置 数字滑块【预约天】 可见状态
-    widget.DigitalDisplay.liveBookingsDay.Visible = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约天】 可见状态：{str(widget.DigitalDisplay.liveBookingsDay.Visible)}")
-    # 设置 数字滑块【预约天】 可用状态
-    widget.DigitalDisplay.liveBookingsDay.Enabled = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约天】 可用状态：{str(widget.DigitalDisplay.liveBookingsDay.Enabled)}")
-    # 设置 数字滑块【预约天】 显示选项值
-    widget.DigitalDisplay.liveBookingsDay.Value = 0
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约天】 显示选项值：{str(widget.DigitalDisplay.liveBookingsDay.Value)}")
-    # 设置 数字滑块【预约天】 最小值
-    widget.DigitalDisplay.liveBookingsDay.Min = 0
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约天】 最小值：{str(widget.DigitalDisplay.liveBookingsDay.Min)}")
-    # 设置 数字滑块【预约天】 最大值
-    widget.DigitalDisplay.liveBookingsDay.Max = 180
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约天】 最大值：{str(widget.DigitalDisplay.liveBookingsDay.Max)}")
-    # 设置 数字滑块【预约天】 步长
-    widget.DigitalDisplay.liveBookingsDay.Step = 1
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约天】 步长：{str(widget.DigitalDisplay.liveBookingsDay.Step)}")
+    def button_function_true_live_appointment_hour(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        return ButtonFunction.button_function_true_live_appointment_day()
 
-    # 设置 数字滑块【预约时】 可见状态
-    widget.DigitalDisplay.liveBookingsHour.Visible = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约时】 可见状态：{str(widget.DigitalDisplay.liveBookingsHour.Visible)}")
-    # 设置 数字滑块【预约时】 可用状态
-    widget.DigitalDisplay.liveBookingsHour.Enabled = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约时】 可用状态：{str(widget.DigitalDisplay.liveBookingsHour.Enabled)}")
-    # 设置 数字滑块【预约时】 显示选项值
-    widget.DigitalDisplay.liveBookingsHour.Value = 0
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约时】 显示选项值：{str(widget.DigitalDisplay.liveBookingsHour.Value)}")
-    # 设置 数字滑块【预约时】 最小值
-    widget.DigitalDisplay.liveBookingsHour.Min = 0
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约时】 最小值：{str(widget.DigitalDisplay.liveBookingsHour.Min)}")
-    # 设置 数字滑块【预约时】 最大值
-    widget.DigitalDisplay.liveBookingsHour.Max = 23
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约时】 最大值：{str(widget.DigitalDisplay.liveBookingsHour.Max)}")
-    # 设置 数字滑块【预约时】 步长
-    widget.DigitalDisplay.liveBookingsHour.Step = 1
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约时】 步长：{str(widget.DigitalDisplay.liveBookingsHour.Step)}")
+    def button_function_true_live_appointment_minute(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        return ButtonFunction.button_function_true_live_appointment_day()
 
-    # 设置 数字滑块【预约分】 可见状态
-    widget.DigitalDisplay.liveBookingsMinute.Visible = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约分】 可见状态：{str(widget.DigitalDisplay.liveBookingsMinute.Visible)}")
-    # 设置 数字滑块【预约分】 可用状态
-    widget.DigitalDisplay.liveBookingsMinute.Enabled = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约分】 可用状态：{str(widget.DigitalDisplay.liveBookingsMinute.Enabled)}")
-    # 设置 数字滑块【预约分】 显示选项值
-    widget.DigitalDisplay.liveBookingsMinute.Value = 5
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约分】 显示选项值：{str(widget.DigitalDisplay.liveBookingsMinute.Value)}")
-    # 设置 数字滑块【预约分】 最小值
-    widget.DigitalDisplay.liveBookingsMinute.Min = 5
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约分】 最小值：{str(widget.DigitalDisplay.liveBookingsMinute.Min)}")
-    # 设置 数字滑块【预约分】 最大值
-    widget.DigitalDisplay.liveBookingsMinute.Max = 59
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约分】 最大值：{str(widget.DigitalDisplay.liveBookingsMinute.Max)}")
-    # 设置 数字滑块【预约分】 步长
-    widget.DigitalDisplay.liveBookingsMinute.Step = 1
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约分】 步长：{str(widget.DigitalDisplay.liveBookingsMinute.Step)}")
+    def button_function_creat_live_appointment(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """创建直播预约"""
+        # 获取直播预约天
+        live_bookings_day = obs.obs_data_get_int(GlobalVariableOfData.script_settings,
+                                                 "live_bookings_day_digitalSlider")
+        log_save(obs.LOG_INFO, f"直播预约天: {live_bookings_day}")
+        # 获取直播预约时
+        live_bookings_hour = obs.obs_data_get_int(GlobalVariableOfData.script_settings,
+                                                  "live_bookings_hour_digitalSlider")
+        log_save(obs.LOG_INFO, f"直播预约时: {live_bookings_hour}")
+        # 获取直播预约分
+        live_bookings_minute = obs.obs_data_get_int(GlobalVariableOfData.script_settings,
+                                                    "live_bookings_minute_digitalSlider")
+        log_save(obs.LOG_INFO, f"直播预约分: {live_bookings_minute}")
+        # 限制直播时间内范围
+        if not (5 <= (live_bookings_day * 24 * 60 + live_bookings_hour * 60 + live_bookings_minute) <= 180 * 24 * 60):
+            log_save(obs.LOG_ERROR,
+                     f"直播预约时间: {live_bookings_day}天{live_bookings_hour}时{live_bookings_minute}分，需要大于 5min 以及 小于 59day")
+            return False
+        else:
+            log_save(obs.LOG_INFO, f"直播预约时间: {live_bookings_day}天{live_bookings_hour}时{live_bookings_minute}分")
+        # live_bookings_time = get_future_timestamp(live_bookings_day, live_bookings_hour, live_bookings_minute)
+        # log_save(obs.LOG_INFO, f"直播预约时间戳: {live_bookings_time}，时间: {datetime.fromtimestamp(live_bookings_time)}")
+        # 获取直播预约标题
+        live_bookings_title = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
+                                                      "live_bookings_title_textBox")
+        log_save(obs.LOG_INFO, f"直播预约标题: {live_bookings_title}")
+        # 获取是否发动态
+        live_bookings_dynamic_is = obs.obs_data_get_bool(GlobalVariableOfData.script_settings,
+                                                         "live_bookings_dynamic_bool")
+        log_save(obs.LOG_INFO, f"直播预约是否发动态: {live_bookings_dynamic_is}")
+        # 获取默认账户
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        # 创建直播预约
+        create_reserve_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification, cookie=
+        dict2cookie(b_u_l_c.get_cookies())).create_reserve(title=live_bookings_title,
+                                                           live_plan_start_time=get_future_timestamp(live_bookings_day,
+                                                                                                     live_bookings_hour,
+                                                                                                     live_bookings_minute),
+                                                           create_dynamic=live_bookings_dynamic_is)
+        log_save(obs.LOG_INFO, f"创建直播预约返回: {create_reserve_return}")
+        if create_reserve_return['code'] == 0:
+            log_save(obs.LOG_INFO, f"创建直播预约成功")
+        else:
+            log_save(obs.LOG_ERROR, f"创建直播预约失败: {create_reserve_return['message']}")
+            if create_reserve_return['code'] == -400:
+                log_save(obs.LOG_ERROR, f"直播预约标题错误: 【{live_bookings_title}】")
+            return False
 
-    # 设置 复选框【是否发直播预约动态】 可见状态
-    widget.CheckBox.liveBookingsDynamic.Visible = bool(room_status)
-    log_save(obs.LOG_INFO,
-             f"║║║设置 复选框【是否发直播预约动态】 可见状态：{str(widget.CheckBox.liveBookingsDynamic.Visible)}")
-    # 设置 普通文本框【是否发直播预约动态】 可用状态
-    widget.CheckBox.liveBookingsDynamic.Enabled = bool(room_status)
-    log_save(obs.LOG_INFO,
-             f"║║║设置 复选框【是否发直播预约动态】 可用状态：{str(widget.CheckBox.liveBookingsDynamic.Enabled)}")
-    # 设置 普通文本框【是否发直播预约动态】 内容
-    widget.CheckBox.liveBookingsDynamic.Bool = False
-    log_save(obs.LOG_INFO,
-             f"║║║设置 复选框【是否发直播预约动态】 选中状态：{str(widget.CheckBox.liveBookingsDynamic.Bool)}")
-
-    # 设置 普通文本框【直播预约标题】 可见状态
-    widget.TextBox.liveBookingsTitle.Visible = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播预约标题】 可见状态：{str(widget.TextBox.liveBookingsTitle.Visible)}")
-    # 设置 普通文本框【直播预约标题】 可用状态
-    widget.TextBox.liveBookingsTitle.Enabled = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播预约标题】 可用状态：{str(widget.TextBox.liveBookingsTitle.Enabled)}")
-    # 设置 普通文本框【直播预约标题】 内容
-    widget.TextBox.liveBookingsTitle.Text = ""
-    log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播预约标题】 内容：{str(widget.TextBox.liveBookingsTitle.Text)}")
-
-    # 设置 组合框【直播预约列表】 可见状态
-    widget.ComboBox.liveBookings.Visible = True
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【直播预约列表】 可见状态：{str(widget.ComboBox.liveBookings.Visible)}")
-    # 设置 组合框【直播预约列表】 可用状态
-    widget.ComboBox.liveBookings.Enabled = True
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【直播预约列表】 可用状态：{str(widget.ComboBox.liveBookings.Enabled)}")
-    # 设置 组合框【直播预约列表】 的数据字典
-    widget.ComboBox.liveBookings.Dictionary = reserve_name4reserve_sid
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【直播预约列表】 的数据字典：{str(widget.ComboBox.liveBookings.Dictionary)}")
-    # 设置 组合框【直播预约列表】 的内容
-    widget.ComboBox.liveBookings.Text = ""
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【直播预约列表】 的内容：{str(widget.ComboBox.liveBookings.Text)}")
-    # 设置 组合框【直播预约列表】 的内容 的 列表值
-    widget.ComboBox.liveBookings.Value = ""
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【直播预约列表】 的内容 的 列表值：{str(widget.ComboBox.liveBookings.Value)}")
-    # 设置 分组框【直播】 中控件属性 结束
-    log_save(obs.LOG_INFO, f"║║╚{7 * '═'}设置 分组框【直播】 中控件属性{7 * '═'}╝")
-    # 设置 控件属性 结束
-    log_save(obs.LOG_INFO, f"║╚{15 * '═'}设置 控件属性{15 * '═'}╝")
-    # 调整控件数据 结束
-    log_save(obs.LOG_INFO, f"╚{25 * '═'}调整控件数据{25 * '═'}╝")
-    log_save(obs.LOG_INFO, f"")
-
-    # 数字滑块+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐数字滑块 UI{30 * '─'}┐")
-    # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
-    log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
-    log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
-    # 数字滑块【预约天】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️数字滑块【预约天】 UI")
-    # 设置 数字滑块【预约天】 可见状态
-    if obs.obs_property_visible(
-            widget.DigitalDisplay.liveBookingsDay.Obj) != widget.DigitalDisplay.liveBookingsDay.Visible:
+        # 调整控件数据
+        log_save(obs.LOG_INFO, f"")
+        log_save(obs.LOG_INFO, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
+        log_save(obs.LOG_INFO, f"║{25 * ' '}调整控件数据{25 * ' '}║")
+        # 设置控件前准备（获取数据） 开始
+        log_save(obs.LOG_INFO, f"║")
+        log_save(obs.LOG_DEBUG, f"║设置控件前准备（获取数据）")
+        log_save(obs.LOG_INFO, f"║╔{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╗")
+        log_save(obs.LOG_INFO, f"║║")
+        # 获取默认账户
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        # 获取 '登录用户' 对应的直播间基础信息
+        room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(
+            int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
+        """直播间基础信息"""
         log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约天】 可见状态 发生变动: {obs.obs_property_visible(widget.DigitalDisplay.liveBookingsDay.Obj)}➡️{widget.DigitalDisplay.liveBookingsDay.Visible}")
-        obs.obs_property_set_visible(widget.DigitalDisplay.liveBookingsDay.Obj,
-                                     widget.DigitalDisplay.liveBookingsDay.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约天】 可见状态 未 发生变动")
-    # 设置 数字滑块【预约天】 可用状态
-    if obs.obs_property_enabled(
-            widget.DigitalDisplay.liveBookingsDay.Obj) != widget.DigitalDisplay.liveBookingsDay.Enabled:
+                 f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 的 直播间状态
+        room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
+        """登录用户的直播间存在状态"""
         log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约天】 可用状态 发生变动: {obs.obs_property_enabled(widget.DigitalDisplay.liveBookingsDay.Obj)}➡️{widget.DigitalDisplay.liveBookingsDay.Enabled}")
-        obs.obs_property_set_enabled(widget.DigitalDisplay.liveBookingsDay.Obj,
-                                     widget.DigitalDisplay.liveBookingsDay.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约天】 可用状态 未 发生变动")
-    if widget.DigitalDisplay.liveBookingsDay.Min != obs.obs_property_int_min(
-            widget.DigitalDisplay.liveBookingsDay.Obj) or widget.DigitalDisplay.liveBookingsDay.Max != obs.obs_property_int_max(
+                 f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 登录用户的直播预约列表信息
+        reserve_list = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
+                                         cookie=dict2cookie(b_u_l_c.get_cookies())).get_reserve_list()
+        """获取 '登录用户' 的 直播预约列表信息"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播预约列表信息：{(reserve_list if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 登录用户的直播预约字典
+        reserve_name4reserve_sid = (({str(reserve['reserve_info'][
+                                              'sid']): f"{reserve['reserve_info']['name']}|{datetime.fromtimestamp(reserve['reserve_info']['live_plan_start_time'])}"
+                                      for reserve in reserve_list} if reserve_list else {
+            "-1": "无直播预约"}) if room_status else {"-1": '⚠️无直播间'}) if b_u_l_c.get_cookies() else {
+            "-1": "⚠️未登录账号"}
+        """获取 '登录用户' 的 直播预约字典"""
+        log_save(obs.LOG_INFO,
+                 f"║║登录账户 的 直播预约：{(list(reserve_name4reserve_sid.values()) if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 设置控件前准备（获取数据）结束
+        log_save(obs.LOG_INFO, f"║╚{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╝")
+        log_save(obs.LOG_INFO, f"║")
+        # 设置控件属性
+        log_save(obs.LOG_INFO, f"║")
+        log_save(obs.LOG_INFO, f"║╔{15 * '═'}设置 控件属性{15 * '═'}╗")
+        # 分组框【直播】
+        # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+        log_save(obs.LOG_INFO, f"║║")
+        log_save(obs.LOG_INFO, f"║║设置 分组框【直播】 中 控件属性")
+        log_save(obs.LOG_INFO, f"║║╔{7 * '═'}设置 分组框【直播】 中控件属性{7 * '═'}╗")
+        # 设置 数字滑块【预约天】 可见状态
+        widget.DigitalDisplay.liveBookingsDay.Visible = bool(room_status)
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 数字滑块【预约天】 可见状态：{str(widget.DigitalDisplay.liveBookingsDay.Visible)}")
+        # 设置 数字滑块【预约天】 可用状态
+        widget.DigitalDisplay.liveBookingsDay.Enabled = bool(room_status)
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 数字滑块【预约天】 可用状态：{str(widget.DigitalDisplay.liveBookingsDay.Enabled)}")
+        # 设置 数字滑块【预约天】 显示选项值
+        widget.DigitalDisplay.liveBookingsDay.Value = 0
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 数字滑块【预约天】 显示选项值：{str(widget.DigitalDisplay.liveBookingsDay.Value)}")
+        # 设置 数字滑块【预约天】 最小值
+        widget.DigitalDisplay.liveBookingsDay.Min = 0
+        log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约天】 最小值：{str(widget.DigitalDisplay.liveBookingsDay.Min)}")
+        # 设置 数字滑块【预约天】 最大值
+        widget.DigitalDisplay.liveBookingsDay.Max = 180
+        log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约天】 最大值：{str(widget.DigitalDisplay.liveBookingsDay.Max)}")
+        # 设置 数字滑块【预约天】 步长
+        widget.DigitalDisplay.liveBookingsDay.Step = 1
+        log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约天】 步长：{str(widget.DigitalDisplay.liveBookingsDay.Step)}")
+
+        # 设置 数字滑块【预约时】 可见状态
+        widget.DigitalDisplay.liveBookingsHour.Visible = bool(room_status)
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 数字滑块【预约时】 可见状态：{str(widget.DigitalDisplay.liveBookingsHour.Visible)}")
+        # 设置 数字滑块【预约时】 可用状态
+        widget.DigitalDisplay.liveBookingsHour.Enabled = bool(room_status)
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 数字滑块【预约时】 可用状态：{str(widget.DigitalDisplay.liveBookingsHour.Enabled)}")
+        # 设置 数字滑块【预约时】 显示选项值
+        widget.DigitalDisplay.liveBookingsHour.Value = 0
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 数字滑块【预约时】 显示选项值：{str(widget.DigitalDisplay.liveBookingsHour.Value)}")
+        # 设置 数字滑块【预约时】 最小值
+        widget.DigitalDisplay.liveBookingsHour.Min = 0
+        log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约时】 最小值：{str(widget.DigitalDisplay.liveBookingsHour.Min)}")
+        # 设置 数字滑块【预约时】 最大值
+        widget.DigitalDisplay.liveBookingsHour.Max = 23
+        log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约时】 最大值：{str(widget.DigitalDisplay.liveBookingsHour.Max)}")
+        # 设置 数字滑块【预约时】 步长
+        widget.DigitalDisplay.liveBookingsHour.Step = 1
+        log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约时】 步长：{str(widget.DigitalDisplay.liveBookingsHour.Step)}")
+
+        # 设置 数字滑块【预约分】 可见状态
+        widget.DigitalDisplay.liveBookingsMinute.Visible = bool(room_status)
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 数字滑块【预约分】 可见状态：{str(widget.DigitalDisplay.liveBookingsMinute.Visible)}")
+        # 设置 数字滑块【预约分】 可用状态
+        widget.DigitalDisplay.liveBookingsMinute.Enabled = bool(room_status)
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 数字滑块【预约分】 可用状态：{str(widget.DigitalDisplay.liveBookingsMinute.Enabled)}")
+        # 设置 数字滑块【预约分】 显示选项值
+        widget.DigitalDisplay.liveBookingsMinute.Value = 5
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 数字滑块【预约分】 显示选项值：{str(widget.DigitalDisplay.liveBookingsMinute.Value)}")
+        # 设置 数字滑块【预约分】 最小值
+        widget.DigitalDisplay.liveBookingsMinute.Min = 5
+        log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约分】 最小值：{str(widget.DigitalDisplay.liveBookingsMinute.Min)}")
+        # 设置 数字滑块【预约分】 最大值
+        widget.DigitalDisplay.liveBookingsMinute.Max = 59
+        log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约分】 最大值：{str(widget.DigitalDisplay.liveBookingsMinute.Max)}")
+        # 设置 数字滑块【预约分】 步长
+        widget.DigitalDisplay.liveBookingsMinute.Step = 1
+        log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约分】 步长：{str(widget.DigitalDisplay.liveBookingsMinute.Step)}")
+
+        # 设置 复选框【是否发直播预约动态】 可见状态
+        widget.CheckBox.liveBookingsDynamic.Visible = bool(room_status)
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 复选框【是否发直播预约动态】 可见状态：{str(widget.CheckBox.liveBookingsDynamic.Visible)}")
+        # 设置 普通文本框【是否发直播预约动态】 可用状态
+        widget.CheckBox.liveBookingsDynamic.Enabled = bool(room_status)
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 复选框【是否发直播预约动态】 可用状态：{str(widget.CheckBox.liveBookingsDynamic.Enabled)}")
+        # 设置 普通文本框【是否发直播预约动态】 内容
+        widget.CheckBox.liveBookingsDynamic.Bool = False
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 复选框【是否发直播预约动态】 选中状态：{str(widget.CheckBox.liveBookingsDynamic.Bool)}")
+
+        # 设置 普通文本框【直播预约标题】 可见状态
+        widget.TextBox.liveBookingsTitle.Visible = bool(room_status)
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 普通文本框【直播预约标题】 可见状态：{str(widget.TextBox.liveBookingsTitle.Visible)}")
+        # 设置 普通文本框【直播预约标题】 可用状态
+        widget.TextBox.liveBookingsTitle.Enabled = bool(room_status)
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 普通文本框【直播预约标题】 可用状态：{str(widget.TextBox.liveBookingsTitle.Enabled)}")
+        # 设置 普通文本框【直播预约标题】 内容
+        widget.TextBox.liveBookingsTitle.Text = ""
+        log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播预约标题】 内容：{str(widget.TextBox.liveBookingsTitle.Text)}")
+
+        # 设置 组合框【直播预约列表】 可见状态
+        widget.ComboBox.liveBookings.Visible = True
+        log_save(obs.LOG_INFO, f"║║║设置 组合框【直播预约列表】 可见状态：{str(widget.ComboBox.liveBookings.Visible)}")
+        # 设置 组合框【直播预约列表】 可用状态
+        widget.ComboBox.liveBookings.Enabled = True
+        log_save(obs.LOG_INFO, f"║║║设置 组合框【直播预约列表】 可用状态：{str(widget.ComboBox.liveBookings.Enabled)}")
+        # 设置 组合框【直播预约列表】 的数据字典
+        widget.ComboBox.liveBookings.Dictionary = reserve_name4reserve_sid
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 组合框【直播预约列表】 的数据字典：{str(widget.ComboBox.liveBookings.Dictionary)}")
+        # 设置 组合框【直播预约列表】 的内容
+        widget.ComboBox.liveBookings.Text = ""
+        log_save(obs.LOG_INFO, f"║║║设置 组合框【直播预约列表】 的内容：{str(widget.ComboBox.liveBookings.Text)}")
+        # 设置 组合框【直播预约列表】 的内容 的 列表值
+        widget.ComboBox.liveBookings.Value = ""
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 组合框【直播预约列表】 的内容 的 列表值：{str(widget.ComboBox.liveBookings.Value)}")
+        # 设置 分组框【直播】 中控件属性 结束
+        log_save(obs.LOG_INFO, f"║║╚{7 * '═'}设置 分组框【直播】 中控件属性{7 * '═'}╝")
+        # 设置 控件属性 结束
+        log_save(obs.LOG_INFO, f"║╚{15 * '═'}设置 控件属性{15 * '═'}╝")
+        # 调整控件数据 结束
+        log_save(obs.LOG_INFO, f"╚{25 * '═'}调整控件数据{25 * '═'}╝")
+        log_save(obs.LOG_INFO, f"")
+
+        # 数字滑块+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐数字滑块 UI{30 * '─'}┐")
+        # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
+        log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
+        log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
+        # 数字滑块【预约天】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️数字滑块【预约天】 UI")
+        # 设置 数字滑块【预约天】 可见状态
+        if obs.obs_property_visible(
+                widget.DigitalDisplay.liveBookingsDay.Obj) != widget.DigitalDisplay.liveBookingsDay.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约天】 可见状态 发生变动: {obs.obs_property_visible(widget.DigitalDisplay.liveBookingsDay.Obj)}➡️{widget.DigitalDisplay.liveBookingsDay.Visible}")
+            obs.obs_property_set_visible(widget.DigitalDisplay.liveBookingsDay.Obj,
+                                         widget.DigitalDisplay.liveBookingsDay.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约天】 可见状态 未 发生变动")
+        # 设置 数字滑块【预约天】 可用状态
+        if obs.obs_property_enabled(
+                widget.DigitalDisplay.liveBookingsDay.Obj) != widget.DigitalDisplay.liveBookingsDay.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约天】 可用状态 发生变动: {obs.obs_property_enabled(widget.DigitalDisplay.liveBookingsDay.Obj)}➡️{widget.DigitalDisplay.liveBookingsDay.Enabled}")
+            obs.obs_property_set_enabled(widget.DigitalDisplay.liveBookingsDay.Obj,
+                                         widget.DigitalDisplay.liveBookingsDay.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约天】 可用状态 未 发生变动")
+        if widget.DigitalDisplay.liveBookingsDay.Min != obs.obs_property_int_min(
+                widget.DigitalDisplay.liveBookingsDay.Obj) or widget.DigitalDisplay.liveBookingsDay.Max != obs.obs_property_int_max(
             widget.DigitalDisplay.liveBookingsDay.Obj) or widget.DigitalDisplay.liveBookingsDay.Step != obs.obs_property_int_step(
             widget.DigitalDisplay.liveBookingsDay.Obj):
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约天】 最小值/最大值/步长 发生变动: {obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsDay.Obj)}/{obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsDay.Obj)}/{obs.obs_property_int_step(widget.DigitalDisplay.liveBookingsDay.Obj)}➡️{widget.DigitalDisplay.liveBookingsDay.Min}/{widget.DigitalDisplay.liveBookingsDay.Max}/{widget.DigitalDisplay.liveBookingsDay.Step}")
-        obs.obs_property_int_set_limits(widget.DigitalDisplay.liveBookingsDay.Obj,
-                                        widget.DigitalDisplay.liveBookingsDay.Min,
-                                        widget.DigitalDisplay.liveBookingsDay.Max,
-                                        widget.DigitalDisplay.liveBookingsDay.Step)
-    else:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约天】 最小值/最大值/步长 未发生变动: {obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsDay.Obj)}/{obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsDay.Obj)}/{obs.obs_property_int_step(widget.DigitalDisplay.liveBookingsDay.Obj)}➡️{widget.DigitalDisplay.liveBookingsDay.Min}/{widget.DigitalDisplay.liveBookingsDay.Max}/{widget.DigitalDisplay.liveBookingsDay.Step}")
-        log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约天】 最小值/最大值/步长 未 发生变动")
-    # 设置 数字滑块【预约天】 显示选项值
-    if obs.obs_data_get_int(GlobalVariableOfData.script_settings,
-                            'live_bookings_day_digitalSlider') != widget.DigitalDisplay.liveBookingsDay.Value:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约天】 显示选项值 发生变动: {obs.obs_data_get_int(GlobalVariableOfData.script_settings, 'live_bookings_day_digitalSlider')}➡️{widget.DigitalDisplay.liveBookingsDay.Value}")
-        obs.obs_data_set_int(GlobalVariableOfData.script_settings, 'live_bookings_day_digitalSlider',
-                             widget.DigitalDisplay.liveBookingsDay.Value)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约天】 显示选项值 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    # 数字滑块【预约时】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️数字滑块【预约时】 UI")
-    # 设置 数字滑块【预约时】 可见状态
-    if obs.obs_property_visible(
-            widget.DigitalDisplay.liveBookingsHour.Obj) != widget.DigitalDisplay.liveBookingsHour.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约时】 可见状态 发生变动: {obs.obs_property_visible(widget.DigitalDisplay.liveBookingsHour.Obj)}➡️{widget.DigitalDisplay.liveBookingsHour.Visible}")
-        obs.obs_property_set_visible(widget.DigitalDisplay.liveBookingsHour.Obj,
-                                     widget.DigitalDisplay.liveBookingsHour.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约时】 可见状态 未 发生变动")
-    # 设置 数字滑块【预约时】 可用状态
-    if obs.obs_property_enabled(
-            widget.DigitalDisplay.liveBookingsHour.Obj) != widget.DigitalDisplay.liveBookingsHour.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约时】 可用状态 发生变动: {obs.obs_property_enabled(widget.DigitalDisplay.liveBookingsHour.Obj)}➡️{widget.DigitalDisplay.liveBookingsHour.Enabled}")
-        obs.obs_property_set_enabled(widget.DigitalDisplay.liveBookingsHour.Obj,
-                                     widget.DigitalDisplay.liveBookingsHour.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约时】 可用状态 未 发生变动")
-    if widget.DigitalDisplay.liveBookingsHour.Min != obs.obs_property_int_min(
-            widget.DigitalDisplay.liveBookingsHour.Obj) or widget.DigitalDisplay.liveBookingsHour.Max != obs.obs_property_int_max(
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约天】 最小值/最大值/步长 发生变动: {obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsDay.Obj)}/{obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsDay.Obj)}/{obs.obs_property_int_step(widget.DigitalDisplay.liveBookingsDay.Obj)}➡️{widget.DigitalDisplay.liveBookingsDay.Min}/{widget.DigitalDisplay.liveBookingsDay.Max}/{widget.DigitalDisplay.liveBookingsDay.Step}")
+            obs.obs_property_int_set_limits(widget.DigitalDisplay.liveBookingsDay.Obj,
+                                            widget.DigitalDisplay.liveBookingsDay.Min,
+                                            widget.DigitalDisplay.liveBookingsDay.Max,
+                                            widget.DigitalDisplay.liveBookingsDay.Step)
+        else:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约天】 最小值/最大值/步长 未发生变动: {obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsDay.Obj)}/{obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsDay.Obj)}/{obs.obs_property_int_step(widget.DigitalDisplay.liveBookingsDay.Obj)}➡️{widget.DigitalDisplay.liveBookingsDay.Min}/{widget.DigitalDisplay.liveBookingsDay.Max}/{widget.DigitalDisplay.liveBookingsDay.Step}")
+            log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约天】 最小值/最大值/步长 未 发生变动")
+        # 设置 数字滑块【预约天】 显示选项值
+        if obs.obs_data_get_int(GlobalVariableOfData.script_settings,
+                                'live_bookings_day_digitalSlider') != widget.DigitalDisplay.liveBookingsDay.Value:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约天】 显示选项值 发生变动: {obs.obs_data_get_int(GlobalVariableOfData.script_settings, 'live_bookings_day_digitalSlider')}➡️{widget.DigitalDisplay.liveBookingsDay.Value}")
+            obs.obs_data_set_int(GlobalVariableOfData.script_settings, 'live_bookings_day_digitalSlider',
+                                 widget.DigitalDisplay.liveBookingsDay.Value)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约天】 显示选项值 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        # 数字滑块【预约时】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️数字滑块【预约时】 UI")
+        # 设置 数字滑块【预约时】 可见状态
+        if obs.obs_property_visible(
+                widget.DigitalDisplay.liveBookingsHour.Obj) != widget.DigitalDisplay.liveBookingsHour.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约时】 可见状态 发生变动: {obs.obs_property_visible(widget.DigitalDisplay.liveBookingsHour.Obj)}➡️{widget.DigitalDisplay.liveBookingsHour.Visible}")
+            obs.obs_property_set_visible(widget.DigitalDisplay.liveBookingsHour.Obj,
+                                         widget.DigitalDisplay.liveBookingsHour.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约时】 可见状态 未 发生变动")
+        # 设置 数字滑块【预约时】 可用状态
+        if obs.obs_property_enabled(
+                widget.DigitalDisplay.liveBookingsHour.Obj) != widget.DigitalDisplay.liveBookingsHour.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约时】 可用状态 发生变动: {obs.obs_property_enabled(widget.DigitalDisplay.liveBookingsHour.Obj)}➡️{widget.DigitalDisplay.liveBookingsHour.Enabled}")
+            obs.obs_property_set_enabled(widget.DigitalDisplay.liveBookingsHour.Obj,
+                                         widget.DigitalDisplay.liveBookingsHour.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约时】 可用状态 未 发生变动")
+        if widget.DigitalDisplay.liveBookingsHour.Min != obs.obs_property_int_min(
+                widget.DigitalDisplay.liveBookingsHour.Obj) or widget.DigitalDisplay.liveBookingsHour.Max != obs.obs_property_int_max(
             widget.DigitalDisplay.liveBookingsHour.Obj) or widget.DigitalDisplay.liveBookingsHour.Step != obs.obs_property_int_step(
             widget.DigitalDisplay.liveBookingsHour.Obj):
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约时】 最小值/最大值/步长 发生变动: {obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsHour.Obj)}/{obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsHour.Obj)}/{obs.obs_property_int_step(widget.DigitalDisplay.liveBookingsHour.Obj)}➡️{widget.DigitalDisplay.liveBookingsHour.Min}/{widget.DigitalDisplay.liveBookingsHour.Max}/{widget.DigitalDisplay.liveBookingsHour.Step}")
-        obs.obs_property_int_set_limits(widget.DigitalDisplay.liveBookingsHour.Obj,
-                                        widget.DigitalDisplay.liveBookingsHour.Min,
-                                        widget.DigitalDisplay.liveBookingsHour.Max,
-                                        widget.DigitalDisplay.liveBookingsHour.Step)
-    else:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约时】 最小值/最大值/步长 未发生变动: {obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsHour.Obj)}/{obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsHour.Obj)}/{obs.obs_property_int_step(widget.DigitalDisplay.liveBookingsHour.Obj)}➡️{widget.DigitalDisplay.liveBookingsHour.Min}/{widget.DigitalDisplay.liveBookingsHour.Max}/{widget.DigitalDisplay.liveBookingsHour.Step}")
-        log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约时】 最小值/最大值/步长 未 发生变动")
-    # 设置 数字滑块【预约时】 显示选项值
-    if obs.obs_data_get_int(GlobalVariableOfData.script_settings,
-                            'live_bookings_hour_digitalSlider') != widget.DigitalDisplay.liveBookingsHour.Value:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约时】 显示选项值 发生变动: {obs.obs_data_get_int(GlobalVariableOfData.script_settings, 'live_bookings_hour_digitalSlider')}➡️{widget.DigitalDisplay.liveBookingsHour.Value}")
-        obs.obs_data_set_int(GlobalVariableOfData.script_settings, 'live_bookings_hour_digitalSlider',
-                             widget.DigitalDisplay.liveBookingsHour.Value)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约时】 显示选项值 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    # 数字滑块【预约分】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️数字滑块【预约分】 UI")
-    # 设置 数字滑块【预约分】 可见状态
-    if obs.obs_property_visible(
-            widget.DigitalDisplay.liveBookingsMinute.Obj) != widget.DigitalDisplay.liveBookingsMinute.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约分】 可见状态 发生变动: {obs.obs_property_visible(widget.DigitalDisplay.liveBookingsMinute.Obj)}➡️{widget.DigitalDisplay.liveBookingsMinute.Visible}")
-        obs.obs_property_set_visible(widget.DigitalDisplay.liveBookingsMinute.Obj,
-                                     widget.DigitalDisplay.liveBookingsMinute.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约分】 可见状态 未 发生变动")
-    # 设置 数字滑块【预约分】 可用状态
-    if obs.obs_property_enabled(
-            widget.DigitalDisplay.liveBookingsMinute.Obj) != widget.DigitalDisplay.liveBookingsMinute.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约分】 可用状态 发生变动: {obs.obs_property_enabled(widget.DigitalDisplay.liveBookingsMinute.Obj)}➡️{widget.DigitalDisplay.liveBookingsMinute.Enabled}")
-        obs.obs_property_set_enabled(widget.DigitalDisplay.liveBookingsMinute.Obj,
-                                     widget.DigitalDisplay.liveBookingsMinute.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约分】 可用状态 未 发生变动")
-    if widget.DigitalDisplay.liveBookingsMinute.Min != obs.obs_property_int_min(
-            widget.DigitalDisplay.liveBookingsMinute.Obj) or widget.DigitalDisplay.liveBookingsMinute.Max != obs.obs_property_int_max(
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约时】 最小值/最大值/步长 发生变动: {obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsHour.Obj)}/{obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsHour.Obj)}/{obs.obs_property_int_step(widget.DigitalDisplay.liveBookingsHour.Obj)}➡️{widget.DigitalDisplay.liveBookingsHour.Min}/{widget.DigitalDisplay.liveBookingsHour.Max}/{widget.DigitalDisplay.liveBookingsHour.Step}")
+            obs.obs_property_int_set_limits(widget.DigitalDisplay.liveBookingsHour.Obj,
+                                            widget.DigitalDisplay.liveBookingsHour.Min,
+                                            widget.DigitalDisplay.liveBookingsHour.Max,
+                                            widget.DigitalDisplay.liveBookingsHour.Step)
+        else:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约时】 最小值/最大值/步长 未发生变动: {obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsHour.Obj)}/{obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsHour.Obj)}/{obs.obs_property_int_step(widget.DigitalDisplay.liveBookingsHour.Obj)}➡️{widget.DigitalDisplay.liveBookingsHour.Min}/{widget.DigitalDisplay.liveBookingsHour.Max}/{widget.DigitalDisplay.liveBookingsHour.Step}")
+            log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约时】 最小值/最大值/步长 未 发生变动")
+        # 设置 数字滑块【预约时】 显示选项值
+        if obs.obs_data_get_int(GlobalVariableOfData.script_settings,
+                                'live_bookings_hour_digitalSlider') != widget.DigitalDisplay.liveBookingsHour.Value:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约时】 显示选项值 发生变动: {obs.obs_data_get_int(GlobalVariableOfData.script_settings, 'live_bookings_hour_digitalSlider')}➡️{widget.DigitalDisplay.liveBookingsHour.Value}")
+            obs.obs_data_set_int(GlobalVariableOfData.script_settings, 'live_bookings_hour_digitalSlider',
+                                 widget.DigitalDisplay.liveBookingsHour.Value)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约时】 显示选项值 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        # 数字滑块【预约分】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️数字滑块【预约分】 UI")
+        # 设置 数字滑块【预约分】 可见状态
+        if obs.obs_property_visible(
+                widget.DigitalDisplay.liveBookingsMinute.Obj) != widget.DigitalDisplay.liveBookingsMinute.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约分】 可见状态 发生变动: {obs.obs_property_visible(widget.DigitalDisplay.liveBookingsMinute.Obj)}➡️{widget.DigitalDisplay.liveBookingsMinute.Visible}")
+            obs.obs_property_set_visible(widget.DigitalDisplay.liveBookingsMinute.Obj,
+                                         widget.DigitalDisplay.liveBookingsMinute.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约分】 可见状态 未 发生变动")
+        # 设置 数字滑块【预约分】 可用状态
+        if obs.obs_property_enabled(
+                widget.DigitalDisplay.liveBookingsMinute.Obj) != widget.DigitalDisplay.liveBookingsMinute.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约分】 可用状态 发生变动: {obs.obs_property_enabled(widget.DigitalDisplay.liveBookingsMinute.Obj)}➡️{widget.DigitalDisplay.liveBookingsMinute.Enabled}")
+            obs.obs_property_set_enabled(widget.DigitalDisplay.liveBookingsMinute.Obj,
+                                         widget.DigitalDisplay.liveBookingsMinute.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约分】 可用状态 未 发生变动")
+        if widget.DigitalDisplay.liveBookingsMinute.Min != obs.obs_property_int_min(
+                widget.DigitalDisplay.liveBookingsMinute.Obj) or widget.DigitalDisplay.liveBookingsMinute.Max != obs.obs_property_int_max(
             widget.DigitalDisplay.liveBookingsMinute.Obj) or widget.DigitalDisplay.liveBookingsMinute.Step != obs.obs_property_int_step(
             widget.DigitalDisplay.liveBookingsMinute.Obj):
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约分】 最小值/最大值/步长 发生变动: {obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsMinute.Obj)}/{obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsMinute.Obj)}/{obs.obs_property_int_step(widget.DigitalDisplay.liveBookingsMinute.Obj)}➡️{widget.DigitalDisplay.liveBookingsMinute.Min}/{widget.DigitalDisplay.liveBookingsMinute.Max}/{widget.DigitalDisplay.liveBookingsMinute.Step}")
-        obs.obs_property_int_set_limits(widget.DigitalDisplay.liveBookingsMinute.Obj,
-                                        widget.DigitalDisplay.liveBookingsMinute.Min,
-                                        widget.DigitalDisplay.liveBookingsMinute.Max,
-                                        widget.DigitalDisplay.liveBookingsMinute.Step)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约分】 最小值/最大值/步长 未 发生变动")
-    # 设置 数字滑块【预约分】 显示选项值
-    if obs.obs_data_get_int(GlobalVariableOfData.script_settings,
-                            'live_bookings_minute_digitalSlider') != widget.DigitalDisplay.liveBookingsMinute.Value:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约分】 显示选项值 发生变动: {obs.obs_data_get_int(GlobalVariableOfData.script_settings, 'live_bookings_minute_digitalSlider')}➡️{widget.DigitalDisplay.liveBookingsMinute.Value}")
-        obs.obs_data_set_int(GlobalVariableOfData.script_settings, 'live_bookings_minute_digitalSlider',
-                             widget.DigitalDisplay.liveBookingsMinute.Value)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约分】 显示选项值 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
-    log_save(obs.LOG_INFO, f"　└{30 * '─'}👌数字滑块 UI{30 * '─'}┘")
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约分】 最小值/最大值/步长 发生变动: {obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsMinute.Obj)}/{obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsMinute.Obj)}/{obs.obs_property_int_step(widget.DigitalDisplay.liveBookingsMinute.Obj)}➡️{widget.DigitalDisplay.liveBookingsMinute.Min}/{widget.DigitalDisplay.liveBookingsMinute.Max}/{widget.DigitalDisplay.liveBookingsMinute.Step}")
+            obs.obs_property_int_set_limits(widget.DigitalDisplay.liveBookingsMinute.Obj,
+                                            widget.DigitalDisplay.liveBookingsMinute.Min,
+                                            widget.DigitalDisplay.liveBookingsMinute.Max,
+                                            widget.DigitalDisplay.liveBookingsMinute.Step)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约分】 最小值/最大值/步长 未 发生变动")
+        # 设置 数字滑块【预约分】 显示选项值
+        if obs.obs_data_get_int(GlobalVariableOfData.script_settings,
+                                'live_bookings_minute_digitalSlider') != widget.DigitalDisplay.liveBookingsMinute.Value:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约分】 显示选项值 发生变动: {obs.obs_data_get_int(GlobalVariableOfData.script_settings, 'live_bookings_minute_digitalSlider')}➡️{widget.DigitalDisplay.liveBookingsMinute.Value}")
+            obs.obs_data_set_int(GlobalVariableOfData.script_settings, 'live_bookings_minute_digitalSlider',
+                                 widget.DigitalDisplay.liveBookingsMinute.Value)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约分】 显示选项值 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
+        log_save(obs.LOG_INFO, f"　└{30 * '─'}👌数字滑块 UI{30 * '─'}┘")
 
-    # 复选框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐复选框 UI{30 * '─'}┐")
-    # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
-    log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
-    log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
-    # 普通文本框【直播间公告】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️复选框【是否发直播预约动态】 UI")
-    # 设置 复选框【是否发直播预约动态】 可见状态
-    if obs.obs_property_visible(widget.CheckBox.liveBookingsDynamic.Obj) != widget.CheckBox.liveBookingsDynamic.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 复选框【是否发直播预约动态】 可见状态 发生变动: {obs.obs_property_visible(widget.CheckBox.liveBookingsDynamic.Obj)}➡️{widget.CheckBox.liveBookingsDynamic.Visible}")
-        obs.obs_property_set_visible(widget.CheckBox.liveBookingsDynamic.Obj,
-                                     widget.CheckBox.liveBookingsDynamic.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 复选框【是否发直播预约动态】 可见状态 未 发生变动")
-    # 设置 复选框【是否发直播预约动态】 可用状态
-    if obs.obs_property_enabled(widget.CheckBox.liveBookingsDynamic.Obj) != widget.CheckBox.liveBookingsDynamic.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 复选框【是否发直播预约动态】 可用状态 发生变动: {obs.obs_property_enabled(widget.CheckBox.liveBookingsDynamic.Obj)}➡️{widget.CheckBox.liveBookingsDynamic.Enabled}")
-        obs.obs_property_set_enabled(widget.CheckBox.liveBookingsDynamic.Obj,
-                                     widget.CheckBox.liveBookingsDynamic.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 复选框【是否发直播预约动态】 可用状态 未 发生变动")
-    # 设置 复选框【是否发直播预约动态】 文本
-    if obs.obs_data_get_bool(GlobalVariableOfData.script_settings,
-                             'live_bookings_dynamic_bool') != widget.CheckBox.liveBookingsDynamic.Bool:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 复选框【是否发直播预约动态】 选中状态 发生变动: {obs.obs_data_get_bool(GlobalVariableOfData.script_settings, 'live_bookings_dynamic_bool')}➡️{widget.CheckBox.liveBookingsDynamic.Bool}")
-        obs.obs_data_set_bool(GlobalVariableOfData.script_settings, "live_bookings_dynamic_bool",
-                              widget.CheckBox.liveBookingsDynamic.Bool)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 复选框【是否发直播预约动态】 选中状态 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
-    log_save(obs.LOG_INFO, f"　└{30 * '─'}👌复选框 UI{30 * '─'}┘")
+        # 复选框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐复选框 UI{30 * '─'}┐")
+        # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
+        log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
+        log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
+        # 普通文本框【直播间公告】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️复选框【是否发直播预约动态】 UI")
+        # 设置 复选框【是否发直播预约动态】 可见状态
+        if obs.obs_property_visible(
+                widget.CheckBox.liveBookingsDynamic.Obj) != widget.CheckBox.liveBookingsDynamic.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 复选框【是否发直播预约动态】 可见状态 发生变动: {obs.obs_property_visible(widget.CheckBox.liveBookingsDynamic.Obj)}➡️{widget.CheckBox.liveBookingsDynamic.Visible}")
+            obs.obs_property_set_visible(widget.CheckBox.liveBookingsDynamic.Obj,
+                                         widget.CheckBox.liveBookingsDynamic.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 复选框【是否发直播预约动态】 可见状态 未 发生变动")
+        # 设置 复选框【是否发直播预约动态】 可用状态
+        if obs.obs_property_enabled(
+                widget.CheckBox.liveBookingsDynamic.Obj) != widget.CheckBox.liveBookingsDynamic.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 复选框【是否发直播预约动态】 可用状态 发生变动: {obs.obs_property_enabled(widget.CheckBox.liveBookingsDynamic.Obj)}➡️{widget.CheckBox.liveBookingsDynamic.Enabled}")
+            obs.obs_property_set_enabled(widget.CheckBox.liveBookingsDynamic.Obj,
+                                         widget.CheckBox.liveBookingsDynamic.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 复选框【是否发直播预约动态】 可用状态 未 发生变动")
+        # 设置 复选框【是否发直播预约动态】 文本
+        if obs.obs_data_get_bool(GlobalVariableOfData.script_settings,
+                                 'live_bookings_dynamic_bool') != widget.CheckBox.liveBookingsDynamic.Bool:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 复选框【是否发直播预约动态】 选中状态 发生变动: {obs.obs_data_get_bool(GlobalVariableOfData.script_settings, 'live_bookings_dynamic_bool')}➡️{widget.CheckBox.liveBookingsDynamic.Bool}")
+            obs.obs_data_set_bool(GlobalVariableOfData.script_settings, "live_bookings_dynamic_bool",
+                                  widget.CheckBox.liveBookingsDynamic.Bool)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 复选框【是否发直播预约动态】 选中状态 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
+        log_save(obs.LOG_INFO, f"　└{30 * '─'}👌复选框 UI{30 * '─'}┘")
 
-    # 普通文本框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐普通文本框 UI{30 * '─'}┐")
-    # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
-    log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
-    log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
-    # 普通文本框【直播间公告】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️普通文本框【直播预约标题】 UI")
-    # 设置 普通文本框【直播预约标题】 可见状态
-    if obs.obs_property_visible(widget.TextBox.liveBookingsTitle.Obj) != widget.TextBox.liveBookingsTitle.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 普通文本框【直播预约标题】 可见状态 发生变动: {obs.obs_property_visible(widget.TextBox.liveBookingsTitle.Obj)}➡️{widget.TextBox.liveBookingsTitle.Visible}")
-        obs.obs_property_set_visible(widget.TextBox.liveBookingsTitle.Obj, widget.TextBox.liveBookingsTitle.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 普通文本框【直播预约标题】 可见状态 未 发生变动")
-    # 设置 普通文本框【直播预约标题】 可用状态
-    if obs.obs_property_enabled(widget.TextBox.liveBookingsTitle.Obj) != widget.TextBox.liveBookingsTitle.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 普通文本框【直播预约标题】 可用状态 发生变动: {obs.obs_property_enabled(widget.TextBox.liveBookingsTitle.Obj)}➡️{widget.TextBox.liveBookingsTitle.Enabled}")
-        obs.obs_property_set_enabled(widget.TextBox.liveBookingsTitle.Obj, widget.TextBox.liveBookingsTitle.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 普通文本框【直播预约标题】 可用状态 未 发生变动")
-    # 设置 普通文本框【直播预约标题】 文本
-    if obs.obs_data_get_string(GlobalVariableOfData.script_settings,
-                               'live_bookings_title_textBox') != widget.TextBox.liveBookingsTitle.Text:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 普通文本框【直播预约标题】 文本 发生变动: {obs.obs_data_get_string(GlobalVariableOfData.script_settings, 'live_bookings_title_textBox')}➡️{widget.TextBox.liveBookingsTitle.Text}")
-        obs.obs_data_set_string(GlobalVariableOfData.script_settings, "live_bookings_title_textBox",
-                                widget.TextBox.liveBookingsTitle.Text)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 普通文本框【直播预约标题】 文本 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
-    log_save(obs.LOG_INFO, f"　└{30 * '─'}👌普通文本框 UI{30 * '─'}┘")
+        # 普通文本框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐普通文本框 UI{30 * '─'}┐")
+        # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
+        log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
+        log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
+        # 普通文本框【直播间公告】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️普通文本框【直播预约标题】 UI")
+        # 设置 普通文本框【直播预约标题】 可见状态
+        if obs.obs_property_visible(widget.TextBox.liveBookingsTitle.Obj) != widget.TextBox.liveBookingsTitle.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 普通文本框【直播预约标题】 可见状态 发生变动: {obs.obs_property_visible(widget.TextBox.liveBookingsTitle.Obj)}➡️{widget.TextBox.liveBookingsTitle.Visible}")
+            obs.obs_property_set_visible(widget.TextBox.liveBookingsTitle.Obj, widget.TextBox.liveBookingsTitle.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 普通文本框【直播预约标题】 可见状态 未 发生变动")
+        # 设置 普通文本框【直播预约标题】 可用状态
+        if obs.obs_property_enabled(widget.TextBox.liveBookingsTitle.Obj) != widget.TextBox.liveBookingsTitle.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 普通文本框【直播预约标题】 可用状态 发生变动: {obs.obs_property_enabled(widget.TextBox.liveBookingsTitle.Obj)}➡️{widget.TextBox.liveBookingsTitle.Enabled}")
+            obs.obs_property_set_enabled(widget.TextBox.liveBookingsTitle.Obj, widget.TextBox.liveBookingsTitle.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 普通文本框【直播预约标题】 可用状态 未 发生变动")
+        # 设置 普通文本框【直播预约标题】 文本
+        if obs.obs_data_get_string(GlobalVariableOfData.script_settings,
+                                   'live_bookings_title_textBox') != widget.TextBox.liveBookingsTitle.Text:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 普通文本框【直播预约标题】 文本 发生变动: {obs.obs_data_get_string(GlobalVariableOfData.script_settings, 'live_bookings_title_textBox')}➡️{widget.TextBox.liveBookingsTitle.Text}")
+            obs.obs_data_set_string(GlobalVariableOfData.script_settings, "live_bookings_title_textBox",
+                                    widget.TextBox.liveBookingsTitle.Text)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 普通文本框【直播预约标题】 文本 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
+        log_save(obs.LOG_INFO, f"　└{30 * '─'}👌普通文本框 UI{30 * '─'}┘")
 
-    # 组合框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐组合框 UI{30 * '─'}┐")
-    # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
-    log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
-    log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
-    # 组合框【直播预约列表】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️组合框【直播预约列表】 UI")
-    # 设置 组合框【直播预约列表】 可见状态
-    if obs.obs_property_visible(widget.ComboBox.liveBookings.Obj) != widget.ComboBox.liveBookings.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 组合框【直播预约列表】 可见状态 发生变动: {obs.obs_property_visible(widget.ComboBox.liveBookings.Obj)}➡️{widget.ComboBox.liveBookings.Visible}")
-        obs.obs_property_set_visible(widget.ComboBox.liveBookings.Obj, widget.ComboBox.liveBookings.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 组合框【直播预约列表】 可见状态 未 发生变动")
-    # 设置 组合框【直播预约列表】 可用状态
-    if obs.obs_property_enabled(widget.ComboBox.liveBookings.Obj) != widget.ComboBox.liveBookings.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 组合框【直播预约列表】 可用状态 发生变动: {obs.obs_property_enabled(widget.ComboBox.liveBookings.Obj)}➡️{widget.ComboBox.liveBookings.Enabled}")
-        obs.obs_property_set_enabled(widget.ComboBox.liveBookings.Obj, widget.ComboBox.liveBookings.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 组合框【直播预约列表】 可用状态 未 发生变动")
-    # 判断 组合框【直播预约列表】字典数据 和 当前数据是否有变化
-    if widget.ComboBox.liveBookings.Dictionary != {
-        obs.obs_property_list_item_string(widget.ComboBox.liveBookings.Obj, idx): obs.obs_property_list_item_name(
+        # 组合框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐组合框 UI{30 * '─'}┐")
+        # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
+        log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
+        log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
+        # 组合框【直播预约列表】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️组合框【直播预约列表】 UI")
+        # 设置 组合框【直播预约列表】 可见状态
+        if obs.obs_property_visible(widget.ComboBox.liveBookings.Obj) != widget.ComboBox.liveBookings.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 组合框【直播预约列表】 可见状态 发生变动: {obs.obs_property_visible(widget.ComboBox.liveBookings.Obj)}➡️{widget.ComboBox.liveBookings.Visible}")
+            obs.obs_property_set_visible(widget.ComboBox.liveBookings.Obj, widget.ComboBox.liveBookings.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 组合框【直播预约列表】 可见状态 未 发生变动")
+        # 设置 组合框【直播预约列表】 可用状态
+        if obs.obs_property_enabled(widget.ComboBox.liveBookings.Obj) != widget.ComboBox.liveBookings.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 组合框【直播预约列表】 可用状态 发生变动: {obs.obs_property_enabled(widget.ComboBox.liveBookings.Obj)}➡️{widget.ComboBox.liveBookings.Enabled}")
+            obs.obs_property_set_enabled(widget.ComboBox.liveBookings.Obj, widget.ComboBox.liveBookings.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 组合框【直播预约列表】 可用状态 未 发生变动")
+        # 判断 组合框【直播预约列表】字典数据 和 当前数据是否有变化
+        if widget.ComboBox.liveBookings.Dictionary != {
+            obs.obs_property_list_item_string(widget.ComboBox.liveBookings.Obj, idx): obs.obs_property_list_item_name(
                 widget.ComboBox.liveBookings.Obj, idx) for idx in
-        range(obs.obs_property_list_item_count(widget.ComboBox.liveBookings.Obj))}:
+            range(obs.obs_property_list_item_count(widget.ComboBox.liveBookings.Obj))}:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 组合框【直播预约列表】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.liveBookings.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.liveBookings.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.liveBookings.Obj))})}个元素➡️{len(widget.ComboBox.liveBookings.Dictionary)}个元素")
+            # 清空 组合框【直播预约列表】
+            log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【直播预约列表】数据 第一步：清空 组合框【直播预约列表】")
+            obs.obs_property_list_clear(widget.ComboBox.liveBookings.Obj)
+            # 添加 组合框【直播预约列表】 列表选项  默认值会被设置在第一位
+            log_save(obs.LOG_INFO,
+                     f"　│││📑 更新 组合框【直播预约列表】数据 第二步：添加 组合框【直播预约列表】 列表选项  如果有默认值，会被设置在第一位")
+            for reserve_sid in widget.ComboBox.liveBookings.Dictionary:
+                obs.obs_property_list_add_string(widget.ComboBox.liveBookings.Obj,
+                                                 widget.ComboBox.liveBookings.Dictionary[reserve_sid],
+                                                 reserve_sid) if reserve_sid != widget.ComboBox.liveBookings.Value else obs.obs_property_list_insert_string(
+                    widget.ComboBox.liveBookings.Obj, 0, widget.ComboBox.liveBookings.Text,
+                    widget.ComboBox.liveBookings.Value)
+            # 设置 组合框【直播预约列表】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
+            log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【直播预约列表】数据 第三步：更新 组合框【直播预约列表】 文本")
+            obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'live_bookings_comboBox',
+                                    obs.obs_property_list_item_string(widget.ComboBox.liveBookings.Obj, 0))
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 组合框【直播预约列表】 列表数据 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
+        log_save(obs.LOG_INFO, f"　└{30 * '─'}👌组合框 UI{30 * '─'}┘")
+        return True
+
+    def button_function_cancel_live_appointment(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        """取消直播预约"""
+        # 获取当前直播预约的sid
+        live_bookings_sid = obs.obs_data_get_string(GlobalVariableOfData.script_settings, "live_bookings_comboBox")
+        log_save(obs.LOG_INFO, f"当前直播预约的sid: {live_bookings_sid}")
+        if live_bookings_sid in ["-1"]:
+            log_save(obs.LOG_ERROR, f"无直播预约")
+            return False
+        # 获取默认账户
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        cancel_reserve_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
+                                                  cookie=dict2cookie(b_u_l_c.get_cookies())).cancel_reserve(
+            live_bookings_sid)
+        log_save(obs.LOG_INFO, f"取消直播预约返回: {cancel_reserve_return}")
+        if cancel_reserve_return['code'] == 0:
+            log_save(obs.LOG_INFO, f"取消直播预约成功")
+        else:
+            log_save(obs.LOG_ERROR, f"取消直播预约失败: {cancel_reserve_return['message']}")
+            return False
+
+        # 调整控件数据
+        log_save(obs.LOG_INFO, f"")
+        log_save(obs.LOG_INFO, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
+        log_save(obs.LOG_INFO, f"║{25 * ' '}调整控件数据{25 * ' '}║")
+        # 设置控件前准备（获取数据） 开始
+        log_save(obs.LOG_INFO, f"║")
+        log_save(obs.LOG_DEBUG, f"║设置控件前准备（获取数据）")
+        log_save(obs.LOG_INFO, f"║╔{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╗")
+        log_save(obs.LOG_INFO, f"║║")
+        # 获取默认账户
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        # 获取 '登录用户' 对应的直播间基础信息
+        room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(
+            int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
+        """直播间基础信息"""
         log_save(obs.LOG_INFO,
-                 f"　│││✏️ 组合框【直播预约列表】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.liveBookings.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.liveBookings.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.liveBookings.Obj))})}个元素➡️{len(widget.ComboBox.liveBookings.Dictionary)}个元素")
-        # 清空 组合框【直播预约列表】
-        log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【直播预约列表】数据 第一步：清空 组合框【直播预约列表】")
-        obs.obs_property_list_clear(widget.ComboBox.liveBookings.Obj)
-        # 添加 组合框【直播预约列表】 列表选项  默认值会被设置在第一位
+                 f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 获取 '登录用户' 的 直播间状态
+        room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
+        """登录用户的直播间存在状态"""
         log_save(obs.LOG_INFO,
-                 f"　│││📑 更新 组合框【直播预约列表】数据 第二步：添加 组合框【直播预约列表】 列表选项  如果有默认值，会被设置在第一位")
-        for reserve_sid in widget.ComboBox.liveBookings.Dictionary:
-            obs.obs_property_list_add_string(widget.ComboBox.liveBookings.Obj,
-                                             widget.ComboBox.liveBookings.Dictionary[reserve_sid],
-                                             reserve_sid) if reserve_sid != widget.ComboBox.liveBookings.Value else obs.obs_property_list_insert_string(
-                widget.ComboBox.liveBookings.Obj, 0, widget.ComboBox.liveBookings.Text,
-                widget.ComboBox.liveBookings.Value)
-        # 设置 组合框【直播预约列表】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
-        log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【直播预约列表】数据 第三步：更新 组合框【直播预约列表】 文本")
-        obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'live_bookings_comboBox',
-                                obs.obs_property_list_item_string(widget.ComboBox.liveBookings.Obj, 0))
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 组合框【直播预约列表】 列表数据 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
-    log_save(obs.LOG_INFO, f"　└{30 * '─'}👌组合框 UI{30 * '─'}┘")
-    return True
-
-
-def button_function_cancel_live_appointment(*args):
-    if len(args) == 2:
-        props = args[0]
-        prop = args[1]
-    if len(args) == 3:
-        settings = args[2]
-    """取消直播预约"""
-    # 获取当前直播预约的sid
-    live_bookings_sid = obs.obs_data_get_string(GlobalVariableOfData.script_settings, "live_bookings_comboBox")
-    log_save(obs.LOG_INFO, f"当前直播预约的sid: {live_bookings_sid}")
-    if live_bookings_sid in ["-1"]:
-        log_save(obs.LOG_ERROR, f"无直播预约")
-        return False
-    # 获取默认账户
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    cancel_reserve_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                              cookie=dict2cookie(b_u_l_c.get_cookies())).cancel_reserve(
-        live_bookings_sid)
-    log_save(obs.LOG_INFO, f"取消直播预约返回: {cancel_reserve_return}")
-    if cancel_reserve_return['code'] == 0:
-        log_save(obs.LOG_INFO, f"取消直播预约成功")
-    else:
-        log_save(obs.LOG_ERROR, f"取消直播预约失败: {cancel_reserve_return['message']}")
-        return False
-
-    # 调整控件数据
-    log_save(obs.LOG_INFO, f"")
-    log_save(obs.LOG_INFO, f"╔{25 * '═'}调整控件数据{25 * '═'}╗")
-    log_save(obs.LOG_INFO, f"║{25 * ' '}调整控件数据{25 * ' '}║")
-    # 设置控件前准备（获取数据） 开始
-    log_save(obs.LOG_INFO, f"║")
-    log_save(obs.LOG_DEBUG, f"║设置控件前准备（获取数据）")
-    log_save(obs.LOG_INFO, f"║╔{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╗")
-    log_save(obs.LOG_INFO, f"║║")
-    # 获取默认账户
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    # 获取 '登录用户' 对应的直播间基础信息
-    room_info_old = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_room_info_old(
-        int(b_u_l_c.get_users()[0])) if b_u_l_c.get_cookies() else None
-    """直播间基础信息"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间基础信息：{room_info_old if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 获取 '登录用户' 的 直播间状态
-    room_status = room_info_old["roomStatus"] if b_u_l_c.get_cookies() else None
-    """登录用户的直播间存在状态"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 登录用户的直播预约列表信息
-    reserve_list = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                     cookie=dict2cookie(b_u_l_c.get_cookies())).get_reserve_list()
-    """获取 '登录用户' 的 直播预约列表信息"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播预约列表信息：{(reserve_list if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 登录用户的直播预约字典
-    reserve_name4reserve_sid = (({str(reserve['reserve_info'][
-                                          'sid']): f"{reserve['reserve_info']['name']}|{datetime.fromtimestamp(reserve['reserve_info']['live_plan_start_time'])}"
-                                  for reserve in reserve_list} if reserve_list else {
-        "-1": "无直播预约"}) if room_status else {"-1": '⚠️无直播间'}) if b_u_l_c.get_cookies() else {
-        "-1": "⚠️未登录账号"}
-    """获取 '登录用户' 的 直播预约字典"""
-    log_save(obs.LOG_INFO,
-             f"║║登录账户 的 直播预约：{(list(reserve_name4reserve_sid.values()) if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
-    # 设置控件前准备（获取数据）结束
-    log_save(obs.LOG_INFO, f"║╚{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╝")
-    log_save(obs.LOG_INFO, f"║")
-    # 设置控件属性
-    log_save(obs.LOG_INFO, f"║")
-    log_save(obs.LOG_INFO, f"║╔{15 * '═'}设置 控件属性{15 * '═'}╗")
-    # 分组框【直播】
-    # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    log_save(obs.LOG_INFO, f"║║")
-    log_save(obs.LOG_INFO, f"║║设置 分组框【直播】 中 控件属性")
-    log_save(obs.LOG_INFO, f"║║╔{7 * '═'}设置 分组框【直播】 中控件属性{7 * '═'}╗")
-    # 设置 数字滑块【预约天】 可见状态
-    widget.DigitalDisplay.liveBookingsDay.Visible = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约天】 可见状态：{str(widget.DigitalDisplay.liveBookingsDay.Visible)}")
-    # 设置 数字滑块【预约天】 可用状态
-    widget.DigitalDisplay.liveBookingsDay.Enabled = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约天】 可用状态：{str(widget.DigitalDisplay.liveBookingsDay.Enabled)}")
-    # 设置 数字滑块【预约天】 显示选项值
-    widget.DigitalDisplay.liveBookingsDay.Value = 0
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约天】 显示选项值：{str(widget.DigitalDisplay.liveBookingsDay.Value)}")
-    # 设置 数字滑块【预约天】 最小值
-    widget.DigitalDisplay.liveBookingsDay.Min = 0
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约天】 最小值：{str(widget.DigitalDisplay.liveBookingsDay.Min)}")
-    # 设置 数字滑块【预约天】 最大值
-    widget.DigitalDisplay.liveBookingsDay.Max = 180
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约天】 最大值：{str(widget.DigitalDisplay.liveBookingsDay.Max)}")
-    # 设置 数字滑块【预约天】 步长
-    widget.DigitalDisplay.liveBookingsDay.Step = 1
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约天】 步长：{str(widget.DigitalDisplay.liveBookingsDay.Step)}")
-
-    # 设置 数字滑块【预约时】 可见状态
-    widget.DigitalDisplay.liveBookingsHour.Visible = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约时】 可见状态：{str(widget.DigitalDisplay.liveBookingsHour.Visible)}")
-    # 设置 数字滑块【预约时】 可用状态
-    widget.DigitalDisplay.liveBookingsHour.Enabled = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约时】 可用状态：{str(widget.DigitalDisplay.liveBookingsHour.Enabled)}")
-    # 设置 数字滑块【预约时】 显示选项值
-    widget.DigitalDisplay.liveBookingsHour.Value = 0
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约时】 显示选项值：{str(widget.DigitalDisplay.liveBookingsHour.Value)}")
-    # 设置 数字滑块【预约时】 最小值
-    widget.DigitalDisplay.liveBookingsHour.Min = 0
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约时】 最小值：{str(widget.DigitalDisplay.liveBookingsHour.Min)}")
-    # 设置 数字滑块【预约时】 最大值
-    widget.DigitalDisplay.liveBookingsHour.Max = 23
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约时】 最大值：{str(widget.DigitalDisplay.liveBookingsHour.Max)}")
-    # 设置 数字滑块【预约时】 步长
-    widget.DigitalDisplay.liveBookingsHour.Step = 1
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约时】 步长：{str(widget.DigitalDisplay.liveBookingsHour.Step)}")
-
-    # 设置 数字滑块【预约分】 可见状态
-    widget.DigitalDisplay.liveBookingsMinute.Visible = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约分】 可见状态：{str(widget.DigitalDisplay.liveBookingsMinute.Visible)}")
-    # 设置 数字滑块【预约分】 可用状态
-    widget.DigitalDisplay.liveBookingsMinute.Enabled = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约分】 可用状态：{str(widget.DigitalDisplay.liveBookingsMinute.Enabled)}")
-    # 设置 数字滑块【预约分】 显示选项值
-    widget.DigitalDisplay.liveBookingsMinute.Value = 5
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约分】 显示选项值：{str(widget.DigitalDisplay.liveBookingsMinute.Value)}")
-    # 设置 数字滑块【预约分】 最小值
-    widget.DigitalDisplay.liveBookingsMinute.Min = 5
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约分】 最小值：{str(widget.DigitalDisplay.liveBookingsMinute.Min)}")
-    # 设置 数字滑块【预约分】 最大值
-    widget.DigitalDisplay.liveBookingsMinute.Max = 59
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约分】 最大值：{str(widget.DigitalDisplay.liveBookingsMinute.Max)}")
-    # 设置 数字滑块【预约分】 步长
-    widget.DigitalDisplay.liveBookingsMinute.Step = 1
-    log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约分】 步长：{str(widget.DigitalDisplay.liveBookingsMinute.Step)}")
-
-    # 设置 复选框【是否发直播预约动态】 可见状态
-    widget.CheckBox.liveBookingsDynamic.Visible = bool(room_status)
-    log_save(obs.LOG_INFO,
-             f"║║║设置 复选框【是否发直播预约动态】 可见状态：{str(widget.CheckBox.liveBookingsDynamic.Visible)}")
-    # 设置 普通文本框【是否发直播预约动态】 可用状态
-    widget.CheckBox.liveBookingsDynamic.Enabled = bool(room_status)
-    log_save(obs.LOG_INFO,
-             f"║║║设置 复选框【是否发直播预约动态】 可用状态：{str(widget.CheckBox.liveBookingsDynamic.Enabled)}")
-    # 设置 普通文本框【是否发直播预约动态】 内容
-    widget.CheckBox.liveBookingsDynamic.Bool = False
-    log_save(obs.LOG_INFO,
-             f"║║║设置 复选框【是否发直播预约动态】 选中状态：{str(widget.CheckBox.liveBookingsDynamic.Bool)}")
-
-    # 设置 普通文本框【直播预约标题】 可见状态
-    widget.TextBox.liveBookingsTitle.Visible = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播预约标题】 可见状态：{str(widget.TextBox.liveBookingsTitle.Visible)}")
-    # 设置 普通文本框【直播预约标题】 可用状态
-    widget.TextBox.liveBookingsTitle.Enabled = bool(room_status)
-    log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播预约标题】 可用状态：{str(widget.TextBox.liveBookingsTitle.Enabled)}")
-    # 设置 普通文本框【直播预约标题】 内容
-    widget.TextBox.liveBookingsTitle.Text = ""
-    log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播预约标题】 内容：{str(widget.TextBox.liveBookingsTitle.Text)}")
-
-    # 设置 组合框【直播预约列表】 可见状态
-    widget.ComboBox.liveBookings.Visible = True
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【直播预约列表】 可见状态：{str(widget.ComboBox.liveBookings.Visible)}")
-    # 设置 组合框【直播预约列表】 可用状态
-    widget.ComboBox.liveBookings.Enabled = True
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【直播预约列表】 可用状态：{str(widget.ComboBox.liveBookings.Enabled)}")
-    # 设置 组合框【直播预约列表】 的数据字典
-    widget.ComboBox.liveBookings.Dictionary = reserve_name4reserve_sid
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【直播预约列表】 的数据字典：{str(widget.ComboBox.liveBookings.Dictionary)}")
-    # 设置 组合框【直播预约列表】 的内容
-    widget.ComboBox.liveBookings.Text = ""
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【直播预约列表】 的内容：{str(widget.ComboBox.liveBookings.Text)}")
-    # 设置 组合框【直播预约列表】 的内容 的 列表值
-    widget.ComboBox.liveBookings.Value = ""
-    log_save(obs.LOG_INFO, f"║║║设置 组合框【直播预约列表】 的内容 的 列表值：{str(widget.ComboBox.liveBookings.Value)}")
-    # 设置 分组框【直播】 中控件属性 结束
-    log_save(obs.LOG_INFO, f"║║╚{7 * '═'}设置 分组框【直播】 中控件属性{7 * '═'}╝")
-    # 设置 控件属性 结束
-    log_save(obs.LOG_INFO, f"║╚{15 * '═'}设置 控件属性{15 * '═'}╝")
-    # 调整控件数据 结束
-    log_save(obs.LOG_INFO, f"╚{25 * '═'}调整控件数据{25 * '═'}╝")
-    log_save(obs.LOG_INFO, f"")
-
-    # 数字滑块+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐数字滑块 UI{30 * '─'}┐")
-    # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
-    log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
-    log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
-    # 数字滑块【预约天】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️数字滑块【预约天】 UI")
-    # 设置 数字滑块【预约天】 可见状态
-    if obs.obs_property_visible(
-            widget.DigitalDisplay.liveBookingsDay.Obj) != widget.DigitalDisplay.liveBookingsDay.Visible:
+                 f"║║登录账户 的 直播间状态：{('有直播间' if room_status else '无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 登录用户的直播预约列表信息
+        reserve_list = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
+                                         cookie=dict2cookie(b_u_l_c.get_cookies())).get_reserve_list()
+        """获取 '登录用户' 的 直播预约列表信息"""
         log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约天】 可见状态 发生变动: {obs.obs_property_visible(widget.DigitalDisplay.liveBookingsDay.Obj)}➡️{widget.DigitalDisplay.liveBookingsDay.Visible}")
-        obs.obs_property_set_visible(widget.DigitalDisplay.liveBookingsDay.Obj,
-                                     widget.DigitalDisplay.liveBookingsDay.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约天】 可见状态 未 发生变动")
-    # 设置 数字滑块【预约天】 可用状态
-    if obs.obs_property_enabled(
-            widget.DigitalDisplay.liveBookingsDay.Obj) != widget.DigitalDisplay.liveBookingsDay.Enabled:
+                 f"║║登录账户 的 直播预约列表信息：{(reserve_list if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 登录用户的直播预约字典
+        reserve_name4reserve_sid = (({str(reserve['reserve_info'][
+                                              'sid']): f"{reserve['reserve_info']['name']}|{datetime.fromtimestamp(reserve['reserve_info']['live_plan_start_time'])}"
+                                      for reserve in reserve_list} if reserve_list else {
+            "-1": "无直播预约"}) if room_status else {"-1": '⚠️无直播间'}) if b_u_l_c.get_cookies() else {
+            "-1": "⚠️未登录账号"}
+        """获取 '登录用户' 的 直播预约字典"""
         log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约天】 可用状态 发生变动: {obs.obs_property_enabled(widget.DigitalDisplay.liveBookingsDay.Obj)}➡️{widget.DigitalDisplay.liveBookingsDay.Enabled}")
-        obs.obs_property_set_enabled(widget.DigitalDisplay.liveBookingsDay.Obj,
-                                     widget.DigitalDisplay.liveBookingsDay.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约天】 可用状态 未 发生变动")
-    if widget.DigitalDisplay.liveBookingsDay.Min != obs.obs_property_int_min(
-            widget.DigitalDisplay.liveBookingsDay.Obj) or widget.DigitalDisplay.liveBookingsDay.Max != obs.obs_property_int_max(
+                 f"║║登录账户 的 直播预约：{(list(reserve_name4reserve_sid.values()) if room_status else f'⚠️无直播间') if b_u_l_c.get_cookies() else f'⚠️未登录账号'}")
+        # 设置控件前准备（获取数据）结束
+        log_save(obs.LOG_INFO, f"║╚{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╝")
+        log_save(obs.LOG_INFO, f"║")
+        # 设置控件属性
+        log_save(obs.LOG_INFO, f"║")
+        log_save(obs.LOG_INFO, f"║╔{15 * '═'}设置 控件属性{15 * '═'}╗")
+        # 分组框【直播】
+        # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+        log_save(obs.LOG_INFO, f"║║")
+        log_save(obs.LOG_INFO, f"║║设置 分组框【直播】 中 控件属性")
+        log_save(obs.LOG_INFO, f"║║╔{7 * '═'}设置 分组框【直播】 中控件属性{7 * '═'}╗")
+        # 设置 数字滑块【预约天】 可见状态
+        widget.DigitalDisplay.liveBookingsDay.Visible = bool(room_status)
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 数字滑块【预约天】 可见状态：{str(widget.DigitalDisplay.liveBookingsDay.Visible)}")
+        # 设置 数字滑块【预约天】 可用状态
+        widget.DigitalDisplay.liveBookingsDay.Enabled = bool(room_status)
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 数字滑块【预约天】 可用状态：{str(widget.DigitalDisplay.liveBookingsDay.Enabled)}")
+        # 设置 数字滑块【预约天】 显示选项值
+        widget.DigitalDisplay.liveBookingsDay.Value = 0
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 数字滑块【预约天】 显示选项值：{str(widget.DigitalDisplay.liveBookingsDay.Value)}")
+        # 设置 数字滑块【预约天】 最小值
+        widget.DigitalDisplay.liveBookingsDay.Min = 0
+        log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约天】 最小值：{str(widget.DigitalDisplay.liveBookingsDay.Min)}")
+        # 设置 数字滑块【预约天】 最大值
+        widget.DigitalDisplay.liveBookingsDay.Max = 180
+        log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约天】 最大值：{str(widget.DigitalDisplay.liveBookingsDay.Max)}")
+        # 设置 数字滑块【预约天】 步长
+        widget.DigitalDisplay.liveBookingsDay.Step = 1
+        log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约天】 步长：{str(widget.DigitalDisplay.liveBookingsDay.Step)}")
+
+        # 设置 数字滑块【预约时】 可见状态
+        widget.DigitalDisplay.liveBookingsHour.Visible = bool(room_status)
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 数字滑块【预约时】 可见状态：{str(widget.DigitalDisplay.liveBookingsHour.Visible)}")
+        # 设置 数字滑块【预约时】 可用状态
+        widget.DigitalDisplay.liveBookingsHour.Enabled = bool(room_status)
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 数字滑块【预约时】 可用状态：{str(widget.DigitalDisplay.liveBookingsHour.Enabled)}")
+        # 设置 数字滑块【预约时】 显示选项值
+        widget.DigitalDisplay.liveBookingsHour.Value = 0
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 数字滑块【预约时】 显示选项值：{str(widget.DigitalDisplay.liveBookingsHour.Value)}")
+        # 设置 数字滑块【预约时】 最小值
+        widget.DigitalDisplay.liveBookingsHour.Min = 0
+        log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约时】 最小值：{str(widget.DigitalDisplay.liveBookingsHour.Min)}")
+        # 设置 数字滑块【预约时】 最大值
+        widget.DigitalDisplay.liveBookingsHour.Max = 23
+        log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约时】 最大值：{str(widget.DigitalDisplay.liveBookingsHour.Max)}")
+        # 设置 数字滑块【预约时】 步长
+        widget.DigitalDisplay.liveBookingsHour.Step = 1
+        log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约时】 步长：{str(widget.DigitalDisplay.liveBookingsHour.Step)}")
+
+        # 设置 数字滑块【预约分】 可见状态
+        widget.DigitalDisplay.liveBookingsMinute.Visible = bool(room_status)
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 数字滑块【预约分】 可见状态：{str(widget.DigitalDisplay.liveBookingsMinute.Visible)}")
+        # 设置 数字滑块【预约分】 可用状态
+        widget.DigitalDisplay.liveBookingsMinute.Enabled = bool(room_status)
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 数字滑块【预约分】 可用状态：{str(widget.DigitalDisplay.liveBookingsMinute.Enabled)}")
+        # 设置 数字滑块【预约分】 显示选项值
+        widget.DigitalDisplay.liveBookingsMinute.Value = 5
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 数字滑块【预约分】 显示选项值：{str(widget.DigitalDisplay.liveBookingsMinute.Value)}")
+        # 设置 数字滑块【预约分】 最小值
+        widget.DigitalDisplay.liveBookingsMinute.Min = 5
+        log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约分】 最小值：{str(widget.DigitalDisplay.liveBookingsMinute.Min)}")
+        # 设置 数字滑块【预约分】 最大值
+        widget.DigitalDisplay.liveBookingsMinute.Max = 59
+        log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约分】 最大值：{str(widget.DigitalDisplay.liveBookingsMinute.Max)}")
+        # 设置 数字滑块【预约分】 步长
+        widget.DigitalDisplay.liveBookingsMinute.Step = 1
+        log_save(obs.LOG_INFO, f"║║║设置 数字滑块【预约分】 步长：{str(widget.DigitalDisplay.liveBookingsMinute.Step)}")
+
+        # 设置 复选框【是否发直播预约动态】 可见状态
+        widget.CheckBox.liveBookingsDynamic.Visible = bool(room_status)
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 复选框【是否发直播预约动态】 可见状态：{str(widget.CheckBox.liveBookingsDynamic.Visible)}")
+        # 设置 普通文本框【是否发直播预约动态】 可用状态
+        widget.CheckBox.liveBookingsDynamic.Enabled = bool(room_status)
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 复选框【是否发直播预约动态】 可用状态：{str(widget.CheckBox.liveBookingsDynamic.Enabled)}")
+        # 设置 普通文本框【是否发直播预约动态】 内容
+        widget.CheckBox.liveBookingsDynamic.Bool = False
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 复选框【是否发直播预约动态】 选中状态：{str(widget.CheckBox.liveBookingsDynamic.Bool)}")
+
+        # 设置 普通文本框【直播预约标题】 可见状态
+        widget.TextBox.liveBookingsTitle.Visible = bool(room_status)
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 普通文本框【直播预约标题】 可见状态：{str(widget.TextBox.liveBookingsTitle.Visible)}")
+        # 设置 普通文本框【直播预约标题】 可用状态
+        widget.TextBox.liveBookingsTitle.Enabled = bool(room_status)
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 普通文本框【直播预约标题】 可用状态：{str(widget.TextBox.liveBookingsTitle.Enabled)}")
+        # 设置 普通文本框【直播预约标题】 内容
+        widget.TextBox.liveBookingsTitle.Text = ""
+        log_save(obs.LOG_INFO, f"║║║设置 普通文本框【直播预约标题】 内容：{str(widget.TextBox.liveBookingsTitle.Text)}")
+
+        # 设置 组合框【直播预约列表】 可见状态
+        widget.ComboBox.liveBookings.Visible = True
+        log_save(obs.LOG_INFO, f"║║║设置 组合框【直播预约列表】 可见状态：{str(widget.ComboBox.liveBookings.Visible)}")
+        # 设置 组合框【直播预约列表】 可用状态
+        widget.ComboBox.liveBookings.Enabled = True
+        log_save(obs.LOG_INFO, f"║║║设置 组合框【直播预约列表】 可用状态：{str(widget.ComboBox.liveBookings.Enabled)}")
+        # 设置 组合框【直播预约列表】 的数据字典
+        widget.ComboBox.liveBookings.Dictionary = reserve_name4reserve_sid
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 组合框【直播预约列表】 的数据字典：{str(widget.ComboBox.liveBookings.Dictionary)}")
+        # 设置 组合框【直播预约列表】 的内容
+        widget.ComboBox.liveBookings.Text = ""
+        log_save(obs.LOG_INFO, f"║║║设置 组合框【直播预约列表】 的内容：{str(widget.ComboBox.liveBookings.Text)}")
+        # 设置 组合框【直播预约列表】 的内容 的 列表值
+        widget.ComboBox.liveBookings.Value = ""
+        log_save(obs.LOG_INFO,
+                 f"║║║设置 组合框【直播预约列表】 的内容 的 列表值：{str(widget.ComboBox.liveBookings.Value)}")
+        # 设置 分组框【直播】 中控件属性 结束
+        log_save(obs.LOG_INFO, f"║║╚{7 * '═'}设置 分组框【直播】 中控件属性{7 * '═'}╝")
+        # 设置 控件属性 结束
+        log_save(obs.LOG_INFO, f"║╚{15 * '═'}设置 控件属性{15 * '═'}╝")
+        # 调整控件数据 结束
+        log_save(obs.LOG_INFO, f"╚{25 * '═'}调整控件数据{25 * '═'}╝")
+        log_save(obs.LOG_INFO, f"")
+
+        # 数字滑块+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐数字滑块 UI{30 * '─'}┐")
+        # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
+        log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
+        log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
+        # 数字滑块【预约天】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️数字滑块【预约天】 UI")
+        # 设置 数字滑块【预约天】 可见状态
+        if obs.obs_property_visible(
+                widget.DigitalDisplay.liveBookingsDay.Obj) != widget.DigitalDisplay.liveBookingsDay.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约天】 可见状态 发生变动: {obs.obs_property_visible(widget.DigitalDisplay.liveBookingsDay.Obj)}➡️{widget.DigitalDisplay.liveBookingsDay.Visible}")
+            obs.obs_property_set_visible(widget.DigitalDisplay.liveBookingsDay.Obj,
+                                         widget.DigitalDisplay.liveBookingsDay.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约天】 可见状态 未 发生变动")
+        # 设置 数字滑块【预约天】 可用状态
+        if obs.obs_property_enabled(
+                widget.DigitalDisplay.liveBookingsDay.Obj) != widget.DigitalDisplay.liveBookingsDay.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约天】 可用状态 发生变动: {obs.obs_property_enabled(widget.DigitalDisplay.liveBookingsDay.Obj)}➡️{widget.DigitalDisplay.liveBookingsDay.Enabled}")
+            obs.obs_property_set_enabled(widget.DigitalDisplay.liveBookingsDay.Obj,
+                                         widget.DigitalDisplay.liveBookingsDay.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约天】 可用状态 未 发生变动")
+        if widget.DigitalDisplay.liveBookingsDay.Min != obs.obs_property_int_min(
+                widget.DigitalDisplay.liveBookingsDay.Obj) or widget.DigitalDisplay.liveBookingsDay.Max != obs.obs_property_int_max(
             widget.DigitalDisplay.liveBookingsDay.Obj) or widget.DigitalDisplay.liveBookingsDay.Step != obs.obs_property_int_step(
             widget.DigitalDisplay.liveBookingsDay.Obj):
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约天】 最小值/最大值/步长 发生变动: {obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsDay.Obj)}/{obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsDay.Obj)}/{obs.obs_property_int_step(widget.DigitalDisplay.liveBookingsDay.Obj)}➡️{widget.DigitalDisplay.liveBookingsDay.Min}/{widget.DigitalDisplay.liveBookingsDay.Max}/{widget.DigitalDisplay.liveBookingsDay.Step}")
-        obs.obs_property_int_set_limits(widget.DigitalDisplay.liveBookingsDay.Obj,
-                                        widget.DigitalDisplay.liveBookingsDay.Min,
-                                        widget.DigitalDisplay.liveBookingsDay.Max,
-                                        widget.DigitalDisplay.liveBookingsDay.Step)
-    else:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约天】 最小值/最大值/步长 未发生变动: {obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsDay.Obj)}/{obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsDay.Obj)}/{obs.obs_property_int_step(widget.DigitalDisplay.liveBookingsDay.Obj)}➡️{widget.DigitalDisplay.liveBookingsDay.Min}/{widget.DigitalDisplay.liveBookingsDay.Max}/{widget.DigitalDisplay.liveBookingsDay.Step}")
-        log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约天】 最小值/最大值/步长 未 发生变动")
-    # 设置 数字滑块【预约天】 显示选项值
-    if obs.obs_data_get_int(GlobalVariableOfData.script_settings,
-                            'live_bookings_day_digitalSlider') != widget.DigitalDisplay.liveBookingsDay.Value:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约天】 显示选项值 发生变动: {obs.obs_data_get_int(GlobalVariableOfData.script_settings, 'live_bookings_day_digitalSlider')}➡️{widget.DigitalDisplay.liveBookingsDay.Value}")
-        obs.obs_data_set_int(GlobalVariableOfData.script_settings, 'live_bookings_day_digitalSlider',
-                             widget.DigitalDisplay.liveBookingsDay.Value)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约天】 显示选项值 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    # 数字滑块【预约时】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️数字滑块【预约时】 UI")
-    # 设置 数字滑块【预约时】 可见状态
-    if obs.obs_property_visible(
-            widget.DigitalDisplay.liveBookingsHour.Obj) != widget.DigitalDisplay.liveBookingsHour.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约时】 可见状态 发生变动: {obs.obs_property_visible(widget.DigitalDisplay.liveBookingsHour.Obj)}➡️{widget.DigitalDisplay.liveBookingsHour.Visible}")
-        obs.obs_property_set_visible(widget.DigitalDisplay.liveBookingsHour.Obj,
-                                     widget.DigitalDisplay.liveBookingsHour.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约时】 可见状态 未 发生变动")
-    # 设置 数字滑块【预约时】 可用状态
-    if obs.obs_property_enabled(
-            widget.DigitalDisplay.liveBookingsHour.Obj) != widget.DigitalDisplay.liveBookingsHour.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约时】 可用状态 发生变动: {obs.obs_property_enabled(widget.DigitalDisplay.liveBookingsHour.Obj)}➡️{widget.DigitalDisplay.liveBookingsHour.Enabled}")
-        obs.obs_property_set_enabled(widget.DigitalDisplay.liveBookingsHour.Obj,
-                                     widget.DigitalDisplay.liveBookingsHour.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约时】 可用状态 未 发生变动")
-    if widget.DigitalDisplay.liveBookingsHour.Min != obs.obs_property_int_min(
-            widget.DigitalDisplay.liveBookingsHour.Obj) or widget.DigitalDisplay.liveBookingsHour.Max != obs.obs_property_int_max(
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约天】 最小值/最大值/步长 发生变动: {obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsDay.Obj)}/{obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsDay.Obj)}/{obs.obs_property_int_step(widget.DigitalDisplay.liveBookingsDay.Obj)}➡️{widget.DigitalDisplay.liveBookingsDay.Min}/{widget.DigitalDisplay.liveBookingsDay.Max}/{widget.DigitalDisplay.liveBookingsDay.Step}")
+            obs.obs_property_int_set_limits(widget.DigitalDisplay.liveBookingsDay.Obj,
+                                            widget.DigitalDisplay.liveBookingsDay.Min,
+                                            widget.DigitalDisplay.liveBookingsDay.Max,
+                                            widget.DigitalDisplay.liveBookingsDay.Step)
+        else:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约天】 最小值/最大值/步长 未发生变动: {obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsDay.Obj)}/{obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsDay.Obj)}/{obs.obs_property_int_step(widget.DigitalDisplay.liveBookingsDay.Obj)}➡️{widget.DigitalDisplay.liveBookingsDay.Min}/{widget.DigitalDisplay.liveBookingsDay.Max}/{widget.DigitalDisplay.liveBookingsDay.Step}")
+            log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约天】 最小值/最大值/步长 未 发生变动")
+        # 设置 数字滑块【预约天】 显示选项值
+        if obs.obs_data_get_int(GlobalVariableOfData.script_settings,
+                                'live_bookings_day_digitalSlider') != widget.DigitalDisplay.liveBookingsDay.Value:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约天】 显示选项值 发生变动: {obs.obs_data_get_int(GlobalVariableOfData.script_settings, 'live_bookings_day_digitalSlider')}➡️{widget.DigitalDisplay.liveBookingsDay.Value}")
+            obs.obs_data_set_int(GlobalVariableOfData.script_settings, 'live_bookings_day_digitalSlider',
+                                 widget.DigitalDisplay.liveBookingsDay.Value)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约天】 显示选项值 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        # 数字滑块【预约时】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️数字滑块【预约时】 UI")
+        # 设置 数字滑块【预约时】 可见状态
+        if obs.obs_property_visible(
+                widget.DigitalDisplay.liveBookingsHour.Obj) != widget.DigitalDisplay.liveBookingsHour.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约时】 可见状态 发生变动: {obs.obs_property_visible(widget.DigitalDisplay.liveBookingsHour.Obj)}➡️{widget.DigitalDisplay.liveBookingsHour.Visible}")
+            obs.obs_property_set_visible(widget.DigitalDisplay.liveBookingsHour.Obj,
+                                         widget.DigitalDisplay.liveBookingsHour.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约时】 可见状态 未 发生变动")
+        # 设置 数字滑块【预约时】 可用状态
+        if obs.obs_property_enabled(
+                widget.DigitalDisplay.liveBookingsHour.Obj) != widget.DigitalDisplay.liveBookingsHour.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约时】 可用状态 发生变动: {obs.obs_property_enabled(widget.DigitalDisplay.liveBookingsHour.Obj)}➡️{widget.DigitalDisplay.liveBookingsHour.Enabled}")
+            obs.obs_property_set_enabled(widget.DigitalDisplay.liveBookingsHour.Obj,
+                                         widget.DigitalDisplay.liveBookingsHour.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约时】 可用状态 未 发生变动")
+        if widget.DigitalDisplay.liveBookingsHour.Min != obs.obs_property_int_min(
+                widget.DigitalDisplay.liveBookingsHour.Obj) or widget.DigitalDisplay.liveBookingsHour.Max != obs.obs_property_int_max(
             widget.DigitalDisplay.liveBookingsHour.Obj) or widget.DigitalDisplay.liveBookingsHour.Step != obs.obs_property_int_step(
             widget.DigitalDisplay.liveBookingsHour.Obj):
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约时】 最小值/最大值/步长 发生变动: {obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsHour.Obj)}/{obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsHour.Obj)}/{obs.obs_property_int_step(widget.DigitalDisplay.liveBookingsHour.Obj)}➡️{widget.DigitalDisplay.liveBookingsHour.Min}/{widget.DigitalDisplay.liveBookingsHour.Max}/{widget.DigitalDisplay.liveBookingsHour.Step}")
-        obs.obs_property_int_set_limits(widget.DigitalDisplay.liveBookingsHour.Obj,
-                                        widget.DigitalDisplay.liveBookingsHour.Min,
-                                        widget.DigitalDisplay.liveBookingsHour.Max,
-                                        widget.DigitalDisplay.liveBookingsHour.Step)
-    else:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约时】 最小值/最大值/步长 未发生变动: {obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsHour.Obj)}/{obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsHour.Obj)}/{obs.obs_property_int_step(widget.DigitalDisplay.liveBookingsHour.Obj)}➡️{widget.DigitalDisplay.liveBookingsHour.Min}/{widget.DigitalDisplay.liveBookingsHour.Max}/{widget.DigitalDisplay.liveBookingsHour.Step}")
-        log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约时】 最小值/最大值/步长 未 发生变动")
-    # 设置 数字滑块【预约时】 显示选项值
-    if obs.obs_data_get_int(GlobalVariableOfData.script_settings,
-                            'live_bookings_hour_digitalSlider') != widget.DigitalDisplay.liveBookingsHour.Value:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约时】 显示选项值 发生变动: {obs.obs_data_get_int(GlobalVariableOfData.script_settings, 'live_bookings_hour_digitalSlider')}➡️{widget.DigitalDisplay.liveBookingsHour.Value}")
-        obs.obs_data_set_int(GlobalVariableOfData.script_settings, 'live_bookings_hour_digitalSlider',
-                             widget.DigitalDisplay.liveBookingsHour.Value)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约时】 显示选项值 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    # 数字滑块【预约分】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️数字滑块【预约分】 UI")
-    # 设置 数字滑块【预约分】 可见状态
-    if obs.obs_property_visible(
-            widget.DigitalDisplay.liveBookingsMinute.Obj) != widget.DigitalDisplay.liveBookingsMinute.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约分】 可见状态 发生变动: {obs.obs_property_visible(widget.DigitalDisplay.liveBookingsMinute.Obj)}➡️{widget.DigitalDisplay.liveBookingsMinute.Visible}")
-        obs.obs_property_set_visible(widget.DigitalDisplay.liveBookingsMinute.Obj,
-                                     widget.DigitalDisplay.liveBookingsMinute.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约分】 可见状态 未 发生变动")
-    # 设置 数字滑块【预约分】 可用状态
-    if obs.obs_property_enabled(
-            widget.DigitalDisplay.liveBookingsMinute.Obj) != widget.DigitalDisplay.liveBookingsMinute.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约分】 可用状态 发生变动: {obs.obs_property_enabled(widget.DigitalDisplay.liveBookingsMinute.Obj)}➡️{widget.DigitalDisplay.liveBookingsMinute.Enabled}")
-        obs.obs_property_set_enabled(widget.DigitalDisplay.liveBookingsMinute.Obj,
-                                     widget.DigitalDisplay.liveBookingsMinute.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约分】 可用状态 未 发生变动")
-    if widget.DigitalDisplay.liveBookingsMinute.Min != obs.obs_property_int_min(
-            widget.DigitalDisplay.liveBookingsMinute.Obj) or widget.DigitalDisplay.liveBookingsMinute.Max != obs.obs_property_int_max(
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约时】 最小值/最大值/步长 发生变动: {obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsHour.Obj)}/{obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsHour.Obj)}/{obs.obs_property_int_step(widget.DigitalDisplay.liveBookingsHour.Obj)}➡️{widget.DigitalDisplay.liveBookingsHour.Min}/{widget.DigitalDisplay.liveBookingsHour.Max}/{widget.DigitalDisplay.liveBookingsHour.Step}")
+            obs.obs_property_int_set_limits(widget.DigitalDisplay.liveBookingsHour.Obj,
+                                            widget.DigitalDisplay.liveBookingsHour.Min,
+                                            widget.DigitalDisplay.liveBookingsHour.Max,
+                                            widget.DigitalDisplay.liveBookingsHour.Step)
+        else:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约时】 最小值/最大值/步长 未发生变动: {obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsHour.Obj)}/{obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsHour.Obj)}/{obs.obs_property_int_step(widget.DigitalDisplay.liveBookingsHour.Obj)}➡️{widget.DigitalDisplay.liveBookingsHour.Min}/{widget.DigitalDisplay.liveBookingsHour.Max}/{widget.DigitalDisplay.liveBookingsHour.Step}")
+            log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约时】 最小值/最大值/步长 未 发生变动")
+        # 设置 数字滑块【预约时】 显示选项值
+        if obs.obs_data_get_int(GlobalVariableOfData.script_settings,
+                                'live_bookings_hour_digitalSlider') != widget.DigitalDisplay.liveBookingsHour.Value:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约时】 显示选项值 发生变动: {obs.obs_data_get_int(GlobalVariableOfData.script_settings, 'live_bookings_hour_digitalSlider')}➡️{widget.DigitalDisplay.liveBookingsHour.Value}")
+            obs.obs_data_set_int(GlobalVariableOfData.script_settings, 'live_bookings_hour_digitalSlider',
+                                 widget.DigitalDisplay.liveBookingsHour.Value)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约时】 显示选项值 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        # 数字滑块【预约分】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️数字滑块【预约分】 UI")
+        # 设置 数字滑块【预约分】 可见状态
+        if obs.obs_property_visible(
+                widget.DigitalDisplay.liveBookingsMinute.Obj) != widget.DigitalDisplay.liveBookingsMinute.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约分】 可见状态 发生变动: {obs.obs_property_visible(widget.DigitalDisplay.liveBookingsMinute.Obj)}➡️{widget.DigitalDisplay.liveBookingsMinute.Visible}")
+            obs.obs_property_set_visible(widget.DigitalDisplay.liveBookingsMinute.Obj,
+                                         widget.DigitalDisplay.liveBookingsMinute.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约分】 可见状态 未 发生变动")
+        # 设置 数字滑块【预约分】 可用状态
+        if obs.obs_property_enabled(
+                widget.DigitalDisplay.liveBookingsMinute.Obj) != widget.DigitalDisplay.liveBookingsMinute.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约分】 可用状态 发生变动: {obs.obs_property_enabled(widget.DigitalDisplay.liveBookingsMinute.Obj)}➡️{widget.DigitalDisplay.liveBookingsMinute.Enabled}")
+            obs.obs_property_set_enabled(widget.DigitalDisplay.liveBookingsMinute.Obj,
+                                         widget.DigitalDisplay.liveBookingsMinute.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约分】 可用状态 未 发生变动")
+        if widget.DigitalDisplay.liveBookingsMinute.Min != obs.obs_property_int_min(
+                widget.DigitalDisplay.liveBookingsMinute.Obj) or widget.DigitalDisplay.liveBookingsMinute.Max != obs.obs_property_int_max(
             widget.DigitalDisplay.liveBookingsMinute.Obj) or widget.DigitalDisplay.liveBookingsMinute.Step != obs.obs_property_int_step(
             widget.DigitalDisplay.liveBookingsMinute.Obj):
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约分】 最小值/最大值/步长 发生变动: {obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsMinute.Obj)}/{obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsMinute.Obj)}/{obs.obs_property_int_step(widget.DigitalDisplay.liveBookingsMinute.Obj)}➡️{widget.DigitalDisplay.liveBookingsMinute.Min}/{widget.DigitalDisplay.liveBookingsMinute.Max}/{widget.DigitalDisplay.liveBookingsMinute.Step}")
-        obs.obs_property_int_set_limits(widget.DigitalDisplay.liveBookingsMinute.Obj,
-                                        widget.DigitalDisplay.liveBookingsMinute.Min,
-                                        widget.DigitalDisplay.liveBookingsMinute.Max,
-                                        widget.DigitalDisplay.liveBookingsMinute.Step)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约分】 最小值/最大值/步长 未 发生变动")
-    # 设置 数字滑块【预约分】 显示选项值
-    if obs.obs_data_get_int(GlobalVariableOfData.script_settings,
-                            'live_bookings_minute_digitalSlider') != widget.DigitalDisplay.liveBookingsMinute.Value:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 数字滑块【预约分】 显示选项值 发生变动: {obs.obs_data_get_int(GlobalVariableOfData.script_settings, 'live_bookings_minute_digitalSlider')}➡️{widget.DigitalDisplay.liveBookingsMinute.Value}")
-        obs.obs_data_set_int(GlobalVariableOfData.script_settings, 'live_bookings_minute_digitalSlider',
-                             widget.DigitalDisplay.liveBookingsMinute.Value)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约分】 显示选项值 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
-    log_save(obs.LOG_INFO, f"　└{30 * '─'}👌数字滑块 UI{30 * '─'}┘")
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约分】 最小值/最大值/步长 发生变动: {obs.obs_property_int_min(widget.DigitalDisplay.liveBookingsMinute.Obj)}/{obs.obs_property_int_max(widget.DigitalDisplay.liveBookingsMinute.Obj)}/{obs.obs_property_int_step(widget.DigitalDisplay.liveBookingsMinute.Obj)}➡️{widget.DigitalDisplay.liveBookingsMinute.Min}/{widget.DigitalDisplay.liveBookingsMinute.Max}/{widget.DigitalDisplay.liveBookingsMinute.Step}")
+            obs.obs_property_int_set_limits(widget.DigitalDisplay.liveBookingsMinute.Obj,
+                                            widget.DigitalDisplay.liveBookingsMinute.Min,
+                                            widget.DigitalDisplay.liveBookingsMinute.Max,
+                                            widget.DigitalDisplay.liveBookingsMinute.Step)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约分】 最小值/最大值/步长 未 发生变动")
+        # 设置 数字滑块【预约分】 显示选项值
+        if obs.obs_data_get_int(GlobalVariableOfData.script_settings,
+                                'live_bookings_minute_digitalSlider') != widget.DigitalDisplay.liveBookingsMinute.Value:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 数字滑块【预约分】 显示选项值 发生变动: {obs.obs_data_get_int(GlobalVariableOfData.script_settings, 'live_bookings_minute_digitalSlider')}➡️{widget.DigitalDisplay.liveBookingsMinute.Value}")
+            obs.obs_data_set_int(GlobalVariableOfData.script_settings, 'live_bookings_minute_digitalSlider',
+                                 widget.DigitalDisplay.liveBookingsMinute.Value)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 数字滑块【预约分】 显示选项值 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
+        log_save(obs.LOG_INFO, f"　└{30 * '─'}👌数字滑块 UI{30 * '─'}┘")
 
-    # 复选框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐复选框 UI{30 * '─'}┐")
-    # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
-    log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
-    log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
-    # 普通文本框【直播间公告】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️复选框【是否发直播预约动态】 UI")
-    # 设置 复选框【是否发直播预约动态】 可见状态
-    if obs.obs_property_visible(widget.CheckBox.liveBookingsDynamic.Obj) != widget.CheckBox.liveBookingsDynamic.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 复选框【是否发直播预约动态】 可见状态 发生变动: {obs.obs_property_visible(widget.CheckBox.liveBookingsDynamic.Obj)}➡️{widget.CheckBox.liveBookingsDynamic.Visible}")
-        obs.obs_property_set_visible(widget.CheckBox.liveBookingsDynamic.Obj,
-                                     widget.CheckBox.liveBookingsDynamic.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 复选框【是否发直播预约动态】 可见状态 未 发生变动")
-    # 设置 复选框【是否发直播预约动态】 可用状态
-    if obs.obs_property_enabled(widget.CheckBox.liveBookingsDynamic.Obj) != widget.CheckBox.liveBookingsDynamic.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 复选框【是否发直播预约动态】 可用状态 发生变动: {obs.obs_property_enabled(widget.CheckBox.liveBookingsDynamic.Obj)}➡️{widget.CheckBox.liveBookingsDynamic.Enabled}")
-        obs.obs_property_set_enabled(widget.CheckBox.liveBookingsDynamic.Obj,
-                                     widget.CheckBox.liveBookingsDynamic.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 复选框【是否发直播预约动态】 可用状态 未 发生变动")
-    # 设置 复选框【是否发直播预约动态】 文本
-    if obs.obs_data_get_bool(GlobalVariableOfData.script_settings,
-                             'live_bookings_dynamic_bool') != widget.CheckBox.liveBookingsDynamic.Bool:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 复选框【是否发直播预约动态】 选中状态 发生变动: {obs.obs_data_get_bool(GlobalVariableOfData.script_settings, 'live_bookings_dynamic_bool')}➡️{widget.CheckBox.liveBookingsDynamic.Bool}")
-        obs.obs_data_set_bool(GlobalVariableOfData.script_settings, "live_bookings_dynamic_bool",
-                              widget.CheckBox.liveBookingsDynamic.Bool)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 复选框【是否发直播预约动态】 选中状态 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
-    log_save(obs.LOG_INFO, f"　└{30 * '─'}👌复选框 UI{30 * '─'}┘")
+        # 复选框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐复选框 UI{30 * '─'}┐")
+        # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
+        log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
+        log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
+        # 普通文本框【直播间公告】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️复选框【是否发直播预约动态】 UI")
+        # 设置 复选框【是否发直播预约动态】 可见状态
+        if obs.obs_property_visible(
+                widget.CheckBox.liveBookingsDynamic.Obj) != widget.CheckBox.liveBookingsDynamic.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 复选框【是否发直播预约动态】 可见状态 发生变动: {obs.obs_property_visible(widget.CheckBox.liveBookingsDynamic.Obj)}➡️{widget.CheckBox.liveBookingsDynamic.Visible}")
+            obs.obs_property_set_visible(widget.CheckBox.liveBookingsDynamic.Obj,
+                                         widget.CheckBox.liveBookingsDynamic.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 复选框【是否发直播预约动态】 可见状态 未 发生变动")
+        # 设置 复选框【是否发直播预约动态】 可用状态
+        if obs.obs_property_enabled(
+                widget.CheckBox.liveBookingsDynamic.Obj) != widget.CheckBox.liveBookingsDynamic.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 复选框【是否发直播预约动态】 可用状态 发生变动: {obs.obs_property_enabled(widget.CheckBox.liveBookingsDynamic.Obj)}➡️{widget.CheckBox.liveBookingsDynamic.Enabled}")
+            obs.obs_property_set_enabled(widget.CheckBox.liveBookingsDynamic.Obj,
+                                         widget.CheckBox.liveBookingsDynamic.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 复选框【是否发直播预约动态】 可用状态 未 发生变动")
+        # 设置 复选框【是否发直播预约动态】 文本
+        if obs.obs_data_get_bool(GlobalVariableOfData.script_settings,
+                                 'live_bookings_dynamic_bool') != widget.CheckBox.liveBookingsDynamic.Bool:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 复选框【是否发直播预约动态】 选中状态 发生变动: {obs.obs_data_get_bool(GlobalVariableOfData.script_settings, 'live_bookings_dynamic_bool')}➡️{widget.CheckBox.liveBookingsDynamic.Bool}")
+            obs.obs_data_set_bool(GlobalVariableOfData.script_settings, "live_bookings_dynamic_bool",
+                                  widget.CheckBox.liveBookingsDynamic.Bool)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 复选框【是否发直播预约动态】 选中状态 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
+        log_save(obs.LOG_INFO, f"　└{30 * '─'}👌复选框 UI{30 * '─'}┘")
 
-    # 普通文本框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐普通文本框 UI{30 * '─'}┐")
-    # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
-    log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
-    log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
-    # 普通文本框【直播间公告】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️普通文本框【直播预约标题】 UI")
-    # 设置 普通文本框【直播预约标题】 可见状态
-    if obs.obs_property_visible(widget.TextBox.liveBookingsTitle.Obj) != widget.TextBox.liveBookingsTitle.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 普通文本框【直播预约标题】 可见状态 发生变动: {obs.obs_property_visible(widget.TextBox.liveBookingsTitle.Obj)}➡️{widget.TextBox.liveBookingsTitle.Visible}")
-        obs.obs_property_set_visible(widget.TextBox.liveBookingsTitle.Obj, widget.TextBox.liveBookingsTitle.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 普通文本框【直播预约标题】 可见状态 未 发生变动")
-    # 设置 普通文本框【直播预约标题】 可用状态
-    if obs.obs_property_enabled(widget.TextBox.liveBookingsTitle.Obj) != widget.TextBox.liveBookingsTitle.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 普通文本框【直播预约标题】 可用状态 发生变动: {obs.obs_property_enabled(widget.TextBox.liveBookingsTitle.Obj)}➡️{widget.TextBox.liveBookingsTitle.Enabled}")
-        obs.obs_property_set_enabled(widget.TextBox.liveBookingsTitle.Obj, widget.TextBox.liveBookingsTitle.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 普通文本框【直播预约标题】 可用状态 未 发生变动")
-    # 设置 普通文本框【直播预约标题】 文本
-    if obs.obs_data_get_string(GlobalVariableOfData.script_settings,
-                               'live_bookings_title_textBox') != widget.TextBox.liveBookingsTitle.Text:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 普通文本框【直播预约标题】 文本 发生变动: {obs.obs_data_get_string(GlobalVariableOfData.script_settings, 'live_bookings_title_textBox')}➡️{widget.TextBox.liveBookingsTitle.Text}")
-        obs.obs_data_set_string(GlobalVariableOfData.script_settings, "live_bookings_title_textBox",
-                                widget.TextBox.liveBookingsTitle.Text)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 普通文本框【直播预约标题】 文本 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
-    log_save(obs.LOG_INFO, f"　└{30 * '─'}👌普通文本框 UI{30 * '─'}┘")
+        # 普通文本框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐普通文本框 UI{30 * '─'}┐")
+        # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
+        log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
+        log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
+        # 普通文本框【直播间公告】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️普通文本框【直播预约标题】 UI")
+        # 设置 普通文本框【直播预约标题】 可见状态
+        if obs.obs_property_visible(widget.TextBox.liveBookingsTitle.Obj) != widget.TextBox.liveBookingsTitle.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 普通文本框【直播预约标题】 可见状态 发生变动: {obs.obs_property_visible(widget.TextBox.liveBookingsTitle.Obj)}➡️{widget.TextBox.liveBookingsTitle.Visible}")
+            obs.obs_property_set_visible(widget.TextBox.liveBookingsTitle.Obj, widget.TextBox.liveBookingsTitle.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 普通文本框【直播预约标题】 可见状态 未 发生变动")
+        # 设置 普通文本框【直播预约标题】 可用状态
+        if obs.obs_property_enabled(widget.TextBox.liveBookingsTitle.Obj) != widget.TextBox.liveBookingsTitle.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 普通文本框【直播预约标题】 可用状态 发生变动: {obs.obs_property_enabled(widget.TextBox.liveBookingsTitle.Obj)}➡️{widget.TextBox.liveBookingsTitle.Enabled}")
+            obs.obs_property_set_enabled(widget.TextBox.liveBookingsTitle.Obj, widget.TextBox.liveBookingsTitle.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 普通文本框【直播预约标题】 可用状态 未 发生变动")
+        # 设置 普通文本框【直播预约标题】 文本
+        if obs.obs_data_get_string(GlobalVariableOfData.script_settings,
+                                   'live_bookings_title_textBox') != widget.TextBox.liveBookingsTitle.Text:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 普通文本框【直播预约标题】 文本 发生变动: {obs.obs_data_get_string(GlobalVariableOfData.script_settings, 'live_bookings_title_textBox')}➡️{widget.TextBox.liveBookingsTitle.Text}")
+            obs.obs_data_set_string(GlobalVariableOfData.script_settings, "live_bookings_title_textBox",
+                                    widget.TextBox.liveBookingsTitle.Text)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 普通文本框【直播预约标题】 文本 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
+        log_save(obs.LOG_INFO, f"　└{30 * '─'}👌普通文本框 UI{30 * '─'}┘")
 
-    # 组合框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐组合框 UI{30 * '─'}┐")
-    # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
-    log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
-    log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
-    # 组合框【直播预约列表】 UI
-    log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│││⚛️组合框【直播预约列表】 UI")
-    # 设置 组合框【直播预约列表】 可见状态
-    if obs.obs_property_visible(widget.ComboBox.liveBookings.Obj) != widget.ComboBox.liveBookings.Visible:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 组合框【直播预约列表】 可见状态 发生变动: {obs.obs_property_visible(widget.ComboBox.liveBookings.Obj)}➡️{widget.ComboBox.liveBookings.Visible}")
-        obs.obs_property_set_visible(widget.ComboBox.liveBookings.Obj, widget.ComboBox.liveBookings.Visible)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 组合框【直播预约列表】 可见状态 未 发生变动")
-    # 设置 组合框【直播预约列表】 可用状态
-    if obs.obs_property_enabled(widget.ComboBox.liveBookings.Obj) != widget.ComboBox.liveBookings.Enabled:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 组合框【直播预约列表】 可用状态 发生变动: {obs.obs_property_enabled(widget.ComboBox.liveBookings.Obj)}➡️{widget.ComboBox.liveBookings.Enabled}")
-        obs.obs_property_set_enabled(widget.ComboBox.liveBookings.Obj, widget.ComboBox.liveBookings.Enabled)
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 组合框【直播预约列表】 可用状态 未 发生变动")
-    # 判断 组合框【直播预约列表】字典数据 和 当前数据是否有变化
-    if widget.ComboBox.liveBookings.Dictionary != {
-        obs.obs_property_list_item_string(widget.ComboBox.liveBookings.Obj, idx): obs.obs_property_list_item_name(
+        # 组合框+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        log_save(obs.LOG_INFO, f"　┌{30 * '─'}⭐组合框 UI{30 * '─'}┐")
+        # 【直播】分组—————————————————————————————————————————————————————————————————————————————————————————————————————————
+        log_save(obs.LOG_INFO, f"　│┌{'─' * 60}┐")
+        log_save(obs.LOG_INFO, f"　││▶️分组框【直播】")
+        # 组合框【直播预约列表】 UI
+        log_save(obs.LOG_INFO, f"　││┌{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│││⚛️组合框【直播预约列表】 UI")
+        # 设置 组合框【直播预约列表】 可见状态
+        if obs.obs_property_visible(widget.ComboBox.liveBookings.Obj) != widget.ComboBox.liveBookings.Visible:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 组合框【直播预约列表】 可见状态 发生变动: {obs.obs_property_visible(widget.ComboBox.liveBookings.Obj)}➡️{widget.ComboBox.liveBookings.Visible}")
+            obs.obs_property_set_visible(widget.ComboBox.liveBookings.Obj, widget.ComboBox.liveBookings.Visible)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 组合框【直播预约列表】 可见状态 未 发生变动")
+        # 设置 组合框【直播预约列表】 可用状态
+        if obs.obs_property_enabled(widget.ComboBox.liveBookings.Obj) != widget.ComboBox.liveBookings.Enabled:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 组合框【直播预约列表】 可用状态 发生变动: {obs.obs_property_enabled(widget.ComboBox.liveBookings.Obj)}➡️{widget.ComboBox.liveBookings.Enabled}")
+            obs.obs_property_set_enabled(widget.ComboBox.liveBookings.Obj, widget.ComboBox.liveBookings.Enabled)
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 组合框【直播预约列表】 可用状态 未 发生变动")
+        # 判断 组合框【直播预约列表】字典数据 和 当前数据是否有变化
+        if widget.ComboBox.liveBookings.Dictionary != {
+            obs.obs_property_list_item_string(widget.ComboBox.liveBookings.Obj, idx): obs.obs_property_list_item_name(
                 widget.ComboBox.liveBookings.Obj, idx) for idx in
-        range(obs.obs_property_list_item_count(widget.ComboBox.liveBookings.Obj))}:
-        log_save(obs.LOG_INFO,
-                 f"　│││✏️ 组合框【直播预约列表】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.liveBookings.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.liveBookings.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.liveBookings.Obj))})}个元素➡️{len(widget.ComboBox.liveBookings.Dictionary)}个元素")
-        # 清空 组合框【直播预约列表】
-        log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【直播预约列表】数据 第一步：清空 组合框【直播预约列表】")
-        obs.obs_property_list_clear(widget.ComboBox.liveBookings.Obj)
-        # 添加 组合框【直播预约列表】 列表选项  默认值会被设置在第一位
-        log_save(obs.LOG_INFO,
-                 f"　│││📑 更新 组合框【直播预约列表】数据 第二步：添加 组合框【直播预约列表】 列表选项  如果有默认值，会被设置在第一位")
-        for reserve_sid in widget.ComboBox.liveBookings.Dictionary:
-            obs.obs_property_list_add_string(widget.ComboBox.liveBookings.Obj,
-                                             widget.ComboBox.liveBookings.Dictionary[reserve_sid],
-                                             reserve_sid) if reserve_sid != widget.ComboBox.liveBookings.Value else obs.obs_property_list_insert_string(
-                widget.ComboBox.liveBookings.Obj, 0, widget.ComboBox.liveBookings.Text,
-                widget.ComboBox.liveBookings.Value)
-        # 设置 组合框【直播预约列表】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
-        log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【直播预约列表】数据 第三步：更新 组合框【直播预约列表】 文本")
-        obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'live_bookings_comboBox',
-                                obs.obs_property_list_item_string(widget.ComboBox.liveBookings.Obj, 0))
-    else:
-        log_save(obs.LOG_INFO, f"　│││🧩 组合框【直播预约列表】 列表数据 未 发生变动")
-    log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
-    log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
-    log_save(obs.LOG_INFO, f"　└{30 * '─'}👌组合框 UI{30 * '─'}┘")
-    return True
-    
+            range(obs.obs_property_list_item_count(widget.ComboBox.liveBookings.Obj))}:
+            log_save(obs.LOG_INFO,
+                     f"　│││✏️ 组合框【直播预约列表】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.liveBookings.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.liveBookings.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.liveBookings.Obj))})}个元素➡️{len(widget.ComboBox.liveBookings.Dictionary)}个元素")
+            # 清空 组合框【直播预约列表】
+            log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【直播预约列表】数据 第一步：清空 组合框【直播预约列表】")
+            obs.obs_property_list_clear(widget.ComboBox.liveBookings.Obj)
+            # 添加 组合框【直播预约列表】 列表选项  默认值会被设置在第一位
+            log_save(obs.LOG_INFO,
+                     f"　│││📑 更新 组合框【直播预约列表】数据 第二步：添加 组合框【直播预约列表】 列表选项  如果有默认值，会被设置在第一位")
+            for reserve_sid in widget.ComboBox.liveBookings.Dictionary:
+                obs.obs_property_list_add_string(widget.ComboBox.liveBookings.Obj,
+                                                 widget.ComboBox.liveBookings.Dictionary[reserve_sid],
+                                                 reserve_sid) if reserve_sid != widget.ComboBox.liveBookings.Value else obs.obs_property_list_insert_string(
+                    widget.ComboBox.liveBookings.Obj, 0, widget.ComboBox.liveBookings.Text,
+                    widget.ComboBox.liveBookings.Value)
+            # 设置 组合框【直播预约列表】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
+            log_save(obs.LOG_INFO, f"　│││📑 更新 组合框【直播预约列表】数据 第三步：更新 组合框【直播预约列表】 文本")
+            obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'live_bookings_comboBox',
+                                    obs.obs_property_list_item_string(widget.ComboBox.liveBookings.Obj, 0))
+        else:
+            log_save(obs.LOG_INFO, f"　│││🧩 组合框【直播预约列表】 列表数据 未 发生变动")
+        log_save(obs.LOG_INFO, f"　││└{'─' * 55}")
+        log_save(obs.LOG_INFO, f"　│└{'─' * 60}┘")
+        log_save(obs.LOG_INFO, f"　└{30 * '─'}👌组合框 UI{30 * '─'}┘")
+        return True
 
-def script_unload():
-    """
-    在脚本被卸载时调用。
-    """
-    # """注销事件回调"""
-    log_save(obs.LOG_INFO, "┌——停止监视obs事件——┐")
-    log_save(obs.LOG_INFO, "│  停止监视obs事件  │")
-    log_save(obs.LOG_INFO, "└——停止监视obs事件——┘")
-    obs.obs_frontend_remove_event_callback(trigger_frontend_event)
-    log_save(obs.LOG_INFO, "╔══已卸载: bilibili-live══╗")
-    log_save(obs.LOG_INFO, "║  已卸载: bilibili-live  ║")
-    log_save(obs.LOG_INFO, "╚══已卸载: bilibili-live══╝")
-    log_save(obs.LOG_INFO, "==保存日志文件==")
-    log_save(obs.LOG_INFO, f"{'═' * 120}\n")
-    with open(Path(GlobalVariableOfData.scriptsLogDir) / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.log", "w",
-              encoding="utf-8") as f:
-        f.write(str(GlobalVariableOfData.logRecording))
 
+# 创建控件表单
+widget = Widget()
+
+widget.widget_Group_dict = {
+    "props": {
+        "account": {
+            "Name": "account_group",
+            "Description": "账号",
+            "Type": obs.OBS_GROUP_NORMAL,
+            "GroupProps": "account_props",
+            "ModifiedIs": False
+        },
+        "room": {
+            "Name": "room_group",
+            "Description": "直播间",
+            "Type": obs.OBS_GROUP_NORMAL,
+            "GroupProps": "room_props",
+            "ModifiedIs": False
+        },
+        "live": {
+            "Name": "live_group",
+            "Description": "直播",
+            "Type": obs.OBS_GROUP_NORMAL,
+            "GroupProps": "live_props",
+            "ModifiedIs": False
+        },
+    },
+}
+
+widget.widget_TextBox_dict = {
+    "account_props": {
+        "loginStatus": {
+            "Name": "login_status_textBox",
+            "Description": "登录状态",
+            "Type": obs.OBS_TEXT_INFO,
+            "ModifiedIs": True
+        },
+    },
+    "room_props": {
+        "roomStatus": {
+            "Name": "room_status_textBox",
+            "Description": "查看直播间封面",
+            "Type": obs.OBS_TEXT_INFO,
+            "ModifiedIs": False
+        },
+        "roomTitle": {
+            "Name": "room_title_textBox",
+            "Description": "直播间标题",
+            "Type": obs.OBS_TEXT_DEFAULT,
+            "ModifiedIs": True
+        },
+        "roomNews": {
+            "Name": "room_news_textBox",
+            "Description": "直播间公告",
+            "Type": obs.OBS_TEXT_DEFAULT,
+            "ModifiedIs": True
+        },
+    },
+    "live_props": {
+        "liveBookingsTitle": {
+            "Name": "live_bookings_title_textBox",
+            "Description": "直播预约标题",
+            "Type": obs.OBS_TEXT_DEFAULT,
+            "ModifiedIs": True
+        },
+    },
+}
+
+widget.widget_ComboBox_dict = {
+    "account_props": {
+        "uid": {
+            "Name": "uid_comboBox",
+            "Description": "用户",
+            "Type": obs.OBS_COMBO_TYPE_LIST,
+            "ModifiedIs": True
+        },
+    },
+    "room_props": {
+        "roomCommonTitles": {
+            "Name": "room_commonTitles_comboBox",
+            "Description": "常用标题",
+            "Type": obs.OBS_COMBO_TYPE_EDITABLE,
+            "ModifiedIs": True
+        },
+        "roomCommonAreas": {
+            "Name": "room_commonAreas_comboBox",
+            "Description": "常用分区",
+            "Type": obs.OBS_COMBO_TYPE_LIST,
+            "ModifiedIs": True
+        },
+        "roomParentArea": {
+            "Name": "room_parentArea_comboBox",
+            "Description": "一级分区",
+            "Type": obs.OBS_COMBO_TYPE_LIST,
+            "ModifiedIs": True
+        },
+        "roomSubArea": {
+            "Name": "room_subArea_comboBox",
+            "Description": "二级分区",
+            "Type": obs.OBS_COMBO_TYPE_LIST,
+            "ModifiedIs": True
+        },
+    },
+    "live_props": {
+        "liveStreamingPlatform": {
+            "Name": "live_streaming_platform_comboBox",
+            "Description": "直播平台",
+            "Type": obs.OBS_COMBO_TYPE_LIST,
+            "ModifiedIs": True
+        },
+        "liveBookings": {
+            "Name": "live_bookings_comboBox",
+            "Description": "直播预约列表",
+            "Type": obs.OBS_COMBO_TYPE_LIST,
+            "ModifiedIs": True
+        },
+    },
+}
+
+widget.widget_PathBox_dict = {
+    "room_props": {
+        "roomCover": {
+            "Name": "room_cover_fileDialogBox",
+            "Description": "直播间封面",
+            "Type": obs.OBS_PATH_FILE,
+            "Filter": "图片(*.jpg *.jpeg *.png)",
+            "StartPath": "",
+            "ModifiedIs": False
+        },
+    },
+}
+
+widget.widget_DigitalDisplay_dict = {
+    "live_props": {
+        "liveBookingsDay": {
+            "Name": "live_bookings_day_digitalSlider",
+            "Description": "预约天",
+            "Type": "ThereIsASlider",
+            "Suffix": "天",
+            "ModifiedIs": True
+        },
+        "liveBookingsHour": {
+            "Name": "live_bookings_hour_digitalSlider",
+            "Description": "预约时",
+            "Type": "ThereIsASlider",
+            "Suffix": "时",
+            "ModifiedIs": True
+        },
+        "liveBookingsMinute": {
+            "Name": "live_bookings_minute_digitalSlider",
+            "Description": "预约分",
+            "Type": "ThereIsASlider",
+            "Suffix": "分",
+            "ModifiedIs": True
+        },
+    },
+}
+
+widget.widget_CheckBox_dict = {
+    "live_props": {
+        "liveBookingsDynamic": {
+            "Name": "live_bookings_dynamic_checkBox",
+            "Description": "是否发直播预约动态",
+            "ModifiedIs": True
+        },
+    },
+}
 
 widget.widget_Button_dict = {
     "props": {
@@ -7778,21 +7754,21 @@ widget.widget_Button_dict = {
             "Name": "account_backup_button",
             "Description": "备份账户",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_backup_users,
+            "Callback": ButtonFunction.button_function_backup_users,
             "ModifiedIs": False
         },
         "accountRestore": {
             "Name": "account_restore_button",
             "Description": "恢复账户",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_restore_user,
+            "Callback": ButtonFunction.button_function_restore_user,
             "ModifiedIs": False
         },
         "logout": {
             "Name": "logout_button",
             "Description": "登出账号",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_logout,
+            "Callback": ButtonFunction.button_function_logout,
             "ModifiedIs": False
         },
     },
@@ -7801,70 +7777,70 @@ widget.widget_Button_dict = {
             "Name": "room_opened_button",
             "Description": "开通直播间",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_opened_room,
+            "Callback": ButtonFunction.button_function_opened_room,
             "ModifiedIs": False
         },
         "roomCoverView": {
             "Name": "room_cover_view_button",
             "Description": "查看直播间封面",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_check_room_cover,
+            "Callback": ButtonFunction.button_function_check_room_cover,
             "ModifiedIs": False
         },
         "roomCoverUpdate": {
             "Name": "room_cover_update_button",
             "Description": "上传直播间封面",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_update_room_cover,
+            "Callback": ButtonFunction.button_function_update_room_cover,
             "ModifiedIs": False
         },
         "roomCommonTitlesTrue": {
             "Name": "room_commonTitles_true_button",
             "Description": "确认标题",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_true_live_room_title,
+            "Callback": ButtonFunction.button_function_true_live_room_title,
             "ModifiedIs": False
         },
         "roomTitleChange": {
             "Name": "room_title_change_button",
             "Description": "更改直播间标题",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_change_live_room_title,
+            "Callback": ButtonFunction.button_function_change_live_room_title,
             "ModifiedIs": False
         },
         "roomNewsChange": {
             "Name": "room_news_change_button",
             "Description": "更改直播间公告",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_change_live_room_news,
+            "Callback": ButtonFunction.button_function_change_live_room_news,
             "ModifiedIs": False
         },
         "roomCommonAreasTrue": {
             "Name": "room_commonAreas_true_button",
             "Description": "确认分区",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_true_live_room_area,
+            "Callback": ButtonFunction.button_function_true_live_room_area,
             "ModifiedIs": False
         },
         "roomParentAreaTrue": {
             "Name": "room_parentArea_true_button",
             "Description": "确认一级分区",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_start_parent_area,
+            "Callback": ButtonFunction.button_function_start_parent_area,
             "ModifiedIs": False
         },
         "roomSubAreaTrue": {
             "Name": "room_subArea_true_button",
             "Description": "「确认分区」",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_start_sub_area,
+            "Callback": ButtonFunction.button_function_start_sub_area,
             "ModifiedIs": False
         },
         "bliveWebJump": {
             "Name": "blive_web_jump_button",
             "Description": "跳转直播间后台网页",
             "Type": obs.OBS_BUTTON_URL,
-            "Callback": button_function_jump_blive_web,
+            "Callback": ButtonFunction.button_function_jump_blive_web,
             "ModifiedIs": False
         },
     },
@@ -7873,49 +7849,49 @@ widget.widget_Button_dict = {
             "Name": "live_face_auth_button",
             "Description": "人脸认证",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_face_auth,
+            "Callback": ButtonFunction.button_function_face_auth,
             "ModifiedIs": False
         },
         "liveStart": {
             "Name": "live_start_button",
             "Description": "开始直播并复制推流码",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_start_live,
+            "Callback": ButtonFunction.button_function_start_live,
             "ModifiedIs": False
         },
         "liveRtmpAddressCopy": {
             "Name": "live_rtmp_address_copy_button",
             "Description": "复制直播服务器",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_rtmp_address_copy,
+            "Callback": ButtonFunction.button_function_rtmp_address_copy,
             "ModifiedIs": False
         },
         "liveRtmpCodeCopy": {
             "Name": "live_rtmp_code_copy_button",
             "Description": "复制直播推流码",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_rtmp_stream_code_copy,
+            "Callback": ButtonFunction.button_function_rtmp_stream_code_copy,
             "ModifiedIs": False
         },
         "liveRtmpCodeUpdate": {
             "Name": "live_rtmp_code_update_button",
             "Description": "更新推流码并复制",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_rtmp_stream_code_update,
+            "Callback": ButtonFunction.button_function_rtmp_stream_code_update,
             "ModifiedIs": False
         },
         "liveStop": {
             "Name": "live_stop_button",
             "Description": "结束直播",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_stop_live,
+            "Callback": ButtonFunction.button_function_stop_live,
             "ModifiedIs": False
         },
         "liveBookingsDayTrue": {
             "Name": "live_bookings_day_true_button",
             "Description": "确认预约天",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_true_live_appointment_day,
+            "Callback": ButtonFunction.button_function_true_live_appointment_day,
             "ModifiedIs": False
         },
         "liveBookingsHourTrue": {
@@ -7936,17 +7912,72 @@ widget.widget_Button_dict = {
             "Name": "live_bookings_create_button",
             "Description": "发布直播预约",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_creat_live_appointment,
+            "Callback": ButtonFunction.button_function_creat_live_appointment,
             "ModifiedIs": False
         },
         "liveBookingsCancel": {
             "Name": "live_bookings_cancel_button",
             "Description": "取消直播预约",
             "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": button_function_cancel_live_appointment,
+            "Callback": ButtonFunction.button_function_cancel_live_appointment,
             "ModifiedIs": False
         },
     },
 }
+
+widget.widget_list = [
+    "top_button",
+    "start_script_button",
+    "account_group",
+    "login_status_textBox",
+    "uid_comboBox",
+    "login_button",
+    "account_list_update_button",
+    "qr_add_account_button",
+    "qr_picture_display_button",
+    "account_delete_button",
+    "account_backup_button",
+    "account_restore_button",
+    "logout_button",
+    "room_group",
+    "room_status_textBox",
+    "room_opened_button",
+    "room_cover_view_button",
+    "room_cover_fileDialogBox",
+    "room_cover_update_button",
+    "room_commonTitles_comboBox",
+    "room_commonTitles_true_button",
+    "room_title_textBox",
+    "room_title_change_button",
+    "room_news_textBox",
+    "room_news_change_button",
+    "room_commonAreas_comboBox",
+    "room_commonAreas_true_button",
+    "room_parentArea_comboBox",
+    "room_parentArea_true_button",
+    "room_subArea_comboBox",
+    "room_subArea_true_button",
+    "blive_web_jump_button",
+    "live_group",
+    "live_face_auth_button",
+    "live_streaming_platform_comboBox",
+    "live_start_button",
+    "live_rtmp_address_copy_button",
+    "live_rtmp_code_copy_button",
+    "live_rtmp_code_update_button",
+    "live_stop_button",
+    "live_bookings_day_digitalSlider",
+    "live_bookings_day_true_button",
+    "live_bookings_hour_digitalSlider",
+    "live_bookings_hour_true_button",
+    "live_bookings_minute_digitalSlider",
+    "live_bookings_minute_true_button",
+    "live_bookings_dynamic_checkBox",
+    "live_bookings_title_textBox",
+    "live_bookings_create_button",
+    "live_bookings_comboBox",
+    "live_bookings_cancel_button",
+    "bottom_button",
+]
 
 widget.preliminary_configuration_control()
