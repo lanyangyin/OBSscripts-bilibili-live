@@ -134,12 +134,12 @@ if __name__ == "__main__":
     print("所有测试通过！")
 
     # 示例用法
-    cookie_string = r"buvid3=24B878AA-65D8-B50F-115F-93620321758D34011infoc; b_nut=1756097834; _uuid=63397FF4-FC4C-8C5E-9D47-17799AB2610D529737infoc; buvid_fp=0909838887fa47f5d59a246818cf1969; enable_web_push=DISABLE; buvid4=6214F410-3FE8-53F4-D104-4838A446323434991-025082512-c55Uq60Y364aMkJdw+nh+WWaSElXXo+lKz1+lLtT33nfw+HhY7joPxfdJLNTR4mu; theme-tip-show=SHOWED; theme-avatar-tip-show=SHOWED; LIVE_BUVID=AUTO7917560980008599; theme-switch-show=SHOWED; DedeUserID=3546974607379019; DedeUserID__ckMd5=220bc66fcc74f43e; home_feed_column=4; browser_resolution=1059-1629; SESSDATA=85b3171d%2C1774179577%2C6cab5%2A91CjBSVIR17iygOYBCeeja3TZnjvDOadTlt0hGLBKOsrR4SzOrIWsyUpN9WBEq4XjCepMSVkZSSi01Rmx6RjhNaXNDS2Znd0s3TUdjR2Z5MWN3NGQ0WHFTaG5abXVoOEY0WVNnckRDa1RMU2E1bUg3YmZzd2Q0a2tUekJfNXVWMl9RZmZ3cGRqcV93IIEC; bili_jct=3ec9b89f79456a4c50ed068bf22f3eac; b_lsid=33D57815_199768D9C1D; bsource=search_bing; bili_ticket=eyJhbGciOiJIUzI1NiIsImtpZCI6InMwMyIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTg4ODk4NTAsImlhdCI6MTc1ODYzMDU5MCwicGx0IjotMX0.FSW68IsOnr5suB8iRNRQ0zbQCPNZi21Z-JL8LUVJtaI; bili_ticket_expires=1758889790; CURRENT_QUALITY=0; rpdid=0zbfAKYWU2|v4zZtxHq|4fY|3w1V12aH; CURRENT_FNVAL=2000; sid=8l716553; PVID=3"
+    cookie_string = "buvid3=A0677F67-FBB5-7613-E283-CD0D3B59190219553infoc; b_nut=1761068219; b_lsid=89B86B77_19A07D804C1; _uuid=AE371E67-E106C-3F5B-9D9B-4D1011CF281D288871infoc; enable_web_push=DISABLE; home_feed_column=5; browser_resolution=1592-2452; buvid_fp=f34c359c367ca8ebf3e3f3486a2e3225; buvid4=6C82EC89-FBCF-FE2A-D7B1-12A3255B1EE321258-025102201-QpHZYVWqnEnOCZfk5BDNAtPGBJlrEgAm6hcvsEAMy6VyBHRrvxif2KeBAlW+QFl5; CURRENT_FNVAL=2000; sid=8m319lqi; bili_ticket=eyJhbGciOiJIUzI1NiIsImtpZCI6InMwMyIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjEzMjc0NDgsImlhdCI6MTc2MTA2ODE4OCwicGx0IjotMX0.IdIrB8ObiKkSkPCEfxGHgHWpVLMVFMbrIXu42fsj-iU; bili_ticket_expires=1761327388; LIVE_BUVID=AUTO1217610682482486; PVID=4"
     parsed = parse_cookie(cookie_string)
     print(f"\n解析结果: {parsed}")
-    print(f"\n解析结果: {parsed['DedeUserID']}")
-    print(f"\n解析结果: {parsed['DedeUserID__ckMd5']}")
-    print(f"\n解析结果: {parsed['SESSDATA']}")
-    print(f"\n解析结果: {parsed['bili_jct']}")
-    print(f"\n解析结果: {parsed['b_nut']}")
-    print(f"\n解析结果: {parsed['buvid3']}")
+    print(f"\n解析结果: {parsed.get('DedeUserID', '')}")
+    print(f"\n解析结果: {parsed.get('DedeUserID__ckMd5', '')}")
+    print(f"\n解析结果: {parsed.get('SESSDATA', '')}")
+    print(f"\n解析结果: {parsed.get('bili_jct', '')}")
+    print(f"\n解析结果: {parsed.get('b_nut', '')}")
+    print(f"\n解析结果: {parsed.get('buvid3', '')}")

@@ -366,16 +366,20 @@ if __name__ == "__main__":
     manager = MultiUserCookieManager(JSONCookiesManager.path)
 
     # 添加用户1
-    user_key = manager.add_user(JSONCookiesManager.user1.id, JSONCookiesManager.user1.name, JSONCookiesManager.user1.platform)
+    user_key1 = manager.add_user(JSONCookiesManager.user1.id, JSONCookiesManager.user1.name, JSONCookiesManager.user1.platform)
+    # 添加用户2
+    user_key2 = manager.add_user(JSONCookiesManager.user2.id, JSONCookiesManager.user2.name, JSONCookiesManager.user2.platform)
+    # 添加用户3
+    user_key3 = manager.add_user(JSONCookiesManager.user3.id, JSONCookiesManager.user3.name, JSONCookiesManager.user3.platform)
 
-    # # 导入 JSON 格式的 cookies
-    # manager.import_cookies_json(user_key, JSONCookiesManager.json_cookies)
-    #
-    # # 导入字符串格式的 cookies
-    # manager.import_cookie_string(user_key, JSONCookiesManager.cookie_string)
+    # 导入 JSON 格式的 cookies
+    manager.import_cookies_json(user_key1, JSONCookiesManager.user3.json_cookies)
+
+    # 导入字符串格式的 cookies
+    manager.import_cookie_string(user_key1, JSONCookiesManager.user2.cookie_string)
 
     # 导入 简化JSON 格式的 cookies
-    manager.import_simplified_json(user_key, JSONCookiesManager.simplified_cookies)
+    manager.import_simplified_json(user_key1, JSONCookiesManager.user1.simplified_cookies)
 
     # 查找特定 cookie 的值
     sessdata = manager.get_cookie_value(JSONCookiesManager.user1.id, "SESSDATA")

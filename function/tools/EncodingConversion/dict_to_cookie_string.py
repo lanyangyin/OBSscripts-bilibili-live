@@ -45,3 +45,7 @@ def dict_to_cookie_string(data_dict: Dict[str, Any], encode_values: bool = True)
 
     # 使用分号和空格连接所有部分
     return "; ".join(cookie_parts)
+
+if __name__ == "__main__":
+    from _Input.function.tools.EncodingConversion import dict_to_cookie_string as dcs
+    print(dict_to_cookie_string(dcs.cookie_dict))

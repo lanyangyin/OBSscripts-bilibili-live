@@ -105,5 +105,5 @@ if __name__ == "__main__":
         print("图像信息:")
         print(f"格式: {pillow_img.format}")
         print(f"尺寸: {pillow_img.size}")
-        # pillow_img.show()  # 显示图像（可选）
-        pillow_img.save("./TestOutput/url2pillow_image/Url2PillowImg.jpg")
+        pillow_img.show()  # 显示图像（可选）
+        # pillow_img.save("./TestOutput/url2pillow_image/Url2PillowImg.jpg")

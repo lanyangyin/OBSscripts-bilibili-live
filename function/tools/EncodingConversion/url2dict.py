@@ -182,7 +182,7 @@ def url2dict(url: str, decode: bool = True, handle_multiple: bool = True) -> Dic
 if __name__ == '__main__':
 
     # 完整测试用例
-    def test_url2dict():
+    def url2dict_test():
         test_cases = [
             # 基础测试
             ("?name=John", {'name': 'John'}),
@@ -244,7 +244,7 @@ if __name__ == '__main__':
         print("测试完成!")
 
 
-    test_url2dict()
+    url2dict_test()
 
     # 基础用法
     url = "https://api.example.com/data?ids=1,2,3&format=json&pretty=true"
