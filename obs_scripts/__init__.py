@@ -73,11 +73,15 @@ except ImportError:
         OBS_FRONTEND_EVENT_STREAMING_STOPPING = 27
         OBS_FRONTEND_EVENT_STREAMING_STARTED = 28
         OBS_FRONTEND_EVENT_STREAMING_STARTING = 29
+
+
     class ObsLog:
         LOG_ERROR = None
         LOG_WARNING = None
         LOG_DEBUG = None
         LOG_INFO = None
+
+
     class obs(ObsFrontendEvent, ObsLog):
         setting = {}
 
@@ -343,7 +347,8 @@ def update_ui_interface_data():
             if obs.obs_data_get_bool(GlobalVariableOfData.script_settings, w.Name) != w.Bool:
                 obs.obs_data_set_bool(GlobalVariableOfData.script_settings, w.Name, w.Bool)
         elif w.ControlType == "DigitalDisplay":
-            if w.Min != obs.obs_property_int_min(w.Obj) or w.Max != obs.obs_property_int_max(w.Obj) or w.Step != obs.obs_property_int_step(w.Obj):
+            if w.Min != obs.obs_property_int_min(w.Obj) or w.Max != obs.obs_property_int_max(
+                    w.Obj) or w.Step != obs.obs_property_int_step(w.Obj):
                 obs.obs_property_int_set_limits(w.Obj, w.Min, w.Max, w.Step)
             if obs.obs_data_get_int(GlobalVariableOfData.script_settings, w.Name) != w.Value:
                 obs.obs_data_set_int(GlobalVariableOfData.script_settings, w.Name, w.Value)
@@ -356,22 +361,39 @@ def update_ui_interface_data():
         elif w.ControlType == "Button":
             pass
         elif w.ControlType == "ComboBox":
-            if w.Dictionary != {obs.obs_property_list_item_string(w.Obj, idx): obs.obs_property_list_item_name(w.Obj, idx) for idx in range(obs.obs_property_list_item_count(w.Obj))}:
+            if w.Dictionary != {
+                obs.obs_property_list_item_string(w.Obj, idx): obs.obs_property_list_item_name(w.Obj, idx) for idx in
+                range(obs.obs_property_list_item_count(w.Obj))}:
                 obs.obs_property_list_clear(w.Obj)
                 for common_area_id_dict_str in w.Dictionary:
-                    obs.obs_property_list_add_string(w.Obj, w.Dictionary[common_area_id_dict_str], common_area_id_dict_str) if common_area_id_dict_str != w.Value else obs.obs_property_list_insert_string(w.Obj, 0, w.Text, w.Value)
+                    obs.obs_property_list_add_string(w.Obj, w.Dictionary[common_area_id_dict_str],
+                                                     common_area_id_dict_str) if common_area_id_dict_str != w.Value else obs.obs_property_list_insert_string(
+                        w.Obj, 0, w.Text, w.Value)
             if w.Type == obs.OBS_COMBO_TYPE_EDITABLE:
                 if obs.obs_data_get_string(GlobalVariableOfData.script_settings, w.Name) != w.Text:
-                    obs.obs_data_set_string(GlobalVariableOfData.script_settings, w.Name, obs.obs_property_list_item_name(w.Obj, 0))
+                    obs.obs_data_set_string(GlobalVariableOfData.script_settings, w.Name,
+                                            obs.obs_property_list_item_name(w.Obj, 0))
             else:
                 if obs.obs_data_get_string(GlobalVariableOfData.script_settings, w.Name) != w.Value:
-                    obs.obs_data_set_string(GlobalVariableOfData.script_settings, w.Name, obs.obs_property_list_item_string(w.Obj, 0))
+                    obs.obs_data_set_string(GlobalVariableOfData.script_settings, w.Name,
+                                            obs.obs_property_list_item_string(w.Obj, 0))
         elif w.ControlType == "PathBox":
             if obs.obs_data_get_string(GlobalVariableOfData.script_settings, w.Name) != w.Text:
                 obs.obs_data_set_string(GlobalVariableOfData.script_settings, w.Name, w.Text)
         elif w.ControlType == "Group":
             pass
     return True
+
+
+# ====================================================================================================================
+
+
+# -----------------------------------------------------------
+# OBS Script Functions                                      -
+# -----------------------------------------------------------
+
+script_version = bytes.fromhex('302e322e36').decode('utf-8')
+"""脚本版本.encode().hex()"""
 
 
 @dataclass
@@ -909,7 +931,9 @@ class Widget:
         self._loading_dict: Dict[int, Any] = {}
 
     @property
-    def widget_dict_all(self) -> dict[Literal["Button", "Group", "TextBox", "ComboBox", "PathBox", "DigitalDisplay", "CheckBox"], dict[str, dict[str, dict[str, str]]]]:
+    def widget_dict_all(self) -> dict[
+        Literal["Button", "Group", "TextBox", "ComboBox", "PathBox", "DigitalDisplay", "CheckBox"], dict[
+            str, dict[str, dict[str, str]]]]:
         """记录7大控件类型的所有控件的不变属性"""
         return {
             "Button": self.widget_Button_dict,
@@ -1026,42 +1050,6 @@ class Widget:
         """返回表单的可读表示形式"""
         self._update_all_controls()
         return f"<Widget controls={len(self._all_controls)}>"
-
-
-# 创建控件表单
-widget = Widget()
-
-widget.widget_Button_dict = {
-    "props": {
-        "top": {
-            "Name": "top_button",
-            "Description": "Top",
-        },
-        "bottom": {
-            "Name": "bottom_button",
-            "Description": "Bottom",
-        },
-    },
-}
-
-widget.widget_Group_dict = {}
-
-widget.widget_TextBox_dict = {}
-
-widget.widget_ComboBox_dict = {}
-
-widget.widget_PathBox_dict = {}
-
-widget.widget_DigitalDisplay_dict = {}
-
-widget.widget_CheckBox_dict = {}
-
-widget.widget_list = [
-    "top_button",
-    "bottom_button",
-]
-
-widget.preliminary_configuration_control()
 
 
 # --- 设置默认值
@@ -1223,8 +1211,45 @@ def script_unload():
     pass
 
 
+# 创建控件表单
+widget = Widget()
+
+widget.widget_Button_dict = {
+    "props": {
+        "top": {
+            "Name": "top_button",
+            "Description": "Top",
+        },
+        "bottom": {
+            "Name": "bottom_button",
+            "Description": "Bottom",
+        },
+    },
+}
+
+widget.widget_Group_dict = {}
+
+widget.widget_TextBox_dict = {}
+
+widget.widget_ComboBox_dict = {}
+
+widget.widget_PathBox_dict = {}
+
+widget.widget_DigitalDisplay_dict = {}
+
+widget.widget_CheckBox_dict = {}
+
+widget.widget_list = [
+    "top_button",
+    "bottom_button",
+]
+
+widget.preliminary_configuration_control()
+
+
 if __name__ == "__main__":
     import threading
+
     setting = {}
     script_defaults(setting)
     script_defaults(setting)

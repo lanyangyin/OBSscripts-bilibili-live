@@ -53,46 +53,6 @@ from PIL import Image, ImageOps
 
 # import websockets
 
-class GlobalVariableOfData:
-    script_loading_is: bool = False
-    """是否正式加载脚本"""
-    widget_loading_number: int = 0
-    """控件加载顺序"""
-    isScript_propertiesIs: bool = False  # Script_properties()被调用
-    """是否允许Script_properties()被调用"""
-    streaming_active: bool = None  # OBS推流状态
-    """OBS推流状态"""
-    script_settings: bool = None  # #脚本的所有设定属性集
-    """脚本的所有设定属性集"""
-
-    logRecording: str = ""  # #日志记录的文本
-    """日志记录的文本"""
-    networkConnectionStatus: bool = False  # #网络连接状态
-    """网络连接状态"""
-    sslVerification: bool = True
-    """SSL验证"""
-
-    # 文件配置类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    scriptsDataDirpath: Optional[Path] = None  # #脚本所在目录，末尾带/
-    """脚本所在目录，末尾带/"""
-    scriptsUsersConfigFilepath: Optional[Path] = None  # #用户配置文件路径
-    """用户配置文件路径"""
-    scriptsTempDir: Optional[Path] = None  # #临时文件文件夹
-    """临时文件文件夹"""
-    scriptsLogDir: Optional[Path] = None  # #日志文件文件夹
-    """日志文件文件夹"""
-    scriptsCacheDir: Optional[Path] = None  # #缓存文件文件夹
-    """缓存文件文件夹"""
-
-    # 用户类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    loginQrCode_key: str = None  # ##登陆二维码密钥
-    """登陆二维码密钥"""
-    loginQrCodeReturn: Optional[dict[str, Union[dict[str, str], int]]] = None  # ##登陆二维码返回数据
-    """登陆二维码返回数据"""
-    loginQRCodePillowImg = None  # ##登录二维码的pillow_img实例
-    """登录二维码的pillow_img实例"""
-
-
 class ExplanatoryDictionary:
     textBox_type_name4textBox_type: Dict[int, str] = {
         obs.OBS_TEXT_INFO_NORMAL: '正常信息',
@@ -1036,7 +996,7 @@ class BilibiliUserLogsIn2ConfigFile:
     def _ensure_config_file(self):
         """确保配置文件存在且结构有效"""
         if not self.configPath.exists():
-            log_save(obs.LOG_DEBUG, f'脚本数据文件【{GlobalVariableOfData.scriptsDataDirpath}】不存在，尝试创建')
+            log_save(obs.LOG_DEBUG, f'脚本数据文件【{self.configPath}】不存在，尝试创建')
             self.configPath.parent.mkdir(parents=True, exist_ok=True)
             self._write_config({"DefaultUser": None})
             log_save(obs.LOG_DEBUG, f'success：脚本数据文件 创建成功')
@@ -2540,6 +2500,46 @@ class BilibiliApiMaster:
 
 script_version = bytes.fromhex('302e322e36').decode('utf-8')
 """脚本版本.encode().hex()"""
+
+
+class GlobalVariableOfData:
+    script_loading_is: bool = False
+    """是否正式加载脚本"""
+    widget_loading_number: int = 0
+    """控件加载顺序"""
+    isScript_propertiesIs: bool = False  # Script_properties()被调用
+    """是否允许Script_properties()被调用"""
+    streaming_active: bool = None  # OBS推流状态
+    """OBS推流状态"""
+    script_settings: bool = None  # #脚本的所有设定属性集
+    """脚本的所有设定属性集"""
+
+    logRecording: str = ""  # #日志记录的文本
+    """日志记录的文本"""
+    networkConnectionStatus: bool = False  # #网络连接状态
+    """网络连接状态"""
+    sslVerification: bool = True
+    """SSL验证"""
+
+    # 文件配置类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    scriptsDataDirpath: Optional[Path] = None  # #脚本所在目录，末尾带/
+    """脚本所在目录，末尾带/"""
+    scriptsUsersConfigFilepath: Optional[Path] = None  # #用户配置文件路径
+    """用户配置文件路径"""
+    scriptsTempDir: Optional[Path] = None  # #临时文件文件夹
+    """临时文件文件夹"""
+    scriptsLogDir: Optional[Path] = None  # #日志文件文件夹
+    """日志文件文件夹"""
+    scriptsCacheDir: Optional[Path] = None  # #缓存文件文件夹
+    """缓存文件文件夹"""
+
+    # 用户类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    loginQrCode_key: str = None  # ##登陆二维码密钥
+    """登陆二维码密钥"""
+    loginQrCodeReturn: Optional[dict[str, Union[dict[str, str], int]]] = None  # ##登陆二维码返回数据
+    """登陆二维码返回数据"""
+    loginQRCodePillowImg = None  # ##登录二维码的pillow_img实例
+    """登录二维码的pillow_img实例"""
 
 
 def script_path():
