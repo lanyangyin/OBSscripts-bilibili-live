@@ -241,7 +241,7 @@ class HashComparator:
 
 # 使用示例和测试
 if __name__ == "__main__":
-    from _Input.DataEncryption import HashComparator as HashComparator_c
+    from _Input.function.tools.DataEncryption import HashComparator as HashComparator_c
     # 创建哈希比较器实例
     comparator = HashComparator(HashAlgorithm.SHA256)
 
@@ -254,15 +254,14 @@ if __name__ == "__main__":
     print()
 
     # 使用盐值
-    salt = "my_salt"
-    hashed_with_salt = comparator.hash_string(text, salt)
+    hashed_with_salt = comparator.hash_string(text, HashComparator_c.salt)
     print(f"加盐哈希: {hashed_with_salt}")
-    print(f"加盐验证: {comparator.verify_hash(text, hashed_with_salt, salt)}")
-    print(f"错误盐值验证: {comparator.verify_hash(text, hashed_with_salt, 'wrong_salt')}")
+    print(f"加盐验证: {comparator.verify_hash(text, hashed_with_salt, HashComparator_c.salt)}")
+    print(f"错误盐值验证: {comparator.verify_hash(text, hashed_with_salt, HashComparator_c.salt1)}")
     print()
 
     # 获取哈希信息
-    info = comparator.get_hash_info(text, salt)
+    info = comparator.get_hash_info(text, HashComparator_c.salt)
     print("哈希信息:")
     for key, value in info.items():
         print(f"  {key}: {value}")
@@ -270,11 +269,12 @@ if __name__ == "__main__":
 
     # 比较多个哈希值
     hash_list = [
-        hashed_with_salt,
+        comparator.hash_string(text, HashComparator_c.salt),
         "wrong_hash_value",
-        comparator.hash_string("different_text", salt)
+        comparator.hash_string(HashComparator_c.text1, HashComparator_c.salt),
+        comparator.hash_string(text)
     ]
-    results = comparator.compare_multiple(text, hash_list, salt)
+    results = comparator.compare_multiple(text, hash_list, HashComparator_c.salt)
     print("多哈希比较结果:")
     for hash_val, match in results.items():
         print(f"  {hash_val}: {'匹配' if match else '不匹配'}")
@@ -284,6 +284,12 @@ if __name__ == "__main__":
     comparator.change_algorithm(HashAlgorithm.MD5)
     md5_hash = comparator.hash_string(text)
     print(f"MD5 哈希: {md5_hash}")
+    print()
+    # 获取哈希信息
+    info = comparator.get_hash_info(text, HashComparator_c.salt)
+    print("哈希信息:")
+    for key, value in info.items():
+        print(f"  {key}: {value}")
     print()
 
     # 使用base64输出格式

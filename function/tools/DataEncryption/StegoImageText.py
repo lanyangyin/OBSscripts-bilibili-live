@@ -166,32 +166,28 @@ class StegoImageText:
 
 # 使用示例
 if __name__ == "__main__":
+    from _Input.function.tools.DataEncryption import StegoImageText as StegoImageText_c
     stego = StegoImageText()
 
     # 示例1: 直接使用文本创建伪装图片
-    secret_text = "这是一段秘密信息，将被伪装成10x10像素的图片文件！可以包含较长的文本内容，因为使用了压缩算法。"
-    stego.text_to_image(secret_text, "./TestOutput/StegoImageText/secret_10x10_image.png")
-    print("文本已加密为10x10图片: secret_10x10_image.png")
+    stego.text_to_image(StegoImageText_c.in_secret_text1, StegoImageText_c.out_secret_text1)
+    print(f"文本已加密为10x10图片: {StegoImageText_c.out_secret_text1}")
 
     # 示例2: 从文本文件创建伪装图片
-    # 首先创建一个示例文本文件
-    with open("./TestOutput/StegoImageText/example_text.txt", "w", encoding="utf-8") as f:
-        f.write("这是来自文本文件的秘密信息！\n可以包含多行内容。\n甚至可以是较长的文档。")
-
-    stego.file_to_image("./TestOutput/StegoImageText/20250918_232500.log", "./TestOutput/StegoImageText/from_file_image.png")
-    print("文本文件内容已加密为图片: from_file_image.png")
+    stego.file_to_image(StegoImageText_c.in_txt1_path, StegoImageText_c.out_txt1_path)
+    print(f"文本文件内容已加密为图片: {StegoImageText_c.out_txt1_path}")
 
     # 示例3: 从图片提取文本到文件
-    stego.image_to_file("./TestOutput/StegoImageText/from_file_image.png", "./TestOutput/StegoImageText/extracted_text.txt")
-    print("从图片提取的文本已保存到: extracted_text.txt")
+    stego.image_to_file(StegoImageText_c.in_img1_path, StegoImageText_c.out_img1_path)
+    print(f"从图片提取的文本已保存到: {StegoImageText_c.out_img1_path}")
 
     # 示例4: 使用极简方法从文件创建图片
-    stego.create_minimal_image("./TestOutput/StegoImageText/minimal_from_file.png", input_file_path="./TestOutput/StegoImageText/example_text.txt")
-    print("使用极简方法从文件创建图片: minimal_from_file.png")
+    stego.create_minimal_image(StegoImageText_c.out_txt2_path, input_file_path=StegoImageText_c.in_txt2_path)
+    print(f"使用极简方法从文件创建图片: {StegoImageText_c.out_txt2_path}")
 
     # 验证提取的文本
     try:
-        recovered_text = stego.image_to_text("./TestOutput/StegoImageText/1758382113095.png")
-        print("从图片中提取的文本:", recovered_text[:50] + "..." if len(recovered_text) > 50 else recovered_text)
+        recovered_text = stego.image_to_text(StegoImageText_c.out_txt2_path)
+        print("从图片中提取的文本:", recovered_text)  # [:50] + "..." if len(recovered_text) > 50 else recovered_text
     except Exception as e:
         print("解密失败:", e)

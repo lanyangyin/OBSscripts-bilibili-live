@@ -36,10 +36,34 @@ except ImportError:
         OBS_BUTTON_URL = 1
 
 
+    class ComboBoxType:
+        OBS_COMBO_TYPE_RADIO = 2
+        OBS_COMBO_TYPE_LIST = 1
+        OBS_COMBO_TYPE_EDITABLE = 0
+
+
+    class TextType:
+        OBS_TEXT_INFO = 3
+        OBS_TEXT_MULTILINE = 2
+        OBS_TEXT_PASSWORD = 1
+        OBS_TEXT_DEFAULT = 0
+
+
+    class PathBoxType:
+        OBS_PATH_DIRECTORY = 0
+        OBS_PATH_FILE_SAVE = 1
+        OBS_PATH_FILE = 2
+
+
+    class GroupType:
+        OBS_GROUP_CHECKABLE = 1
+        OBS_GROUP_NORMAL = 0
+
+
     class ObsTextInfo:
         OBS_TEXT_INFO_NORMAL = 0
-        OBS_TEXT_INFO_WARNING = 0
-        OBS_TEXT_INFO_ERROR = 0
+        OBS_TEXT_INFO_WARNING = 1
+        OBS_TEXT_INFO_ERROR = 2
 
 
     class ObsFrontendEvent:
@@ -114,7 +138,7 @@ except ImportError:
             pass
 
 
-    class obs(ObsFrontendEvent, ObsLog, ObsTextInfo, ButtonType, AddControl, ControlType):
+    class obs(ObsFrontendEvent, ObsLog, ObsTextInfo, ButtonType, TextType, ComboBoxType, PathBoxType, GroupType, AddControl, ControlType):
         setting = {}
 
         @staticmethod
