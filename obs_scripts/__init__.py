@@ -981,7 +981,7 @@ class Widget:
         """路径对话框"""
         self.Group = Widget.GroupPs()
         """分组框"""
-        self.widget_Button_dict: Dict[str, Dict[str, Dict[str, Union[str, bool, Callable[[Any, Any], bool]]]]] = {}
+        self.widget_Button_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
         """按钮控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
         self.widget_Group_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
         """分组框控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
@@ -997,18 +997,13 @@ class Widget:
         """复选框控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
         self.widget_list: List[str] = []
         """一个用于规定控件加载顺序的列表"""
+        self.props_Collection: set[str] = set()
+        """一个用于记录控件属性集名称的集合"""
         self._all_controls: List[Any] = []
         self._loading_dict: Dict[int, Any] = {}
 
     @property
-    def widget_dict_all(self) -> dict[
-        Literal["Button", "Group", "TextBox", "ComboBox", "PathBox", "DigitalDisplay", "CheckBox"],
-        dict[
-            str, dict[
-                str, dict[str, Union[str, Callable[[Any, Any], bool]]]
-            ]
-        ]
-    ]:
+    def widget_dict_all(self) -> dict[Literal["Button", "Group", "TextBox", "ComboBox", "PathBox", "DigitalDisplay", "CheckBox"],dict[str, dict[str, dict[str, Union[Callable[[Any, Any], bool], str]]]]]:
         """记录7大控件类型的所有控件的不变属性"""
         return {
             "Button": self.widget_Button_dict,
@@ -1110,6 +1105,7 @@ class Widget:
         for basic_types_controls in self.widget_dict_all:
             log_save(obs.LOG_INFO, f"{basic_types_controls}")
             for Ps in self.widget_dict_all[basic_types_controls]:
+                self.props_Collection.add(Ps)
                 log_save(obs.LOG_INFO, f"\t{Ps}")
                 for name in self.widget_dict_all[basic_types_controls][Ps]:
                     widget_types_controls = getattr(self, basic_types_controls)
@@ -1132,6 +1128,7 @@ class Widget:
                     obj.ModifiedIs = self.widget_dict_all[basic_types_controls][Ps][name]["ModifiedIs"]
                     obj.Description = self.widget_dict_all[basic_types_controls][Ps][name]["Description"]
                     obj.Props = Ps
+        print(self.props_Collection)
 
     def __repr__(self) -> str:
         """返回表单的可读表示形式"""
@@ -1257,15 +1254,9 @@ def script_defaults(settings):  # 设置其默认值
     log_save(obs.LOG_INFO, "script_defaults 被调用")
     widget.Button.top.Visible = True
     widget.Button.top.Enabled = False
-    widget.Button.top.ModifiedIs = True
-    widget.Button.top.Type = obs.OBS_BUTTON_DEFAULT
-    widget.Button.top.Callback = lambda ps, p: log_save(obs.LOG_INFO, "顶部")
 
     widget.Button.bottom.Visible = True
     widget.Button.bottom.Enabled = False
-    widget.Button.bottom.ModifiedIs = True
-    widget.Button.bottom.Type = obs.OBS_BUTTON_DEFAULT
-    widget.Button.bottom.Callback = lambda ps, p: log_save(obs.LOG_INFO, "底部")
     pass
 
 
