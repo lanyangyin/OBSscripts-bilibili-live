@@ -1,16 +1,16 @@
 <div style="display: flex; justify-content: center;">
 <div align="center">
 
-| [![OBS](https://obsproject.com/assets/images/new_icon_small-r.png)](https://obsproject.com/) |           <h1 align="center">OBSscripts<br>bilibili-live<br>【Anchor】</h1>           | [![Python](https://www.python.org/static/img/python-logo-large.c36dccadd999.png)](https://www.python.org/) |
+| [![OBS](https://obsproject.com/assets/images/new_icon_small-r.png)](https://obsproject.com/) |           <h1 align="center">OBSscripts<br>bilibili-live<br></h1>           | [![Python](https://www.python.org/static/img/python-logo-large.c36dccadd999.png)](https://www.python.org/) |
 |:--------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------:|
 |                                                                                              | <div align="center">[![img.png](doc/img/img.png)](https://live.bilibili.com/)</div> |                                                                                                            |
 
 </div>
 </div>
 
-obs用于B站直播的插件，这里是对主播方进行了特化的版本，阉割了弹幕相关的，以减少bug产生， 尽量保证稳定性
+obs用于B站直播的插件，只是因为不想直播时网页obs两头跑而制作出来，
 
-只是因为不想直播时网页obs两头跑而制作出来，并分专业代码写手，随时可能停止维护，或者受到阿B影响不能使用
+并分专业代码写手，随时可能停止维护，或者受到阿B影响不能使用
 
 希望能帮助到有需要的人，也希望有大佬能来优化一下orz
 > [!CAUTION]\
@@ -34,7 +34,7 @@ obs_studio版本：30+
 >
 > □ 为待实现
 > 
-> ~~例~~ 为不在此实现
+> ~~例~~ 为可能实现
 ### 登录
 1. [x] [二维码登录账号]()
 2. [x] [展示登录二维码图片]()
