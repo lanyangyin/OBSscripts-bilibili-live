@@ -3986,7 +3986,7 @@ def script_defaults(settings):  # 设置其默认值
 
         if widget.ComboBox.liveStreamingPlatform.Name in update_widget_for_props_name:
             widget.ComboBox.liveStreamingPlatform.Visible = bool(get_room_status())
-            widget.ComboBox.liveStreamingPlatform.Enabled = bool(get_room_status())
+            widget.ComboBox.liveStreamingPlatform.Enabled = not bool(get_live_status())
             widget.ComboBox.liveStreamingPlatform.Text = "直播姬（pc）"
             widget.ComboBox.liveStreamingPlatform.Value = "pc_link"
             widget.ComboBox.liveStreamingPlatform.Dictionary = {
