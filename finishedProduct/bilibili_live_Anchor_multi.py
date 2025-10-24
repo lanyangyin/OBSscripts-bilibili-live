@@ -2431,7 +2431,7 @@ class BilibiliApiMaster:
 # OBS Script Functions                                      -
 # -----------------------------------------------------------
 
-script_version = bytes.fromhex('302e322e36').decode('utf-8')
+script_version = bytes.fromhex('302e322e37').decode('utf-8')
 """脚本版本.encode().hex()"""
 
 
