@@ -1,0 +1,112 @@
+syntax = "proto3";
+
+package bilibili.live.xuserreward.v1;
+
+import "bilibili/live/component/common_model/fans_club.proto";
+import "bilibili/live/component/common_model/user_dagw.proto";
+
+//
+message InteractWord {
+    //
+    message ContributionInfo {
+        //
+        int64 grade = 1;
+    }
+
+    //
+    message ContributionInfoV2 {
+        //
+        int64 grade = 1;
+        //
+        string rank_type = 2;
+        //
+        string text = 3;
+    }
+
+    //
+    message FansMedalInfo {
+        //
+        int64 target_id = 1;
+        //
+        int64 medal_level = 2;
+        //
+        string medal_name = 3;
+        //
+        int64 medal_color = 4;
+        //
+        int64 medal_color_start = 5;
+        //
+        int64 medal_color_end = 6;
+        //
+        int64 medal_color_border = 7;
+        //
+        int64 is_lighted = 8;
+        //
+        int64 guard_level = 9;
+        //
+        string special = 10;
+        //
+        int64 icon_id = 11;
+        //
+        int64 anchor_roomid = 12;
+        //
+        int64 score = 13;
+    }
+
+    //
+    message UserAnchorRelation {
+        //
+        string tail_icon = 1;
+        //
+        string tail_guide_text = 2;
+        //
+        int64 tail_type = 3;
+    }
+
+    //
+    int64 uid = 1;
+    //
+    string uname = 2;
+    //
+    string uname_color = 3;
+    //
+    repeated int64 identities = 4;
+    //
+    int64 msg_type = 5;
+    //
+    int64 roomid = 6;
+    //
+    int64 timestamp = 7;
+    //
+    int64 score = 8;
+    //
+    FansMedalInfo fans_medal = 9;
+    //
+    int64 is_spread = 10;
+    //
+    string spread_info = 11;
+    //
+    ContributionInfo contribution = 12;
+    //
+    string spread_desc = 13;
+    //
+    int64 tail_icon = 14;
+    //
+    int64 trigger_time = 15;
+    //
+    int64 privilege_type = 16;
+    //
+    int64 core_user_type = 17;
+    //
+    string tail_text = 18;
+    //
+    ContributionInfoV2 contribution_v2 = 19;
+    //
+    bilibili.live.component.common_model.fans_club.GroupMedalBrief group_medal = 20;
+    //
+    bool is_mystery = 21;
+    //
+    bilibili.live.component.common_model.user_dagw.UserInfo uinfo = 22;
+    //
+    UserAnchorRelation relation_tail = 23;
+}

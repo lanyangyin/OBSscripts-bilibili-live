@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package bilibili.live.component.common_model.fans_club;
+
+//
+message GroupMedalBrief {
+    //
+    int64 medal_id = 1;
+    //
+    string name = 2;
+    //
+    int64 is_lighted = 3;
+}
