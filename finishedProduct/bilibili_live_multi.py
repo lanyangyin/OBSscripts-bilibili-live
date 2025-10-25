@@ -3768,338 +3768,329 @@ def script_defaults(settings):  # 设置其默认值
     # 设置控件前准备（获取数据）结束
     log_save(obs.LOG_INFO, f"║╚{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╝")
 
+    update_widget_for_props_name = set()
+    for props_name in GlobalVariableOfData.update_widget_for_props_dict:
+        update_widget_for_props_name |= GlobalVariableOfData.update_widget_for_props_dict[props_name]
     # =================================================================================================================
     # 设置控件属性=======================================================================================================
-    props_name = "props"
-    if props_name in GlobalVariableOfData.update_widget_for_props_dict:
-        update_widget_for_props_name = GlobalVariableOfData.update_widget_for_props_dict[props_name]
-        if widget.Button.top.Name in update_widget_for_props_name:
-            widget.Button.top.Visible = False
-            widget.Button.top.Enabled = False
+    if widget.Button.top.Name in update_widget_for_props_name:
+        widget.Button.top.Visible = False
+        widget.Button.top.Enabled = False
 
-        if widget.Group.account.Name in update_widget_for_props_name:
-            widget.Group.account.Visible = True
-            widget.Group.account.Enabled = not bool(get_live_status())
+    if widget.Group.account.Name in update_widget_for_props_name:
+        widget.Group.account.Visible = True
+        widget.Group.account.Enabled = not bool(get_live_status())
 
-        if widget.Group.room.Name in update_widget_for_props_name:
-            widget.Group.room.Visible = True
-            widget.Group.room.Enabled = True
+    if widget.Group.room.Name in update_widget_for_props_name:
+        widget.Group.room.Visible = True
+        widget.Group.room.Enabled = True
 
-        if widget.Group.live.Name in update_widget_for_props_name:
-            widget.Group.live.Visible = bool(get_room_status())
-            widget.Group.live.Enabled = bool(get_room_status())
+    if widget.Group.live.Name in update_widget_for_props_name:
+        widget.Group.live.Visible = bool(get_room_status())
+        widget.Group.live.Enabled = bool(get_room_status())
 
-        if widget.Button.bottom.Name in update_widget_for_props_name:
-            widget.Button.bottom.Visible = False
-            widget.Button.bottom.Enabled = False
+    if widget.Button.bottom.Name in update_widget_for_props_name:
+        widget.Button.bottom.Visible = False
+        widget.Button.bottom.Enabled = False
 
     # 分组框【账号】
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    props_name = "account_props"
-    if props_name in GlobalVariableOfData.update_widget_for_props_dict:
-        update_widget_for_props_name = GlobalVariableOfData.update_widget_for_props_dict[props_name]
-        if widget.TextBox.loginStatus.Name in update_widget_for_props_name:
-            widget.TextBox.loginStatus.Visible = True
-            widget.TextBox.loginStatus.Enabled = True
-            if bool(b_u_l_c.get_cookies()):
-                widget.TextBox.loginStatus.Text = f'{get_default_user_nickname()} 已登录'
-            else:
-                widget.TextBox.loginStatus.Text = '未登录，请登录后点击【更新账号列表】'
-            if bool(b_u_l_c.get_cookies()):
-                widget.TextBox.loginStatus.InfoType = obs.OBS_TEXT_INFO_NORMAL
-            else:
-                widget.TextBox.loginStatus.InfoType = obs.OBS_TEXT_INFO_WARNING
+    if widget.TextBox.loginStatus.Name in update_widget_for_props_name:
+        widget.TextBox.loginStatus.Visible = True
+        widget.TextBox.loginStatus.Enabled = True
+        if bool(b_u_l_c.get_cookies()):
+            widget.TextBox.loginStatus.Text = f'{get_default_user_nickname()} 已登录'
+        else:
+            widget.TextBox.loginStatus.Text = '未登录，请登录后点击【更新账号列表】'
+        if bool(b_u_l_c.get_cookies()):
+            widget.TextBox.loginStatus.InfoType = obs.OBS_TEXT_INFO_NORMAL
+        else:
+            widget.TextBox.loginStatus.InfoType = obs.OBS_TEXT_INFO_WARNING
 
-        if widget.ComboBox.uid.Name in update_widget_for_props_name:
-            widget.ComboBox.uid.Visible = True
-            widget.ComboBox.uid.Enabled = True
-            if bool(b_u_l_c.get_cookies()):
-                widget.ComboBox.uid.Text = get_default_user_nickname()
-            else:
-                widget.ComboBox.uid.Text = '添加或选择一个账号登录'
-            if bool(b_u_l_c.get_cookies()):
-                widget.ComboBox.uid.Value = b_u_l_c.get_users()[0]
-            else:
-                widget.ComboBox.uid.Value = '-1'
-            widget.ComboBox.uid.Dictionary = get_uid_nickname_dict()
+    if widget.ComboBox.uid.Name in update_widget_for_props_name:
+        widget.ComboBox.uid.Visible = True
+        widget.ComboBox.uid.Enabled = True
+        if bool(b_u_l_c.get_cookies()):
+            widget.ComboBox.uid.Text = get_default_user_nickname()
+        else:
+            widget.ComboBox.uid.Text = '添加或选择一个账号登录'
+        if bool(b_u_l_c.get_cookies()):
+            widget.ComboBox.uid.Value = b_u_l_c.get_users()[0]
+        else:
+            widget.ComboBox.uid.Value = '-1'
+        widget.ComboBox.uid.Dictionary = get_uid_nickname_dict()
 
-        if widget.Button.login.Name in update_widget_for_props_name:
-            widget.Button.login.Visible = True if get_uid_nickname_dict() != {'-1': '添加或选择一个账号登录'} else False
-            widget.Button.login.Enabled = True if get_uid_nickname_dict() != {'-1': '添加或选择一个账号登录'} else False
+    if widget.Button.login.Name in update_widget_for_props_name:
+        widget.Button.login.Visible = True if get_uid_nickname_dict() != {'-1': '添加或选择一个账号登录'} else False
+        widget.Button.login.Enabled = True if get_uid_nickname_dict() != {'-1': '添加或选择一个账号登录'} else False
 
-        if widget.Button.accountListUpdate.Name in update_widget_for_props_name:
-            widget.Button.accountListUpdate.Visible = True
-            widget.Button.accountListUpdate.Enabled = True
+    if widget.Button.accountListUpdate.Name in update_widget_for_props_name:
+        widget.Button.accountListUpdate.Visible = True
+        widget.Button.accountListUpdate.Enabled = True
 
-        if widget.Button.qrAddAccount.Name in update_widget_for_props_name:
-            widget.Button.qrAddAccount.Visible = True
-            widget.Button.qrAddAccount.Enabled = True
+    if widget.Button.qrAddAccount.Name in update_widget_for_props_name:
+        widget.Button.qrAddAccount.Visible = True
+        widget.Button.qrAddAccount.Enabled = True
 
-        if widget.Button.qrPictureDisplay.Name in update_widget_for_props_name:
-            widget.Button.qrPictureDisplay.Visible = False
-            widget.Button.qrPictureDisplay.Enabled = False
+    if widget.Button.qrPictureDisplay.Name in update_widget_for_props_name:
+        widget.Button.qrPictureDisplay.Visible = False
+        widget.Button.qrPictureDisplay.Enabled = False
 
-        if widget.Button.accountDelete.Name in update_widget_for_props_name:
-            widget.Button.accountDelete.Visible = True if get_uid_nickname_dict() != {'-1': '添加或选择一个账号登录'} else False
-            widget.Button.accountDelete.Enabled = True if get_uid_nickname_dict() != {'-1': '添加或选择一个账号登录'} else False
+    if widget.Button.accountDelete.Name in update_widget_for_props_name:
+        widget.Button.accountDelete.Visible = True if get_uid_nickname_dict() != {'-1': '添加或选择一个账号登录'} else False
+        widget.Button.accountDelete.Enabled = True if get_uid_nickname_dict() != {'-1': '添加或选择一个账号登录'} else False
 
-        if widget.Button.accountBackup.Name in update_widget_for_props_name:
-            widget.Button.accountBackup.Visible = False
-            widget.Button.accountBackup.Enabled = False
+    if widget.Button.accountBackup.Name in update_widget_for_props_name:
+        widget.Button.accountBackup.Visible = False
+        widget.Button.accountBackup.Enabled = False
 
-        if widget.Button.accountRestore.Name in update_widget_for_props_name:
-            widget.Button.accountRestore.Visible = False
-            widget.Button.accountRestore.Enabled = False
+    if widget.Button.accountRestore.Name in update_widget_for_props_name:
+        widget.Button.accountRestore.Visible = False
+        widget.Button.accountRestore.Enabled = False
 
-        if widget.Button.logout.Name in update_widget_for_props_name:
-            widget.Button.logout.Visible = True if b_u_l_c.get_cookies() else False
-            widget.Button.logout.Enabled = True if b_u_l_c.get_cookies() else False
+    if widget.Button.logout.Name in update_widget_for_props_name:
+        widget.Button.logout.Visible = True if b_u_l_c.get_cookies() else False
+        widget.Button.logout.Enabled = True if b_u_l_c.get_cookies() else False
 
     # 分组框【直播间】
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    props_name = "room_props"
-    if props_name in GlobalVariableOfData.update_widget_for_props_dict:
-        update_widget_for_props_name = GlobalVariableOfData.update_widget_for_props_dict[props_name]
-        if widget.TextBox.roomStatus.Name in update_widget_for_props_name:
-            widget.TextBox.roomStatus.Visible = True
-            widget.TextBox.roomStatus.Enabled = True
-            if bool(b_u_l_c.get_cookies()):
-                if get_room_status():
-                    if get_live_status():
-                        widget.TextBox.roomStatus.Text = f"{str(get_room_id())}直播中"
-                    else:
-                        widget.TextBox.roomStatus.Text = f"{str(get_room_id())}未开播"
+    if widget.TextBox.roomStatus.Name in update_widget_for_props_name:
+        widget.TextBox.roomStatus.Visible = True
+        widget.TextBox.roomStatus.Enabled = True
+        if bool(b_u_l_c.get_cookies()):
+            if get_room_status():
+                if get_live_status():
+                    widget.TextBox.roomStatus.Text = f"{str(get_room_id())}直播中"
                 else:
-                    widget.TextBox.roomStatus.Text = "无直播间"
+                    widget.TextBox.roomStatus.Text = f"{str(get_room_id())}未开播"
             else:
-                widget.TextBox.roomStatus.Text = "未登录"
-            if bool(b_u_l_c.get_cookies()):
-                if get_room_status():
-                    if get_live_status():
-                        widget.TextBox.roomStatus.InfoType = obs.OBS_TEXT_INFO_NORMAL
-                    else:
-                        widget.TextBox.roomStatus.InfoType = obs.OBS_TEXT_INFO_WARNING
+                widget.TextBox.roomStatus.Text = "无直播间"
+        else:
+            widget.TextBox.roomStatus.Text = "未登录"
+        if bool(b_u_l_c.get_cookies()):
+            if get_room_status():
+                if get_live_status():
+                    widget.TextBox.roomStatus.InfoType = obs.OBS_TEXT_INFO_NORMAL
                 else:
                     widget.TextBox.roomStatus.InfoType = obs.OBS_TEXT_INFO_WARNING
             else:
-                widget.TextBox.roomStatus.InfoType = obs.OBS_TEXT_INFO_ERROR
+                widget.TextBox.roomStatus.InfoType = obs.OBS_TEXT_INFO_WARNING
+        else:
+            widget.TextBox.roomStatus.InfoType = obs.OBS_TEXT_INFO_ERROR
 
-        if widget.Button.roomOpened.Name in update_widget_for_props_name:
-            widget.Button.roomOpened.Visible = (not bool(get_room_status())) if b_u_l_c.get_cookies() else False
-            widget.Button.roomOpened.Enabled = (not bool(get_room_status())) if b_u_l_c.get_cookies() else False
+    if widget.Button.roomOpened.Name in update_widget_for_props_name:
+        widget.Button.roomOpened.Visible = (not bool(get_room_status())) if b_u_l_c.get_cookies() else False
+        widget.Button.roomOpened.Enabled = (not bool(get_room_status())) if b_u_l_c.get_cookies() else False
 
-        if widget.Button.realNameAuthentication.Name in update_widget_for_props_name:
-            widget.Button.realNameAuthentication.Visible = False
-            widget.Button.realNameAuthentication.Enabled = False
+    if widget.Button.realNameAuthentication.Name in update_widget_for_props_name:
+        widget.Button.realNameAuthentication.Visible = False
+        widget.Button.realNameAuthentication.Enabled = False
 
-        if widget.Button.roomCoverView.Name in update_widget_for_props_name:
-            widget.Button.roomCoverView.Visible = bool(get_room_status())
-            widget.Button.roomCoverView.Enabled = bool(get_room_status())
+    if widget.Button.roomCoverView.Name in update_widget_for_props_name:
+        widget.Button.roomCoverView.Visible = bool(get_room_status())
+        widget.Button.roomCoverView.Enabled = bool(get_room_status())
 
-        if widget.PathBox.roomCover.Name in update_widget_for_props_name:
-            widget.PathBox.roomCover.Visible = bool(get_room_status())
-            widget.PathBox.roomCover.Enabled = bool(get_room_status())
-            widget.PathBox.roomCover.Text = ""
+    if widget.PathBox.roomCover.Name in update_widget_for_props_name:
+        widget.PathBox.roomCover.Visible = bool(get_room_status())
+        widget.PathBox.roomCover.Enabled = bool(get_room_status())
+        widget.PathBox.roomCover.Text = ""
 
-        if widget.Button.roomCoverUpdate.Name in update_widget_for_props_name:
-            widget.Button.roomCoverUpdate.Visible = False
-            widget.Button.roomCoverUpdate.Enabled = False
+    if widget.Button.roomCoverUpdate.Name in update_widget_for_props_name:
+        widget.Button.roomCoverUpdate.Visible = False
+        widget.Button.roomCoverUpdate.Enabled = False
 
-        if widget.ComboBox.roomCommonTitles.Name in update_widget_for_props_name:
-            widget.ComboBox.roomCommonTitles.Visible = bool(get_room_status())
-            widget.ComboBox.roomCommonTitles.Enabled = bool(get_room_status())
-            widget.ComboBox.roomCommonTitles.Text = get_room_title() if bool(get_room_status()) else ""
-            widget.ComboBox.roomCommonTitles.Value = "0"
-            widget.ComboBox.roomCommonTitles.Dictionary = get_common_title4number()
+    if widget.ComboBox.roomCommonTitles.Name in update_widget_for_props_name:
+        widget.ComboBox.roomCommonTitles.Visible = bool(get_room_status())
+        widget.ComboBox.roomCommonTitles.Enabled = bool(get_room_status())
+        widget.ComboBox.roomCommonTitles.Text = get_room_title() if bool(get_room_status()) else ""
+        widget.ComboBox.roomCommonTitles.Value = "0"
+        widget.ComboBox.roomCommonTitles.Dictionary = get_common_title4number()
 
-        if widget.Button.roomCommonTitlesTrue.Name in update_widget_for_props_name:
-            widget.Button.roomCommonTitlesTrue.Visible = False
-            widget.Button.roomCommonTitlesTrue.Enabled = False
+    if widget.Button.roomCommonTitlesTrue.Name in update_widget_for_props_name:
+        widget.Button.roomCommonTitlesTrue.Visible = False
+        widget.Button.roomCommonTitlesTrue.Enabled = False
 
-        if widget.TextBox.roomTitle.Name in update_widget_for_props_name:
-            widget.TextBox.roomTitle.Visible = bool(get_room_status())
-            widget.TextBox.roomTitle.Enabled = bool(get_room_status())
-            widget.TextBox.roomTitle.Text = get_room_title() if bool(get_room_status()) else ""
+    if widget.TextBox.roomTitle.Name in update_widget_for_props_name:
+        widget.TextBox.roomTitle.Visible = bool(get_room_status())
+        widget.TextBox.roomTitle.Enabled = bool(get_room_status())
+        widget.TextBox.roomTitle.Text = get_room_title() if bool(get_room_status()) else ""
 
-        if widget.Button.roomTitleChange.Name in update_widget_for_props_name:
-            widget.Button.roomTitleChange.Visible = bool(get_room_status())
-            widget.Button.roomTitleChange.Enabled = bool(get_room_status())
+    if widget.Button.roomTitleChange.Name in update_widget_for_props_name:
+        widget.Button.roomTitleChange.Visible = bool(get_room_status())
+        widget.Button.roomTitleChange.Enabled = bool(get_room_status())
 
-        if widget.TextBox.roomNews.Name in update_widget_for_props_name:
-            widget.TextBox.roomNews.Visible = bool(get_room_status())
-            widget.TextBox.roomNews.Enabled = bool(get_room_status())
-            widget.TextBox.roomNews.Text = get_room_news() if bool(get_room_status()) else ""
+    if widget.TextBox.roomNews.Name in update_widget_for_props_name:
+        widget.TextBox.roomNews.Visible = bool(get_room_status())
+        widget.TextBox.roomNews.Enabled = bool(get_room_status())
+        widget.TextBox.roomNews.Text = get_room_news() if bool(get_room_status()) else ""
 
-        if widget.Button.roomNewsChange.Name in update_widget_for_props_name:
-            widget.Button.roomNewsChange.Visible = bool(get_room_status())
-            widget.Button.roomNewsChange.Enabled = bool(get_room_status())
+    if widget.Button.roomNewsChange.Name in update_widget_for_props_name:
+        widget.Button.roomNewsChange.Visible = bool(get_room_status())
+        widget.Button.roomNewsChange.Enabled = bool(get_room_status())
 
-        if widget.ComboBox.roomCommonAreas.Name in update_widget_for_props_name:
-            widget.ComboBox.roomCommonAreas.Visible = bool(get_room_status())
-            widget.ComboBox.roomCommonAreas.Enabled = bool(get_room_status())
-            if get_common_areas():
-                common_areas_text = list(get_common_area_id_dict_str4common_area_name_dict_str().values())[0]
-                widget.ComboBox.roomCommonAreas.Text = common_areas_text
-            else:
-                widget.ComboBox.roomCommonAreas.Text = "无常用分区"
-            if get_common_areas():
-                common_areas_value = list(get_common_area_id_dict_str4common_area_name_dict_str().keys())[0]
-                widget.ComboBox.roomCommonAreas.Value = common_areas_value
-            else:
-                widget.ComboBox.roomCommonAreas.Value = "-1"
-            widget.ComboBox.roomCommonAreas.Dictionary = get_common_area_id_dict_str4common_area_name_dict_str()
+    if widget.ComboBox.roomCommonAreas.Name in update_widget_for_props_name:
+        widget.ComboBox.roomCommonAreas.Visible = bool(get_room_status())
+        widget.ComboBox.roomCommonAreas.Enabled = bool(get_room_status())
+        if get_common_areas():
+            common_areas_text = list(get_common_area_id_dict_str4common_area_name_dict_str().values())[0]
+            widget.ComboBox.roomCommonAreas.Text = common_areas_text
+        else:
+            widget.ComboBox.roomCommonAreas.Text = "无常用分区"
+        if get_common_areas():
+            common_areas_value = list(get_common_area_id_dict_str4common_area_name_dict_str().keys())[0]
+            widget.ComboBox.roomCommonAreas.Value = common_areas_value
+        else:
+            widget.ComboBox.roomCommonAreas.Value = "-1"
+        widget.ComboBox.roomCommonAreas.Dictionary = get_common_area_id_dict_str4common_area_name_dict_str()
 
-        if widget.Button.roomCommonAreasTrue.Name in update_widget_for_props_name:
-            widget.Button.roomCommonAreasTrue.Visible = False
-            widget.Button.roomCommonAreasTrue.Enabled = False
+    if widget.Button.roomCommonAreasTrue.Name in update_widget_for_props_name:
+        widget.Button.roomCommonAreasTrue.Visible = False
+        widget.Button.roomCommonAreasTrue.Enabled = False
 
-        if widget.ComboBox.roomParentArea.Name in update_widget_for_props_name:
-            widget.ComboBox.roomParentArea.Visible = bool(get_room_status())
-            widget.ComboBox.roomParentArea.Enabled = bool(get_room_status())
-            widget.ComboBox.roomParentArea.Text = str(get_area()["parent_area_name"]) if bool(get_area()) else "请选择一级分区"
-            widget.ComboBox.roomParentArea.Value = str(get_area()["parent_area_id"]) if bool(get_area()) else "-1"
-            widget.ComboBox.roomParentArea.Dictionary = get_parent_live_area_name4parent_live_area_id()
+    if widget.ComboBox.roomParentArea.Name in update_widget_for_props_name:
+        widget.ComboBox.roomParentArea.Visible = bool(get_room_status())
+        widget.ComboBox.roomParentArea.Enabled = bool(get_room_status())
+        widget.ComboBox.roomParentArea.Text = str(get_area()["parent_area_name"]) if bool(get_area()) else "请选择一级分区"
+        widget.ComboBox.roomParentArea.Value = str(get_area()["parent_area_id"]) if bool(get_area()) else "-1"
+        widget.ComboBox.roomParentArea.Dictionary = get_parent_live_area_name4parent_live_area_id()
 
-        if widget.Button.roomParentAreaTrue.Name in update_widget_for_props_name:
-            widget.Button.roomParentAreaTrue.Visible = False
-            widget.Button.roomParentAreaTrue.Enabled = False
+    if widget.Button.roomParentAreaTrue.Name in update_widget_for_props_name:
+        widget.Button.roomParentAreaTrue.Visible = False
+        widget.Button.roomParentAreaTrue.Enabled = False
 
-        if widget.ComboBox.roomSubArea.Name in update_widget_for_props_name:
-            widget.ComboBox.roomSubArea.Visible = bool(get_room_status())
-            widget.ComboBox.roomSubArea.Enabled = bool(get_room_status())
-            widget.ComboBox.roomSubArea.Text = str(get_area()["area_name"]) if bool(get_area()) else "请确认一级分区"
-            widget.ComboBox.roomSubArea.Value = str(get_area()["area_id"]) if bool(get_area()) else "-1"
-            widget.ComboBox.roomSubArea.Dictionary = get_sub_live_area_name4sub_live_area_id()
+    if widget.ComboBox.roomSubArea.Name in update_widget_for_props_name:
+        widget.ComboBox.roomSubArea.Visible = bool(get_room_status())
+        widget.ComboBox.roomSubArea.Enabled = bool(get_room_status())
+        widget.ComboBox.roomSubArea.Text = str(get_area()["area_name"]) if bool(get_area()) else "请确认一级分区"
+        widget.ComboBox.roomSubArea.Value = str(get_area()["area_id"]) if bool(get_area()) else "-1"
+        widget.ComboBox.roomSubArea.Dictionary = get_sub_live_area_name4sub_live_area_id()
 
-        if widget.Button.roomSubAreaTrue.Name in update_widget_for_props_name:
-            widget.Button.roomSubAreaTrue.Visible = bool(get_room_status())
-            widget.Button.roomSubAreaTrue.Enabled = bool(get_room_status())
+    if widget.Button.roomSubAreaTrue.Name in update_widget_for_props_name:
+        widget.Button.roomSubAreaTrue.Visible = bool(get_room_status())
+        widget.Button.roomSubAreaTrue.Enabled = bool(get_room_status())
 
-        if widget.Button.bliveWebJump.Name in update_widget_for_props_name:
-            widget.Button.bliveWebJump.Visible = True if b_u_l_c.get_cookies() else False
-            widget.Button.bliveWebJump.Enabled = True if b_u_l_c.get_cookies() else False
+    if widget.Button.bliveWebJump.Name in update_widget_for_props_name:
+        widget.Button.bliveWebJump.Visible = True if b_u_l_c.get_cookies() else False
+        widget.Button.bliveWebJump.Enabled = True if b_u_l_c.get_cookies() else False
 
     # 分组框【直播】
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    props_name = "live_props"
-    if props_name in GlobalVariableOfData.update_widget_for_props_dict:
-        update_widget_for_props_name = GlobalVariableOfData.update_widget_for_props_dict[props_name]
-        if widget.Button.liveFaceAuth.Name in update_widget_for_props_name:
-            widget.Button.liveFaceAuth.Visible = bool(get_room_status())
-            widget.Button.liveFaceAuth.Enabled = bool(get_room_status())
+    if widget.Button.liveFaceAuth.Name in update_widget_for_props_name:
+        widget.Button.liveFaceAuth.Visible = bool(get_room_status())
+        widget.Button.liveFaceAuth.Enabled = bool(get_room_status())
 
-        if widget.ComboBox.liveStreamingPlatform.Name in update_widget_for_props_name:
-            widget.ComboBox.liveStreamingPlatform.Visible = bool(get_room_status())
-            widget.ComboBox.liveStreamingPlatform.Enabled = not bool(get_live_status())
-            widget.ComboBox.liveStreamingPlatform.Text = "直播姬（pc）"
-            widget.ComboBox.liveStreamingPlatform.Value = "pc_link"
-            widget.ComboBox.liveStreamingPlatform.Dictionary = {
-                "pc_link": "直播姬（pc）", "web_link": "web在线直播", "android_link": "bililink"
-            }
+    if widget.ComboBox.liveStreamingPlatform.Name in update_widget_for_props_name:
+        widget.ComboBox.liveStreamingPlatform.Visible = bool(get_room_status())
+        widget.ComboBox.liveStreamingPlatform.Enabled = not bool(get_live_status())
+        widget.ComboBox.liveStreamingPlatform.Text = "直播姬（pc）"
+        widget.ComboBox.liveStreamingPlatform.Value = "pc_link"
+        widget.ComboBox.liveStreamingPlatform.Dictionary = {
+            "pc_link": "直播姬（pc）", "web_link": "web在线直播", "android_link": "bililink"
+        }
 
-        if widget.Button.liveStart.Name in update_widget_for_props_name:
-            widget.Button.liveStart.Visible = True if ((not get_live_status()) and get_room_status()) else False
-            widget.Button.liveStart.Enabled = True if ((not get_live_status()) and get_room_status()) else False
+    if widget.Button.liveStart.Name in update_widget_for_props_name:
+        widget.Button.liveStart.Visible = True if ((not get_live_status()) and get_room_status()) else False
+        widget.Button.liveStart.Enabled = True if ((not get_live_status()) and get_room_status()) else False
 
-        if widget.Button.liveRtmpAddressCopy.Name in update_widget_for_props_name:
-            widget.Button.liveRtmpAddressCopy.Visible = True if (get_live_status() and get_room_status()) else False
-            widget.Button.liveRtmpAddressCopy.Enabled = True if (get_live_status() and get_room_status()) else False
+    if widget.Button.liveRtmpAddressCopy.Name in update_widget_for_props_name:
+        widget.Button.liveRtmpAddressCopy.Visible = True if (get_live_status() and get_room_status()) else False
+        widget.Button.liveRtmpAddressCopy.Enabled = True if (get_live_status() and get_room_status()) else False
 
-        if widget.Button.liveRtmpCodeCopy.Name in update_widget_for_props_name:
-            widget.Button.liveRtmpCodeCopy.Visible = True if (get_live_status() and get_room_status()) else False
-            widget.Button.liveRtmpCodeCopy.Enabled = True if (get_live_status() and get_room_status()) else False
+    if widget.Button.liveRtmpCodeCopy.Name in update_widget_for_props_name:
+        widget.Button.liveRtmpCodeCopy.Visible = True if (get_live_status() and get_room_status()) else False
+        widget.Button.liveRtmpCodeCopy.Enabled = True if (get_live_status() and get_room_status()) else False
 
-        if widget.Button.liveRtmpCodeUpdate.Name in update_widget_for_props_name:
-            widget.Button.liveRtmpCodeUpdate.Visible = True if (get_live_status() and get_room_status()) else False
-            widget.Button.liveRtmpCodeUpdate.Enabled = True if (get_live_status() and get_room_status()) else False
+    if widget.Button.liveRtmpCodeUpdate.Name in update_widget_for_props_name:
+        widget.Button.liveRtmpCodeUpdate.Visible = True if (get_live_status() and get_room_status()) else False
+        widget.Button.liveRtmpCodeUpdate.Enabled = True if (get_live_status() and get_room_status()) else False
 
-        if widget.Button.liveStop.Name in update_widget_for_props_name:
-            widget.Button.liveStop.Visible = True if (get_live_status() and get_room_status()) else False
-            widget.Button.liveStop.Enabled = True if (get_live_status() and get_room_status()) else False
+    if widget.Button.liveStop.Name in update_widget_for_props_name:
+        widget.Button.liveStop.Visible = True if (get_live_status() and get_room_status()) else False
+        widget.Button.liveStop.Enabled = True if (get_live_status() and get_room_status()) else False
 
-        if widget.DigitalDisplay.liveBookingsDay.Name in update_widget_for_props_name:
-            widget.DigitalDisplay.liveBookingsDay.Visible = bool(get_room_status())
-            widget.DigitalDisplay.liveBookingsDay.Enabled = bool(get_room_status())
-            widget.DigitalDisplay.liveBookingsDay.Value = 0
-            widget.DigitalDisplay.liveBookingsDay.Min = 0
-            widget.DigitalDisplay.liveBookingsDay.Max = 180
-            widget.DigitalDisplay.liveBookingsDay.Step = 1
+    if widget.DigitalDisplay.liveBookingsDay.Name in update_widget_for_props_name:
+        widget.DigitalDisplay.liveBookingsDay.Visible = bool(get_room_status())
+        widget.DigitalDisplay.liveBookingsDay.Enabled = bool(get_room_status())
+        widget.DigitalDisplay.liveBookingsDay.Value = 0
+        widget.DigitalDisplay.liveBookingsDay.Min = 0
+        widget.DigitalDisplay.liveBookingsDay.Max = 180
+        widget.DigitalDisplay.liveBookingsDay.Step = 1
 
-        if widget.Button.liveBookingsDayTrue.Name in update_widget_for_props_name:
-            widget.Button.liveBookingsDayTrue.Visible = False
-            widget.Button.liveBookingsDayTrue.Enabled = False
+    if widget.Button.liveBookingsDayTrue.Name in update_widget_for_props_name:
+        widget.Button.liveBookingsDayTrue.Visible = False
+        widget.Button.liveBookingsDayTrue.Enabled = False
 
-        if widget.DigitalDisplay.liveBookingsHour.Name in update_widget_for_props_name:
-            widget.DigitalDisplay.liveBookingsHour.Visible = bool(get_room_status())
-            widget.DigitalDisplay.liveBookingsHour.Enabled = bool(get_room_status())
-            widget.DigitalDisplay.liveBookingsHour.Value = 0
-            widget.DigitalDisplay.liveBookingsHour.Min = 0
-            widget.DigitalDisplay.liveBookingsHour.Max = 23
-            widget.DigitalDisplay.liveBookingsHour.Step = 1
+    if widget.DigitalDisplay.liveBookingsHour.Name in update_widget_for_props_name:
+        widget.DigitalDisplay.liveBookingsHour.Visible = bool(get_room_status())
+        widget.DigitalDisplay.liveBookingsHour.Enabled = bool(get_room_status())
+        widget.DigitalDisplay.liveBookingsHour.Value = 0
+        widget.DigitalDisplay.liveBookingsHour.Min = 0
+        widget.DigitalDisplay.liveBookingsHour.Max = 23
+        widget.DigitalDisplay.liveBookingsHour.Step = 1
 
-        if widget.Button.liveBookingsHourTrue.Name in update_widget_for_props_name:
-            widget.Button.liveBookingsHourTrue.Visible = False
-            widget.Button.liveBookingsHourTrue.Enabled = False
+    if widget.Button.liveBookingsHourTrue.Name in update_widget_for_props_name:
+        widget.Button.liveBookingsHourTrue.Visible = False
+        widget.Button.liveBookingsHourTrue.Enabled = False
 
-        if widget.DigitalDisplay.liveBookingsMinute.Name in update_widget_for_props_name:
-            widget.DigitalDisplay.liveBookingsMinute.Visible = bool(get_room_status())
-            widget.DigitalDisplay.liveBookingsMinute.Enabled = bool(get_room_status())
-            widget.DigitalDisplay.liveBookingsMinute.Value = 5
-            widget.DigitalDisplay.liveBookingsMinute.Min = 5
-            widget.DigitalDisplay.liveBookingsMinute.Max = 59
-            widget.DigitalDisplay.liveBookingsMinute.Step = 1
+    if widget.DigitalDisplay.liveBookingsMinute.Name in update_widget_for_props_name:
+        widget.DigitalDisplay.liveBookingsMinute.Visible = bool(get_room_status())
+        widget.DigitalDisplay.liveBookingsMinute.Enabled = bool(get_room_status())
+        widget.DigitalDisplay.liveBookingsMinute.Value = 5
+        widget.DigitalDisplay.liveBookingsMinute.Min = 5
+        widget.DigitalDisplay.liveBookingsMinute.Max = 59
+        widget.DigitalDisplay.liveBookingsMinute.Step = 1
 
-        if widget.Button.liveBookingsMinuteTrue.Name in update_widget_for_props_name:
-            widget.Button.liveBookingsMinuteTrue.Visible = False
-            widget.Button.liveBookingsMinuteTrue.Enabled = False
+    if widget.Button.liveBookingsMinuteTrue.Name in update_widget_for_props_name:
+        widget.Button.liveBookingsMinuteTrue.Visible = False
+        widget.Button.liveBookingsMinuteTrue.Enabled = False
 
-        if widget.CheckBox.liveBookingsDynamic.Name in update_widget_for_props_name:
-            widget.CheckBox.liveBookingsDynamic.Visible = bool(get_room_status())
-            widget.CheckBox.liveBookingsDynamic.Enabled = bool(get_room_status())
-            widget.CheckBox.liveBookingsDynamic.Bool = False
+    if widget.CheckBox.liveBookingsDynamic.Name in update_widget_for_props_name:
+        widget.CheckBox.liveBookingsDynamic.Visible = bool(get_room_status())
+        widget.CheckBox.liveBookingsDynamic.Enabled = bool(get_room_status())
+        widget.CheckBox.liveBookingsDynamic.Bool = False
 
-        if widget.TextBox.liveBookingsTitle.Name in update_widget_for_props_name:
-            widget.TextBox.liveBookingsTitle.Visible = bool(get_room_status())
-            widget.TextBox.liveBookingsTitle.Enabled = bool(get_room_status())
-            widget.TextBox.liveBookingsTitle.Text = ""
+    if widget.TextBox.liveBookingsTitle.Name in update_widget_for_props_name:
+        widget.TextBox.liveBookingsTitle.Visible = bool(get_room_status())
+        widget.TextBox.liveBookingsTitle.Enabled = bool(get_room_status())
+        widget.TextBox.liveBookingsTitle.Text = ""
 
-        if widget.Button.liveBookingsCreate.Name in update_widget_for_props_name:
-            widget.Button.liveBookingsCreate.Visible = bool(get_room_status())
-            widget.Button.liveBookingsCreate.Enabled = bool(get_room_status())
+    if widget.Button.liveBookingsCreate.Name in update_widget_for_props_name:
+        widget.Button.liveBookingsCreate.Visible = bool(get_room_status())
+        widget.Button.liveBookingsCreate.Enabled = bool(get_room_status())
 
-        if widget.ComboBox.liveBookings.Name in update_widget_for_props_name:
-            widget.ComboBox.liveBookings.Visible = bool(get_room_status())
-            widget.ComboBox.liveBookings.Enabled = bool(get_room_status())
-            widget.ComboBox.liveBookings.Text = "无直播预约"
-            if bool(b_u_l_c.get_cookies()):
-                if get_room_status():
-                    if get_reserve_list():
-                        for reserve in get_reserve_list():
-                            reserve_name = reserve['reserve_info']['name']
-                            reserve_time = datetime.fromtimestamp(reserve['reserve_info']['live_plan_start_time'])
-                            widget.ComboBox.liveBookings.Text = f"{reserve_name}|{reserve_time}"
-                    else:
-                        widget.ComboBox.liveBookings.Text = "无直播预约"
+    if widget.ComboBox.liveBookings.Name in update_widget_for_props_name:
+        widget.ComboBox.liveBookings.Visible = bool(get_room_status())
+        widget.ComboBox.liveBookings.Enabled = bool(get_room_status())
+        widget.ComboBox.liveBookings.Text = "无直播预约"
+        if bool(b_u_l_c.get_cookies()):
+            if get_room_status():
+                if get_reserve_list():
+                    for reserve in get_reserve_list():
+                        reserve_name = reserve['reserve_info']['name']
+                        reserve_time = datetime.fromtimestamp(reserve['reserve_info']['live_plan_start_time'])
+                        widget.ComboBox.liveBookings.Text = f"{reserve_name}|{reserve_time}"
                 else:
-                    widget.ComboBox.liveBookings.Text = '⚠️无直播间'
+                    widget.ComboBox.liveBookings.Text = "无直播预约"
             else:
-                widget.ComboBox.liveBookings.Text = "⚠️未登录账号"
-            if bool(b_u_l_c.get_cookies()):
-                if get_room_status():
-                    if get_reserve_list():
-                        for reserve in get_reserve_list():
-                            widget.ComboBox.liveBookings.Value = str(reserve['reserve_info']['sid'])
-                    else:
-                        widget.ComboBox.liveBookings.Value = "-1"
+                widget.ComboBox.liveBookings.Text = '⚠️无直播间'
+        else:
+            widget.ComboBox.liveBookings.Text = "⚠️未登录账号"
+        if bool(b_u_l_c.get_cookies()):
+            if get_room_status():
+                if get_reserve_list():
+                    for reserve in get_reserve_list():
+                        widget.ComboBox.liveBookings.Value = str(reserve['reserve_info']['sid'])
                 else:
                     widget.ComboBox.liveBookings.Value = "-1"
             else:
                 widget.ComboBox.liveBookings.Value = "-1"
-            widget.ComboBox.liveBookings.Dictionary = get_reserve_name4reserve_sid()
+        else:
+            widget.ComboBox.liveBookings.Value = "-1"
+        widget.ComboBox.liveBookings.Dictionary = get_reserve_name4reserve_sid()
 
-        if widget.Button.liveBookingsCancel.Name in update_widget_for_props_name:
-            widget.Button.liveBookingsCancel.Visible = bool(get_room_status())
-            widget.Button.liveBookingsCancel.Enabled = bool(get_room_status())
+    if widget.Button.liveBookingsCancel.Name in update_widget_for_props_name:
+        widget.Button.liveBookingsCancel.Visible = bool(get_room_status())
+        widget.Button.liveBookingsCancel.Enabled = bool(get_room_status())
             
     # 清除函数缓存
     get_uid_nickname_dict.cache_clear()
@@ -5333,11 +5324,6 @@ class ButtonFunction:
 
     @staticmethod
     def button_function_rtmp_stream_code_copy(*args):
-        if len(args) == 2:
-            props = args[0]
-            prop = args[1]
-        if len(args) == 3:
-            settings = args[2]
         """
         复制直播推流码
         Args:
@@ -5345,6 +5331,11 @@ class ButtonFunction:
             prop:
         Returns:
         """
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
         # 获取默认账户
         b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
         stream_addr = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
@@ -5362,11 +5353,6 @@ class ButtonFunction:
 
     @staticmethod
     def button_function_rtmp_stream_code_update(*args):
-        if len(args) == 2:
-            props = args[0]
-            prop = args[1]
-        if len(args) == 3:
-            settings = args[2]
         """
         更新推流码并复制
         Args:
@@ -5374,6 +5360,11 @@ class ButtonFunction:
             prop:
         Returns:
         """
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
         # 获取开播平台
         live_streaming_platform = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
                                                           'live_streaming_platform_comboBox')
