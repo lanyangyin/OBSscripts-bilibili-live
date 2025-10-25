@@ -3889,12 +3889,8 @@ def script_defaults(settings):  # 设置其默认值
             widget.Button.roomOpened.Enabled = (not bool(get_room_status())) if b_u_l_c.get_cookies() else False
 
         if widget.Button.realNameAuthentication.Name in update_widget_for_props_name:
-            if b_u_l_c.get_cookies():
-                widget.Button.realNameAuthentication.Visible = not bool(get_room_status())
-                widget.Button.realNameAuthentication.Enabled = not bool(get_room_status())
-            else:
-                widget.Button.realNameAuthentication.Visible = False
-                widget.Button.realNameAuthentication.Enabled = False
+            widget.Button.realNameAuthentication.Visible = False
+            widget.Button.realNameAuthentication.Enabled = False
 
         if widget.Button.roomCoverView.Name in update_widget_for_props_name:
             widget.Button.roomCoverView.Visible = bool(get_room_status())
