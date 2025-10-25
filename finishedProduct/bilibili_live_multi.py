@@ -2424,6 +2424,410 @@ class BilibiliApiMaster:
         return FetchWebUpStreamAddre_ReturnValue
 
 
+@lru_cache(maxsize=None)
+def get_b_u_l_c():
+    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+    return b_u_l_c
+
+
+@lru_cache(maxsize=None)
+def get_b_a_g():
+    # 初始化API对象
+    b_a_g = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification)
+    return b_a_g
+
+
+@lru_cache(maxsize=None)
+def get_b_a_m():
+    if bool(get_b_u_l_c().get_cookies()):
+        b_a_m = BilibiliApiMaster(Tools.dict2cookie(get_b_u_l_c().get_cookies()), GlobalVariableOfData.sslVerification)
+    else:
+        b_a_m = None
+    return b_a_m
+
+
+@lru_cache(maxsize=None)
+def get_c_t_m():
+    # 创建用户常用直播间标题实例
+    c_t_m = CommonTitlesManager(directory=Path(GlobalVariableOfData.scriptsDataDirpath))
+    return c_t_m
+
+
+@lru_cache(maxsize=None)
+def get_uid_nickname_dict():
+    # 获取 用户数据文件中保存的用户，并在用户过期后删除用户
+    uid_nickname_dict = {}
+    """账号字典"""
+    for uid in get_b_u_l_c().get_users().values():
+        if uid:
+            uid_cookie = Tools.dict2cookie(get_b_u_l_c().get_cookies(int(uid)))
+            is_login = BilibiliApiMaster(uid_cookie, GlobalVariableOfData.sslVerification).get_nav_info()
+            if is_login["isLogin"]:
+                uid_nickname_dict[uid] = get_b_a_g().get_bilibili_user_card(uid)['basic_info']['name']
+            else:
+                log_save(obs.LOG_INFO, f"❌{get_b_a_g().get_bilibili_user_card(uid)['basic_info']['name']}过期")
+                get_b_u_l_c().delete_user(int(uid))
+        else:
+            uid_nickname_dict['-1'] = '添加或选择一个账号登录'
+    log_save(obs.LOG_INFO, f"║║载入账号字典：{uid_nickname_dict}")
+    return uid_nickname_dict
+
+
+@lru_cache(maxsize=None)
+def get_default_user_nickname():
+    # 获取 '登录用户' 的昵称
+    if bool(get_b_u_l_c().get_cookies()):
+        default_user_nickname: Optional[str] = get_uid_nickname_dict()[get_b_u_l_c().get_users()[0]]
+        """登录用户的昵称，没有登录则为None"""
+        log_save(obs.LOG_INFO, f"║║用户：{default_user_nickname} 已登录")
+    else:
+        default_user_nickname: Optional[str] = None
+        """登录用户的昵称，没有登录则为None"""
+        log_save(obs.LOG_INFO, f"║║用户：⚠️未登录账号")
+    return default_user_nickname
+
+
+@lru_cache(maxsize=None)
+def get_room_info_old():
+    # 获取 '登录用户' 对应的直播间基础信息
+    if bool(get_b_u_l_c().get_cookies()):
+        room_info_old = get_b_a_g().get_room_info_old(int(get_b_u_l_c().get_users()[0]))
+        """直播间基础信息"""
+        log_save(obs.LOG_INFO, f"║║登录账户 的 直播间基础信息：{room_info_old}")
+    else:
+        room_info_old = None
+        """直播间基础信息"""
+        log_save(obs.LOG_INFO, f"║║登录账户 的 直播间基础信息：⚠️未登录账号")
+    return room_info_old
+
+
+@lru_cache(maxsize=None)
+def get_room_status():
+    # 获取 '登录用户' 的 直播间状态
+    if bool(get_b_u_l_c().get_cookies()):
+        room_status = get_room_info_old()["roomStatus"]
+        """登录用户的直播间存在状态"""
+        if room_status:
+            log_save(obs.LOG_INFO, f"║║登录账户 的 直播间状态：🈶直播间")
+        else:
+            log_save(obs.LOG_INFO, f"║║登录账户 的 直播间状态：🈚直播间")
+    else:
+        room_status = None
+        """登录用户的直播间存在状态"""
+        log_save(obs.LOG_INFO, f"║║登录账户 的 直播间状态：⚠️未登录账号")
+    return room_status
+
+
+@lru_cache(maxsize=None)
+def get_room_id():
+    # 获取 '登录用户' 的 直播间id
+    if bool(get_b_u_l_c().get_cookies()):
+        if get_room_status():
+            room_id = get_room_info_old()["roomid"]
+            """登录用户的直播间id"""
+            log_save(obs.LOG_INFO, f"║║登录账户 的 直播间id：{room_id}")
+        else:
+            room_id = None
+            """登录用户的直播间id"""
+            log_save(obs.LOG_INFO, f"║║登录账户 的 直播间id：⚠️无直播间")
+    else:
+        room_id = None
+        """登录用户的直播间id"""
+        log_save(obs.LOG_INFO, f"║║登录账户 的 直播间id：⚠️未登录账号")
+    return room_id
+
+
+@lru_cache(maxsize=None)
+def get_room_base_info():
+    # 获取 '登录用户' 直播间基本信息
+    if bool(get_b_u_l_c().get_cookies()):
+        if get_room_status():
+            room_base_info = get_b_a_g().get_room_base_info(get_room_id())
+            """直播间基本信息"""
+            log_save(obs.LOG_INFO, f"║║登录账户 的 直播间基本信息：{room_base_info}")
+        else:
+            room_base_info = None
+            """直播间基本信息"""
+            log_save(obs.LOG_INFO, f"║║登录账户 的 直播间基本信息：⚠️无直播间")
+    else:
+        room_base_info = None
+        """直播间基本信息"""
+        log_save(obs.LOG_INFO, f"║║登录账户 的 直播间基本信息：⚠️未登录账号")
+    return room_base_info
+
+
+@lru_cache(maxsize=None)
+def get_room_title():
+    # 获取 '登录用户' 直播间标题
+    if bool(get_b_u_l_c().get_cookies()):
+        if get_room_status():
+            room_title = get_room_base_info()["title"]
+            """登录用户直播间标题"""
+            log_save(obs.LOG_INFO, f"║║登录账户 的 直播间标题：{room_title}")
+        else:
+            room_title = None
+            """登录用户直播间标题"""
+            log_save(obs.LOG_INFO, f"║║登录账户 的 直播间标题：⚠️无直播间")
+    else:
+        room_title = None
+        """登录用户直播间标题"""
+        log_save(obs.LOG_INFO, f"║║登录账户 的 直播间标题：⚠️未登录账号")
+    return room_title
+
+
+@lru_cache(maxsize=None)
+def get_common_title4number():
+    # 添加当前直播间标题 到 常用直播间标 题配置文件
+    common_title4number = {}
+    """常用直播间标题】{'0': 't1', '1': 't2', '2': 't3',}"""
+    if bool(get_b_u_l_c().get_cookies()):
+        if get_room_status():
+            get_c_t_m().add_title(get_b_u_l_c().get_users()[0], get_room_title())
+            for number, commonTitle in enumerate(get_c_t_m().get_titles(get_b_u_l_c().get_users()[0])):
+                common_title4number[str(number)] = commonTitle
+            log_save(obs.LOG_INFO, f"║║登录账户 的 常用直播间标题：{common_title4number}")
+        else:
+            log_save(obs.LOG_INFO, f"║║登录账户 的 常用直播间标题：⚠️无直播间")
+    else:
+        log_save(obs.LOG_INFO, f"║║登录账户 的 常用直播间标题：⚠️未登录账号")
+    return common_title4number
+
+
+@lru_cache(maxsize=None)
+def get_room_news():
+    # 获取 直播间公告
+    if bool(get_b_u_l_c().get_cookies()):
+        if get_room_status():
+            room_news = get_b_a_m().get_room_news()
+            """直播间公告"""
+            log_save(obs.LOG_INFO, f"║║登录账户 的 直播间公告：{room_news}")
+        else:
+            room_news = None
+            """直播间公告"""
+            log_save(obs.LOG_INFO, f"║║登录账户 的 直播间公告：⚠️无直播间")
+    else:
+        room_news = None
+        """直播间公告"""
+        log_save(obs.LOG_INFO, f"║║登录账户 的 直播间公告：⚠️未登录账号")
+    return room_news
+
+
+@lru_cache(maxsize=None)
+def get_area():
+    # 获取 '登录用户' 直播间的分区
+    if bool(get_b_u_l_c().get_cookies()):
+        if get_room_status():
+            area = {
+                "parent_area_id": get_room_base_info()["parent_area_id"],
+                "parent_area_name": get_room_base_info()["parent_area_name"],
+                "area_id": get_room_base_info()["area_id"],
+                "area_name": get_room_base_info()["area_name"],
+            }
+            """登录用户的直播间分区】{"parent_area_id": 3, "parent_area_name": "手游", "area_id": 255, "area_name": "明日方舟"}"""
+            log_save(obs.LOG_INFO, f"║║登录账户 的 直播间分区数据：{area}")
+        else:
+            area = None
+            """登录用户的直播间分区】{"parent_area_id": 3, "parent_area_name": "手游", "area_id": 255, "area_name": "明日方舟"}"""
+            log_save(obs.LOG_INFO, f"║║登录账户 的 直播间分区数据：⚠️无直播间")
+    else:
+        area = None
+        """登录用户的直播间分区】{"parent_area_id": 3, "parent_area_name": "手游", "area_id": 255, "area_name": "明日方舟"}"""
+        log_save(obs.LOG_INFO, f"║║登录账户 的 直播间分区数据：⚠️未登录账号")
+    return area
+
+
+@lru_cache(maxsize=None)
+def get_common_areas():
+    # 获取 '登录用户' 直播间 常用分区信息
+    if bool(get_b_u_l_c().get_cookies()):
+        if get_room_status():
+            common_areas = get_b_a_g().get_anchor_common_areas(get_room_id())["data"]
+            """获取 '登录用户' 直播间 常用分区信息】[{"id": "255", "name": "明日方舟", "parent_id": "3", "parent_name": "手游",}, ]"""
+            log_save(obs.LOG_INFO, f"║║登录账户 的 常用分区信息：{common_areas}")
+        else:
+            common_areas = None
+            """获取 '登录用户' 直播间 常用分区信息】[{"id": "255", "name": "明日方舟", "parent_id": "3", "parent_name": "手游",}, ]"""
+            log_save(obs.LOG_INFO, f"║║登录账户 的 常用分区信息：⚠️无直播间")
+    else:
+        common_areas = None
+        """获取 '登录用户' 直播间 常用分区信息】[{"id": "255", "name": "明日方舟", "parent_id": "3", "parent_name": "手游",}, ]"""
+        log_save(obs.LOG_INFO, f"║║登录账户 的 常用分区信息：⚠️未登录账号")
+    return common_areas
+
+
+@lru_cache(maxsize=None)
+def get_common_area_id_dict_str4common_area_name_dict_str():
+    # 获取 '登录用户' 常用直播间分区字典
+    common_area_id_dict_str4common_area_name_dict_str = {}
+    """登录用户的常用直播间分区字典】{'{parent_id: id}': '{parent_name: name}', }"""
+    if bool(get_b_u_l_c().get_cookies()):
+        if get_room_status():
+            if get_common_areas():
+                for common_area in get_common_areas():
+                    common_area_id = json.dumps({common_area['parent_id']: common_area['id']}, ensure_ascii=False)
+                    common_area_name = json.dumps({common_area['parent_name']: common_area['name']}, ensure_ascii=False)
+                    common_area_id_dict_str4common_area_name_dict_str[common_area_id] = common_area_name
+            else:
+                common_area_id_dict_str4common_area_name_dict_str = {"-1": "无常用分区"}
+            id_dict_str4name_dict_value_list = list(common_area_id_dict_str4common_area_name_dict_str.values())
+            log_save(obs.LOG_INFO, f"║║登录账户 的 常用直播间分区：{id_dict_str4name_dict_value_list}")
+        else:
+            common_area_id_dict_str4common_area_name_dict_str = {"-1": '⚠️无直播间'}
+            log_save(obs.LOG_INFO, f"║║登录账户 的 常用直播间分区：⚠️无直播间")
+    else:
+        common_area_id_dict_str4common_area_name_dict_str = {"-1": "⚠️未登录账号"}
+        log_save(obs.LOG_INFO, f"║║登录账户 的 常用直播间分区：⚠️未登录账号")
+    return common_area_id_dict_str4common_area_name_dict_str
+
+
+@lru_cache(maxsize=None)
+def get_area_obj_data_list():
+    # 获取 B站直播分区信息
+    if bool(get_b_u_l_c().get_cookies()):
+        area_obj_data_list = get_b_a_g().get_area_obj_list()
+        """B站直播分区信息"""
+        log_save(obs.LOG_INFO, f"║║获取B站直播分区信息：{area_obj_data_list}")
+    else:
+        area_obj_data_list = None
+        """B站直播分区信息"""
+        log_save(obs.LOG_INFO, f"║║获取B站直播分区信息：⚠️未登录账号")
+    return area_obj_data_list
+
+
+@lru_cache(maxsize=None)
+def get_parent_live_area_name4parent_live_area_id():
+    # 获取 直播间父分区数据
+    parent_live_area_name4parent_live_area_id = {}
+    """直播间父分区数据"""
+    if bool(get_b_u_l_c().get_cookies()):
+        if get_room_status():
+            for AreaObjData in get_area_obj_data_list()['data']:
+                parent_live_area_name4parent_live_area_id[str(AreaObjData["id"])] = AreaObjData["name"]
+            if not get_area():
+                parent_live_area_name4parent_live_area_id |= {"-1": "请选择一级分区"}
+            log_save(obs.LOG_INFO, f"║║获取 直播间父分区数据：{parent_live_area_name4parent_live_area_id}")
+        else:
+            parent_live_area_name4parent_live_area_id = {"-1": '⚠️无直播间'}
+            log_save(obs.LOG_INFO, f"║║获取 直播间父分区数据：⚠️无直播间")
+    else:
+        parent_live_area_name4parent_live_area_id = {"-1": "⚠️未登录账号"}
+        log_save(obs.LOG_INFO, f"║║获取 直播间父分区数据：⚠️未登录账号")
+    return parent_live_area_name4parent_live_area_id
+
+
+@lru_cache(maxsize=None)
+def get_sub_live_area_name4sub_live_area_id():
+    # 获取 登录账户 的 直播间父分区 对应的 直播间子分区数据
+    sub_live_area_name4sub_live_area_id = {}
+    """登录账户 的 直播间父分区 对应的 直播间子分区数据"""
+    if bool(get_b_u_l_c().get_cookies()):
+        if get_room_status():
+            if get_area():
+                for AreaObjData in get_area_obj_data_list()["data"]:
+                    if str(get_area()["parent_area_id"]) == str(AreaObjData["id"]):
+                        for subAreaObj in AreaObjData["list"]:
+                            sub_live_area_name4sub_live_area_id[str(subAreaObj["id"])] = subAreaObj["name"]
+                        break
+            else:
+                sub_live_area_name4sub_live_area_id = {"-1": "请选择一级分区"}
+        else:
+            sub_live_area_name4sub_live_area_id = {"-1": '⚠️无直播间'}
+    else:
+        sub_live_area_name4sub_live_area_id = {"-1": "⚠️未登录账号"}
+    log_save(obs.LOG_INFO, f"║║获取 直播间父分区 对应的 直播间子分区数据：{sub_live_area_name4sub_live_area_id}")
+    return sub_live_area_name4sub_live_area_id
+
+
+@lru_cache(maxsize=None)
+def get_live_status():
+    # 获取 '登录用户' 的 直播状态
+    if bool(get_b_u_l_c().get_cookies()):
+        if get_room_status():
+            live_status = get_room_info_old()["liveStatus"]
+            """登录用户的直播状态】0：未开播 1：直播中"""
+            if live_status:
+                log_save(obs.LOG_INFO, f"║║登录账户 的 直播状态：直播中👌")
+            else:
+                log_save(obs.LOG_INFO, f"║║登录账户 的 直播状态：未开播🙌")
+        else:
+            live_status = None
+            """登录用户的直播状态】0：未开播 1：直播中"""
+            log_save(obs.LOG_INFO, f"║║登录账户 的 直播状态：⚠️无直播间")
+    else:
+        live_status = None
+        """登录用户的直播状态】0：未开播 1：直播中"""
+        log_save(obs.LOG_INFO, f"║║登录账户 的 直播状态：⚠️未登录账号")
+    return live_status
+
+
+@lru_cache(maxsize=None)
+def get_reserve_list():
+    # 登录用户的直播预约列表信息
+    if bool(get_b_u_l_c().get_cookies()):
+        if get_room_status():
+            reserve_list = get_b_a_m().get_reserve_list()
+            """获取 '登录用户' 的 直播预约列表信息"""
+            log_save(obs.LOG_INFO, f"║║登录账户 的 直播预约列表信息：{reserve_list}")
+        else:
+            reserve_list = None
+            """获取 '登录用户' 的 直播预约列表信息"""
+            log_save(obs.LOG_INFO, f"║║登录账户 的 直播预约列表信息：⚠️无直播间")
+    else:
+        reserve_list = None
+        """获取 '登录用户' 的 直播预约列表信息"""
+        log_save(obs.LOG_INFO, f"║║登录账户 的 直播预约列表信息：⚠️未登录账号")
+    return reserve_list
+
+
+@lru_cache(maxsize=None)
+def get_reserve_name4reserve_sid():
+    # 登录用户的直播预约字典
+    reserve_name4reserve_sid = {}
+    """获取 '登录用户' 的 直播预约字典"""
+    if bool(get_b_u_l_c().get_cookies()):
+        if get_room_status():
+            if get_reserve_list():
+                for reserve in get_reserve_list():
+                    reserve_sid = str(reserve['reserve_info']['sid'])
+                    reserve_name = reserve['reserve_info']['name']
+                    reserve_time = datetime.fromtimestamp(reserve['reserve_info']['live_plan_start_time'])
+                    reserve_name4reserve_sid[reserve_sid] = f"{reserve_name}|{reserve_time}"
+                    log_save(obs.LOG_INFO, f"║║登录账户 的 直播预约：{(list(reserve_name4reserve_sid.values()))}")
+            else:
+                reserve_name4reserve_sid = {"-1": "无直播预约"}
+        else:
+            reserve_name4reserve_sid = {"-1": "⚠️无直播间"}
+            log_save(obs.LOG_INFO, f"║║登录账户 的 直播预约：⚠️无直播间")
+    else:
+        reserve_name4reserve_sid = {"-1": "⚠️未登录账号"}
+        log_save(obs.LOG_INFO, f"║║登录账户 的 直播预约：⚠️未登录账号")
+    return reserve_name4reserve_sid
+
+def clear_cache():
+    # 清除函数缓存
+    get_b_u_l_c.cache_clear()
+    get_b_a_g.cache_clear()
+    get_b_a_m.cache_clear()
+    get_c_t_m.cache_clear()
+    get_uid_nickname_dict.cache_clear()
+    get_default_user_nickname.cache_clear()
+    get_room_info_old.cache_clear()
+    get_room_status.cache_clear()
+    get_room_id.cache_clear()
+    get_room_base_info.cache_clear()
+    get_room_title.cache_clear()
+    get_common_title4number.cache_clear()
+    get_room_news.cache_clear()
+    get_area.cache_clear()
+    get_common_areas.cache_clear()
+    get_common_area_id_dict_str4common_area_name_dict_str.cache_clear()
+    get_area_obj_data_list.cache_clear()
+    get_parent_live_area_name4parent_live_area_id.cache_clear()
+    get_sub_live_area_name4sub_live_area_id.cache_clear()
+    get_live_status.cache_clear()
+    get_reserve_list.cache_clear()
+    get_reserve_name4reserve_sid.cache_clear()
+
 # ====================================================================================================================
 
 
@@ -2437,6 +2841,8 @@ script_version = bytes.fromhex('302e322e37').decode('utf-8')
 
 class GlobalVariableOfData:
     """定义了一些全局变量"""
+    causeOfTheFrontDeskIncident = ""
+    """前台事件引起的原因"""
     update_widget_for_props_dict: dict[str, set[str]] = {}
     """根据控件属性集更新控件"""
     script_loading_is: bool = False
@@ -2445,8 +2851,6 @@ class GlobalVariableOfData:
     """控件加载顺序"""
     isScript_propertiesIs: bool = False  # Script_properties()被调用
     """是否允许Script_properties()被调用"""
-    streaming_active: bool = None  # OBS推流状态
-    """OBS推流状态"""
     script_settings: bool = None  # #脚本的所有设定属性集
     """脚本的所有设定属性集"""
 
@@ -3314,22 +3718,36 @@ def trigger_frontend_event(event):
 
     """
     log_save(obs.LOG_INFO, f"监测到obs前端事件: {ExplanatoryDictionary.information4frontend_event[event]}")
+
+    causeOfTheFrontDeskIncident_list = [
+        "开始直播并复制推流码",
+        "结束直播"
+    ]
+    if GlobalVariableOfData.causeOfTheFrontDeskIncident:
+        log_save(obs.LOG_INFO, f"此次 事件 由【{GlobalVariableOfData.causeOfTheFrontDeskIncident}】引起")
+
     if event == obs.OBS_FRONTEND_EVENT_STREAMING_STARTED:
-        last_status_change = time.time()
-        log_save(obs.LOG_INFO, f"监控到推流开始事件: {last_status_change}")
-        if GlobalVariableOfData.streaming_active != obs.obs_frontend_streaming_active():
-            log_save(obs.LOG_INFO,
-                     f"推流状态发生变化: {GlobalVariableOfData.streaming_active}➡️{obs.obs_frontend_streaming_active()}")
-            GlobalVariableOfData.streaming_active = obs.obs_frontend_streaming_active()
+        if not GlobalVariableOfData.causeOfTheFrontDeskIncident:
+            log_save(obs.LOG_INFO, "此次 推流已开始 事件 由前台按钮【开始直播】引起")
+
+        if not get_live_status():
+            log_save(obs.LOG_INFO, "未开播，此次 推流已开始 事件 发送 直播申请")
+            ButtonFunction.button_function_start_live()
+        else:
+            log_save(obs.LOG_INFO, "正在直播，此次 推流已开始 事件 不发送 直播申请")
+        GlobalVariableOfData.causeOfTheFrontDeskIncident = ""
     elif event == obs.OBS_FRONTEND_EVENT_STREAMING_STOPPED:
-        last_status_change = time.time()
-        log_save(obs.LOG_INFO, f"监控到推流停止事件: {last_status_change}")
-        if GlobalVariableOfData.streaming_active != obs.obs_frontend_streaming_active():
-            log_save(obs.LOG_INFO,
-                     f"推流状态发生变化: {GlobalVariableOfData.streaming_active}➡️{obs.obs_frontend_streaming_active()}")
-            GlobalVariableOfData.streaming_active = obs.obs_frontend_streaming_active()
-            log_save(obs.LOG_INFO, f"尝试关闭直播")
-            ButtonFunction.button_function_stop_live()
+        if not GlobalVariableOfData.causeOfTheFrontDeskIncident:
+            log_save(obs.LOG_INFO, "此次 推流已开始 事件 由前台按钮【停止直播】引起")
+
+        if GlobalVariableOfData.causeOfTheFrontDeskIncident == "开始直播并复制推流码":
+            log_save(obs.LOG_INFO, "此次 推流已结束 事件 不发送 撤销直播申请")
+        else:
+            if get_live_status():
+                log_save(obs.LOG_INFO, "未开播，此次 推流已结束 事件 发送 撤销直播申请")
+                ButtonFunction.button_function_stop_live()
+        GlobalVariableOfData.causeOfTheFrontDeskIncident = ""
+    clear_cache()
     return True
 
 
@@ -3409,364 +3827,15 @@ def script_defaults(settings):  # 设置其默认值
     os.makedirs(GlobalVariableOfData.scriptsCacheDir, exist_ok=True)
     log_save(obs.LOG_INFO, f"║║脚本缓存文件夹路径：{GlobalVariableOfData.scriptsCacheDir}")
 
-    # 记录obs推流状态
-    GlobalVariableOfData.streaming_active = obs.obs_frontend_streaming_active()
-    log_save(obs.LOG_INFO, f"║║obs推流状态: {GlobalVariableOfData.streaming_active}")
     if not GlobalVariableOfData.update_widget_for_props_dict:
         GlobalVariableOfData.update_widget_for_props_dict = widget.props_Collection
     log_save(obs.LOG_INFO, f"║║💫更新属性集为{GlobalVariableOfData.update_widget_for_props_dict}的控件")
 
-    # 设置控件属性
-    widget.Button.startScript.Visible = not GlobalVariableOfData.script_loading_is
-    widget.Button.startScript.Enabled = not GlobalVariableOfData.script_loading_is
-    if not GlobalVariableOfData.script_loading_is:
-        return True
-
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    # 初始化API对象
-    b_a_g = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification)
-    if bool(b_u_l_c.get_cookies()):
-        b_a_m = BilibiliApiMaster(Tools.dict2cookie(b_u_l_c.get_cookies()), GlobalVariableOfData.sslVerification)
-    else:
-        b_a_m = None
-    # 创建用户常用直播间标题实例
-    c_t_m = CommonTitlesManager(directory=Path(GlobalVariableOfData.scriptsDataDirpath))
-
-    @lru_cache(maxsize=None)
-    def get_uid_nickname_dict():
-        # 获取 用户数据文件中保存的用户，并在用户过期后删除用户
-        uid_nickname_dict = {}
-        """账号字典"""
-        for uid in b_u_l_c.get_users().values():
-            if uid:
-                uid_cookie = Tools.dict2cookie(b_u_l_c.get_cookies(int(uid)))
-                is_login = BilibiliApiMaster(uid_cookie, GlobalVariableOfData.sslVerification).get_nav_info()
-                if is_login["isLogin"]:
-                    uid_nickname_dict[uid] = b_a_g.get_bilibili_user_card(uid)['basic_info']['name']
-                else:
-                    log_save(obs.LOG_INFO, f"❌{b_a_g.get_bilibili_user_card(uid)['basic_info']['name']}过期")
-                    b_u_l_c.delete_user(int(uid))
-            else:
-                uid_nickname_dict['-1'] = '添加或选择一个账号登录'
-        log_save(obs.LOG_INFO, f"║║载入账号字典：{uid_nickname_dict}")
-        return uid_nickname_dict
-
-    @lru_cache(maxsize=None)
-    def get_default_user_nickname():
-        # 获取 '登录用户' 的昵称
-        if bool(b_u_l_c.get_cookies()):
-            default_user_nickname: Optional[str] = get_uid_nickname_dict()[b_u_l_c.get_users()[0]]
-            """登录用户的昵称，没有登录则为None"""
-            log_save(obs.LOG_INFO, f"║║用户：{default_user_nickname} 已登录")
-        else:
-            default_user_nickname: Optional[str] = None
-            """登录用户的昵称，没有登录则为None"""
-            log_save(obs.LOG_INFO, f"║║用户：⚠️未登录账号")
-        return default_user_nickname
-
-    @lru_cache(maxsize=None)
-    def get_room_info_old():
-        # 获取 '登录用户' 对应的直播间基础信息
-        if bool(b_u_l_c.get_cookies()):
-            room_info_old = b_a_g.get_room_info_old(int(b_u_l_c.get_users()[0]))
-            """直播间基础信息"""
-            log_save(obs.LOG_INFO, f"║║登录账户 的 直播间基础信息：{room_info_old}")
-        else:
-            room_info_old = None
-            """直播间基础信息"""
-            log_save(obs.LOG_INFO, f"║║登录账户 的 直播间基础信息：⚠️未登录账号")
-        return room_info_old
-
-    @lru_cache(maxsize=None)
-    def get_room_status():
-        # 获取 '登录用户' 的 直播间状态
-        if bool(b_u_l_c.get_cookies()):
-            room_status = get_room_info_old()["roomStatus"]
-            """登录用户的直播间存在状态"""
-            if room_status:
-                log_save(obs.LOG_INFO, f"║║登录账户 的 直播间状态：🈶直播间")
-            else:
-                log_save(obs.LOG_INFO, f"║║登录账户 的 直播间状态：🈚直播间")
-        else:
-            room_status = None
-            """登录用户的直播间存在状态"""
-            log_save(obs.LOG_INFO, f"║║登录账户 的 直播间状态：⚠️未登录账号")
-        return room_status
-
-    @lru_cache(maxsize=None)
-    def get_room_id():
-        # 获取 '登录用户' 的 直播间id
-        if bool(b_u_l_c.get_cookies()):
-            if get_room_status():
-                room_id = get_room_info_old()["roomid"]
-                """登录用户的直播间id"""
-                log_save(obs.LOG_INFO, f"║║登录账户 的 直播间id：{room_id}")
-            else:
-                room_id = None
-                """登录用户的直播间id"""
-                log_save(obs.LOG_INFO, f"║║登录账户 的 直播间id：⚠️无直播间")
-        else:
-            room_id = None
-            """登录用户的直播间id"""
-            log_save(obs.LOG_INFO, f"║║登录账户 的 直播间id：⚠️未登录账号")
-        return room_id
-
-    @lru_cache(maxsize=None)
-    def get_room_base_info():
-        # 获取 '登录用户' 直播间基本信息
-        if bool(b_u_l_c.get_cookies()):
-            if get_room_status():
-                room_base_info = b_a_g.get_room_base_info(get_room_id())
-                """直播间基本信息"""
-                log_save(obs.LOG_INFO, f"║║登录账户 的 直播间基本信息：{room_base_info}")
-            else:
-                room_base_info = None
-                """直播间基本信息"""
-                log_save(obs.LOG_INFO, f"║║登录账户 的 直播间基本信息：⚠️无直播间")
-        else:
-            room_base_info = None
-            """直播间基本信息"""
-            log_save(obs.LOG_INFO, f"║║登录账户 的 直播间基本信息：⚠️未登录账号")
-        return room_base_info
-
-    @lru_cache(maxsize=None)
-    def get_room_title():
-        # 获取 '登录用户' 直播间标题
-        if bool(b_u_l_c.get_cookies()):
-            if get_room_status():
-                room_title = get_room_base_info()["title"]
-                """登录用户直播间标题"""
-                log_save(obs.LOG_INFO, f"║║登录账户 的 直播间标题：{room_title}")
-            else:
-                room_title = None
-                """登录用户直播间标题"""
-                log_save(obs.LOG_INFO, f"║║登录账户 的 直播间标题：⚠️无直播间")
-        else:
-            room_title = None
-            """登录用户直播间标题"""
-            log_save(obs.LOG_INFO, f"║║登录账户 的 直播间标题：⚠️未登录账号")
-        return room_title
-
-    @lru_cache(maxsize=None)
-    def get_common_title4number():
-        # 添加当前直播间标题 到 常用直播间标 题配置文件
-        common_title4number = {}
-        """常用直播间标题】{'0': 't1', '1': 't2', '2': 't3',}"""
-        if bool(b_u_l_c.get_cookies()):
-            if get_room_status():
-                c_t_m.add_title(b_u_l_c.get_users()[0], get_room_title())
-                for number, commonTitle in enumerate(c_t_m.get_titles(b_u_l_c.get_users()[0])):
-                    common_title4number[str(number)] = commonTitle
-                log_save(obs.LOG_INFO, f"║║登录账户 的 常用直播间标题：{common_title4number}")
-            else:
-                log_save(obs.LOG_INFO, f"║║登录账户 的 常用直播间标题：⚠️无直播间")
-        else:
-            log_save(obs.LOG_INFO, f"║║登录账户 的 常用直播间标题：⚠️未登录账号")
-        return common_title4number
-
-    @lru_cache(maxsize=None)
-    def get_room_news():
-        # 获取 直播间公告
-        if bool(b_u_l_c.get_cookies()):
-            if get_room_status():
-                room_news = b_a_m.get_room_news()
-                """直播间公告"""
-                log_save(obs.LOG_INFO, f"║║登录账户 的 直播间公告：{room_news}")
-            else:
-                room_news = None
-                """直播间公告"""
-                log_save(obs.LOG_INFO, f"║║登录账户 的 直播间公告：⚠️无直播间")
-        else:
-            room_news = None
-            """直播间公告"""
-            log_save(obs.LOG_INFO, f"║║登录账户 的 直播间公告：⚠️未登录账号")
-        return room_news
-
-    @lru_cache(maxsize=None)
-    def get_area():
-        # 获取 '登录用户' 直播间的分区
-        if bool(b_u_l_c.get_cookies()):
-            if get_room_status():
-                area = {
-                    "parent_area_id": get_room_base_info()["parent_area_id"],
-                    "parent_area_name": get_room_base_info()["parent_area_name"],
-                    "area_id": get_room_base_info()["area_id"],
-                    "area_name": get_room_base_info()["area_name"],
-                }
-                """登录用户的直播间分区】{"parent_area_id": 3, "parent_area_name": "手游", "area_id": 255, "area_name": "明日方舟"}"""
-                log_save(obs.LOG_INFO, f"║║登录账户 的 直播间分区数据：{area}")
-            else:
-                area = None
-                """登录用户的直播间分区】{"parent_area_id": 3, "parent_area_name": "手游", "area_id": 255, "area_name": "明日方舟"}"""
-                log_save(obs.LOG_INFO, f"║║登录账户 的 直播间分区数据：⚠️无直播间")
-        else:
-            area = None
-            """登录用户的直播间分区】{"parent_area_id": 3, "parent_area_name": "手游", "area_id": 255, "area_name": "明日方舟"}"""
-            log_save(obs.LOG_INFO, f"║║登录账户 的 直播间分区数据：⚠️未登录账号")
-        return area
-
-    @lru_cache(maxsize=None)
-    def get_common_areas():
-        # 获取 '登录用户' 直播间 常用分区信息
-        if bool(b_u_l_c.get_cookies()):
-            if get_room_status():
-                common_areas = b_a_g.get_anchor_common_areas(get_room_id())["data"]
-                """获取 '登录用户' 直播间 常用分区信息】[{"id": "255", "name": "明日方舟", "parent_id": "3", "parent_name": "手游",}, ]"""
-                log_save(obs.LOG_INFO, f"║║登录账户 的 常用分区信息：{common_areas}")
-            else:
-                common_areas = None
-                """获取 '登录用户' 直播间 常用分区信息】[{"id": "255", "name": "明日方舟", "parent_id": "3", "parent_name": "手游",}, ]"""
-                log_save(obs.LOG_INFO, f"║║登录账户 的 常用分区信息：⚠️无直播间")
-        else:
-            common_areas = None
-            """获取 '登录用户' 直播间 常用分区信息】[{"id": "255", "name": "明日方舟", "parent_id": "3", "parent_name": "手游",}, ]"""
-            log_save(obs.LOG_INFO, f"║║登录账户 的 常用分区信息：⚠️未登录账号")
-        return common_areas
-
-    @lru_cache(maxsize=None)
-    def get_common_area_id_dict_str4common_area_name_dict_str():
-        # 获取 '登录用户' 常用直播间分区字典
-        common_area_id_dict_str4common_area_name_dict_str = {}
-        """登录用户的常用直播间分区字典】{'{parent_id: id}': '{parent_name: name}', }"""
-        if bool(b_u_l_c.get_cookies()):
-            if get_room_status():
-                if get_common_areas():
-                    for common_area in get_common_areas():
-                        common_area_id = json.dumps({common_area['parent_id']: common_area['id']}, ensure_ascii=False)
-                        common_area_name = json.dumps({common_area['parent_name']: common_area['name']}, ensure_ascii=False)
-                        common_area_id_dict_str4common_area_name_dict_str[common_area_id] = common_area_name
-                else:
-                    common_area_id_dict_str4common_area_name_dict_str = {"-1": "无常用分区"}
-                id_dict_str4name_dict_value_list = list(common_area_id_dict_str4common_area_name_dict_str.values())
-                log_save(obs.LOG_INFO, f"║║登录账户 的 常用直播间分区：{id_dict_str4name_dict_value_list}")
-            else:
-                common_area_id_dict_str4common_area_name_dict_str = {"-1": '⚠️无直播间'}
-                log_save(obs.LOG_INFO, f"║║登录账户 的 常用直播间分区：⚠️无直播间")
-        else:
-            common_area_id_dict_str4common_area_name_dict_str = {"-1": "⚠️未登录账号"}
-            log_save(obs.LOG_INFO, f"║║登录账户 的 常用直播间分区：⚠️未登录账号")
-        return common_area_id_dict_str4common_area_name_dict_str
-
-    @lru_cache(maxsize=None)
-    def get_area_obj_data_list():
-        # 获取 B站直播分区信息
-        if bool(b_u_l_c.get_cookies()):
-            area_obj_data_list = b_a_g.get_area_obj_list()
-            """B站直播分区信息"""
-            log_save(obs.LOG_INFO, f"║║获取B站直播分区信息：{area_obj_data_list}")
-        else:
-            area_obj_data_list = None
-            """B站直播分区信息"""
-            log_save(obs.LOG_INFO, f"║║获取B站直播分区信息：⚠️未登录账号")
-        return area_obj_data_list
-
-    @lru_cache(maxsize=None)
-    def get_parent_live_area_name4parent_live_area_id():
-        # 获取 直播间父分区数据
-        parent_live_area_name4parent_live_area_id = {}
-        """直播间父分区数据"""
-        if bool(b_u_l_c.get_cookies()):
-            if get_room_status():
-                for AreaObjData in get_area_obj_data_list()['data']:
-                    parent_live_area_name4parent_live_area_id[str(AreaObjData["id"])] = AreaObjData["name"]
-                if not get_area():
-                    parent_live_area_name4parent_live_area_id |= {"-1": "请选择一级分区"}
-                log_save(obs.LOG_INFO, f"║║获取 直播间父分区数据：{parent_live_area_name4parent_live_area_id}")
-            else:
-                parent_live_area_name4parent_live_area_id = {"-1": '⚠️无直播间'}
-                log_save(obs.LOG_INFO, f"║║获取 直播间父分区数据：⚠️无直播间")
-        else:
-            parent_live_area_name4parent_live_area_id = {"-1": "⚠️未登录账号"}
-            log_save(obs.LOG_INFO, f"║║获取 直播间父分区数据：⚠️未登录账号")
-        return parent_live_area_name4parent_live_area_id
-
-    @lru_cache(maxsize=None)
-    def get_sub_live_area_name4sub_live_area_id():
-        # 获取 登录账户 的 直播间父分区 对应的 直播间子分区数据
-        sub_live_area_name4sub_live_area_id = {}
-        """登录账户 的 直播间父分区 对应的 直播间子分区数据"""
-        if bool(b_u_l_c.get_cookies()):
-            if get_room_status():
-                if get_area():
-                    for AreaObjData in get_area_obj_data_list()["data"]:
-                        if str(get_area()["parent_area_id"]) == str(AreaObjData["id"]):
-                            for subAreaObj in AreaObjData["list"]:
-                                sub_live_area_name4sub_live_area_id[str(subAreaObj["id"])] = subAreaObj["name"]
-                            break
-                else:
-                    sub_live_area_name4sub_live_area_id = {"-1": "请选择一级分区"}
-            else:
-                sub_live_area_name4sub_live_area_id = {"-1": '⚠️无直播间'}
-        else:
-            sub_live_area_name4sub_live_area_id = {"-1": "⚠️未登录账号"}
-        log_save(obs.LOG_INFO,f"║║获取 直播间父分区 对应的 直播间子分区数据：{sub_live_area_name4sub_live_area_id}")
-        return sub_live_area_name4sub_live_area_id
-
-    @lru_cache(maxsize=None)
-    def get_live_status():
-        # 获取 '登录用户' 的 直播状态
-        if bool(b_u_l_c.get_cookies()):
-            if get_room_status():
-                live_status = get_room_info_old()["liveStatus"]
-                """登录用户的直播状态】0：未开播 1：直播中"""
-                if live_status:
-                    log_save(obs.LOG_INFO, f"║║登录账户 的 直播状态：直播中👌")
-                else:
-                    log_save(obs.LOG_INFO, f"║║登录账户 的 直播状态：未开播🙌")
-            else:
-                live_status = None
-                """登录用户的直播状态】0：未开播 1：直播中"""
-                log_save(obs.LOG_INFO, f"║║登录账户 的 直播状态：⚠️无直播间")
-        else:
-            live_status = None
-            """登录用户的直播状态】0：未开播 1：直播中"""
-            log_save(obs.LOG_INFO, f"║║登录账户 的 直播状态：⚠️未登录账号")
-        return live_status
-
-    @lru_cache(maxsize=None)
-    def get_reserve_list():
-        # 登录用户的直播预约列表信息
-        if bool(b_u_l_c.get_cookies()):
-            if get_room_status():
-                reserve_list = b_a_m.get_reserve_list()
-                """获取 '登录用户' 的 直播预约列表信息"""
-                log_save(obs.LOG_INFO, f"║║登录账户 的 直播预约列表信息：{reserve_list}")
-            else:
-                reserve_list = None
-                """获取 '登录用户' 的 直播预约列表信息"""
-                log_save(obs.LOG_INFO, f"║║登录账户 的 直播预约列表信息：⚠️无直播间")
-        else:
-            reserve_list = None
-            """获取 '登录用户' 的 直播预约列表信息"""
-            log_save(obs.LOG_INFO, f"║║登录账户 的 直播预约列表信息：⚠️未登录账号")
-        return reserve_list
-
-    @lru_cache(maxsize=None)
-    def get_reserve_name4reserve_sid():
-        # 登录用户的直播预约字典
-        reserve_name4reserve_sid = {}
-        """获取 '登录用户' 的 直播预约字典"""
-        if bool(b_u_l_c.get_cookies()):
-            if get_room_status():
-                if get_reserve_list():
-                    for reserve in get_reserve_list():
-                        reserve_sid = str(reserve['reserve_info']['sid'])
-                        reserve_name = reserve['reserve_info']['name']
-                        reserve_time = datetime.fromtimestamp(reserve['reserve_info']['live_plan_start_time'])
-                        reserve_name4reserve_sid[reserve_sid] = f"{reserve_name}|{reserve_time}"
-                        log_save(obs.LOG_INFO, f"║║登录账户 的 直播预约：{(list(reserve_name4reserve_sid.values()))}")
-                else:
-                    reserve_name4reserve_sid = {"-1": "无直播预约"}
-            else:
-                reserve_name4reserve_sid = {"-1": "⚠️无直播间"}
-                log_save(obs.LOG_INFO, f"║║登录账户 的 直播预约：⚠️无直播间")
-        else:
-            reserve_name4reserve_sid = {"-1": "⚠️未登录账号"}
-            log_save(obs.LOG_INFO, f"║║登录账户 的 直播预约：⚠️未登录账号")
-        return reserve_name4reserve_sid
-
-    # 设置控件前准备（获取数据）结束
-    log_save(obs.LOG_INFO, f"║╚{6 * '═'}设置控件前准备（获取数据）{6 * '═'}╝")
+    # # 设置控件属性
+    # widget.Button.startScript.Visible = not GlobalVariableOfData.script_loading_is
+    # widget.Button.startScript.Enabled = not GlobalVariableOfData.script_loading_is
+    # if not GlobalVariableOfData.script_loading_is:
+    #     return True
 
     update_widget_for_props_name = set()
     for props_name in GlobalVariableOfData.update_widget_for_props_dict:
@@ -3798,11 +3867,11 @@ def script_defaults(settings):  # 设置其默认值
     if widget.TextBox.loginStatus.Name in update_widget_for_props_name:
         widget.TextBox.loginStatus.Visible = True
         widget.TextBox.loginStatus.Enabled = True
-        if bool(b_u_l_c.get_cookies()):
+        if bool(get_b_u_l_c().get_cookies()):
             widget.TextBox.loginStatus.Text = f'{get_default_user_nickname()} 已登录'
         else:
             widget.TextBox.loginStatus.Text = '未登录，请登录后点击【更新账号列表】'
-        if bool(b_u_l_c.get_cookies()):
+        if bool(get_b_u_l_c().get_cookies()):
             widget.TextBox.loginStatus.InfoType = obs.OBS_TEXT_INFO_NORMAL
         else:
             widget.TextBox.loginStatus.InfoType = obs.OBS_TEXT_INFO_WARNING
@@ -3810,12 +3879,12 @@ def script_defaults(settings):  # 设置其默认值
     if widget.ComboBox.uid.Name in update_widget_for_props_name:
         widget.ComboBox.uid.Visible = True
         widget.ComboBox.uid.Enabled = True
-        if bool(b_u_l_c.get_cookies()):
+        if bool(get_b_u_l_c().get_cookies()):
             widget.ComboBox.uid.Text = get_default_user_nickname()
         else:
             widget.ComboBox.uid.Text = '添加或选择一个账号登录'
-        if bool(b_u_l_c.get_cookies()):
-            widget.ComboBox.uid.Value = b_u_l_c.get_users()[0]
+        if bool(get_b_u_l_c().get_cookies()):
+            widget.ComboBox.uid.Value = get_b_u_l_c().get_users()[0]
         else:
             widget.ComboBox.uid.Value = '-1'
         widget.ComboBox.uid.Dictionary = get_uid_nickname_dict()
@@ -3849,15 +3918,15 @@ def script_defaults(settings):  # 设置其默认值
         widget.Button.accountRestore.Enabled = False
 
     if widget.Button.logout.Name in update_widget_for_props_name:
-        widget.Button.logout.Visible = True if b_u_l_c.get_cookies() else False
-        widget.Button.logout.Enabled = True if b_u_l_c.get_cookies() else False
+        widget.Button.logout.Visible = True if get_b_u_l_c().get_cookies() else False
+        widget.Button.logout.Enabled = True if get_b_u_l_c().get_cookies() else False
 
     # 分组框【直播间】
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     if widget.TextBox.roomStatus.Name in update_widget_for_props_name:
         widget.TextBox.roomStatus.Visible = True
         widget.TextBox.roomStatus.Enabled = True
-        if bool(b_u_l_c.get_cookies()):
+        if bool(get_b_u_l_c().get_cookies()):
             if get_room_status():
                 if get_live_status():
                     widget.TextBox.roomStatus.Text = f"{str(get_room_id())}直播中"
@@ -3867,7 +3936,7 @@ def script_defaults(settings):  # 设置其默认值
                 widget.TextBox.roomStatus.Text = "无直播间"
         else:
             widget.TextBox.roomStatus.Text = "未登录"
-        if bool(b_u_l_c.get_cookies()):
+        if bool(get_b_u_l_c().get_cookies()):
             if get_room_status():
                 if get_live_status():
                     widget.TextBox.roomStatus.InfoType = obs.OBS_TEXT_INFO_NORMAL
@@ -3879,8 +3948,8 @@ def script_defaults(settings):  # 设置其默认值
             widget.TextBox.roomStatus.InfoType = obs.OBS_TEXT_INFO_ERROR
 
     if widget.Button.roomOpened.Name in update_widget_for_props_name:
-        widget.Button.roomOpened.Visible = (not bool(get_room_status())) if b_u_l_c.get_cookies() else False
-        widget.Button.roomOpened.Enabled = (not bool(get_room_status())) if b_u_l_c.get_cookies() else False
+        widget.Button.roomOpened.Visible = (not bool(get_room_status())) if get_b_u_l_c().get_cookies() else False
+        widget.Button.roomOpened.Enabled = (not bool(get_room_status())) if get_b_u_l_c().get_cookies() else False
 
     if widget.Button.realNameAuthentication.Name in update_widget_for_props_name:
         widget.Button.realNameAuthentication.Visible = False
@@ -3970,8 +4039,8 @@ def script_defaults(settings):  # 设置其默认值
         widget.Button.roomSubAreaTrue.Enabled = bool(get_room_status())
 
     if widget.Button.bliveWebJump.Name in update_widget_for_props_name:
-        widget.Button.bliveWebJump.Visible = True if b_u_l_c.get_cookies() else False
-        widget.Button.bliveWebJump.Enabled = True if b_u_l_c.get_cookies() else False
+        widget.Button.bliveWebJump.Visible = True if get_b_u_l_c().get_cookies() else False
+        widget.Button.bliveWebJump.Enabled = True if get_b_u_l_c().get_cookies() else False
 
     # 分组框【直播】
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -3982,8 +4051,10 @@ def script_defaults(settings):  # 设置其默认值
     if widget.ComboBox.liveStreamingPlatform.Name in update_widget_for_props_name:
         widget.ComboBox.liveStreamingPlatform.Visible = bool(get_room_status())
         widget.ComboBox.liveStreamingPlatform.Enabled = not bool(get_live_status())
-        widget.ComboBox.liveStreamingPlatform.Text = "直播姬（pc）"
-        widget.ComboBox.liveStreamingPlatform.Value = "pc_link"
+        if not bool(widget.ComboBox.liveStreamingPlatform.Text):
+            widget.ComboBox.liveStreamingPlatform.Text = "直播姬（pc）"
+        if not bool(widget.ComboBox.liveStreamingPlatform.Value):
+            widget.ComboBox.liveStreamingPlatform.Value = "pc_link"
         widget.ComboBox.liveStreamingPlatform.Dictionary = {
             "pc_link": "直播姬（pc）", "web_link": "web在线直播", "android_link": "bililink"
         }
@@ -4062,7 +4133,7 @@ def script_defaults(settings):  # 设置其默认值
         widget.ComboBox.liveBookings.Visible = bool(get_room_status())
         widget.ComboBox.liveBookings.Enabled = bool(get_room_status())
         widget.ComboBox.liveBookings.Text = "无直播预约"
-        if bool(b_u_l_c.get_cookies()):
+        if bool(get_b_u_l_c().get_cookies()):
             if get_room_status():
                 if get_reserve_list():
                     for reserve in get_reserve_list():
@@ -4075,7 +4146,7 @@ def script_defaults(settings):  # 设置其默认值
                 widget.ComboBox.liveBookings.Text = '⚠️无直播间'
         else:
             widget.ComboBox.liveBookings.Text = "⚠️未登录账号"
-        if bool(b_u_l_c.get_cookies()):
+        if bool(get_b_u_l_c().get_cookies()):
             if get_room_status():
                 if get_reserve_list():
                     for reserve in get_reserve_list():
@@ -4091,26 +4162,8 @@ def script_defaults(settings):  # 设置其默认值
     if widget.Button.liveBookingsCancel.Name in update_widget_for_props_name:
         widget.Button.liveBookingsCancel.Visible = bool(get_room_status())
         widget.Button.liveBookingsCancel.Enabled = bool(get_room_status())
-            
-    # 清除函数缓存
-    get_uid_nickname_dict.cache_clear()
-    get_default_user_nickname.cache_clear()
-    get_room_info_old.cache_clear()
-    get_room_status.cache_clear()
-    get_room_id.cache_clear()
-    get_room_base_info.cache_clear()
-    get_room_title.cache_clear()
-    get_common_title4number.cache_clear()
-    get_room_news.cache_clear()
-    get_area.cache_clear()
-    get_common_areas.cache_clear()
-    get_common_area_id_dict_str4common_area_name_dict_str.cache_clear()
-    get_area_obj_data_list.cache_clear()
-    get_parent_live_area_name4parent_live_area_id.cache_clear()
-    get_sub_live_area_name4sub_live_area_id.cache_clear()
-    get_live_status.cache_clear()
-    get_reserve_list.cache_clear()
-    get_reserve_name4reserve_sid.cache_clear()
+
+    clear_cache()
     return True
 
 
@@ -4396,10 +4449,6 @@ class ButtonFunction:
     def button_function_login(*args):
         """
         登录并刷新控件状态
-        Args:
-            props:
-            prop:
-        Returns:
         """
         if len(args) == 2:
             props = args[0]
@@ -4410,17 +4459,16 @@ class ButtonFunction:
         # ＝     登录      ＝
         # ＝＝＝＝＝＝＝＝＝＝＝
         GlobalVariableOfData.script_loading_is = True
-        uid = obs.obs_data_get_string(GlobalVariableOfData.script_settings, 'uid_comboBox')
+        uid = obs.obs_data_get_string(GlobalVariableOfData.script_settings, widget.ComboBox.uid.Name)
         if uid in ["-1"]:
             log_save(obs.LOG_WARNING, "请添加或选择一个账号登录")
             return False
         log_save(obs.LOG_INFO, f"即将登录的账号：{uid}")
         log_save(obs.LOG_INFO, f"将选定的账号：{uid}，在配置文件中转移到默认账号的位置")
         try:
-            b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
             uid = str(uid)
             log_save(obs.LOG_INFO, f"尝试登录用户: {uid}")
-            b_u_l_c.update_user(b_u_l_c.get_cookies(int(uid)))
+            get_b_u_l_c().update_user(get_b_u_l_c().get_cookies(int(uid)))
             log_save(obs.LOG_INFO, f"用户 {uid} 登录成功")
         except ValueError as e:
             log_save(obs.LOG_ERROR, f"参数错误: {str(e)}")
@@ -4428,6 +4476,8 @@ class ButtonFunction:
         except Exception as e:
             log_save(obs.LOG_WARNING, f"登录过程异常: {str(e)}")
             raise RuntimeError("登录服务暂时不可用") from e
+
+        clear_cache()
 
         # 更新脚本控制台中的控件
         GlobalVariableOfData.update_widget_for_props_dict = widget.props_Collection
@@ -4443,12 +4493,6 @@ class ButtonFunction:
     def button_function_update_account_list(*args):
         """
         更新账号列表
-        Args:
-            settings:
-            props:
-            prop:
-
-        Returns:
         """
         if len(args) == 2:
             props = args[0]
@@ -4474,10 +4518,6 @@ class ButtonFunction:
     def button_function_qr_add_account(*args):
         """
         二维码添加账号
-        Args:
-            props:
-            prop:
-        Returns:
         """
         if len(args) == 2:
             props = args[0]
@@ -4489,7 +4529,7 @@ class ButtonFunction:
             return ButtonFunction.button_function_show_qr_picture()
 
         # 申请登录二维码
-        url8qrkey = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).generate()
+        url8qrkey = get_b_a_g().generate()
         # 获取二维码url
         url = url8qrkey['url']
         log_save(obs.LOG_INFO, f"获取登录二维码链接{url}")
@@ -4504,8 +4544,7 @@ class ButtonFunction:
         log_save(obs.LOG_INFO, f"\n\n{qr['str']}")
         log_save(obs.LOG_INFO, f"字符串二维码已输出，如果乱码或者扫描不上，建议再次点击 按钮【二维码添加账号】获取图片")
         # 获取二维码扫描登陆状态
-        GlobalVariableOfData.loginQrCodeReturn = BilibiliApiGeneric(
-            ssl_verification=GlobalVariableOfData.sslVerification).poll(GlobalVariableOfData.loginQrCode_key)
+        GlobalVariableOfData.loginQrCodeReturn = get_b_a_g().poll(GlobalVariableOfData.loginQrCode_key)
         log_save(obs.LOG_INFO, f"开始轮询登录状态")
         # 轮询登录状态
         log_save(
@@ -4519,11 +4558,9 @@ class ButtonFunction:
             @return: cookies，超时为{}
             """
             # 获取uid对应的cookies
-            b_u_l_c = BilibiliUserLogsIn2ConfigFile(GlobalVariableOfData.scriptsUsersConfigFilepath)
-            user_list_dict = b_u_l_c.get_users()
+            user_list_dict = get_b_u_l_c().get_users()
             code_old = GlobalVariableOfData.loginQrCodeReturn['code']
-            GlobalVariableOfData.loginQrCodeReturn = BilibiliApiGeneric(
-                ssl_verification=GlobalVariableOfData.sslVerification).poll(GlobalVariableOfData.loginQrCode_key)
+            GlobalVariableOfData.loginQrCodeReturn = get_b_a_g().poll(GlobalVariableOfData.loginQrCode_key)
             # 二维码扫描登陆状态改变时，输出改变后状态
             if code_old != GlobalVariableOfData.loginQrCodeReturn['code']:
                 log_save(
@@ -4544,20 +4581,22 @@ class ButtonFunction:
                     uid = int(cookies['DedeUserID'])
                     if str(uid) in user_list_dict.values():
                         log_save(obs.LOG_DEBUG, "已有该用户，正在更新用户登录信息")
-                        b_u_l_c.update_user(cookies, False)
+                        get_b_u_l_c().update_user(cookies, False)
                     else:
-                        b_u_l_c.add_user(cookies)
+                        get_b_u_l_c().add_user(cookies)
                         log_save(obs.LOG_INFO, f"添加用户成功")
                         if widget.ComboBox.uid.Dictionary == {'-1': '添加或选择一个账号登录'}:
-                            b_u_l_c.update_user(cookies)
+                            get_b_u_l_c().update_user(cookies)
                         log_save(obs.LOG_INFO, "请点击按钮【更新账号列表】，更新用户列表")
                 else:
                     log_save(obs.LOG_INFO, f"添加用户失败: {GlobalVariableOfData.loginQrCodeReturn}")
                 # 结束计时器
                 obs.remove_current_callback()
 
-        # 开始计时器
+            clear_cache()        # 开始计时器
         obs.timer_add(check_poll, 1000)
+
+        clear_cache()
         return True
 
     @staticmethod
@@ -4582,10 +4621,6 @@ class ButtonFunction:
     def button_function_del_user(*args):
         """
         删除用户
-        Args:
-            props:
-            prop:
-        Returns:
         """
         if len(args) == 2:
             props = args[0]
@@ -4600,16 +4635,17 @@ class ButtonFunction:
         # ＝     删除      ＝
         # ＝＝＝＝＝＝＝＝＝＝＝
         log_save(obs.LOG_INFO, f"即将删除的账号：{uid}")
-        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        get_b_u_l_c().delete_user(uid)
+
+        clear_cache()
 
         # 更新脚本控制台中的控件
-        if b_u_l_c.get_users()[0] == uid:
+        if get_b_u_l_c().get_users()[0] == uid:
             GlobalVariableOfData.update_widget_for_props_dict = widget.props_Collection
         else:
             GlobalVariableOfData.update_widget_for_props_dict = {
                 "account_props": widget.props_Collection["account_props"]
             }
-        b_u_l_c.delete_user(uid)
         log_save(obs.LOG_INFO, f"更新控件配置信息")
         script_defaults(GlobalVariableOfData.script_settings)
         # 更新脚本用户小部件
@@ -4622,10 +4658,6 @@ class ButtonFunction:
     def button_function_backup_users(*args):
         """
         备份用户
-        Args:
-            props:
-            prop:
-        Returns:
         """
         if len(args) == 2:
             props = args[0]
@@ -4638,10 +4670,6 @@ class ButtonFunction:
     def button_function_restore_user(*args):
         """
         恢复用户
-        Args:
-            props:
-            prop:
-        Returns:
         """
         if len(args) == 2:
             props = args[0]
@@ -4654,10 +4682,6 @@ class ButtonFunction:
     def button_function_logout(*args):
         """
         登出
-        Args:
-            props:
-            prop:
-        Returns:
         """
         if len(args) == 2:
             props = args[0]
@@ -4673,8 +4697,9 @@ class ButtonFunction:
         # ＝＝＝＝＝＝＝＝＝＝＝＝
         # 移除默认账户
         log_save(obs.LOG_INFO, f"即将登出的账号：{uid}")
-        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-        b_u_l_c.update_user(None)
+        get_b_u_l_c().update_user(None)
+
+        clear_cache()
 
         # 更新脚本控制台中的控件
         GlobalVariableOfData.update_widget_for_props_dict = widget.props_Collection
@@ -4694,11 +4719,8 @@ class ButtonFunction:
             prop = args[1]
         if len(args) == 3:
             settings = args[2]
-        # 创建用户配置文件实例
-        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-        b_a_m = BilibiliApiMaster(Tools.dict2cookie(b_u_l_c.get_cookies()), GlobalVariableOfData.sslVerification)
         # 开通直播间
-        create_live_room_return = b_a_m.create_live_room()
+        create_live_room_return = get_b_a_m().create_live_room()
         log_save(obs.LOG_INFO, f"开通直播间返回值: {create_live_room_return}")
         # 处理API响应
         code = create_live_room_return.get("code", -1)
@@ -4718,6 +4740,8 @@ class ButtonFunction:
         else:
             # 其他错误
             log_save(obs.LOG_INFO, f"开通直播间失败: {message} (代码: {code})")
+
+        clear_cache()
         return True
 
     @staticmethod
@@ -4728,10 +4752,8 @@ class ButtonFunction:
             prop = args[1]
         if len(args) == 3:
             settings = args[2]
-        # 创建用户配置文件实例
-        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
         # 获取登录用户的uid
-        uid = b_u_l_c.get_users()[0]
+        uid = get_b_u_l_c().get_users()[0]
         log_save(obs.LOG_INFO, f"获取登录用户的uid：{uid}")
         # 获取人脸认证的链接
         qr_url = f"https://account.bilibili.com/h5/account-h5/middle-redirect?mid={uid}"
@@ -4743,36 +4765,20 @@ class ButtonFunction:
         else:
             log_save(obs.LOG_ERROR, f"未登录")
 
+        clear_cache()
+        return False
+
     @staticmethod
     def button_function_check_room_cover(*args):
         """
         查看直播间封面
-        Args:
-            props:
-            prop:
-        Returns:
         """
         if len(args) == 2:
             props = args[0]
             prop = args[1]
         if len(args) == 3:
             settings = args[2]
-        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-        b_a_g = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification)
-        # 获取 '登录用户' 对应的直播间基础信息
-        room_info_old = b_a_g.get_room_info_old(int(b_u_l_c.get_users()[0]))
-        """直播间基础信息"""
-        log_save(obs.LOG_INFO, f"║║登录账户 的 直播间基础信息：{room_info_old}")
-        # 获取 '登录用户' 的 直播间id
-        room_id = room_info_old["roomid"]
-        """登录用户的直播间id"""
-        log_save(obs.LOG_INFO, f"║║登录账户 的 直播间id：{room_id}")
-        # 获取 '登录用户' 直播间基本信息
-        room_base_info = b_a_g.get_room_base_info(room_id)
-        """直播间基本信息"""
-        log_save(obs.LOG_INFO, f"║║登录账户 的 直播间基本信息：{room_base_info}")
-        # 获取 '登录用户' 直播间封面链接
-        room_cover_url = room_base_info["cover"]
+        room_cover_url = get_room_base_info()["cover"]
         """登录用户直播间封面链接"""
         log_save(obs.LOG_INFO, f"║║登录账户 的 直播间封面链接：{room_cover_url}")
 
@@ -4781,11 +4787,13 @@ class ButtonFunction:
         log_save(obs.LOG_INFO, f"显示16:9封面")
         log_save(obs.LOG_INFO, f"格式: {room_cover_pillow_img.format}，尺寸: {room_cover_pillow_img.size}")
         room_cover_pillow_img.show()
-        room_cover_pillow_img0403 = Tools.pil_image2central_proportion_cutting(room_cover_pillow_img, 4 / 3)
+        # room_cover_pillow_img0403 = Tools.pil_image2central_proportion_cutting(room_cover_pillow_img, 4 / 3)
         # log_save(obs.LOG_INFO, f"展示4:3图片")
         # log_save(obs.LOG_INFO, f"格式: {room_cover_pillow_img0403.format}，尺寸: {room_cover_pillow_img0403.size}")
         # room_cover_pillow_img0403.show()
-        pass
+
+        clear_cache()
+        return False
 
     @staticmethod
     def button_function_update_room_cover(*args):
@@ -4796,8 +4804,9 @@ class ButtonFunction:
         if len(args) == 3:
             settings = args[2]
         # 获取文件对话框内容
-        widget.PathBox.roomCover.Text = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
-                                                                'room_cover_fileDialogBox')
+        widget.PathBox.roomCover.Text = obs.obs_data_get_string(
+            GlobalVariableOfData.script_settings,widget.PathBox.roomCover.Name
+        )
         log_save(obs.LOG_INFO, f"获得图片文件：{widget.PathBox.roomCover.Text}")
         if widget.PathBox.roomCover.Text:
             pil_image = Image.open(widget.PathBox.roomCover.Text)
@@ -4808,7 +4817,8 @@ class ButtonFunction:
             pil_image1609zooming_width1020 = pil_image1609 if pil_image1609_w < 1020 else Tools.pil_image2zooming(
                 pil_image1609,
                 4,
-                target_width=1020)
+                target_width=1020
+            )
             log_save(obs.LOG_INFO, f"限制宽<1020，进行缩放，缩放后大小：{pil_image1609zooming_width1020.size}")
             pil_image1609 = Tools.pil_image2central_proportion_cutting(pil_image1609zooming_width1020, 16 / 9)
             log_save(obs.LOG_INFO, f"缩放后图片16:9裁切后大小(宽X高)：{pil_image1609.size}")
@@ -4819,12 +4829,8 @@ class ButtonFunction:
             pil_image1609zooming_width1020_binary = Tools.pil_image2binary(pil_image1609zooming_width1020,
                                                                            img_format="JPEG",
                                                                            compress_level=0)
-            # 创建用户配置文件实例
-            b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-            b_a_c_authentication = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                                     cookie=Tools.dict2cookie(b_u_l_c.get_cookies()))
             # 上传封面图片返回
-            upload_cover_return = b_a_c_authentication.upload_cover(pil_image1609zooming_width1020_binary)
+            upload_cover_return = get_b_a_m().upload_cover(pil_image1609zooming_width1020_binary)
             log_save(obs.LOG_INFO, f"上传封面返回：{upload_cover_return}")
             if upload_cover_return["code"] == 0:
                 # log_save(obs.LOG_INFO, f"展示4:3图片")
@@ -4835,7 +4841,7 @@ class ButtonFunction:
                 # 获得封面图片链接
                 cover_url = upload_cover_return['data']['location']
                 log_save(obs.LOG_INFO, f"获得封面链接：{cover_url}")
-                update_cover_return = b_a_c_authentication.update_cover(cover_url)
+                update_cover_return = get_b_a_m().update_cover(cover_url)
                 log_save(obs.LOG_INFO, f"更改封面返回：{upload_cover_return}")
                 if update_cover_return["code"] == 0:
                     log_save(obs.LOG_INFO, f"更改封面成功")
@@ -4848,6 +4854,8 @@ class ButtonFunction:
         else:
             log_save(obs.LOG_WARNING, "未获取到图片")
             return False
+
+        clear_cache()
         return True
 
     @staticmethod
@@ -4858,10 +4866,8 @@ class ButtonFunction:
             prop = args[1]
         if len(args) == 3:
             settings = args[2]
-        # 创建用户配置文件实例
-        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
         # 获取登录用户的uid
-        uid = b_u_l_c.get_users()[0]
+        uid = get_b_u_l_c().get_users()[0]
         log_save(obs.LOG_INFO, f"获取登录用户的uid：{uid}")
         # 获取人脸认证的链接
         qr_url = f"https://www.bilibili.com/blackboard/live/face-auth-middle.html?source_event=400&mid={uid}"
@@ -4873,14 +4879,17 @@ class ButtonFunction:
         else:
             log_save(obs.LOG_ERROR, f"未登录")
 
+        clear_cache()
+        return False
+
     @staticmethod
     def button_function_true_live_room_title(*args):
+        """将可 可编辑组合框【常用标题】 中的文本 复制到 普通文本框【直播间标题】 """
         if len(args) == 2:
             props = args[0]
             prop = args[1]
         if len(args) == 3:
             settings = args[2]
-        """将可 可编辑组合框【常用标题】 中的文本 复制到 普通文本框【直播间标题】 """
         # 获取 可编辑组合框【常用标题】 当前 显示文本
         title_text = obs.obs_data_get_string(
             GlobalVariableOfData.script_settings, widget.ComboBox.roomCommonTitles.Name
@@ -4908,13 +4917,7 @@ class ButtonFunction:
         title_textbox_t = obs.obs_data_get_string(GlobalVariableOfData.script_settings, widget.TextBox.roomTitle.Name)
         """标题文本框中的文本"""
 
-        # 获取 '默认账户' cookie
-        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-        b_a_m = BilibiliApiMaster(Tools.dict2cookie(b_u_l_c.get_cookies()), GlobalVariableOfData.sslVerification)
-        # 创建用户常用直播间标题实例
-        c_t_m = CommonTitlesManager(directory=Path(GlobalVariableOfData.scriptsDataDirpath))
-
-        turn_title_return = b_a_m.change_room_title(title_textbox_t)
+        turn_title_return = get_b_a_m().change_room_title(title_textbox_t)
         """更改标题的返回值"""
         log_save(obs.LOG_INFO, f"更改直播间标题返回消息：{turn_title_return}")
         if turn_title_return['code'] == 0:
@@ -4922,13 +4925,14 @@ class ButtonFunction:
         else:
             log_save(obs.LOG_INFO, f"直播间标题更改失败{turn_title_return['message']}")
             return False
-        c_t_m.add_title(b_u_l_c.get_users()[0], title_textbox_t)
+        get_c_t_m().add_title(get_b_u_l_c().get_users()[0], title_textbox_t)
 
         widget.ComboBox.roomCommonTitles.Text = title_textbox_t
         widget.ComboBox.roomCommonTitles.Value = "0"
 
         widget.TextBox.roomTitle.Text = title_textbox_t
 
+        clear_cache()
 
         # 更新脚本控制台中的控件
         GlobalVariableOfData.update_widget_for_props_dict = {
@@ -4957,11 +4961,7 @@ class ButtonFunction:
         room_news_textbox_t = obs.obs_data_get_string(GlobalVariableOfData.script_settings,widget.TextBox.roomNews.Name)
         """公告文本框中的文本"""
 
-        # 创建用户配置文件实例
-        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-        b_a_m = BilibiliApiMaster(Tools.dict2cookie(b_u_l_c.get_cookies()), GlobalVariableOfData.sslVerification)
-
-        turn_news_return = b_a_m.change_room_news(room_news_textbox_t)
+        turn_news_return = get_b_a_m().change_room_news(room_news_textbox_t)
         """更改公告的返回值"""
         if turn_news_return['code'] == 0:
             log_save(obs.LOG_INFO, f"直播间公告更改成功: {room_news_textbox_t}")
@@ -4969,6 +4969,8 @@ class ButtonFunction:
             log_save(obs.LOG_INFO, f"直播间公告更改失败{turn_news_return['message']}")
             return False
         widget.TextBox.roomNews.Text = room_news_textbox_t
+
+        clear_cache()
         return True
 
     @staticmethod
@@ -5023,9 +5025,8 @@ class ButtonFunction:
             log_save(obs.LOG_WARNING, "请选择一级分区")
             return False
 
-        b_g_a = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification)
         # 获取B站直播分区信息
-        area_obj_data_list = b_g_a.get_area_obj_list()
+        area_obj_data_list = get_b_a_g().get_area_obj_list()
 
         # 获取 登录账户 的 直播间父分区 对应的 直播间子分区数据
         sub_live_area_name4sub_live_area_id = {}
@@ -5057,6 +5058,8 @@ class ButtonFunction:
             widget.ComboBox.roomSubArea.Name,
             obs.obs_property_list_item_string(widget.ComboBox.roomSubArea.Obj, 0)
         )
+
+        clear_cache()
         return True
 
     @staticmethod
@@ -5077,12 +5080,7 @@ class ButtonFunction:
             GlobalVariableOfData.script_settings,widget.ComboBox.roomSubArea.Name
         )
 
-        # 创建用户配置文件实例
-        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-        b_a_g = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification)
-        b_a_m = BilibiliApiMaster(Tools.dict2cookie(b_u_l_c.get_cookies()), GlobalVariableOfData.sslVerification)
-
-        change_room_area_return = b_a_m.change_room_area(int(sub_live_area_combobox_value))
+        change_room_area_return = get_b_a_m().change_room_area(int(sub_live_area_combobox_value))
         log_save(obs.LOG_INFO, f"更新直播间分区返回：{change_room_area_return}")
         if change_room_area_return["code"] == 0:
             log_save(obs.LOG_INFO, f"直播间分区更改成功: {sub_live_area_combobox_value}")
@@ -5092,55 +5090,21 @@ class ButtonFunction:
             log_save(obs.LOG_WARNING, f"直播间分区更改失败：{change_room_area_return['message']}")
             return False
 
-        room_info_old = b_a_g.get_room_info_old(int(b_u_l_c.get_users()[0]))
-        """直播间基础信息"""
-        room_id = room_info_old["roomid"]
-        """登录用户的直播间id"""
-        common_areas = b_a_g.get_anchor_common_areas(room_id)["data"]
-        """获取 '登录用户' 直播间 常用分区信息】[{"id": "255", "name": "明日方舟", "parent_id": "3", "parent_name": "手游",}, ]"""
-        room_base_info = b_a_g.get_room_base_info(room_id)
-        """直播间基本信息"""
-        area_obj_data_list = b_a_g.get_area_obj_list()
-        """B站直播分区信息"""
-
-        # 获取常用直播间分区字典
-        common_area_id_dict_str4common_area_name_dict_str = {}
-        for common_area in common_areas:
-            common_area_id = json.dumps({common_area['parent_id']: common_area['id']}, ensure_ascii=False)
-            common_area_name = json.dumps({common_area['parent_name']: common_area['name']}, ensure_ascii=False)
-            common_area_id_dict_str4common_area_name_dict_str[common_area_id] = common_area_name
-        log_save(obs.LOG_INFO, f"常用分区更新：{list(common_area_id_dict_str4common_area_name_dict_str.values())}")
-        # 获取 '登录用户' 直播间的分区
-        area = {
-            "parent_area_id": room_base_info["parent_area_id"],
-            "parent_area_name": room_base_info["parent_area_name"],
-            "area_id": room_base_info["area_id"],
-            "area_name": room_base_info["area_name"],
-        }
-        """登录用户的直播间分区】{"parent_area_id": 3, "parent_area_name": "手游", "area_id": 255, "area_name": "明日方舟"}"""
-        log_save(obs.LOG_INFO, f"登录账户 的 直播间分区数据更新：{area}")
-        # 获取 登录账户 的 直播间父分区 对应的 直播间子分区数据
-        sub_live_area_name4sub_live_area_id = {}
-        for AreaObjData in area_obj_data_list["data"]:
-            if str(parent_live_area_combobox_value) == str(AreaObjData["id"]):
-                for subAreaObj in AreaObjData["list"]:
-                    sub_live_area_name4sub_live_area_id[str(subAreaObj["id"])] = subAreaObj["name"]
-                break
-        log_save(obs.LOG_INFO, f"子分区数据更新{sub_live_area_name4sub_live_area_id}")
-
         # 更改默认常用直播间分区
-        common_areas_text = list(common_area_id_dict_str4common_area_name_dict_str.values())[0]
+        common_areas_text = list(get_common_area_id_dict_str4common_area_name_dict_str().values())[0]
         widget.ComboBox.roomCommonAreas.Text = common_areas_text
-        common_areas_value = list(common_area_id_dict_str4common_area_name_dict_str.keys())[0]
+        common_areas_value = list(get_common_area_id_dict_str4common_area_name_dict_str().keys())[0]
         widget.ComboBox.roomCommonAreas.Value = common_areas_value
-        widget.ComboBox.roomCommonAreas.Dictionary = common_area_id_dict_str4common_area_name_dict_str
+        widget.ComboBox.roomCommonAreas.Dictionary = get_common_area_id_dict_str4common_area_name_dict_str()
 
-        widget.ComboBox.roomParentArea.Text = area["parent_area_name"]
-        widget.ComboBox.roomParentArea.Value = area["parent_area_id"]
+        widget.ComboBox.roomParentArea.Text = get_area()["parent_area_name"]
+        widget.ComboBox.roomParentArea.Value = get_area()["parent_area_id"]
 
-        widget.ComboBox.roomSubArea.Text = sub_live_area_name4sub_live_area_id[str(area["area_id"])]
-        widget.ComboBox.roomSubArea.Value = area["area_id"]
-        widget.ComboBox.roomSubArea.Dictionary = sub_live_area_name4sub_live_area_id
+        widget.ComboBox.roomSubArea.Text = get_sub_live_area_name4sub_live_area_id()[str(get_area()["area_id"])]
+        widget.ComboBox.roomSubArea.Value = get_area()["area_id"]
+        widget.ComboBox.roomSubArea.Dictionary = get_sub_live_area_name4sub_live_area_id()
+
+        clear_cache()
 
         # 更新脚本控制台中的控件
         GlobalVariableOfData.update_widget_for_props_dict = {
@@ -5158,10 +5122,6 @@ class ButtonFunction:
     def button_function_jump_blive_web(*args):
         """
         跳转直播间后台网页
-        Args:
-            props:
-            prop:
-        Returns:
         """
         if len(args) == 2:
             props = args[0]
@@ -5190,11 +5150,7 @@ class ButtonFunction:
         )
         log_save(obs.LOG_INFO, f"使用【{live_streaming_platform}】平台 在【{sub_live_area_combobox_value}】分区 开播")
 
-        # 获取默认账户
-        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-        b_a_m = BilibiliApiMaster(Tools.dict2cookie(b_u_l_c.get_cookies()), GlobalVariableOfData.sslVerification)
-
-        start_live = b_a_m.start_live(int(sub_live_area_combobox_value), live_streaming_platform)
+        start_live = get_b_a_m().start_live(int(sub_live_area_combobox_value), live_streaming_platform)
         log_save(obs.LOG_INFO, f"开播返回：{start_live}")
         if start_live["code"] == 0:
             log_save(obs.LOG_INFO, f"开播成功。")
@@ -5203,6 +5159,9 @@ class ButtonFunction:
                 ButtonFunction.button_function_face_auth()
             log_save(obs.LOG_ERROR, f"开播失败：【{start_live['message']}】。")
             return True
+
+        widget.ComboBox.liveStreamingPlatform.Text = widget.ComboBox.liveStreamingPlatform.Dictionary[live_streaming_platform]
+        widget.ComboBox.liveStreamingPlatform.Value = live_streaming_platform
 
         # 推流地址
         rtmp_server = start_live["data"]["rtmp"]["addr"]
@@ -5228,13 +5187,18 @@ class ButtonFunction:
         if currently_rtmp_push_code == rtmp_push_code and currently_rtmp_server == rtmp_server and currently_service_string == "Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP":
             log_save(obs.LOG_INFO, f"推流信息未发生变化，准备推流")
             if obs.obs_frontend_streaming_active():
-                log_save(obs.LOG_INFO, f"正处于推流状态中。。。")
-                pass
+                log_save(obs.LOG_INFO, f"正在推流状态中")
             else:
-                log_save(obs.LOG_INFO, f"直接开始推流")
+                log_save(obs.LOG_INFO, f"即将开始推流")
+                GlobalVariableOfData.causeOfTheFrontDeskIncident = "开始直播并复制推流码"
                 obs.obs_frontend_streaming_start()
         else:
             log_save(obs.LOG_INFO, f"推流信息发生变化，更改推流信息")
+            # 停止推流
+            if obs.obs_frontend_streaming_active():
+                log_save(obs.LOG_INFO, f"正处于推流状态中，停止推流")
+                GlobalVariableOfData.causeOfTheFrontDeskIncident = "开始直播并复制推流码"
+                obs.obs_frontend_streaming_stop()
             # 写入推流服务
             obs.obs_data_set_string(streaming_service_settings, "service", "Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP")
             log_save(obs.LOG_INFO, f"向obs写入推流服务：【Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP】")
@@ -5248,37 +5212,23 @@ class ButtonFunction:
             obs.obs_service_update(streaming_service, streaming_service_settings)
             # 检查是否需要重启推流
             log_save(obs.LOG_INFO, f"准备推流")
-            if obs.obs_frontend_streaming_active():
-                log_save(obs.LOG_INFO, f"由于：正处于推流状态中】➡️开始重启推流")
-                # 停止推流
-                log_save(obs.LOG_INFO, f"重启推流第一步：停止推流")
-                obs.obs_frontend_streaming_stop()
 
-                # 设置定时器稍后重启
-                def restart_streaming():
-                    """重启推流"""
-                    if not obs.obs_frontend_streaming_active():
-                        log_save(obs.LOG_INFO, f"重启推流第三步：开始推流")
-                        obs.obs_frontend_streaming_start()
-                        log_save(obs.LOG_INFO, f"重启推流第4️⃣步：关闭重启推流的计时器")
-                        obs.remove_current_callback()
-
-                log_save(obs.LOG_INFO, f"重启推流第二步：开启重启推流的计时器，3s间隔， 避免第一步未完成")
-                obs.timer_add(restart_streaming, 3000)
-            else:
-                log_save(obs.LOG_INFO, f"由于：当前并未正在推流】➡️直接开始推流")
+            if not obs.obs_frontend_streaming_active():
+                log_save(obs.LOG_INFO, f"开始推流")
+                GlobalVariableOfData.causeOfTheFrontDeskIncident = "开始直播并复制推流码"
                 obs.obs_frontend_streaming_start()
-        currently_service_string = obs.obs_data_get_string(streaming_service_settings, "service")
-        log_save(obs.LOG_INFO, f"目前obs的推流服务：【{currently_service_string}】")
-        currently_rtmp_server = obs.obs_data_get_string(streaming_service_settings, "server")
-        log_save(obs.LOG_INFO, f"目前obs的rtmp推流地址：【{currently_rtmp_server}】")
-        currently_rtmp_push_code = obs.obs_data_get_string(streaming_service_settings, "key")
-        log_save(obs.LOG_INFO, f"目前obs的rtmp推流码：【{currently_rtmp_push_code}】")
+            currently_service_string = obs.obs_data_get_string(streaming_service_settings, "service")
+            log_save(obs.LOG_INFO, f"目前obs的推流服务：【{currently_service_string}】")
+            currently_rtmp_server = obs.obs_data_get_string(streaming_service_settings, "server")
+            log_save(obs.LOG_INFO, f"目前obs的rtmp推流地址：【{currently_rtmp_server}】")
+            currently_rtmp_push_code = obs.obs_data_get_string(streaming_service_settings, "key")
+            log_save(obs.LOG_INFO, f"目前obs的rtmp推流码：【{currently_rtmp_push_code}】")
         # 释放流服务设置
         obs.obs_data_release(streaming_service_settings)
         # 保存到配置文件
         obs.obs_frontend_save_streaming_service()
 
+        clear_cache()
 
         # 更新脚本控制台中的控件
         GlobalVariableOfData.update_widget_for_props_dict = {
@@ -5296,22 +5246,15 @@ class ButtonFunction:
 
     @staticmethod
     def button_function_rtmp_address_copy(*args):
+        """
+        复制直播服务器
+        """
         if len(args) == 2:
             props = args[0]
             prop = args[1]
         if len(args) == 3:
             settings = args[2]
-        """
-        复制直播服务器
-        Args:
-            props:
-            prop:
-        Returns:
-        """
-        # 获取默认账户
-        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-        stream_addr = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                        cookie=Tools.dict2cookie(b_u_l_c.get_cookies())).get_live_stream_info()
+        stream_addr = get_b_a_m().get_live_stream_info()
         log_save(obs.LOG_INFO, f"获取直播服务器返回：{stream_addr}")
         if stream_addr["code"] == 0:
             log_save(obs.LOG_INFO, f"获取直播服务器成功")
@@ -5320,26 +5263,21 @@ class ButtonFunction:
             log_save(obs.LOG_INFO, f"已将 直播服务器 复制到剪贴板")
         else:
             log_save(obs.LOG_ERROR, f"获取直播服务器失败：{stream_addr['error']}")
+
+        clear_cache()
         return True
 
     @staticmethod
     def button_function_rtmp_stream_code_copy(*args):
         """
         复制直播推流码
-        Args:
-            props:
-            prop:
-        Returns:
         """
         if len(args) == 2:
             props = args[0]
             prop = args[1]
         if len(args) == 3:
             settings = args[2]
-        # 获取默认账户
-        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-        stream_addr = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                        cookie=Tools.dict2cookie(b_u_l_c.get_cookies())).get_live_stream_info()
+        stream_addr = get_b_a_m().get_live_stream_info()
         log_save(obs.LOG_INFO, f"获取直播推流码返回：{stream_addr}")
         if stream_addr["code"] == 0:
             log_save(obs.LOG_INFO, f"获取直播推流码成功")
@@ -5349,16 +5287,14 @@ class ButtonFunction:
         else:
             log_save(obs.LOG_ERROR, f"获取直播推流码失败：{stream_addr['message']}")
             return False
+
+        clear_cache()
         return True
 
     @staticmethod
     def button_function_rtmp_stream_code_update(*args):
         """
         更新推流码并复制
-        Args:
-            props:
-            prop:
-        Returns:
         """
         if len(args) == 2:
             props = args[0]
@@ -5366,14 +5302,11 @@ class ButtonFunction:
         if len(args) == 3:
             settings = args[2]
         # 获取开播平台
-        live_streaming_platform = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
-                                                          'live_streaming_platform_comboBox')
+        live_streaming_platform = obs.obs_data_get_string(
+            GlobalVariableOfData.script_settings,widget.ComboBox.liveStreamingPlatform.Name
+        )
         log_save(obs.LOG_INFO, f"使用【{live_streaming_platform}】平台 开播")
-        # 获取默认账户
-        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-        stream_addr = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                        cookie=Tools.dict2cookie(b_u_l_c.get_cookies())).fetch_stream_addr(
-            live_streaming_platform, True)
+        stream_addr = get_b_a_m().fetch_stream_addr(live_streaming_platform, True)
         log_save(obs.LOG_INFO, f"更新直播推流码返回：{stream_addr}")
         if stream_addr["code"] == 0:
             log_save(obs.LOG_INFO, f"更新直播推流码成功")
@@ -5385,21 +5318,24 @@ class ButtonFunction:
             return False
         # 重新开播
         ButtonFunction.button_function_stop_live()
+
+        clear_cache()
         return True
 
     @staticmethod
     def button_function_stop_live(*args):
+        """
+        结束直播
+        """
         if len(args) == 2:
             props = args[0]
             prop = args[1]
         if len(args) == 3:
             settings = args[2]
-        """
-        结束直播
-        """
         # 停止推流
         if obs.obs_frontend_streaming_active():
             log_save(obs.LOG_INFO, f"停止推流")
+            GlobalVariableOfData.causeOfTheFrontDeskIncident = "结束直播"
             obs.obs_frontend_streaming_stop()
 
         # 获取开播平台
@@ -5407,10 +5343,7 @@ class ButtonFunction:
                                                           'live_streaming_platform_comboBox')
         log_save(obs.LOG_INFO, f"在【{live_streaming_platform}】平台 结束直播")
 
-        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-        stop_live = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                      cookie=Tools.dict2cookie(b_u_l_c.get_cookies())).stop_live(
-            live_streaming_platform)
+        stop_live = get_b_a_m().stop_live(live_streaming_platform)
         log_save(obs.LOG_INFO, f"停播返回：{stop_live}")
         if stop_live["code"] == 0:
             log_save(obs.LOG_INFO, f"停播成功。")
@@ -5418,6 +5351,7 @@ class ButtonFunction:
             log_save(obs.LOG_ERROR, f"停播失败：【{stop_live['message']}】。")
             return False
 
+        clear_cache()
 
         # 更新脚本控制台中的控件
         GlobalVariableOfData.update_widget_for_props_dict = {
@@ -5544,11 +5478,8 @@ class ButtonFunction:
         )
         log_save(obs.LOG_INFO, f"直播预约是否发动态: {live_bookings_dynamic_is}")
 
-        # 获取默认账户
-        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-        b_a_m = BilibiliApiMaster(Tools.dict2cookie(b_u_l_c.get_cookies()), GlobalVariableOfData.sslVerification)
         # 创建直播预约
-        create_reserve_return = b_a_m.create_reserve(
+        create_reserve_return = get_b_a_m().create_reserve(
             title=live_bookings_title,
             live_plan_start_time=Tools.get_future_timestamp(
                 live_bookings_day,
@@ -5565,6 +5496,8 @@ class ButtonFunction:
             if create_reserve_return['code'] == -400:
                 log_save(obs.LOG_ERROR, f"直播预约标题错误: 【{live_bookings_title}】")
             return False
+
+        clear_cache()
 
         # 更新脚本控制台中的控件
         GlobalVariableOfData.update_widget_for_props_dict = {
@@ -5594,16 +5527,15 @@ class ButtonFunction:
         if live_bookings_sid in ["-1"]:
             log_save(obs.LOG_ERROR, f"无直播预约")
             return False
-        # 获取默认账户
-        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-        b_a_m = BilibiliApiMaster(Tools.dict2cookie(b_u_l_c.get_cookies()), GlobalVariableOfData.sslVerification)
-        cancel_reserve_return = b_a_m.cancel_reserve(live_bookings_sid)
+        cancel_reserve_return = get_b_a_m().cancel_reserve(live_bookings_sid)
         log_save(obs.LOG_INFO, f"取消直播预约返回: {cancel_reserve_return}")
         if cancel_reserve_return['code'] == 0:
             log_save(obs.LOG_INFO, f"取消直播预约成功")
         else:
             log_save(obs.LOG_ERROR, f"取消直播预约失败: {cancel_reserve_return['message']}")
             return False
+
+        clear_cache()
 
         # 更新脚本控制台中的控件
         GlobalVariableOfData.update_widget_for_props_dict = {
