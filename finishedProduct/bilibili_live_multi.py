@@ -3779,7 +3779,7 @@ def script_defaults(settings):  # 设置其默认值
 
         if widget.Group.account.Name in update_widget_for_props_name:
             widget.Group.account.Visible = True
-            widget.Group.account.Enabled = True
+            widget.Group.account.Enabled = not bool(get_live_status())
 
         if widget.Group.room.Name in update_widget_for_props_name:
             widget.Group.room.Visible = True
@@ -3887,6 +3887,14 @@ def script_defaults(settings):  # 设置其默认值
         if widget.Button.roomOpened.Name in update_widget_for_props_name:
             widget.Button.roomOpened.Visible = (not bool(get_room_status())) if b_u_l_c.get_cookies() else False
             widget.Button.roomOpened.Enabled = (not bool(get_room_status())) if b_u_l_c.get_cookies() else False
+
+        if widget.Button.realNameAuthentication.Name in update_widget_for_props_name:
+            if b_u_l_c.get_cookies():
+                widget.Button.realNameAuthentication.Visible = not bool(get_room_status())
+                widget.Button.realNameAuthentication.Enabled = not bool(get_room_status())
+            else:
+                widget.Button.realNameAuthentication.Visible = False
+                widget.Button.realNameAuthentication.Enabled = False
 
         if widget.Button.roomCoverView.Name in update_widget_for_props_name:
             widget.Button.roomCoverView.Visible = bool(get_room_status())
@@ -4465,6 +4473,8 @@ class ButtonFunction:
         GlobalVariableOfData.update_widget_for_props_dict = {
             "account_props": widget.props_Collection["account_props"]
         }
+        if widget.ComboBox.uid.Dictionary == {'-1': '添加或选择一个账号登录'}:
+            GlobalVariableOfData.update_widget_for_props_dict =widget.props_Collection
         log_save(obs.LOG_INFO, f"更新控件配置信息")
         script_defaults(GlobalVariableOfData.script_settings)
         # 更新脚本用户小部件
@@ -4505,7 +4515,7 @@ class ButtonFunction:
         GlobalVariableOfData.loginQRCodePillowImg = qr["img"]
         # 输出二维码图形字符串
         log_save(obs.LOG_INFO, f"\n\n{qr['str']}")
-        log_save(obs.LOG_INFO, f"字符串二维码已输出，如果乱码或者扫描不上，建议点击 按钮【显示登录二维码图片】")
+        log_save(obs.LOG_INFO, f"字符串二维码已输出，如果乱码或者扫描不上，建议再次点击 按钮【二维码添加账号】获取图片")
         # 获取二维码扫描登陆状态
         GlobalVariableOfData.loginQrCodeReturn = BilibiliApiGeneric(
             ssl_verification=GlobalVariableOfData.sslVerification).poll(GlobalVariableOfData.loginQrCode_key)
@@ -4528,13 +4538,16 @@ class ButtonFunction:
             GlobalVariableOfData.loginQrCodeReturn = BilibiliApiGeneric(
                 ssl_verification=GlobalVariableOfData.sslVerification).poll(GlobalVariableOfData.loginQrCode_key)
             # 二维码扫描登陆状态改变时，输出改变后状态
-            log_save(obs.LOG_WARNING,
-                     str(ExplanatoryDictionary.information4login_qr_return_code[
-                             GlobalVariableOfData.loginQrCodeReturn['code']])) if code_old != \
-                                                                                  GlobalVariableOfData.loginQrCodeReturn[
-                                                                                      'code'] else None
-            if GlobalVariableOfData.loginQrCodeReturn['code'] == 0 or GlobalVariableOfData.loginQrCodeReturn[
-                'code'] == 86038:
+            if code_old != GlobalVariableOfData.loginQrCodeReturn['code']:
+                log_save(
+                    obs.LOG_WARNING,
+                    str(
+                        ExplanatoryDictionary.information4login_qr_return_code[
+                            GlobalVariableOfData.loginQrCodeReturn['code']
+                        ]
+                    )
+                )
+            if GlobalVariableOfData.loginQrCodeReturn['code'] in [0, 86038]:
                 log_save(obs.LOG_INFO, "轮询结束")
                 GlobalVariableOfData.loginQRCodePillowImg = None
                 # 二维码扫描登陆状态为成功或者超时时获取cookies结束[轮询二维码扫描登陆状态]
@@ -4547,11 +4560,12 @@ class ButtonFunction:
                         b_u_l_c.update_user(cookies, False)
                     else:
                         b_u_l_c.add_user(cookies)
-                        log_save(obs.LOG_INFO, "添加用户成功")
-                        # 请点击按钮【更新账号列表】，更新用户列表
+                        log_save(obs.LOG_INFO, f"添加用户成功")
+                        if widget.ComboBox.uid.Dictionary == {'-1': '添加或选择一个账号登录'}:
+                            b_u_l_c.update_user(cookies)
                         log_save(obs.LOG_INFO, "请点击按钮【更新账号列表】，更新用户列表")
                 else:
-                    log_save(obs.LOG_INFO, "添加用户失败")
+                    log_save(obs.LOG_INFO, f"添加用户失败: {GlobalVariableOfData.loginQrCodeReturn}")
                 # 结束计时器
                 obs.remove_current_callback()
 
@@ -4695,9 +4709,9 @@ class ButtonFunction:
             settings = args[2]
         # 创建用户配置文件实例
         b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        b_a_m = BilibiliApiMaster(Tools.dict2cookie(b_u_l_c.get_cookies()), GlobalVariableOfData.sslVerification)
         # 开通直播间
-        create_live_room_return = BilibiliApiMaster(ssl_verification=GlobalVariableOfData.sslVerification,
-                                                    cookie=Tools.dict2cookie(b_u_l_c.get_cookies())).create_live_room()
+        create_live_room_return = b_a_m.create_live_room()
         log_save(obs.LOG_INFO, f"开通直播间返回值: {create_live_room_return}")
         # 处理API响应
         code = create_live_room_return.get("code", -1)
@@ -4711,10 +4725,36 @@ class ButtonFunction:
         elif code == 1531193016:
             # 已经创建过直播间
             log_save(obs.LOG_INFO, "已经创建过直播间")
+        elif code == -802:
+            log_save(obs.LOG_INFO, "未实名认证，请使用B站手机端登陆账号扫码认证")
+            ButtonFunction.button_function_real_name_authentication()
         else:
             # 其他错误
             log_save(obs.LOG_INFO, f"开通直播间失败: {message} (代码: {code})")
         return True
+
+    @staticmethod
+    def button_function_real_name_authentication(*args):
+        """实名认证"""
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        # 创建用户配置文件实例
+        b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+        # 获取登录用户的uid
+        uid = b_u_l_c.get_users()[0]
+        log_save(obs.LOG_INFO, f"获取登录用户的uid：{uid}")
+        # 获取人脸认证的链接
+        qr_url = f"https://account.bilibili.com/h5/account-h5/middle-redirect?mid={uid}"
+        log_save(obs.LOG_INFO, f"获取实名认证的链接：{qr_url}")
+        if uid:
+            # 获取二维码对象
+            qr = Tools.qr_text8pil_img(qr_url)
+            qr['img'].show()
+        else:
+            log_save(obs.LOG_ERROR, f"未登录")
 
     @staticmethod
     def button_function_check_room_cover(*args):
@@ -4825,12 +4865,12 @@ class ButtonFunction:
 
     @staticmethod
     def button_function_face_auth(*args):
+        """展示人脸认证的二维码"""
         if len(args) == 2:
             props = args[0]
             prop = args[1]
         if len(args) == 3:
             settings = args[2]
-        """展示人脸认证的二维码"""
         # 创建用户配置文件实例
         b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
         # 获取登录用户的uid
@@ -5155,13 +5195,6 @@ class ButtonFunction:
             prop = args[1]
         if len(args) == 3:
             settings = args[2]
-        # # 执行更改直播间标题
-        # ButtonFunction.button_function_change_live_room_title()
-        # # 执行更改直播间公告
-        # ButtonFunction.button_function_change_live_room_news()
-        # # 执行更改直播间分区
-        # ButtonFunction.button_function_start_sub_area()
-        #
         # 获取二级分区id
         sub_live_area_combobox_value = widget.ComboBox.roomSubArea.Value
         # 获取开播平台
@@ -5262,7 +5295,8 @@ class ButtonFunction:
 
         # 更新脚本控制台中的控件
         GlobalVariableOfData.update_widget_for_props_dict = {
-            "room_props": {"room_status_textBox"},
+            "props": {widget.Group.account.Name},
+            "room_props": {widget.TextBox.roomStatus.Name},
             "live_props": widget.props_Collection["live_props"]
         }
         log_save(obs.LOG_INFO, f"更新控件配置信息")
@@ -5400,7 +5434,8 @@ class ButtonFunction:
 
         # 更新脚本控制台中的控件
         GlobalVariableOfData.update_widget_for_props_dict = {
-            "room_props": {"room_status_textBox"},
+            "props": {widget.Group.account.Name},
+            "room_props": {widget.TextBox.roomStatus.Name},
             "live_props": widget.props_Collection["live_props"]
         }
         log_save(obs.LOG_INFO, f"更新控件配置信息")
@@ -5854,6 +5889,13 @@ widget.widget_Button_dict = {
             "Callback": ButtonFunction.button_function_opened_room,
             "ModifiedIs": False
         },
+        "realNameAuthentication": {
+            "Name": "real_name_authentication_button",
+            "Description": "实名认证",
+            "Type": obs.OBS_BUTTON_DEFAULT,
+            "Callback": ButtonFunction.button_function_real_name_authentication,
+            "ModifiedIs": False
+        },
         "roomCoverView": {
             "Name": "room_cover_view_button",
             "Description": "查看直播间封面",
@@ -6017,6 +6059,7 @@ widget.widget_list = [
     "room_group",
     "room_status_textBox",
     "room_opened_button",
+    "real_name_authentication_button",
     "room_cover_view_button",
     "room_cover_fileDialogBox",
     "room_cover_update_button",
