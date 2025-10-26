@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B站弹幕接收器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            flex: 1;
+            margin: 0 10px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .messages-container {
+            height: 600px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-danmu {
+            background: rgba(76, 175, 80, 0.2);
+            border-left: 4px solid #4CAF50;
+        }
+
+        .message-gift {
+            background: rgba(255, 193, 7, 0.2);
+            border-left: 4px solid #FFC107;
+        }
+
+        .message-interact {
+            background: rgba(33, 150, 243, 0.2);
+            border-left: 4px solid #2196F3;
+        }
+
+        .message-live_start {
+            background: rgba(244, 67, 54, 0.2);
+            border-left: 4px solid #F44336;
+        }
+
+        .message-system {
+            background: rgba(156, 39, 176, 0.2);
+            border-left: 4px solid #9C27B0;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .message-content {
+            font-size: 1.1rem;
+        }
+
+        .user-info {
+            font-weight: bold;
+        }
+
+        .medal-info {
+            color: #FFD700;
+        }
+
+        .wealth-info {
+            color: #FF9800;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background: #4CAF50;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn:hover {
+            background: #45a049;
+        }
+
+        .btn-disconnect {
+            background: #f44336;
+        }
+
+        .btn-disconnect:hover {
+            background: #da190b;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .status-connected {
+            background: #4CAF50;
+            box-shadow: 0 0 10px #4CAF50;
+        }
+
+        .status-disconnected {
+            background: #f44336;
+        }
+
+        .status-connecting {
+            background: #FFC107;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>B站弹幕接收器</h1>
+            <p>实时接收和显示B站直播弹幕消息</p>
+        </div>
+
+        <div class="connection-status">
+            <div class="status-indicator status-disconnected" id="statusIndicator"></div>
+            <span id="statusText">未连接</span>
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="connectBtn">连接</button>
+            <button class="btn btn-disconnect" id="disconnectBtn" disabled>断开</button>
+            <button class="btn" id="clearBtn">清空消息</button>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="messageCount">0</div>
+                <div>消息总数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="danmuCount">0</div>
+                <div>弹幕数量</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="giftCount">0</div>
+                <div>礼物数量</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="userCount">0</div>
+                <div>互动用户</div>
+            </div>
+        </div>
+
+        <div class="messages-container" id="messagesContainer">
+            <!-- 消息将在这里显示 -->
+        </div>
+    </div>
+
+    <script>
+        class DanmuWebSocketClient {
+            constructor() {
+                this.socket = null;
+                this.isConnected = false;
+                this.messageCount = 0;
+                this.danmuCount = 0;
+                this.giftCount = 0;
+                this.userCount = 0;
+                this.users = new Set();
+
+                this.initializeElements();
+                this.bindEvents();
+            }
+
+            initializeElements() {
+                this.statusIndicator = document.getElementById('statusIndicator');
+                this.statusText = document.getElementById('statusText');
+                this.messagesContainer = document.getElementById('messagesContainer');
+                this.messageCountElement = document.getElementById('messageCount');
+                this.danmuCountElement = document.getElementById('danmuCount');
+                this.giftCountElement = document.getElementById('giftCount');
+                this.userCountElement = document.getElementById('userCount');
+            }
+
+            bindEvents() {
+                document.getElementById('connectBtn').addEventListener('click', () => this.connect());
+                document.getElementById('disconnectBtn').addEventListener('click', () => this.disconnect());
+                document.getElementById('clearBtn').addEventListener('click', () => this.clearMessages());
+            }
+
+            connect() {
+                this.updateStatus('connecting', '连接中...');
+
+                try {
+                    this.socket = new WebSocket('ws://localhost:8765');
+
+                    this.socket.onopen = () => {
+                        this.isConnected = true;
+                        this.updateStatus('connected', '已连接');
+                        this.enableControls(true);
+                        this.addSystemMessage('成功连接到弹幕服务器');
+                    };
+
+                    this.socket.onmessage = (event) => {
+                        try {
+                            const data = JSON.parse(event.data);
+                            this.handleMessage(data);
+                        } catch (error) {
+                            console.error('解析消息错误:', error);
+                        }
+                    };
+
+                    this.socket.onclose = () => {
+                        this.isConnected = false;
+                        this.updateStatus('disconnected', '连接已断开');
+                        this.enableControls(false);
+                        this.addSystemMessage('连接已断开');
+                    };
+
+                    this.socket.onerror = (error) => {
+                        console.error('WebSocket错误:', error);
+                        this.updateStatus('disconnected', '连接错误');
+                        this.addSystemMessage('连接发生错误');
+                    };
+
+                } catch (error) {
+                    console.error('创建连接错误:', error);
+                    this.updateStatus('disconnected', '连接失败');
+                    alert('连接失败: ' + error.message);
+                }
+            }
+
+            disconnect() {
+                if (this.socket) {
+                    this.socket.close();
+                    this.socket = null;
+                }
+            }
+
+            handleMessage(data) {
+                this.messageCount++;
+                this.messageCountElement.textContent = this.messageCount;
+
+                // 根据消息类型处理
+                switch (data.type) {
+                    case 'danmu':
+                        this.danmuCount++;
+                        this.danmuCountElement.textContent = this.danmuCount;
+                        this.addDanmuMessage(data);
+                        break;
+
+                    case 'gift':
+                        this.giftCount++;
+                        this.giftCountElement.textContent = this.giftCount;
+                        this.addGiftMessage(data);
+                        break;
+
+                    case 'interact':
+                        if (data.user && !this.users.has(data.user)) {
+                            this.users.add(data.user);
+                            this.userCountElement.textContent = this.users.size;
+                        }
+                        this.addInteractMessage(data);
+                        break;
+
+                    case 'live_start':
+                        this.addLiveStartMessage(data);
+                        break;
+
+                    case 'system':
+                        this.addSystemMessage(data.message);
+                        break;
+
+                    default:
+                        this.addUnknownMessage(data);
+                }
+            }
+
+            addDanmuMessage(data) {
+                const messageElement = document.createElement('div');
+                messageElement.className = 'message message-danmu';
+
+                const time = new Date(data.timestamp * 1000).toLocaleTimeString();
+
+                messageElement.innerHTML = `
+                    <div class="message-header">
+                        <span>${time}</span>
+                        <span>弹幕</span>
+                    </div>
+                    <div class="message-content">
+                        <span class="wealth-info">${data.wealth || ''}</span>
+                        <span class="medal-info">${data.medal || ''}</span>
+                        <span class="user-info">${data.user}</span>：
+                        ${data.content}
+                        ${data.reply_to ? `<span style="color: #888;">${data.reply_to}</span>` : ''}
+                    </div>
+                `;
+
+                this.messagesContainer.appendChild(messageElement);
+                this.scrollToBottom();
+            }
+
+            addGiftMessage(data) {
+                const messageElement = document.createElement('div');
+                messageElement.className = 'message message-gift';
+
+                const time = new Date(data.timestamp * 1000).toLocaleTimeString();
+                const price = (data.total_coin / 1000).toFixed(2);
+
+                messageElement.innerHTML = `
+                    <div class="message-header">
+                        <span>${time}</span>
+                        <span>礼物</span>
+                    </div>
+                    <div class="message-content">
+                        <span class="wealth-info">${data.wealth || ''}</span>
+                        <span class="medal-info">${data.medal || ''}</span>
+                        <span class="user-info">${data.user}</span>
+                        赠送了 ${data.gift_count} 个 ${data.gift_name} (${price}元)
+                    </div>
+                `;
+
+                this.messagesContainer.appendChild(messageElement);
+                this.scrollToBottom();
+            }
+
+            addInteractMessage(data) {
+                const messageElement = document.createElement('div');
+                messageElement.className = 'message message-interact';
+
+                const time = new Date(data.timestamp * 1000).toLocaleTimeString();
+
+                messageElement.innerHTML = `
+                    <div class="message-header">
+                        <span>${time}</span>
+                        <span>互动</span>
+                    </div>
+                    <div class="message-content">
+                        <span class="wealth-info">${data.wealth || ''}</span>
+                        <span class="medal-info">${data.medal || ''}</span>
+                        <span class="user-info">${data.user}</span>
+                        ${data.action}
+                    </div>
+                `;
+
+                this.messagesContainer.appendChild(messageElement);
+                this.scrollToBottom();
+            }
+
+            addLiveStartMessage(data) {
+                const messageElement = document.createElement('div');
+                messageElement.className = 'message message-live_start';
+
+                const time = new Date(data.timestamp * 1000).toLocaleTimeString();
+
+                messageElement.innerHTML = `
+                    <div class="message-header">
+                        <span>${time}</span>
+                        <span>直播开始</span>
+                    </div>
+                    <div class="message-content">
+                        🔴 直播开始！房间: ${data.roomid} | 平台: ${data.live_platform}
+                    </div>
+                `;
+
+                this.messagesContainer.appendChild(messageElement);
+                this.scrollToBottom();
+            }
+
+            addSystemMessage(message) {
+                const messageElement = document.createElement('div');
+                messageElement.className = 'message message-system';
+
+                const time = new Date().toLocaleTimeString();
+
+                messageElement.innerHTML = `
+                    <div class="message-header">
+                        <span>${time}</span>
+                        <span>系统</span>
+                    </div>
+                    <div class="message-content">${message}</div>
+                `;
+
+                this.messagesContainer.appendChild(messageElement);
+                this.scrollToBottom();
+            }
+
+            addUnknownMessage(data) {
+                const messageElement = document.createElement('div');
+                messageElement.className = 'message';
+
+                const time = new Date(data.timestamp * 1000).toLocaleTimeString();
+
+                messageElement.innerHTML = `
+                    <div class="message-header">
+                        <span>${time}</span>
+                        <span>未知消息</span>
+                    </div>
+                    <div class="message-content">
+                        未知命令: ${data.cmd}
+                    </div>
+                `;
+
+                this.messagesContainer.appendChild(messageElement);
+                this.scrollToBottom();
+            }
+
+            clearMessages() {
+                this.messagesContainer.innerHTML = '';
+                this.messageCount = 0;
+                this.danmuCount = 0;
+                this.giftCount = 0;
+                this.messageCountElement.textContent = '0';
+                this.danmuCountElement.textContent = '0';
+                this.giftCountElement.textContent = '0';
+            }
+
+            scrollToBottom() {
+                this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+            }
+
+            updateStatus(status, text) {
+                this.statusIndicator.className = 'status-indicator';
+                this.statusIndicator.classList.add(`status-${status}`);
+                this.statusText.textContent = text;
+            }
+
+            enableControls(connected) {
+                document.getElementById('connectBtn').disabled = connected;
+                document.getElementById('disconnectBtn').disabled = !connected;
+            }
+        }
+
+        // 初始化客户端
+        document.addEventListener('DOMContentLoaded', () => {
+            new DanmuWebSocketClient();
+        });
+    </script>
+</body>
+</html>

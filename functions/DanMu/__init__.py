@@ -9,7 +9,7 @@ import zlib
 from collections import deque
 from collections.abc import Callable
 from pathlib import Path
-from typing import Optional, Union, Dict, Any
+from typing import Set, Optional, Union, Dict, Any
 from function.api.Authentication.Wbi.get_danmu_info import WbiSigna
 from function.api.Special.Get.get_user_live_info import BilibiliCSRFAuthenticator
 from function.tools.EncodingConversion.parse_cookie import parse_cookie
@@ -18,6 +18,131 @@ from function.tools.EncodingConversion.DanmuProtoDecoder import DanmuProtoDecode
 from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
 
 import websockets
+
+
+class DanmuWebSocketServer:
+    def __init__(self, host='localhost', port=8765):
+        self.host = host
+        self.port = port
+        self.connected_clients: Set[websockets.WebSocketServerProtocol] = set()
+        self.server = None
+        self.danmu_processor = None
+
+    async def register(self, websocket):
+        """注册新的客户端连接"""
+        self.connected_clients.add(websocket)
+        print(f"新的网页客户端连接，当前连接数: {len(self.connected_clients)}")
+
+        # 发送欢迎消息
+        welcome_msg = {
+            "type": "system",
+            "message": "弹幕服务器连接成功",
+            "timestamp": time.time(),
+            "clients_count": len(self.connected_clients)
+        }
+        await websocket.send(json.dumps(welcome_msg))
+
+    async def unregister(self, websocket):
+        """移除断开连接的客户端"""
+        self.connected_clients.remove(websocket)
+        print(f"网页客户端断开，当前连接数: {len(self.connected_clients)}")
+
+    async def broadcast_message(self, message: Dict[str, Any]):
+        """向所有连接的客户端广播消息"""
+        if not self.connected_clients:
+            return
+
+        message_json = json.dumps(message, ensure_ascii=False)
+
+        # 使用 gather 并行发送消息
+        disconnected_clients = []
+
+        for client in self.connected_clients:
+            try:
+                await client.send(message_json)
+            except websockets.exceptions.ConnectionClosed:
+                disconnected_clients.append(client)
+
+        # 移除断开连接的客户端
+        for client in disconnected_clients:
+            self.connected_clients.remove(client)
+
+    async def handle_client(self, websocket):
+        """处理客户端连接"""
+        # path = websocket.path  # 从 websocket 对象中获取路径
+        await self.register(websocket)
+        try:
+            # 保持连接，等待客户端消息
+            async for message in websocket:
+                try:
+                    data = json.loads(message)
+                    await self.handle_client_message(websocket, data)
+                except json.JSONDecodeError:
+                    error_msg = {
+                        "type": "error",
+                        "message": "无效的JSON格式",
+                        "timestamp": time.time()
+                    }
+                    await websocket.send(json.dumps(error_msg))
+        except websockets.exceptions.ConnectionClosed:
+            pass
+        finally:
+            await self.unregister(websocket)
+
+    async def handle_client_message(self, websocket, data):
+        """处理来自客户端的消息"""
+        message_type = data.get("type")
+
+        if message_type == "ping":
+            # 响应 ping 消息
+            pong_msg = {
+                "type": "pong",
+                "timestamp": time.time()
+            }
+            await websocket.send(json.dumps(pong_msg))
+        elif message_type == "get_stats":
+            # 返回服务器统计信息
+            stats_msg = {
+                "type": "stats",
+                "clients_count": len(self.connected_clients),
+                "timestamp": time.time()
+            }
+            await websocket.send(json.dumps(stats_msg))
+
+    def send_danmu_message(self, danmu_data: Dict[str, Any]):
+        """从弹幕处理线程发送消息（线程安全）"""
+        if self.server_loop and self.server_loop.is_running():
+            asyncio.run_coroutine_threadsafe(
+                self.broadcast_message(danmu_data),
+                self.server_loop
+            )
+
+    def start_server(self):
+        """启动 WebSocket 服务器"""
+
+        async def start():
+            self.server = await websockets.serve(
+                self.handle_client,
+                self.host,
+                self.port
+            )
+            print(f"弹幕转发服务器启动在 ws://{self.host}:{self.port}")
+
+        self.server_loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self.server_loop)
+        self.server_loop.run_until_complete(start())
+        self.server_loop.run_forever()
+
+    def stop_server(self):
+        """停止服务器"""
+        if self.server:
+            self.server.close()
+            if self.server_loop and self.server_loop.is_running():
+                self.server_loop.stop()
+
+
+# 全局 WebSocket 服务器实例
+danmu_ws_server = DanmuWebSocketServer()
 
 
 class Danmu:
@@ -328,12 +453,20 @@ if __name__ == "__main__":
 
     # 在 main 部分添加
     def signal_handler(signum, frame):
-        print("\n正在停止弹幕连接...")
+        print("\n正在停止弹幕连接和WebSocket服务器...")
         cdm.stop()
+        danmu_ws_server.stop_server()
         sys.exit(0)
 
 
     signal.signal(signal.SIGINT, signal_handler)
+
+    # 启动 WebSocket 服务器
+    ws_thread = threading.Thread(target=danmu_ws_server.start_server, daemon=True)
+    ws_thread.start()
+    print("WebSocket 服务器启动中...")
+    time.sleep(2)  # 等待服务器启动
+
     BULC = BilibiliUserConfigManager(Path('../../cookies/config.json'))
     cookies = BULC.get_user_cookies()['data']
     Headers = {
@@ -414,6 +547,14 @@ if __name__ == "__main__":
 
             print(f'🔴直播开始：房间{roomid} 时间{live_time} 平台[{live_platform}]')
             pass
+            # 转发到 WebSocket
+            danmu_ws_server.send_danmu_message({
+                "type": "live_start",
+                "roomid": roomid,
+                "live_time": live_time,
+                "live_platform": live_platform,
+                "timestamp": time.time()
+            })
         elif content['cmd'] == "COMBO_SEND":
             contentdata = content['data']
             ufo = contentdata['uname']
@@ -454,6 +595,16 @@ if __name__ == "__main__":
                 wfo = str(contentinfo[-2])
             print(f"{wfo}{mfo}{ufo}:\n\t>>>{afo}{tfo}")
             pass
+            # 转发到 WebSocket
+            danmu_ws_server.send_danmu_message({
+                "type": "danmu",
+                "user": ufo,
+                "medal": mfo,
+                "wealth": wfo,
+                "content": tfo,
+                "reply_to": afo.strip(),
+                "timestamp": time.time()
+            })
         elif content['cmd'] == "DM_INTERACTION":
             # 交互信息合并 (DM_INTERACTION)
             # 注: 连续多条相同弹幕时触发
@@ -542,6 +693,16 @@ if __name__ == "__main__":
                 except:
                     pass
                 print(f"{tfo}：\t{wfo}{mfo}{ufo}")
+                # 转发到 WebSocket
+                danmu_ws_server.send_danmu_message({
+                    "type": "interact",
+                    "user": ufo,
+                    "medal": mfo,
+                    "wealth": wfo,
+                    "action": tfo,
+                    "msg_type": contentdata['msg_type'],
+                    "timestamp": time.time()
+                })
             except:
                 print(contentdata)
             pass
@@ -844,6 +1005,18 @@ if __name__ == "__main__":
                 tfo += f"{contentdata['action']}{contentdata['num']}个《{contentdata['giftName']}》"
             print(f'🎁礼物：\t{wfo}{mfo}{ufo}\t{tfo}')
             pass
+            # 转发到 WebSocket
+            danmu_ws_server.send_danmu_message({
+                "type": "gift",
+                "user": ufo,
+                "medal": mfo,
+                "wealth": wfo,
+                "gift_name": contentdata.get('giftName', ''),
+                "gift_count": contentdata['num'],
+                "total_coin": contentdata['total_coin'],
+                "message": tfo,
+                "timestamp": time.time()
+            })
         elif content['cmd'] == "SUPER_CHAT_MESSAGE":
             contentdata = content['data']
 
@@ -971,14 +1144,26 @@ if __name__ == "__main__":
             contentdata = content
             print(json.dumps(contentdata))
             pass
+            # 转发未处理的消息类型
+            danmu_ws_server.send_danmu_message({
+                "type": "unknown",
+                "cmd": content['cmd'],
+                "data": content,
+                "timestamp": time.time()
+            })
 
 
     cdm.Callable_opt_code5 = danmu_processing
 
     try:
         threading.Thread(target=cdm.start).start()
+        print("弹幕连接已启动，WebSocket 服务器运行中...")
+        print(f"网页客户端可以连接到: ws://localhost:8765")
+
+        # 保持主线程运行
         while True:
-            pass
+            time.sleep(1)
     except KeyboardInterrupt:
         print("程序被用户中断")
         cdm.stop()
+        danmu_ws_server.stop_server()
