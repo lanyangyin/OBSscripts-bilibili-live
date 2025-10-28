@@ -158,11 +158,18 @@
                         });
                     };
 
-                    this.socket.onclose = () => {
-                        this.isConnected = false;
-                        this.updateStatus('disconnected', '连接已断开');
-                        this.enableControls(false);
-                        this.addSystemMessage('连接已断开');
+                    this.socket.onmessage = (event) => {
+                        try {
+                            const data = JSON.parse(event.data);
+                            this.handleMessage(data);
+                        } catch (error) {
+                            this.addSystemMessage({
+                                type: 'system',
+                                message: '解析消息错误',
+                                timestamp: Date.now() / 1000
+                            });
+                            console.error('解析消息错误:', error);
+                        }
                     };
 
                     this.socket.onerror = (error) => {
