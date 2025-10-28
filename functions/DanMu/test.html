@@ -93,7 +93,6 @@
                 this.reconnectTimer = null;
 
                 // 统计变量
-                this.danmuCount = 0;
                 this.interactCount = 0;
                 this.giftCount = 0;
                 this.systemCount = 0;
@@ -150,7 +149,6 @@
                     this.socket.onopen = () => {
                         this.isConnecting = false;
                         this.reconnectAttempts = 0;
-                        this.enableControls(true);
                         this.addSystemMessage({
                             type: 'system',
                             message: '成功连接到弹幕服务器',
@@ -177,11 +175,11 @@
                         this.isConnecting = false;
 
                         if (this.autoReconnect) {
-                           this.handleReconnect();
+                            this.handleReconnect();
                         } else {
                             this.addSystemMessage({
                                 type: 'system',
-                                message: '连接发生错误',
+                                message: '连接已断开',
                                 timestamp: Date.now() / 1000
                             });
                         }
@@ -225,8 +223,6 @@
                 // 根据消息类型处理
                 switch (data.type) {
                     case 'danmu':
-                        this.danmuCount++;
-                        this.danmuBadge.textContent = this.danmuCount;
                         this.addDanmuMessage(data);
                         break;
 
@@ -271,7 +267,7 @@
 						this.popularRankCount = data.rank;
 						this.popularRankElement.textContent = this.popularRankCount
 						break;
-						
+
                     case 'red_pocket_winners':
                     case 'super_chat_delete':
                     case 'guardian_notice':
@@ -623,11 +619,6 @@
 
             scrollToBottom(container) {
                 container.scrollTop = container.scrollHeight;
-            }
-
-            enableControls(connected) {
-                document.getElementById('connectBtn').disabled = connected;
-                document.getElementById('disconnectBtn').disabled = !connected;
             }
         }
 

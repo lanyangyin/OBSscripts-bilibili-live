@@ -565,12 +565,9 @@ if __name__ == "__main__":
             })
 
         elif content['cmd'] == "ONLINE_RANK_COUNT":
-            # # 直播间高能用户数量 (ONLINE_RANK_COUNT)
-            # contentdata = content['data']
-            # print(f"🧑🔢高能用户数：\t{contentdata['count']}")
-            pass
             contentdata = content['data']
             print(f"🧑🔢高能用户数：\t{contentdata['count']}")
+            pass
             # 转发到 WebSocket
             danmu_ws_server.send_danmu_message({
                 "type": "online_rank_count",
