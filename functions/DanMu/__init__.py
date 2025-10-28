@@ -537,16 +537,12 @@ if __name__ == "__main__":
         print()
         if content['cmd'] == "LIVE":
             # 直播开始 (LIVE)
-            # 注：请求了开始直播接口、开始向服务器推流时下发。
             contentdata = content
-
-            # 提取直播开始信息
             roomid = contentdata['roomid']
             live_time = contentdata['live_time']
             live_platform = contentdata['live_platform']
 
             print(f'🔴直播开始：房间{roomid} 时间{live_time} 平台[{live_platform}]')
-            pass
             # 转发到 WebSocket
             danmu_ws_server.send_danmu_message({
                 "type": "live_start",
@@ -555,6 +551,7 @@ if __name__ == "__main__":
                 "live_platform": live_platform,
                 "timestamp": time.time()
             })
+
         elif content['cmd'] == "COMBO_SEND":
             contentdata = content['data']
             ufo = contentdata['uname']
@@ -570,15 +567,34 @@ if __name__ == "__main__":
             coin = f"{contentdata['combo_total_coin'] / 1000}￥"
             tfo += f"{contentdata['batch_combo_num']}个《{contentdata['gift_name']}》\t{coin}"
             print(f'⛓🎁连续礼物：{wfo}{mfo}{ufo}\t{tfo}')
+            # 转发到 WebSocket
+            danmu_ws_server.send_danmu_message({
+                "type": "combo_gift",
+                "user": ufo,
+                "medal": mfo,
+                "wealth": wfo,
+                "gift_name": contentdata['gift_name'],
+                "combo_num": contentdata['batch_combo_num'],
+                "total_coin": contentdata['combo_total_coin'],
+                "message": tfo,
+                "timestamp": time.time()
+            })
+
         elif content['cmd'] == "COMMON_NOTICE_DANMAKU":
             # 星球守护者
             contentdata = content['data']
             tfo = f""
             tfo += contentdata['content_segments'][0]["text"]
             print(f'🌎星球守护者：\t{tfo}')
+            # 转发到 WebSocket
+            danmu_ws_server.send_danmu_message({
+                "type": "guardian_notice",
+                "message": tfo,
+                "timestamp": time.time()
+            })
+
         elif content['cmd'] == "DANMU_MSG":
             # 弹幕 (DANMU_MSG)
-            # 注: 当收到弹幕时接收到此条消息, 10 进制转 16 进制若位数不足则在左侧补 0
             contentinfo = content['info']
             contentinfo[0][15]['extra'] = json.loads(contentinfo[0][15]['extra'])
             tfo = contentinfo[0][15]['extra']['content']
@@ -594,7 +610,6 @@ if __name__ == "__main__":
             if contentinfo[-2] != [0]:
                 wfo = str(contentinfo[-2])
             print(f"{wfo}{mfo}{ufo}:\n\t>>>{afo}{tfo}")
-            pass
             # 转发到 WebSocket
             danmu_ws_server.send_danmu_message({
                 "type": "danmu",
@@ -605,9 +620,9 @@ if __name__ == "__main__":
                 "reply_to": afo.strip(),
                 "timestamp": time.time()
             })
+
         elif content['cmd'] == "DM_INTERACTION":
             # 交互信息合并 (DM_INTERACTION)
-            # 注: 连续多条相同弹幕时触发
             contentdata = content['data']
             contentdata['data'] = json.loads(contentdata['data'])
             tfo = "❓连续发送弹幕或点赞"
@@ -619,26 +634,47 @@ if __name__ == "__main__":
             elif contentdata['type'] == 106:
                 tfo = f"⛓👍连续点赞：\t{contentdata['data']['cnt']}\t{contentdata['data']['suffix_text']}"
             print(f"{tfo}")
+            # 转发到 WebSocket
+            danmu_ws_server.send_danmu_message({
+                "type": "interaction_combo",
+                "combo_type": contentdata['type'],
+                "message": tfo,
+                "data": contentdata,
+                "timestamp": time.time()
+            })
             pass
+
         elif content['cmd'] == "ENTRY_EFFECT":
             # # 用户进场特效 (ENTRY_EFFECT)
             # # 注: 有进场特效的用户进入直播间
             # contentdata = content['data']
             # print(contentdata)
             pass
+
         elif content['cmd'] == "ENTRY_EFFECT_MUST_RECEIVE":
             # # 必须接受的用户进场特效 (ENTRY_EFFECT_MUST_RECEIVE)
             # # 注: 在部分主播进入自己的直播间时下发。
             # contentdata = content['data']
             # print(contentdata)
             pass
+
         elif content['cmd'] == "GUARD_BUY":
             # 上舰通知 (GUARD_BUY)
-            # 注: 当有用户购买 舰长 / 提督 / 总督 时
             contentdata = content['data']
             tfo = f"🚢上舰：\t{contentdata['username']}\t购买{contentdata['num']}个\t【{contentdata['gift_name']}】"
             print(f"{tfo}")
             pass
+            # 转发到 WebSocket
+            danmu_ws_server.send_danmu_message({
+                "type": "guard_buy",
+                "user": contentdata['username'],
+                "guard_name": contentdata['gift_name'],
+                "guard_count": contentdata['num'],
+                "price": contentdata['price'],
+                "message": tfo,
+                "timestamp": time.time()
+            })
+
         elif content['cmd'] == "HOT_ROOM_NOTIFY":
             contentdata = content['data']
             tfo = ""
@@ -647,6 +683,14 @@ if __name__ == "__main__":
             else:
                 tfo += f"退出刷新"
             print(f"{tfo}")
+            # 转发到 WebSocket
+            danmu_ws_server.send_danmu_message({
+                "type": "hot_room_notify",
+                "exit_no_refresh": contentdata["exit_no_refresh"],
+                "message": tfo,
+                "timestamp": time.time()
+            })
+
         elif content['cmd'] == "INTERACT_WORD":
             # # 用户交互消息(INTERACT_WORD)
             # # 注: 有用户进入直播间、关注主播、分享直播间时触发
@@ -669,12 +713,10 @@ if __name__ == "__main__":
             #     pass
             # print(f"{tfo}：\t{wfo}{mfo}{ufo}")
             pass
+
         elif content['cmd'] == "INTERACT_WORD_V2":
             # 用户交互消息【Proto格式】
-            # 注: 有用户进入直播间、关注主播、分享直播间时触发
             contentdata = content['data']
-            # # print(contentdata['pb'])
-            # contentdata = DanmuProtoDecoder().decode_interact_word_v2_protobuf(contentdata['pb'])
             try:
                 tfo = "❓进入直播间或关注消息或分享直播间"
                 if contentdata['msg_type'] == 1:
@@ -706,6 +748,7 @@ if __name__ == "__main__":
             except:
                 print(contentdata)
             pass
+
         elif content['cmd'] == "LIKE_INFO_V3_CLICK":
             # 直播间用户点赞 (LIKE_INFO_V3_CLICK)
             contentdata = content['data']
@@ -723,6 +766,16 @@ if __name__ == "__main__":
                 pass
             print(f"👍点赞：\t{wfo}{mfo}{ufo}\t{tfo}")
             pass
+            # 转发到 WebSocket
+            danmu_ws_server.send_danmu_message({
+                "type": "like_click",
+                "user": ufo,
+                "medal": mfo,
+                "wealth": wfo,
+                "like_text": tfo,
+                "timestamp": time.time()
+            })
+
         elif content['cmd'] == "LIKE_INFO_V3_NOTICE":
             # # 通知消息
             # contentdata = content['content_segments'] ['data']
@@ -731,16 +784,25 @@ if __name__ == "__main__":
             # content_segments_type = contentdata['content_segments'] ['type']
             # print(content_segments_font_color, content_segments_text, content_segments_type)
             pass
+
         elif content['cmd'] == "LIKE_INFO_V3_UPDATE":
             # 直播间点赞数更新 (LIKE_INFO_V3_UPDATE)
             contentdata = content['data']
             print(f"👍🔢点赞数：\t{contentdata['click_count']}")
+            # 转发到 WebSocket
+            danmu_ws_server.send_danmu_message({
+                "type": "like_update",
+                "click_count": contentdata['click_count'],
+                "timestamp": time.time()
+            })
             pass
+
         elif content['cmd'] == "LIVE_ROOM_TOAST_MESSAGE":
             # # ?视频连线
             # contentdata = content['data']
             # print(contentdata)
             pass
+
         elif content['cmd'] == "master_qn_strategy_chg":
             # # ???
             # contentdata = content['data']  # 字符串'{"mtime":1758875819,"scatter":[0,300]}'
@@ -755,28 +817,41 @@ if __name__ == "__main__":
             # """
             # print(mtime, scatter)
             pass
+
         elif content['cmd'] == "MESSAGEBOX_USER_GAIN_MEDAL":
             # # 获得粉丝勋章 (MESSAGEBOX_USER_GAIN_MEDAL)
             # # 获得时下发。
             # contentdata = content['data']
             # print(contentdata)
             pass
+
         elif content['cmd'] == "MESSAGEBOX_USER_MEDAL_CHANGE":
             # # 粉丝勋章更新 (MESSAGEBOX_USER_MEDAL_CHANGE)
             # # 升级或点亮时下发
             # contentdata = content['data']
             # print(contentdata)
             pass
+
         elif content['cmd'] == "NOTICE_MSG":
             # # 通知消息
             # contentdata = content
             # print(contentdata)
             pass
+
         elif content['cmd'] == "ONLINE_RANK_COUNT":
             # # 直播间高能用户数量 (ONLINE_RANK_COUNT)
             # contentdata = content['data']
             # print(f"🧑🔢高能用户数：\t{contentdata['count']}")
             pass
+            contentdata = content['data']
+            print(f"🧑🔢高能用户数：\t{contentdata['count']}")
+            # 转发到 WebSocket
+            danmu_ws_server.send_danmu_message({
+                "type": "online_rank_count",
+                "count": contentdata['count'],
+                "timestamp": time.time()
+            })
+
         elif content['cmd'] == "ONLINE_RANK_V2":
             # # 直播间高能榜(ONLINE_RANK_V2)
             # # 注: 直播间高能用户数据刷新
@@ -791,6 +866,7 @@ if __name__ == "__main__":
             # """
             # print(high_energy_users_in_the_live_streaming_room_list, rank_type)
             pass
+
         elif content['cmd'] == "ONLINE_RANK_V3":
             # 直播间高能用户相关【Proto格式】
             contentdata = content['data']
@@ -809,6 +885,7 @@ if __name__ == "__main__":
             except:
                 print(contentdata)
             pass
+
         elif content['cmd'] == "PLAYURL_RELOAD":
             contentdata = content['data']
             playurldata = contentdata['playurl']
@@ -856,6 +933,17 @@ if __name__ == "__main__":
 
             print(
                 f'📺视频信息：房间{room_id} 内容{cid} 协议[{protocol_str}] P2P[{p2p_enabled}] 重载间隔[{scatter_time}ms]')
+            # 转发到 WebSocket
+            danmu_ws_server.send_danmu_message({
+                "type": "playurl_reload",
+                "room_id": room_id,
+                "cid": cid,
+                "protocols": protocol_list,
+                "p2p_enabled": p2p_enabled,
+                "scatter_time": scatter_time,
+                "timestamp": time.time()
+            })
+
         elif content['cmd'] == "POPULAR_RANK_CHANGED":
             contentdata = content['data']
             # 排名信息
@@ -868,6 +956,17 @@ if __name__ == "__main__":
             rank_display = f"第{rank}名" if rank > 0 else "未上榜"
 
             print(f'🏆排名变化：{on_rank_name}{rank_name} {rank_display} 主播{uid}')
+            # 转发到 WebSocket
+            danmu_ws_server.send_danmu_message({
+                "type": "popular_rank_changed",
+                "rank": rank,
+                "uid": uid,
+                "rank_name": rank_name,
+                "on_rank_name": on_rank_name,
+                "message": f"{on_rank_name}{rank_name} {rank_display}",
+                "timestamp": time.time()
+            })
+
         elif content['cmd'] == "POPULARITY_RED_POCKET_NEW":
             contentdata = content['data']
             ufo = contentdata['uname']
@@ -880,9 +979,21 @@ if __name__ == "__main__":
                 wfo = f"[{contentdata['wealth_level']}]"
             tfo = ''
             tfo += contentdata['action']
-            coin = contentdata['price']
+            coin = contentdata['price'] / 10
             tfo += f"\t{coin}"
             print(f'🔖红包：\t{wfo}{mfo}{ufo}\t{tfo}')
+            # 转发到 WebSocket
+            danmu_ws_server.send_danmu_message({
+                "type": "red_pocket",
+                "user": ufo,
+                "medal": mfo,
+                "wealth": wfo,
+                "action": contentdata['action'],
+                "price": coin,
+                "message": tfo,
+                "timestamp": time.time()
+            })
+
         elif content['cmd'] == "POPULARITY_RED_POCKET_V2_NEW":
             contentdata = content['data']
             ufo = contentdata['uname']
@@ -895,9 +1006,21 @@ if __name__ == "__main__":
                 wfo = f"[{contentdata['wealth_level']}]"
             tfo = ''
             tfo += contentdata['action']
-            coin = contentdata['price']
+            coin = contentdata['price'] / 10
             tfo += f"\t{coin}"
             print(f'🔖红包：\t{wfo}{mfo}{ufo}\t{tfo}')
+            # 转发到 WebSocket
+            danmu_ws_server.send_danmu_message({
+                "type": "red_pocket_v2",
+                "user": ufo,
+                "medal": mfo,
+                "wealth": wfo,
+                "action": contentdata['action'],
+                "price": coin,
+                "message": tfo,
+                "timestamp": time.time()
+            })
+
         elif content['cmd'] == "POPULARITY_RED_POCKET_V2_WINNER_LIST":
             contentdata = content['data']
 
@@ -921,14 +1044,19 @@ if __name__ == "__main__":
                 winner_list.append(winner_info)
 
             display_winners = winner_list
-            # # 限制显示数量，避免过长
-            # display_winners = winner_list[:5]  # 只显示前5个
-            # if len(winner_list) > 5:
-            #     display_winners.append(f"等{len(winner_list)}人")
-
             winners_str = "、".join(display_winners)
 
             print(f'🧧红包中奖：红包{lot_id} 共{total_num}个礼物 {winners_str}')
+            # 转发到 WebSocket
+            danmu_ws_server.send_danmu_message({
+                "type": "red_pocket_winners",
+                "lot_id": lot_id,
+                "total_num": total_num,
+                "winners": winner_list,
+                "message": f"红包{lot_id} 共{total_num}个礼物 {winners_str}",
+                "timestamp": time.time()
+            })
+
         elif content['cmd'] == "POPULARITY_RED_POCKET_WINNER_LIST":
             contentdata = content['data']
 
@@ -952,34 +1080,43 @@ if __name__ == "__main__":
                 winner_list.append(winner_info)
 
             display_winners = winner_list
-            # # 限制显示数量，避免过长
-            # display_winners = winner_list[:5]  # 只显示前5个
-            # if len(winner_list) > 5:
-            #     display_winners.append(f"等{len(winner_list)}人")
-
             winners_str = "、".join(display_winners)
 
             print(f'🧧红包中奖：红包{lot_id} 共{total_num}个礼物 {winners_str}')
+            # 转发到 WebSocket
+            danmu_ws_server.send_danmu_message({
+                "type": "red_pocket_winners",
+                "lot_id": lot_id,
+                "total_num": total_num,
+                "winners": winner_list,
+                "message": f"红包{lot_id} 共{total_num}个礼物 {winners_str}",
+                "timestamp": time.time()
+            })
+
         elif content['cmd'] == "PREPARING":
             # # 主播准备中 (PREPARING)
             # contentdata = content
             # print(contentdata)
             pass
+
         elif content['cmd'] == "RANK_CHANGED":
             # # 榜单排名
             # contentdata = content['data']
             # print("RANK_CHANGED", contentdata)
             pass
+
         elif content['cmd'] == "RANK_CHANGED_V2":
             # # 榜单排名
             # contentdata = content['data']
             # print("RANK_CHANGED_V2", contentdata)
             pass
+
         elif content['cmd'] == "ROOM_REAL_TIME_MESSAGE_UPDATE":
             # # 主播信息更新 (ROOM_REAL_TIME_MESSAGE_UPDATE)
             # contentdata = content['data']
             # print(contentdata)
             pass
+
         elif content['cmd'] == "SEND_GIFT":
             # 送礼 (SEND_GIFT)
             contentdata = content['data']
@@ -1004,7 +1141,6 @@ if __name__ == "__main__":
             else:
                 tfo += f"{contentdata['action']}{contentdata['num']}个《{contentdata['giftName']}》"
             print(f'🎁礼物：\t{wfo}{mfo}{ufo}\t{tfo}')
-            pass
             # 转发到 WebSocket
             danmu_ws_server.send_danmu_message({
                 "type": "gift",
@@ -1017,6 +1153,7 @@ if __name__ == "__main__":
                 "message": tfo,
                 "timestamp": time.time()
             })
+
         elif content['cmd'] == "SUPER_CHAT_MESSAGE":
             contentdata = content['data']
 
@@ -1034,6 +1171,18 @@ if __name__ == "__main__":
                 mfo = f"【{medal_info['medal_name']}|{medal_info['medal_level']}】"
 
             print(f'💬醒目留言：{mfo}{uname}({uid}) {price}元 {duration}秒 "{message}"')
+            # 转发到 WebSocket
+            danmu_ws_server.send_danmu_message({
+                "type": "super_chat",
+                "user": uname,
+                "uid": uid,
+                "medal": mfo,
+                "price": price,
+                "message": message,
+                "duration": duration,
+                "timestamp": time.time()
+            })
+
         elif content['cmd'] == "SUPER_CHAT_MESSAGE_DELETE":
             contentdata = content['data']
 
@@ -1042,6 +1191,14 @@ if __name__ == "__main__":
             ids_str = "、".join(str(sc_id) for sc_id in ids)
 
             print(f'🗑️醒目留言删除：SC[{ids_str}]')
+            # 转发到 WebSocket
+            danmu_ws_server.send_danmu_message({
+                "type": "super_chat_delete",
+                "ids": ids,
+                "message": f"SC[{ids_str}]",
+                "timestamp": time.time()
+            })
+
         elif content['cmd'] == "SUPER_CHAT_MESSAGE_JPN":
             contentdata = content['data']
 
@@ -1059,6 +1216,18 @@ if __name__ == "__main__":
                 mfo = f"【{medal_info['medal_name']}|{medal_info['medal_level']}】"
 
             print(f'💬🗾醒目留言：{mfo}{uname}({uid}) {price}元 {duration}秒 "{message}"')
+            # 转发到 WebSocket
+            danmu_ws_server.send_danmu_message({
+                "type": "super_chat_jpn",
+                "user": uname,
+                "uid": uid,
+                "medal": mfo,
+                "price": price,
+                "message": message,
+                "duration": duration,
+                "timestamp": time.time()
+            })
+
         elif content['cmd'] == "USER_TOAST_MSG":
             contentdata = content['data']
 
@@ -1075,6 +1244,19 @@ if __name__ == "__main__":
             guard_name = guard_map.get(guard_level, f"未知({guard_level})")
 
             print(f'🚢大航海：{username}({uid}) 开通{guard_name} {price}元/{unit}')
+            # 转发到 WebSocket
+            danmu_ws_server.send_danmu_message({
+                "type": "user_toast",
+                "user": username,
+                "uid": uid,
+                "guard_level": guard_level,
+                "guard_name": guard_name,
+                "price": price,
+                "unit": unit,
+                "message": f"{username}开通{guard_name} {price}元/{unit}",
+                "timestamp": time.time()
+            })
+
         elif content['cmd'] == "USER_TOAST_MSG_V2":
             contentdata = content['data']
 
@@ -1091,22 +1273,47 @@ if __name__ == "__main__":
             guard_name = guard_map.get(guard_level, f"未知({guard_level})")
 
             print(f'🚢大航海：{username}({uid}) 开通{guard_name} {price}元/{unit}')
+            # 转发到 WebSocket
+            danmu_ws_server.send_danmu_message({
+                "type": "user_toast_v2",
+                "user": username,
+                "uid": uid,
+                "guard_level": guard_level,
+                "guard_name": guard_name,
+                "price": price,
+                "unit": unit,
+                "message": f"{username}开通{guard_name} {price}元/{unit}",
+                "timestamp": time.time()
+            })
+
         elif content['cmd'] == "VOICE_JOIN_LIST":
             # # ?语音加入列表
             # contentdata = content['data']
             # print("语音加入列表", contentdata)
             pass
+
         elif content['cmd'] == "VOICE_JOIN_ROOM_COUNT_INFO":
             # # ?语音加入房间计数信息
             # contentdata = content['data']
             # print("语音加入房间计数信息", contentdata)
             pass
+
         elif content['cmd'] == "WATCHED_CHANGE":
             # # 直播间看过人数 (WATCHED_CHANGE)
             # # 注: 当前直播历史观众数量, 可替代人气
             # contentdata = content['data']
             # print(f"👀🔢直播间看过人数：\t{contentdata['num']}|\t{contentdata['text_large']}")
+            contentdata = content['data']
+            print(f"👀🔢直播间看过人数：\t{contentdata['num']}|\t{contentdata['text_large']}")
+            # 转发到 WebSocket
+            danmu_ws_server.send_danmu_message({
+                "type": "watched_change",
+                "num": contentdata['num'],
+                "text_large": contentdata['text_large'],
+                "timestamp": time.time()
+            })
             pass
+
         elif content['cmd'] == "WIDGET_BANNER":
             # # 顶部横幅 (WIDGET_BANNER)
             # # 注: 网页端在直播间标题下面的横幅, 例如 限时任务 等
@@ -1114,6 +1321,7 @@ if __name__ == "__main__":
             # widget_list = contentdata['widget_list']
             # print(widget_list)
             pass
+
         elif content['cmd'] == "WIDGET_GIFT_STAR_PROCESS":
             contentdata = content['data']
 
@@ -1132,6 +1340,16 @@ if __name__ == "__main__":
             progress_str = "、".join(progress_list)
 
             print(f'🌟礼物星球：进度[{progress_str}] 状态[{finished}] 截止{datetime.datetime.fromtimestamp(ddl_time)}')
+            # 转发到 WebSocket
+            danmu_ws_server.send_danmu_message({
+                "type": "widget_gift_star",
+                "finished": contentdata['finished'],
+                "ddl_time": ddl_time,
+                "progress_list": progress_list,
+                "message": f"进度[{progress_str}] 状态[{finished}]",
+                "timestamp": time.time()
+            })
+
         elif content['cmd'] == "STOP_LIVE_ROOM_LIST":
             # # 下播的直播间 (STOP_LIVE_ROOM_LIST)
             # # 注: 估计是更新关注的主播直播状态的
@@ -1139,11 +1357,11 @@ if __name__ == "__main__":
             # stop_live_room_list = contentdata['room_id_list']
             # print(stop_live_room_list)
             pass
+
         else:
             print("❌未收录：", content['cmd'])
             contentdata = content
             print(json.dumps(contentdata))
-            pass
             # 转发未处理的消息类型
             danmu_ws_server.send_danmu_message({
                 "type": "unknown",
@@ -1151,7 +1369,6 @@ if __name__ == "__main__":
                 "data": content,
                 "timestamp": time.time()
             })
-
 
     cdm.Callable_opt_code5 = danmu_processing
 

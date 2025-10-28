@@ -20,7 +20,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 15px;
@@ -57,55 +57,85 @@
             color: #4CAF50;
         }
 
-        /* 选项卡样式 */
-        .tabs {
-            display: flex;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px 10px 0 0;
-            overflow-x: auto;
-        }
-
-        .tab {
-            padding: 12px 20px;
-            cursor: pointer;
-            border: none;
-            background: transparent;
-            color: white;
-            font-size: 1rem;
-            white-space: nowrap;
-            transition: all 0.3s ease;
-        }
-
-        .tab:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .tab.active {
-            background: rgba(76, 175, 80, 0.3);
-            border-bottom: 3px solid #4CAF50;
-        }
-
-        .tab-badge {
-            background: #f44336;
-            color: white;
-            border-radius: 10px;
-            padding: 2px 6px;
-            font-size: 0.8rem;
-            margin-left: 5px;
-        }
-
-        /* 消息容器样式 */
-        .messages-section {
+        /* 折叠布局 */
+        .collapsible-panel.collapsed .messages-container {
             display: none;
-            height: 600px;
-            overflow-y: auto;
+        }
+
+        .collapsible-panel.collapsed .collapse-icon {
+            transform: rotate(-90deg);
+        }
+
+        .collapse-icon {
+            transition: transform 0.3s ease;
+        }
+
+        /* 垂直布局 */
+        .vertical-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .message-panel {
             background: rgba(0, 0, 0, 0.3);
-            border-radius: 0 0 10px 10px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .messages-container {
+            height: 1080px;
+            overflow-y: auto;
             padding: 15px;
         }
 
-        .messages-section.active {
-            display: block;
+        /* 分栏布局 */
+        .columns-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .message-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .panel-header {
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .panel-badge {
+            background: #f44336;
+            color: white;
+            border-radius: 10px;
+            padding: 2px 8px;
+            font-size: 0.8rem;
+        }
+
+        .messages-container {
+            height: 1080px;
+            overflow-y: auto;
+            padding: 15px;
         }
 
         .message {
@@ -134,11 +164,6 @@
         .message-interact {
             background: rgba(33, 150, 243, 0.2);
             border-left: 4px solid #2196F3;
-        }
-
-        .message-live_start {
-            background: rgba(244, 67, 54, 0.2);
-            border-left: 4px solid #F44336;
         }
 
         .message-system {
@@ -185,7 +210,7 @@
         }
 
         .message-content {
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
 
         .user-info {
@@ -206,6 +231,7 @@
             background: rgba(255, 255, 255, 0.1);
             border-radius: 5px;
             font-style: italic;
+            font-size: 0.9rem;
         }
 
         .winners-list {
@@ -282,7 +308,18 @@
             text-align: center;
             padding: 40px;
             color: rgba(255, 255, 255, 0.5);
-            font-size: 1.1rem;
+            font-size: 1rem;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .columns-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .messages-container {
+                height: 1080px;
+            }
         }
     </style>
 </head>
@@ -323,36 +360,167 @@
             </div>
         </div>
 
-        <!-- 选项卡 -->
-        <div class="tabs">
-            <button class="tab active" data-tab="all">全部消息</button>
-            <button class="tab" data-tab="danmu">弹幕 <span class="tab-badge" id="danmuBadge">0</span></button>
-            <button class="tab" data-tab="gift">礼物 <span class="tab-badge" id="giftBadge">0</span></button>
-            <button class="tab" data-tab="interact">互动 <span class="tab-badge" id="interactBadge">0</span></button>
-            <button class="tab" data-tab="system">系统 <span class="tab-badge" id="systemBadge">0</span></button>
+<!--        &lt;!&ndash; 分栏布局 &ndash;&gt;-->
+<!--        <div class="columns-layout">-->
+<!--            &lt;!&ndash; 第一列 &ndash;&gt;-->
+<!--            <div class="column">-->
+<!--                &lt;!&ndash; 弹幕面板 &ndash;&gt;-->
+<!--                <div class="message-panel">-->
+<!--                    <div class="panel-header">-->
+<!--                        <div class="panel-title">🎯 弹幕消息</div>-->
+<!--                        <div class="panel-badge" id="danmuBadge">0</div>-->
+<!--                    </div>-->
+<!--                    <div class="messages-container" id="danmuMessages">-->
+<!--                        <div class="empty-state" id="danmuEmpty">暂无弹幕消息</div>-->
+<!--                    </div>-->
+<!--                </div>-->
+
+<!--                &lt;!&ndash; 互动面板 &ndash;&gt;-->
+<!--                <div class="message-panel">-->
+<!--                    <div class="panel-header">-->
+<!--                        <div class="panel-title">🤝 互动消息</div>-->
+<!--                        <div class="panel-badge" id="interactBadge">0</div>-->
+<!--                    </div>-->
+<!--                    <div class="messages-container" id="interactMessages">-->
+<!--                        <div class="empty-state" id="interactEmpty">暂无互动消息</div>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+
+<!--            &lt;!&ndash; 第二列 &ndash;&gt;-->
+<!--            <div class="column">-->
+<!--                &lt;!&ndash; 礼物面板 &ndash;&gt;-->
+<!--                <div class="message-panel">-->
+<!--                    <div class="panel-header">-->
+<!--                        <div class="panel-title">🎁 礼物消息</div>-->
+<!--                        <div class="panel-badge" id="giftBadge">0</div>-->
+<!--                    </div>-->
+<!--                    <div class="messages-container" id="giftMessages">-->
+<!--                        <div class="empty-state" id="giftEmpty">暂无礼物消息</div>-->
+<!--                    </div>-->
+<!--                </div>-->
+
+<!--                &lt;!&ndash; 系统面板 &ndash;&gt;-->
+<!--                <div class="message-panel">-->
+<!--                    <div class="panel-header">-->
+<!--                        <div class="panel-title">⚙️ 系统消息</div>-->
+<!--                        <div class="panel-badge" id="systemBadge">0</div>-->
+<!--                    </div>-->
+<!--                    <div class="messages-container" id="systemMessages">-->
+<!--                        <div class="empty-state" id="systemEmpty">暂无系统消息</div>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+
+<!--        &lt;!&ndash; 垂直布局 &ndash;&gt;-->
+<!--        <div class="vertical-layout">-->
+<!--            &lt;!&ndash; 弹幕面板 &ndash;&gt;-->
+<!--            <div class="message-panel">-->
+<!--                <div class="panel-header">-->
+<!--                    <div class="panel-title">🎯 弹幕消息</div>-->
+<!--                    <div class="panel-badge" id="danmuBadge">0</div>-->
+<!--                </div>-->
+<!--                <div class="messages-container" id="danmuMessages">-->
+<!--                    <div class="empty-state" id="danmuEmpty">暂无弹幕消息</div>-->
+<!--                </div>-->
+<!--            </div>-->
+
+<!--            &lt;!&ndash; 礼物面板 &ndash;&gt;-->
+<!--            <div class="message-panel">-->
+<!--                <div class="panel-header">-->
+<!--                    <div class="panel-title">🎁 礼物消息</div>-->
+<!--                    <div class="panel-badge" id="giftBadge">0</div>-->
+<!--                </div>-->
+<!--                <div class="messages-container" id="giftMessages">-->
+<!--                    <div class="empty-state" id="giftEmpty">暂无礼物消息</div>-->
+<!--                </div>-->
+<!--            </div>-->
+
+<!--            &lt;!&ndash; 互动面板 &ndash;&gt;-->
+<!--            <div class="message-panel">-->
+<!--                <div class="panel-header">-->
+<!--                    <div class="panel-title">🤝 互动消息</div>-->
+<!--                    <div class="panel-badge" id="interactBadge">0</div>-->
+<!--                </div>-->
+<!--                <div class="messages-container" id="interactMessages">-->
+<!--                    <div class="empty-state" id="interactEmpty">暂无互动消息</div>-->
+<!--                </div>-->
+<!--            </div>-->
+
+<!--            &lt;!&ndash; 系统面板 &ndash;&gt;-->
+<!--            <div class="message-panel">-->
+<!--                <div class="panel-header">-->
+<!--                    <div class="panel-title">⚙️ 系统消息</div>-->
+<!--                    <div class="panel-badge" id="systemBadge">0</div>-->
+<!--                </div>-->
+<!--                <div class="messages-container" id="systemMessages">-->
+<!--                    <div class="empty-state" id="systemEmpty">暂无系统消息</div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+
+        <!-- 折叠布局 -->
+        <div class="vertical-layout">
+            <!-- 弹幕面板 -->
+            <div class="collapsible-panel">
+                <div class="panel-header" onclick="this.parentElement.classList.toggle('collapsed')">
+                        <div class="panel-title">🎯 弹幕消息</div>
+                        <div class="panel-controls">
+                            <div class="panel-badge" id="danmuBadge">0</div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                </div>
+                <div class="messages-container" id="danmuMessages">
+                    <div class="empty-state" id="danmuEmpty">暂无弹幕消息</div>
+                </div>
+            </div>
+
+            <!-- 礼物面板 -->
+            <div class="collapsible-panel">
+                <div class="panel-header" onclick="this.parentElement.classList.toggle('collapsed')">
+                        <div class="panel-title">🎁 礼物消息</div>
+                        <div class="panel-controls">
+                            <div class="panel-badge" id="giftBadge">0</div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                </div>
+                <div class="messages-container" id="giftMessages">
+                    <div class="empty-state" id="giftEmpty">暂无礼物消息</div>
+                </div>
+            </div>
+
+            <!-- 互动面板 -->
+            <div class="collapsible-panel">
+                <div class="panel-header" onclick="this.parentElement.classList.toggle('collapsed')">
+                        <div class="panel-title">🤝 互动消息</div>
+                        <div class="panel-controls">
+                            <div class="panel-badge" id="interactBadge">0</div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                </div>
+                <div class="messages-container" id="interactMessages">
+                    <div class="empty-state" id="interactEmpty">暂无互动消息</div>
+                </div>
+            </div>
+
+            <!-- 系统面板 -->
+            <div class="collapsible-panel">
+                <div class="panel-header" onclick="this.parentElement.classList.toggle('collapsed')">
+                        <div class="panel-title">⚙️ 系统消息</div>
+                        <div class="panel-controls">
+                            <div class="panel-badge" id="systemBadge">0</div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                </div>
+                <div class="messages-container" id="systemMessages">
+                    <div class="empty-state" id="systemEmpty">暂无系统消息</div>
+                </div>
+            </div>
         </div>
 
-        <!-- 消息区域 -->
-        <div class="messages-section active" id="allMessages">
-            <div class="empty-state" id="allEmpty">暂无消息</div>
-        </div>
-
-        <div class="messages-section" id="danmuMessages">
-            <div class="empty-state" id="danmuEmpty">暂无弹幕消息</div>
-        </div>
-
-        <div class="messages-section" id="giftMessages">
-            <div class="empty-state" id="giftEmpty">暂无礼物消息</div>
-        </div>
-
-        <div class="messages-section" id="interactMessages">
-            <div class="empty-state" id="interactEmpty">暂无互动消息</div>
-        </div>
-
-        <div class="messages-section" id="systemMessages">
-            <div class="empty-state" id="systemEmpty">暂无系统消息</div>
-        </div>
     </div>
+
 
     <script>
         class DanmuWebSocketClient {
@@ -376,14 +544,12 @@
                 this.statusText = document.getElementById('statusText');
 
                 // 消息容器
-                this.allMessagesContainer = document.getElementById('allMessages');
                 this.danmuMessagesContainer = document.getElementById('danmuMessages');
                 this.giftMessagesContainer = document.getElementById('giftMessages');
                 this.interactMessagesContainer = document.getElementById('interactMessages');
                 this.systemMessagesContainer = document.getElementById('systemMessages');
 
                 // 空状态提示
-                this.allEmpty = document.getElementById('allEmpty');
                 this.danmuEmpty = document.getElementById('danmuEmpty');
                 this.giftEmpty = document.getElementById('giftEmpty');
                 this.interactEmpty = document.getElementById('interactEmpty');
@@ -395,7 +561,7 @@
                 this.giftCountElement = document.getElementById('giftCount');
                 this.userCountElement = document.getElementById('userCount');
 
-                // 选项卡徽章
+                // 面板徽章
                 this.danmuBadge = document.getElementById('danmuBadge');
                 this.giftBadge = document.getElementById('giftBadge');
                 this.interactBadge = document.getElementById('interactBadge');
@@ -406,24 +572,6 @@
                 document.getElementById('connectBtn').addEventListener('click', () => this.connect());
                 document.getElementById('disconnectBtn').addEventListener('click', () => this.disconnect());
                 document.getElementById('clearBtn').addEventListener('click', () => this.clearMessages());
-
-                // 选项卡切换
-                document.querySelectorAll('.tab').forEach(tab => {
-                    tab.addEventListener('click', (e) => {
-                        const tabId = e.target.getAttribute('data-tab');
-                        this.switchTab(tabId);
-                    });
-                });
-            }
-
-            switchTab(tabId) {
-                // 移除所有激活状态
-                document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-                document.querySelectorAll('.messages-section').forEach(section => section.classList.remove('active'));
-
-                // 添加激活状态
-                document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
-                document.getElementById(`${tabId}Messages`).classList.add('active');
             }
 
             connect() {
@@ -554,35 +702,6 @@
                 return messageElement;
             }
 
-            // 添加消息到所有容器
-            addMessageToContainers(messageElement, category) {
-                // 添加到全部消息容器
-                this.allMessagesContainer.appendChild(messageElement.cloneNode(true));
-                this.hideEmptyState(this.allMessagesContainer, this.allEmpty);
-
-                // 添加到对应分类容器
-                switch(category) {
-                    case 'danmu':
-                        this.danmuMessagesContainer.appendChild(messageElement);
-                        this.hideEmptyState(this.danmuMessagesContainer, this.danmuEmpty);
-                        break;
-                    case 'gift':
-                        this.giftMessagesContainer.appendChild(messageElement);
-                        this.hideEmptyState(this.giftMessagesContainer, this.giftEmpty);
-                        break;
-                    case 'interact':
-                        this.interactMessagesContainer.appendChild(messageElement);
-                        this.hideEmptyState(this.interactMessagesContainer, this.interactEmpty);
-                        break;
-                    case 'system':
-                        this.systemMessagesContainer.appendChild(messageElement);
-                        this.hideEmptyState(this.systemMessagesContainer, this.systemEmpty);
-                        break;
-                }
-
-                this.scrollToBottom();
-            }
-
             // 弹幕消息
             addDanmuMessage(data) {
                 const time = new Date(data.timestamp * 1000).toLocaleTimeString();
@@ -601,7 +720,9 @@
                 `;
 
                 const messageElement = this.createMessageElement(data, 'message-danmu', content);
-                this.addMessageToContainers(messageElement, 'danmu');
+                this.danmuMessagesContainer.appendChild(messageElement);
+                this.hideEmptyState(this.danmuMessagesContainer, this.danmuEmpty);
+                this.scrollToBottom(this.danmuMessagesContainer);
             }
 
             // 礼物消息
@@ -709,7 +830,9 @@
                 }
 
                 const messageElement = this.createMessageElement(data, className, content);
-                this.addMessageToContainers(messageElement, 'gift');
+                this.giftMessagesContainer.appendChild(messageElement);
+                this.hideEmptyState(this.giftMessagesContainer, this.giftEmpty);
+                this.scrollToBottom(this.giftMessagesContainer);
             }
 
             // 互动消息
@@ -748,7 +871,9 @@
                 }
 
                 const messageElement = this.createMessageElement(data, className, content);
-                this.addMessageToContainers(messageElement, 'interact');
+                this.interactMessagesContainer.appendChild(messageElement);
+                this.hideEmptyState(this.interactMessagesContainer, this.interactEmpty);
+                this.scrollToBottom(this.interactMessagesContainer);
             }
 
             // 系统消息
@@ -916,7 +1041,9 @@
                 }
 
                 const messageElement = this.createMessageElement(data, 'message-system', content);
-                this.addMessageToContainers(messageElement, 'system');
+                this.systemMessagesContainer.appendChild(messageElement);
+                this.hideEmptyState(this.systemMessagesContainer, this.systemEmpty);
+                this.scrollToBottom(this.systemMessagesContainer);
             }
 
             addUnknownMessage(data) {
@@ -932,19 +1059,19 @@
                 `;
 
                 const messageElement = this.createMessageElement(data, 'message-system', content);
-                this.addMessageToContainers(messageElement, 'system');
+                this.systemMessagesContainer.appendChild(messageElement);
+                this.hideEmptyState(this.systemMessagesContainer, this.systemEmpty);
+                this.scrollToBottom(this.systemMessagesContainer);
             }
 
             clearMessages() {
                 // 清空所有消息容器
-                this.allMessagesContainer.innerHTML = '<div class="empty-state" id="allEmpty">暂无消息</div>';
                 this.danmuMessagesContainer.innerHTML = '<div class="empty-state" id="danmuEmpty">暂无弹幕消息</div>';
                 this.giftMessagesContainer.innerHTML = '<div class="empty-state" id="giftEmpty">暂无礼物消息</div>';
                 this.interactMessagesContainer.innerHTML = '<div class="empty-state" id="interactEmpty">暂无互动消息</div>';
                 this.systemMessagesContainer.innerHTML = '<div class="empty-state" id="systemEmpty">暂无系统消息</div>';
 
                 // 重置空状态元素引用
-                this.allEmpty = document.getElementById('allEmpty');
                 this.danmuEmpty = document.getElementById('danmuEmpty');
                 this.giftEmpty = document.getElementById('giftEmpty');
                 this.interactEmpty = document.getElementById('interactEmpty');
@@ -969,11 +1096,8 @@
                 this.userCountElement.textContent = '0';
             }
 
-            scrollToBottom() {
-                const activeSection = document.querySelector('.messages-section.active');
-                if (activeSection) {
-                    activeSection.scrollTop = activeSection.scrollHeight;
-                }
+            scrollToBottom(container) {
+                container.scrollTop = container.scrollHeight;
             }
 
             updateStatus(status, text) {

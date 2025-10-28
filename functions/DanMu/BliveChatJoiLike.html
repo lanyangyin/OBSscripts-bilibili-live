@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="zh" nighteye="disabled">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="referrer" content="no-referrer">
+    <link rel="icon" href="/favicon.ico">
+    <title>blivechat</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css?family=Noto%20Sans%20SC");
+
+        /* Transparent background */
+        yt-live-chat-renderer {
+          background-color: transparent !important;
+        }
+
+        yt-live-chat-ticker-renderer {
+          background-color: transparent !important;
+          box-shadow: none !important;
+        }
+
+        yt-live-chat-author-chip #author-name {
+          background-color: transparent !important;
+        }
+
+        /* Hide scrollbar */
+        yt-live-chat-item-list-renderer #items {
+          overflow: hidden !important;
+        }
+
+        yt-live-chat-item-list-renderer #item-scroller {
+          overflow: hidden !important;
+        }
+
+        yt-live-chat-text-message-renderer #content,
+        yt-live-chat-membership-item-renderer #content {
+          overflow: visible !important;
+        }
+
+        /* Hide header and input */
+        yt-live-chat-header-renderer,
+        yt-live-chat-message-input-renderer {
+          display: none !important;
+        }
+
+        /* Hide unimportant messages */
+        yt-live-chat-text-message-renderer[is-deleted],
+        yt-live-chat-membership-item-renderer[is-deleted] {
+          display: none !important;
+        }
+
+        yt-live-chat-mode-change-message-renderer,
+        yt-live-chat-viewer-engagement-message-renderer,
+        yt-live-chat-restricted-participation-renderer {
+          display: none !important;
+        }
+
+        yt-live-chat-text-message-renderer a,
+        yt-live-chat-membership-item-renderer a {
+          text-decoration: none !important;
+        }
+
+        /* extra style */
+        @keyframes fade-in {
+          0% {opacity: 0.2;transform:rotate(90deg);}
+          40% {opacity: 0.2;transform:rotate(60deg);}
+          100% {opacity: 1;transform:rotate(0deg);}
+        }
+        @-webkit-keyframes fade-in {/*针对webkit内核*/
+          0% {opacity: 0.2;transform:rotate(90deg);}
+          40% {opacity: 0.2;transform:rotate(60deg);}
+          100% {opacity: 1;transform:rotate(0deg);}
+        }
+        yt-live-chat-text-message-renderer #hat{
+          display: block !important;
+          position: absolute !important;
+          z-index: 1000;
+          top: -5px !important;
+          left: -25px !important;
+          width: 24.72px !important;
+        }
+        yt-live-chat-text-message-renderer #scarf{
+          display: block !important;
+          position: absolute !important;
+          z-index: 10;
+          top: 32px !important;
+          left: -8.4px !important;
+          width: 16.8px !important;
+        }
+        yt-live-chat-text-message-renderer #ear{
+          display: block !important;
+          position: absolute !important;
+          z-index: 10;
+          top: -8px !important;
+          left: 4.72px !important;
+          height: 16px !important;
+          width: 10px !important;
+          transform-origin: left;
+          animation: fade-in;animation-duration: 1s;-webkit-animation:fade-in 1s;
+        }
+        yt-live-chat-text-message-renderer #flower{
+          display: block !important;
+          position: absolute !important;
+          top: 0 !important;
+          right: 0 !important;
+        }
+        yt-live-chat-text-message-renderer #star{
+          display: block !important;
+          position: absolute !important;
+          bottom: 0 !important;
+          right: 18px !important;
+          width: 60px !important;
+          height: 100% !important;
+          z-index: 999 !important;
+          background-image: url('/static/img/common/joi/star.png') !important;
+          background-size: 60px 60px !important;
+          background-repeat: repeat-y !important;
+        }
+
+        /* Reduce side padding */
+        yt-live-chat-text-message-renderer {
+          padding: 0 4px !important;
+          margin: 15px 0 15px 32px;
+          border-radius: 8px;
+          overflow: visible;
+        }
+        yt-live-chat-text-message-renderer #content{
+          margin-left: 28px !important;
+          width: calc(100% - 114px) !important;
+          z-index: 1000;
+        }
+          yt-live-chat-text-message-renderer{
+          background-color: rgba(255, 206, 101, 1) !important;
+        }
+          yt-live-chat-text-message-renderer[privilegeType="3"]{
+          background-color: rgba(255, 206, 101, 1) !important;
+        }
+          yt-live-chat-text-message-renderer[privilegeType="2"]{
+          background-color: rgba(138, 164, 255, 1) !important;
+        }
+          yt-live-chat-text-message-renderer[privilegeType="1"]{
+          background-color: rgba(184, 168, 227, 1) !important;
+        }
+          yt-live-chat-text-message-renderer[author-type="owner"] {
+          background-color: rgba(184, 168, 227, 1) !important;
+        }
+          yt-live-chat-text-message-renderer[author-type="moderator"] {
+          background-color: rgba(138, 164, 255, 1) !important;
+        }
+
+
+        /* Avatars */
+        yt-live-chat-text-message-renderer #author-photo {
+
+          width: 40px !important;
+          height: 40px !important;
+          border-radius: 40px !important;
+          position: absolute !important;
+          left: -20px !important;
+        }
+        yt-live-chat-text-message-renderer #author-photo img {
+
+          width: 40px !important;
+          height: 40px !important;
+          border-radius: 40px !important;
+        }
+
+
+        /* Channel names */
+        yt-live-chat-text-message-renderer yt-live-chat-author-chip {
+          display: block;
+          height: 20px !important;
+          line-height: 20px !important;
+          width: 100% !important;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        yt-live-chat-text-message-renderer #author-name[type="owner"],
+        yt-live-chat-text-message-renderer yt-live-chat-author-badge-renderer[type="owner"] {
+          color: #FEF108 !important;
+        }
+
+        yt-live-chat-text-message-renderer #author-name[type="moderator"],
+        yt-live-chat-text-message-renderer yt-live-chat-author-badge-renderer[type="moderator"] {
+          color: #593F3F !important;
+        }
+
+        yt-live-chat-text-message-renderer #author-name[type="member"],
+        yt-live-chat-text-message-renderer yt-live-chat-author-badge-renderer[type="member"] {
+          color: #3F48F1 !important;
+        }
+
+        yt-live-chat-text-message-renderer #author-name {
+
+          color: #F8C3C3 !important;
+          font-family: "Noto Sans SC", "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "\5FAE \8F6F \96C5 \9ED1 ", SimHei, Arial, sans-serif;
+          font-size: 18px !important;
+          height: 20px !important;
+          line-height: 20px !important;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        /* Hide badges */
+        yt-live-chat-text-message-renderer #chat-badges {
+
+          height: 20px !important;
+          line-height: 20px !important;
+        }
+
+        /* Messages */
+        yt-live-chat-text-message-renderer #message,
+        yt-live-chat-text-message-renderer #message * {
+          color: #333333 !important;
+          font-family: "Noto Sans SC", "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "\5FAE \8F6F \96C5 \9ED1 ", SimHei, Arial, sans-serif;
+          font-size: 16px !important;
+          line-height: 20px !important;
+        }
+
+        yt-live-chat-text-message-renderer #message {
+          display: block !important;
+          overflow: visible !important;
+          padding-left: 8px !important;
+          min-height: 20px !important;
+        }
+        yt-live-chat-text-message-renderer #message .el-image {
+          margin-top:8px;
+        }
+
+        /* Timestamps */
+        yt-live-chat-text-message-renderer #timestamp {
+          display: none !important;
+          color: #999999 !important;
+          font-family: "Noto Sans SC", "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "\5FAE \8F6F \96C5 \9ED1 ", SimHei, Arial, sans-serif;
+          font-size: 16px !important;
+          line-height: 16px !important;
+        }
+
+        /* Background colors */
+        body {
+          overflow: hidden;
+          background-color: rgba(0, 0, 0, 0);
+        }
+
+        /* SuperChat/Fan Funding Messages */
+
+        @keyframes up {
+          0% { transform: translateY(80%); opacity: 0; }
+          100% { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes jump {
+          0% { transform: translateY(0) scaleY(0.95); }
+          33% { transform: translateY(0%) scaleY(0.95); }
+          55% { transform: translateY(-30%) scaleY(0.9); }
+          66% { transform: translateY(-30%) scaleY(0.95); }
+          77% { transform: translateY(5%) scaleY(0.9); }
+          100% { transform: translateY(0) scaleY(1); }
+        }
+        @keyframes right-in {
+          0% { transform: translateX(30%); opacity: 0; }
+          33% { transform: translateX(30%); opacity: 0; }
+          90%, 100% { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes hat-down {
+          0% { transform: translateY(-30%); opacity: 0; }
+          75% { transform: translateY(-30%); opacity: 0; }
+          100% { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes scarf-up {
+          0% { transform: translateY(30%); opacity: 0; }
+          75% { transform: translateY(30%); opacity: 0; }
+          100% { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes member-bg-show {
+          0%, 66% { transform: translateY(100%); }
+          100% { transform: translateY(0); }
+        }
+        yt-live-chat-membership-item-renderer {
+          overflow: visible;
+          letter-spacing: 1px;
+        }
+        yt-live-chat-membership-item-renderer #card {
+          margin: 4px 0 !important;
+          max-width: 360px;
+          position: relative;
+          background-image: linear-gradient(to bottom, #ffce65, #feb435) !important;
+          border: 3px solid #d5d5d5;
+          animation: up 0.4s ease-in;
+        }
+        yt-live-chat-membership-item-renderer #header {
+          display: flex !important;
+          z-index: 10;
+          margin: 4px 0 !important;
+          background: none !important;
+          position: relative;
+        }
+        yt-live-chat-membership-item-renderer #header::before {
+          content: '';
+          position: absolute;
+          bottom: -4px;
+          right: -1px;
+          width: 80%;
+          height: 90%;
+          background-image: linear-gradient(to bottom, #fcbb2c, #ffb30d) !important;
+          border-radius: 94% 6% 0% 100% / 100% 0% 100% 0%;
+        }
+        yt-live-chat-membership-item-renderer #header::after {
+          content: '';
+          position: absolute;
+          bottom: -4px;
+          right: -1px;
+          width: 80%;
+          height: 90%;
+          background-image: url('/static/img/common/joi/star.png') !important;
+          border-radius: 94% 6% 0% 100% / 100% 0% 100% 0%;
+          background-size: 72px 72px !important;
+          background-repeat: repeat !important;
+          opacity: 0.72;
+          animation: member-bg-show 2.4s;
+        }
+        yt-live-chat-membership-item-renderer #author-photo {
+          position: relative;
+          overflow: visible !important;
+          display: block !important;
+          width: 40px !important;
+          height: 40px !important;
+          border-radius: 40px !important;
+          margin-right: 10px !important;
+          z-index: 800;
+          animation: jump 1.2s;
+        }
+        yt-live-chat-membership-item-renderer #author-photo::before {
+
+          content: '';
+          position: absolute !important;
+          top: -4px !important;
+          left: -3px !important;
+          width: 24.72px !important;
+          height: 31.36px !important;
+          background-image: url('/static/img/common/joi/hat.png') !important;
+          background-size: 100% 100% !important;
+          animation: hat-down 1.6s;
+        }
+        yt-live-chat-membership-item-renderer #author-photo::after {
+
+          content: '';
+          position: absolute !important;
+          bottom: -5px !important;
+          left: 11.6px !important;
+          width: 16.8px !important;
+          height: 11.120000000000001px !important;
+          background-image: url('/static/img/common/joi/scarf.png') !important;
+          background-size: 100% 100% !important;
+          animation: scarf-up 1.6s;
+        }
+        yt-live-chat-membership-item-renderer #author-photo img {
+
+          width: 40px !important;
+          height: 40px !important;
+          border-radius: 40px !important;
+        }
+        yt-live-chat-membership-item-renderer #header-content {
+          display: block;
+          animation: right-in 1.2s ease-out;
+        }
+        yt-live-chat-membership-item-renderer #header-content-primary-column {
+          z-index: 800;
+        }
+        yt-live-chat-membership-item-renderer #author-name {
+
+        }
+        yt-live-chat-membership-item-renderer #header-subtext,
+        yt-live-chat-membership-item-renderer #header-subtext * {
+          color: #ffffff !important;
+          font-family: "Noto Sans SC", "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "\5FAE \8F6F \96C5 \9ED1 ", SimHei, Arial, sans-serif;
+          font-size: 18px !important;
+          line-height: 18px !important;
+        }
+
+
+
+        /* SuperChat Ticker */
+        yt-live-chat-ticker-paid-message-item-renderer,
+        yt-live-chat-ticker-paid-message-item-renderer *,
+        yt-live-chat-ticker-sponsor-item-renderer,
+        yt-live-chat-ticker-sponsor-item-renderer * {
+          font-family: "Noto Sans SC", "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "\5FAE \8F6F \96C5 \9ED1 ", SimHei, Arial, sans-serif;
+        }
+
+
+
+        yt-live-chat-paid-message-renderer {
+          margin: 18px 0 4px 0 !important;
+        }
+        @keyframes sc-title-left-in {
+          0% { width: 0; opacity: 0; }
+          100% { width: calc(100% - 52px); opacity: 1; }
+        }
+        @keyframes sc-content-down {
+          0%, 50% { transform: translateY(-50%) scaleY(0.95); opacity: 0; }
+          60% { transform: translateY(-50%) scaleY(0.95); opacity: 0; }
+          90% { transform: translateY(8%) scaleY(0.85); opacity: 1; }
+          100% { transform: translateY(0) scaleY(1); opacity: 1; }
+        }
+        yt-live-chat-membership-item-renderer #header-content-inner-column,
+        yt-live-chat-membership-item-renderer #header-content-inner-column * {
+          font-family: "Noto Sans SC", "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "\5FAE \8F6F \96C5 \9ED1 ", SimHei, Arial, sans-serif;
+          font-size: 18px !important;
+          line-height: 18px !important;
+        }
+
+        yt-live-chat-paid-message-renderer #purchase-amount,
+        yt-live-chat-paid-message-renderer #purchase-amount * {
+          font-family: "Noto Sans SC", "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "\5FAE \8F6F \96C5 \9ED1 ", SimHei, Arial, sans-serif;
+          font-size: 14px !important;
+          line-height: 14px !important;
+        }
+        yt-live-chat-paid-message-renderer #content,
+        yt-live-chat-paid-message-renderer #content * {
+          font-family: "Noto Sans SC", "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "\5FAE \8F6F \96C5 \9ED1 ", SimHei, Arial, sans-serif;
+          font-size: 18px !important;
+          line-height: 18px !important;
+        }
+        yt-live-chat-paid-message-renderer #card {
+
+        }
+        yt-live-chat-paid-message-renderer #header {
+          background-image: linear-gradient(to bottom, #ffce65, #ffce65) !important;
+          border: 2px solid #d5d5d5;
+          border-radius: 14px !important;
+          margin-bottom: 4px;
+          padding: 0 8px 0 40px !important;
+          animation: sc-title-left-in 1s;
+        }
+        yt-live-chat-paid-message-renderer #author-photo,
+        yt-live-chat-paid-message-renderer #author-photo img {
+
+          width: 40px !important;
+          height: 40px !important;
+          border-radius: 40px !important;
+        }
+        yt-live-chat-paid-message-renderer #author-photo {
+          position: absolute;
+          left: -8px;
+          bottom: -2px;
+          overflow: visible !important;
+          margin-right: 0 !important;
+        }
+        yt-live-chat-paid-message-renderer #author-photo::before {
+
+          content: '';
+          position: absolute !important;
+          top: -4px !important;
+          left: -3px !important;
+          width: 24.72px !important;
+          height: 31.36px !important;
+          background-image: url('/static/img/common/joi/hat.png') !important;
+          background-size: 100% 100% !important;
+        }
+        yt-live-chat-paid-message-renderer #author-photo::after {
+
+          content: '';
+          position: absolute !important;
+          bottom: -5px !important;
+          left: 11.6px !important;
+          width: 16.8px !important;
+          height: 11.120000000000001px !important;
+          background-image: url('/static/img/common/joi/scarf.png') !important;
+          background-size: 100% 100% !important;
+        }
+        yt-live-chat-paid-message-renderer #author-photo img {
+
+        }
+        yt-live-chat-paid-message-renderer #author-name {
+          font-family: "Noto Sans SC", "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "\5FAE \8F6F \96C5 \9ED1 ", SimHei, Arial, sans-serif;
+          font-size: 14px !important;
+          line-height: 14px !important;
+          max-width: calc(100% - 85px - 14px);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          color: #171717 !important;
+          font-weight: bolder;
+        }
+        yt-live-chat-paid-message-renderer #purchase-amount {
+          margin-right: 18px;
+        }
+        yt-live-chat-paid-message-renderer #purchase-amount::after {
+          content: '';
+          position: absolute;
+          top: 3px;
+          right: 8px;
+          height: 14px;
+          width: 14px;
+          background-size: 100% 100% !important;
+          background-image: url('/static/img/common/joi/heartJoi.png');
+        }
+        yt-live-chat-paid-message-renderer #header #header-content-primary-column {
+          flex-direction: row !important;
+          justify-content: space-between;
+          align-items: flex-end;
+          width: 100%;
+          color: #171717 !important;
+          font-weight: bolder;
+        }
+        yt-live-chat-paid-message-renderer #content {
+          position: relative;
+          background-image: linear-gradient(to bottom, #ffce65, #ffce65) !important;
+          border: 2px solid #d5d5d5;
+          color: #171717 !important;
+          font-weight: bolder;
+          margin: 0 8px 0 0;
+          animation: sc-content-down 2s;
+          z-index: -2;
+          padding: 14px 24px !important;
+        }
+        yt-live-chat-paid-message-renderer #content::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-image: url('/static/img/common/joi/star.png') !important;
+          background-size: 80px 80px !important;
+          background-repeat: repeat !important;
+          opacity: 0.8;
+          z-index: -1;
+        }
+
+
+        /* Animation */
+        @keyframes anim {
+          0% { opacity: 0; transform: translateX(-16px); }
+          100% { opacity: 1; transform: none; }
+        }
+
+        yt-live-chat-text-message-renderer,
+        yt-live-chat-membership-item-renderer,
+        yt-live-chat-paid-message-renderer {
+          animation: anim 200ms;
+          animation-fill-mode: both;
+        }
+
+    </style>
+</head>
+<body inject_video_svd="true">
+    <div id="app">
+        <yt-live-chat-renderer hide-timestamps="" class="style-scope yt-live-chat-app">
+            <!-- 打赏滚动条 -->
+            <yt-live-chat-ticker-renderer class="style-scope yt-live-chat-renderer">
+                <div id="container" dir="ltr" class="style-scope yt-live-chat-ticker-renderer">
+                    <div id="items" class="style-scope yt-live-chat-ticker-renderer">
+                        <yt-live-chat-ticker-paid-message-item-renderer tabindex="0" class="style-scope yt-live-chat-ticker-renderer">
+                            <div id="container" dir="ltr" class="style-scope yt-live-chat-ticker-paid-message-item-renderer">
+                                <div id="content" class="style-scope yt-live-chat-ticker-paid-message-item-renderer">
+                                    <yt-img-shadow height="24" width="24" loaded="" class="no-transition style-scope yt-live-chat-ticker-paid-message-item-renderer" id="author-photo">
+                                        <img id="img" alt="" height="24" width="24" src="//static.hdslb.com/images/member/noface.gif" class="style-scope yt-img-shadow">
+                                    </yt-img-shadow>
+                                    <span id="text" dir="ltr" class="style-scope yt-live-chat-ticker-paid-message-item-renderer">CN¥200</span>
+                                </div>
+                            </div>
+                        </yt-live-chat-ticker-paid-message-item-renderer>
+                        <yt-live-chat-ticker-paid-message-item-renderer tabindex="0" class="style-scope yt-live-chat-ticker-renderer">
+                            <div id="container" dir="ltr" class="style-scope yt-live-chat-ticker-paid-message-item-renderer">
+                                <div id="content" class="style-scope yt-live-chat-ticker-paid-message-item-renderer">
+                                    <yt-img-shadow height="24" width="24" loaded="" class="no-transition style-scope yt-live-chat-ticker-paid-message-item-renderer" id="author-photo">
+                                        <img id="img" alt="" height="24" width="24" src="//static.hdslb.com/images/member/noface.gif" class="style-scope yt-img-shadow">
+                                    </yt-img-shadow>
+                                    <span id="text" dir="ltr" class="style-scope yt-live-chat-ticker-paid-message-item-renderer">CN¥100</span>
+                                </div>
+                            </div>
+                        </yt-live-chat-ticker-paid-message-item-renderer>
+                        <yt-live-chat-ticker-paid-message-item-renderer tabindex="0" class="style-scope yt-live-chat-ticker-renderer">
+                            <div id="container" dir="ltr" class="style-scope yt-live-chat-ticker-paid-message-item-renderer">
+                                <div id="content" class="style-scope yt-live-chat-ticker-paid-message-item-renderer">
+                                    <yt-img-shadow height="24" width="24" loaded="" class="no-transition style-scope yt-live-chat-ticker-paid-message-item-renderer" id="author-photo">
+                                        <img id="img" alt="" height="24" width="24" src="//static.hdslb.com/images/member/noface.gif" class="style-scope yt-img-shadow">
+                                    </yt-img-shadow>
+                                    <span id="text" dir="ltr" class="style-scope yt-live-chat-ticker-paid-message-item-renderer">CN¥1,000</span>
+                                </div>
+                            </div>
+                        </yt-live-chat-ticker-paid-message-item-renderer>
+                        <yt-live-chat-ticker-paid-message-item-renderer tabindex="0" class="style-scope yt-live-chat-ticker-renderer">
+                            <div id="container" dir="ltr" class="style-scope yt-live-chat-ticker-paid-message-item-renderer">
+                                <div id="content" class="style-scope yt-live-chat-ticker-paid-message-item-renderer">
+                                    <yt-img-shadow height="24" width="24" loaded="" class="no-transition style-scope yt-live-chat-ticker-paid-message-item-renderer" id="author-photo">
+                                        <img id="img" alt="" height="24" width="24" src="//static.hdslb.com/images/member/noface.gif" class="style-scope yt-img-shadow">
+                                    </yt-img-shadow>
+                                    <span id="text" dir="ltr" class="style-scope yt-live-chat-ticker-paid-message-item-renderer">会员</span>
+                                </div>
+                            </div>
+                        </yt-live-chat-ticker-paid-message-item-renderer>
+                    </div>
+                </div>
+            </yt-live-chat-ticker-renderer>
+
+            <!-- 聊天消息列表 -->
+            <yt-live-chat-item-list-renderer allow-scroll="" class="style-scope yt-live-chat-renderer">
+                <div id="item-scroller" class="style-scope yt-live-chat-item-list-renderer animated">
+                    <div id="item-offset" class="style-scope yt-live-chat-item-list-renderer">
+                        <div id="items" class="style-scope yt-live-chat-item-list-renderer">
+                            <!-- 普通消息示例 -->
+                            <yt-live-chat-text-message-renderer author-type="" privilegetype="0" class="style-scope yt-live-chat-item-list-renderer">
+                                <yt-img-shadow height="24" width="24" loaded="" class="no-transition style-scope yt-live-chat-text-message-renderer" id="author-photo">
+                                    <img id="img" alt="" height="24" width="24" src="//static.hdslb.com/images/member/noface.gif" class="style-scope yt-img-shadow">
+                                </yt-img-shadow>
+                                <div id="content" class="style-scope yt-live-chat-text-message-renderer">
+                                    <span id="timestamp" class="style-scope yt-live-chat-text-message-renderer">21:36</span>
+                                    <yt-live-chat-author-chip class="style-scope yt-live-chat-text-message-renderer">
+                                        <span id="author-name" dir="auto" type="" class="style-scope yt-live-chat-author-chip">
+                                            <span id="author-name-text">ジョナサン・ジョースター</span>
+                                        </span>
+                                        <span id="chat-badges" class="style-scope yt-live-chat-author-chip"></span>
+                                    </yt-live-chat-author-chip>
+                                    <span id="message" class="style-scope yt-live-chat-text-message-renderer">
+                                        <span>Never gonna give you up</span>
+                                    </span>
+                                </div>
+                            </yt-live-chat-text-message-renderer>
+
+                            <!-- 舰长消息示例 -->
+                            <yt-live-chat-text-message-renderer author-type="member" privilegetype="2" class="style-scope yt-live-chat-item-list-renderer">
+                                <yt-img-shadow height="24" width="24" loaded="" class="no-transition style-scope yt-live-chat-text-message-renderer" id="author-photo">
+                                    <img id="img" alt="" height="24" width="24" src="//static.hdslb.com/images/member/noface.gif" class="style-scope yt-img-shadow">
+                                </yt-img-shadow>
+                                <div id="content" class="style-scope yt-live-chat-text-message-renderer">
+                                    <span id="timestamp" class="style-scope yt-live-chat-text-message-renderer">21:36</span>
+                                    <yt-live-chat-author-chip class="style-scope yt-live-chat-text-message-renderer">
+                                        <span id="author-name" dir="auto" type="member" class="style-scope yt-live-chat-author-chip">
+                                            <span id="author-name-text">博丽灵梦</span>
+                                        </span>
+                                        <span id="chat-badges" class="style-scope yt-live-chat-author-chip">
+                                            <yt-live-chat-author-badge-renderer type="member" class="style-scope yt-live-chat-author-chip">
+                                                <div id="image" class="el-tooltip style-scope yt-live-chat-author-badge-renderer">
+                                                    <img src="/static/img/icons/guard-level-2.png?refresh" alt="提督" class="style-scope yt-live-chat-author-badge-renderer">
+                                                </div>
+                                            </yt-live-chat-author-badge-renderer>
+                                        </span>
+                                    </yt-live-chat-author-chip>
+                                    <span id="message" class="style-scope yt-live-chat-text-message-renderer">
+                                        <span>欧啦欧啦欧啦欧啦欧啦欧啦欧啦欧啦</span>
+                                    </span>
+                                </div>
+                            </yt-live-chat-text-message-renderer>
+
+                            <!-- 房主消息示例 -->
+                            <yt-live-chat-text-message-renderer author-type="owner" privilegetype="0" class="style-scope yt-live-chat-item-list-renderer">
+                                <yt-img-shadow height="24" width="24" loaded="" class="no-transition style-scope yt-live-chat-text-message-renderer" id="author-photo">
+                                    <img id="img" alt="" height="24" width="24" src="//static.hdslb.com/images/member/noface.gif" class="style-scope yt-img-shadow">
+                                </yt-img-shadow>
+                                <div id="content" class="style-scope yt-live-chat-text-message-renderer">
+                                    <span id="timestamp" class="style-scope yt-live-chat-text-message-renderer">21:36</span>
+                                    <yt-live-chat-author-chip class="style-scope yt-live-chat-text-message-renderer">
+                                        <span id="author-name" dir="auto" type="owner" class="style-scope yt-live-chat-author-chip">
+                                            <span id="author-name-text">空條承太郎</span>
+                                        </span>
+                                        <span id="chat-badges" class="style-scope yt-live-chat-author-chip"></span>
+                                    </yt-live-chat-author-chip>
+                                    <span id="message" class="style-scope yt-live-chat-text-message-renderer">
+                                        <span>text</span>
+                                        <img src="http://i0.hdslb.com/bfs/live/ffb53c252b085d042173379ac724694ce3196194.png" alt="[吃瓜]" width="20" height="20" class="emoji yt-formatted-string style-scope yt-live-chat-text-message-renderer">
+                                        <span>emoticon</span>
+                                    </span>
+                                </div>
+                            </yt-live-chat-text-message-renderer>
+
+                            <!-- 付费消息示例 -->
+                            <yt-live-chat-paid-message-renderer allow-animations="" price="9.9" price-level="1" class="style-scope yt-live-chat-item-list-renderer">
+                                <div id="card" class="style-scope yt-live-chat-paid-message-renderer">
+                                    <div id="header" class="style-scope yt-live-chat-paid-message-renderer">
+                                        <yt-img-shadow height="40" width="40" loaded="" class="no-transition style-scope yt-live-chat-paid-message-renderer" id="author-photo">
+                                            <img id="img" alt="" height="40" width="40" src="//static.hdslb.com/images/member/noface.gif" class="style-scope yt-img-shadow">
+                                        </yt-img-shadow>
+                                        <div id="header-content" class="style-scope yt-live-chat-paid-message-renderer">
+                                            <div id="header-content-primary-column" class="style-scope yt-live-chat-paid-message-renderer">
+                                                <div id="author-name" class="style-scope yt-live-chat-paid-message-renderer">光羊</div>
+                                                <div id="purchase-amount" class="style-scope yt-live-chat-paid-message-renderer">CN¥9.90</div>
+                                            </div>
+                                            <span id="timestamp" class="style-scope yt-live-chat-paid-message-renderer">21:36</span>
+                                        </div>
+                                    </div>
+                                    <div id="content" class="style-scope yt-live-chat-paid-message-renderer">
+                                        <div id="message" dir="auto" class="style-scope yt-live-chat-paid-message-renderer">Sent B坷垃x1</div>
+                                    </div>
+                                </div>
+                            </yt-live-chat-paid-message-renderer>
+
+                            <!-- 会员消息示例 -->
+                            <yt-live-chat-membership-item-renderer show-only-header="" privilegetype="1" class="style-scope yt-live-chat-item-list-renderer">
+                                <div id="card" class="style-scope yt-live-chat-membership-item-renderer">
+                                    <div id="header" class="style-scope yt-live-chat-membership-item-renderer">
+                                        <yt-img-shadow height="40" width="40" loaded="" class="no-transition style-scope yt-live-chat-membership-item-renderer" id="author-photo">
+                                            <img id="img" alt="" height="40" width="40" src="//static.hdslb.com/images/member/noface.gif" class="style-scope yt-img-shadow">
+                                        </yt-img-shadow>
+                                        <div id="header-content" class="style-scope yt-live-chat-membership-item-renderer">
+                                            <div id="header-content-primary-column" class="style-scope yt-live-chat-membership-item-renderer">
+                                                <div id="header-content-inner-column" class="style-scope yt-live-chat-membership-item-renderer">
+                                                    <yt-live-chat-author-chip class="style-scope yt-live-chat-membership-item-renderer">
+                                                        <span id="author-name" dir="auto" class="member style-scope yt-live-chat-author-chip">ジョナサン・ジョースター</span>
+                                                        <span id="chat-badges" class="style-scope yt-live-chat-author-chip">
+                                                            <yt-live-chat-author-badge-renderer type="member" class="style-scope yt-live-chat-author-chip">
+                                                                <div id="image" class="el-tooltip style-scope yt-live-chat-author-badge-renderer">
+                                                                    <img src="/static/img/icons/guard-level-1.png?refresh" alt="总督" class="style-scope yt-live-chat-author-badge-renderer">
+                                                                </div>
+                                                            </yt-live-chat-author-badge-renderer>
+                                                        </span>
+                                                    </yt-live-chat-author-chip>
+                                                </div>
+                                                <div id="header-subtext" class="style-scope yt-live-chat-membership-item-renderer">新会员</div>
+                                            </div>
+                                            <div id="timestamp" class="style-scope yt-live-chat-membership-item-renderer">21:36</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </yt-live-chat-membership-item-renderer>
+                        </div>
+                    </div>
+                </div>
+            </yt-live-chat-item-list-renderer>
+        </yt-live-chat-renderer>
+    </div>
+
+    <script>
+        // 自动滚动到最新消息
+        document.addEventListener('DOMContentLoaded', function() {
+            const itemScroller = document.getElementById('item-scroller');
+            if (itemScroller) {
+                itemScroller.scrollTop = itemScroller.scrollHeight;
+            }
+        });
+    </script>
+</body>
+</html>

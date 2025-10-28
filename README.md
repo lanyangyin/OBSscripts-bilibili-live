@@ -99,7 +99,7 @@ obs_studio版本：30+
 
 
 # 引用
-- 哔哩哔哩的api收集：[SocialSisterYi / bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect?tab=readme-ov-file)
+- 哔哩哔哩的api：[SocialSisterYi / bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect?tab=readme-ov-file)
 - 发出调用api的网络请求python包：[Requests](https://github.com/psf/requests)
 - 调用剪贴板的python包：[pyperclip](https://github.com/asweigart/pyperclip)
 - 创建二维码的python包：[qrcode](https://github.com/nayuki/QR-Code-generator)
@@ -107,4 +107,10 @@ obs_studio版本：30+
 - 中文转拼音的python包：[pypinyin](https://github.com/mozillazg/python-pinyin)
 - 网络长连接用于连接弹幕的python包：[websockets](https://github.com/python-websockets/websockets)
 - 开始直播函数的参数：[BLiveWeb](https://github.com/ProgramRipper/BLiveWeb)
-- [OBS Python 脚本教程](https://learnscript.net/zh/obs-python-scripting/setup/)
+- obs的python脚本开始编写时参考：[OBS Python 脚本教程](https://learnscript.net/zh/obs-python-scripting/setup/)
+- obs脚本官方文档：[Python/Lua Scripting](https://docs.obsproject.com/scripting#python-lua-scripting)
+- 弹幕机参考
+  - 参数参考：[xfgryujk/blivechat](https://github.com/xfgryujk/blivechat)
+  - 界面参考：[DoodleBears/blivechat](https://github.com/DoodleBears/blivechat)
+  - 界面参考：[直播弹幕姬BLC](https://play-live.bilibili.com/details/1675336975685)
+  - 界面参考：[LAPLACE Chat](https://chat.laplace.live/)
