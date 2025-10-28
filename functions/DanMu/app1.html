@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>B站弹幕接收器</title>
-<!--	 <link type="text/css" rel="stylesheet" href="test.css" />-->
+	 <link type="text/css" rel="stylesheet" href="test.css" />
 	</head>
 <body>
     <div class="container">
@@ -158,18 +158,11 @@
                         });
                     };
 
-                    this.socket.onmessage = (event) => {
-                        try {
-                            const data = JSON.parse(event.data);
-                            this.addSystemMessage({
-                                type: 'system',
-                                message: '解析消息错误',
-                                timestamp: Date.now() / 1000
-                            });
-                            this.handleMessage(data);
-                        } catch (error) {
-                            console.error('解析消息错误:', error);
-                        }
+                    this.socket.onclose = () => {
+                        this.isConnected = false;
+                        this.updateStatus('disconnected', '连接已断开');
+                        this.enableControls(false);
+                        this.addSystemMessage('连接已断开');
                     };
 
                     this.socket.onerror = (error) => {
