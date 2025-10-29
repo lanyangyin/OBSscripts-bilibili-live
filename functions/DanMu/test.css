@@ -1,0 +1,214 @@
+/* CSS Document */
+
+/*<style>*/
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	font-family: 'Microsoft YaHei', sans-serif;
+	background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+	color: white;
+	min-height: 100vh;
+	padding: 15px;
+}
+
+.container {
+	max-width: 100%;
+	margin: 0 auto;
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 15px;
+	padding: 15px;
+	backdrop-filter: blur(10px);
+}
+
+.stats {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr 1fr;
+	gap: 10px;
+	margin-bottom: 15px;
+}
+
+.stat-item {
+	text-align: center;
+	padding: 10px;
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 8px;
+}
+
+.stat-value {
+	font-size: 1.5rem;
+	font-weight: bold;
+	color: #4CAF50;
+}
+
+/* 单列布局 */
+.columns-layout {
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+	margin-bottom: 15px;
+}
+
+.message-panel {
+	background: rgba(0, 0, 0, 0.3);
+	border-radius: 10px;
+	overflow: hidden;
+	flex: 1;
+}
+
+.panel-header {
+	padding: 10px 12px;
+	background: rgba(255, 255, 255, 0.1);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.panel-title {
+	font-weight: bold;
+	font-size: 1rem;
+}
+
+.messages-container {
+	height: 200px;
+	overflow-y: auto;
+	padding: 10px;
+}
+
+.message {
+	padding: 8px;
+	margin-bottom: 8px;
+	border-radius: 8px;
+	animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+	from { opacity: 0; transform: translateY(10px); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+/* 消息类型样式 */
+.message-danmu {
+	background: rgba(76, 175, 80, 0.2);
+	border-left: 4px solid #4CAF50;
+}
+
+.message-gift {
+	background: rgba(255, 193, 7, 0.2);
+	border-left: 4px solid #FFC107;
+}
+
+.message-superchat {
+	background: rgba(255, 152, 0, 0.2);
+	border-left: 4px solid #FF9800;
+}
+
+.message-interact {
+	background: rgba(33, 150, 243, 0.2);
+	border-left: 4px solid #2196F3;
+}
+
+.message-system {
+	background: rgba(156, 39, 176, 0.2);
+	border-left: 4px solid #9C27B0;
+}
+
+.message-combo {
+	background: rgba(255, 87, 34, 0.2);
+	border-left: 4px solid #FF5722;
+}
+
+.message-like {
+	background: rgba(233, 30, 99, 0.2);
+	border-left: 4px solid #E91E63;
+}
+
+.message-guard {
+	background: rgba(103, 58, 183, 0.2);
+	border-left: 4px solid #673AB7;
+}
+
+.message-redpocket {
+	background: rgba(244, 67, 54, 0.2);
+	border-left: 4px solid #F44336;
+}
+
+.message-toast {
+	background: rgba(0, 188, 212, 0.2);
+	border-left: 4px solid #00BCD4;
+}
+
+.message-header {
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 5px;
+	font-size: 0.8rem;
+	opacity: 0.8;
+}
+
+.message-content {
+	font-size: 0.9rem;
+}
+
+.user-info {
+	font-weight: bold;
+}
+
+.medal-info {
+	color: #FFD700;
+}
+
+.wealth-info {
+	color: #FF9800;
+}
+
+.superchat-message {
+	margin-top: 5px;
+	padding: 6px;
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 5px;
+	font-style: italic;
+	font-size: 0.8rem;
+}
+
+.winners-list {
+	margin-top: 5px;
+	padding: 6px;
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 5px;
+	font-size: 0.8rem;
+}
+
+.status-connected {
+	background: #4CAF50;
+	box-shadow: 0 0 10px #4CAF50;
+}
+
+.status-connecting {
+	background: #FFC107;
+	animation: pulse 1.5s infinite;
+}
+
+.status-retrying {
+	background: #FF9800;
+	animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+	0% { opacity: 1; }
+	50% { opacity: 0.5; }
+	100% { opacity: 1; }
+}
+
+/* 空状态提示 */
+.empty-state {
+	text-align: center;
+	padding: 30px;
+	color: rgba(255, 255, 255, 0.5);
+	font-size: 0.9rem;
+}
+/*</style>*/

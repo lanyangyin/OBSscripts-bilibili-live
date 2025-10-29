@@ -11,19 +11,19 @@
         <div class="stats">
             <div class="stat-item">
                 <div>高能用户</div>
-                <div class="stat-value" id="onlineRankCount">0</div>
+                <div class="stat-value" id="onlineRankCount">未计数</div>
             </div>
             <div class="stat-item">
                 <div>人气排名</div>
-                <div class="stat-value" id="popularRankCount">0</div>
+                <div class="stat-value" id="popularRankCount">未计数</div>
             </div>
             <div class="stat-item">
                 <div>观看人数</div>
-                <div class="stat-value" id="watchedCount">0</div>
+                <div class="stat-value" id="watchedCount">未计数</div>
             </div>
             <div class="stat-item">
                 <div>点赞数量</div>
-                <div class="stat-value" id="likeCount">0</div>
+                <div class="stat-value" id="likeCount">未计数</div>
             </div>
         </div>
 
@@ -99,6 +99,7 @@
 
                 // 新的统计变量
                 this.watchedCount = 0;
+                this.popularRankCount = 0;
                 this.onlineRankCount = 0;
                 this.likeCount = 0;
 
@@ -206,7 +207,7 @@
                 }
 
                 this.reconnectAttempts++;
-                const delay = Math.min(this.reconnectInterval * Math.pow(1.5, this.reconnectAttempts - 1), 30000); // 最大30秒
+                const delay = Math.min(this.reconnectInterval * Math.pow(1.5, this.reconnectAttempts - 1), 60000); // 最大60秒
                 
                 this.addSystemMessage({
                     type: 'system',

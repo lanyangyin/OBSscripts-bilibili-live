@@ -534,7 +534,6 @@ if __name__ == "__main__":
 
 
     def danmu_processing(content: dict):
-        print()
         if content['cmd'] == "LIVE":
             # 直播开始 (LIVE)
             contentdata = content
