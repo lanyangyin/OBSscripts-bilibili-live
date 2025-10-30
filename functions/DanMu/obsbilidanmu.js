@@ -193,16 +193,36 @@ const smallAmount = manager.createTicker({
     text: 'CN¥39.00',
     avatarSrc: './blivechat_files/noface.gif',
     countdownDuration: 8000, // 8秒
-    onUpdate: (percentage, ticker) => {
-        console.log(`当前百分比: ${percentage}%`);
-    },
-    onRemove: (ticker) => {
-        console.log('小金额消息已移除');
-    }
+//    onUpdate: (percentage, ticker) => {
+//        console.log(`当前百分比: ${percentage}%`);
+//    },
+//    onRemove: (ticker) => {
+//        console.log('小金额消息已移除');
+//    }
+});
+
+// 创建不同类型的付费消息
+const smallAmount1 = manager.createTicker({
+    width: '106px',
+    primaryColor: 'rgb(29, 233, 182)',
+    secondaryColor: 'rgb(0, 191, 165)',
+    text: 'CN¥39.00',
+    avatarSrc: './blivechat_files/noface.gif',
+    countdownDuration: 8000, // 8秒
+//    onUpdate: (percentage, ticker) => {
+//        console.log(`当前百分比: ${percentage}%`);
+//    },
+//    onRemove: (ticker) => {
+//        console.log('小金额消息已移除');
+//    }
 });
 
 // 添加到页面
 tickerContainer.appendChild(smallAmount.getElement());
+// 添加到页面
+tickerContainer.appendChild(smallAmount1.getElement());
+
+
 
 
 
@@ -219,34 +239,7 @@ class YouTubeChatMessageBuilder {
         // 先初始化默认图片配置
         this.defaultImages = {
             avatar: './blivechat_files/noface.gif',
-            moderatorBadge: '', // SVG图标，使用内联SVG
-            memberBadges: {
-                '1': './blivechat_files/guard-level-1.png', // 总督
-                '2': './blivechat_files/guard-level-2.png', // 提督
-                '3': './blivechat_files/guard-level-3.png'  // 舰长
-            },
-            emojis: {
-                'dog': './blivechat_files/4428c84e694fbf4e0ef6c06e958d9352c3582740.png',
-                '比心': './blivechat_files/4e029593562283f00d39b99e0557878c4199c71d.png',
-                '喝彩': './blivechat_files/b51824125d09923a4ca064f0c0b49fc97d3fab79.png',
-                '吃瓜': './blivechat_files/ffb53c252b085d042173379ac724694ce3196194.png'
-            },
-            contentImages: {
-                'huangdou_xihuan': './blivechat_files/huangdou_xihuan.png',
-                'sakaban_jiayu_yutou': './blivechat_files/sakaban_jiayu_yutou.png',
-                'miaoa': './blivechat_files/miaoa.png',
-                'lipu': './blivechat_files/lipu.png'
-            },
-            decorativeImages: {
-                'hat': './blivechat_files/hat.png',
-                'ear': './blivechat_files/ear.png',
-                'scarf': './blivechat_files/scarf.png',
-                'leftEar': './blivechat_files/leftEar.png',
-                'rightEar': './blivechat_files/rightEar.png',
-                'kiti-scarf': './blivechat_files/scarf(1).png',
-                'tail': './blivechat_files/tail.png',
-                'flower': './blivechat_files/flower.png'
-            },
+            memberBadges: "",
 
             ...data
         };
@@ -270,34 +263,7 @@ class YouTubeChatMessageBuilder {
         // 先初始化默认图片配置
         this.defaultImages = {
             avatar: './blivechat_files/noface.gif',
-            moderatorBadge: '', // SVG图标，使用内联SVG
-            memberBadges: {
-                '1': './blivechat_files/guard-level-1.png', // 总督
-                '2': './blivechat_files/guard-level-2.png', // 提督
-                '3': './blivechat_files/guard-level-3.png'  // 舰长
-            },
-            emojis: {
-                'dog': './blivechat_files/4428c84e694fbf4e0ef6c06e958d9352c3582740.png',
-                '比心': './blivechat_files/4e029593562283f00d39b99e0557878c4199c71d.png',
-                '喝彩': './blivechat_files/b51824125d09923a4ca064f0c0b49fc97d3fab79.png',
-                '吃瓜': './blivechat_files/ffb53c252b085d042173379ac724694ce3196194.png'
-            },
-            contentImages: {
-                'huangdou_xihuan': './blivechat_files/huangdou_xihuan.png',
-                'sakaban_jiayu_yutou': './blivechat_files/sakaban_jiayu_yutou.png',
-                'miaoa': './blivechat_files/miaoa.png',
-                'lipu': './blivechat_files/lipu.png'
-            },
-            decorativeImages: {
-                'hat': './blivechat_files/hat.png',
-                'ear': './blivechat_files/ear.png',
-                'scarf': './blivechat_files/scarf.png',
-                'leftEar': './blivechat_files/leftEar.png',
-                'rightEar': './blivechat_files/rightEar.png',
-                'kiti-scarf': './blivechat_files/scarf(1).png',
-                'tail': './blivechat_files/tail.png',
-                'flower': './blivechat_files/flower.png'
-            },
+            memberBadges: "",
 
             ...data
         };
@@ -319,34 +285,7 @@ class YouTubeChatMessageBuilder {
         // 先初始化默认图片配置
         this.defaultImages = {
             avatar: './blivechat_files/noface.gif',
-            moderatorBadge: '', // SVG图标，使用内联SVG
-            memberBadges: {
-                '1': './blivechat_files/guard-level-1.png', // 总督
-                '2': './blivechat_files/guard-level-2.png', // 提督
-                '3': './blivechat_files/guard-level-3.png'  // 舰长
-            },
-            emojis: {
-                'dog': './blivechat_files/4428c84e694fbf4e0ef6c06e958d9352c3582740.png',
-                '比心': './blivechat_files/4e029593562283f00d39b99e0557878c4199c71d.png',
-                '喝彩': './blivechat_files/b51824125d09923a4ca064f0c0b49fc97d3fab79.png',
-                '吃瓜': './blivechat_files/ffb53c252b085d042173379ac724694ce3196194.png'
-            },
-            contentImages: {
-                'huangdou_xihuan': './blivechat_files/huangdou_xihuan.png',
-                'sakaban_jiayu_yutou': './blivechat_files/sakaban_jiayu_yutou.png',
-                'miaoa': './blivechat_files/miaoa.png',
-                'lipu': './blivechat_files/lipu.png'
-            },
-            decorativeImages: {
-                'hat': './blivechat_files/hat.png',
-                'ear': './blivechat_files/ear.png',
-                'scarf': './blivechat_files/scarf.png',
-                'leftEar': './blivechat_files/leftEar.png',
-                'rightEar': './blivechat_files/rightEar.png',
-                'kiti-scarf': './blivechat_files/scarf(1).png',
-                'tail': './blivechat_files/tail.png',
-                'flower': './blivechat_files/flower.png'
-            },
+            memberBadges: "",
 
             ...data
         };
@@ -361,9 +300,10 @@ class YouTubeChatMessageBuilder {
 
         return message;
     }
-
+    //-----------------//
     // 填充文本消息内容
     fillTextMessageContent(element, data) {
+
         // 时间戳
         const timestamp = element.querySelector('#timestamp');
         if (timestamp) timestamp.textContent = data.timestamp || '00:00';
@@ -405,7 +345,7 @@ class YouTubeChatMessageBuilder {
         if (headerSubtext) headerSubtext.textContent = data.subtext || '新会员';
         if (timestamp) timestamp.textContent = data.timestamp || '00:00';
 
-        this.updateBadges(element, 'member', data.privilegeType);
+        this.updateBadges(element, data.authorType, data.privilegeType);
     }
 
     // 构建消息内容（支持文本和表情）
@@ -419,6 +359,7 @@ class YouTubeChatMessageBuilder {
                 if (item.type === 'text') {
                     const span = document.createElement('span');
                     span.textContent = item.text;
+                    span.style.setProperty('color', item.color, 'important');
                     container.appendChild(span);
                 } else if (item.type === 'emoji') {
                     const img = document.createElement('img');
@@ -432,6 +373,7 @@ class YouTubeChatMessageBuilder {
                     const div = document.createElement('div');
                     div.className = 'el-image content-img';
                     div.style.width = item.width || '120px';
+                    div.style.height = item.height || '120px';
                     const img = document.createElement('img');
                     img.className = 'el-image__inner';
                     img.src = item.src;
@@ -441,7 +383,7 @@ class YouTubeChatMessageBuilder {
             });
         }
     }
-
+    //-----------------//
     // 更新用户徽章
     updateBadges(element, authorType, privilegeType) {
         const badgesContainer = element.querySelector('#chat-badges');
@@ -472,7 +414,15 @@ class YouTubeChatMessageBuilder {
         badge.innerHTML = `
             <div class="el-tooltip style-scope yt-live-chat-author-badge-renderer" tabindex="0">
                 <yt-icon class="style-scope yt-live-chat-author-badge-renderer">
-                    <!-- SVG内容 -->
+                    <svg
+                                        class="style-scope yt-icon"
+                                        focusable="false"
+                                        preserveAspectRatio="xMidYMid meet"
+                                        style="pointer-events: none; display: block; width: 100%; height: 100%;"
+                                        viewBox="0 0 16 16"><g
+                                        class="style-scope yt-icon"><path
+                                        class="style-scope yt-icon"
+                                        d="M9.64589146,7.05569719 C9.83346524,6.562372 9.93617022,6.02722257 9.93617022,5.46808511 C9.93617022,3.00042984 7.93574038,1 5.46808511,1 C4.90894765,1 4.37379823,1.10270499 3.88047304,1.29027875 L6.95744681,4.36725249 L4.36725255,6.95744681 L1.29027875,3.88047305 C1.10270498,4.37379824 1,4.90894766 1,5.46808511 C1,7.93574038 3.00042984,9.93617022 5.46808511,9.93617022 C6.02722256,9.93617022 6.56237198,9.83346524 7.05569716,9.64589147 L12.4098057,15 L15,12.4098057 L9.64589146,7.05569719 Z"></path></g></svg>
                 </yt-icon>
             </div>
         `;
@@ -485,12 +435,6 @@ class YouTubeChatMessageBuilder {
         badge.className = 'style-scope yt-live-chat-author-chip';
         badge.setAttribute('type', 'member');
 
-        const levelImages = {
-            '1': 'guard-level-1.png', // 总督
-            '2': 'guard-level-2.png', // 提督
-            '3': 'guard-level-3.png'  // 舰长
-        };
-
         const altTexts = {
             '1': '总督',
             '2': '提督',
@@ -499,8 +443,7 @@ class YouTubeChatMessageBuilder {
 
         badge.innerHTML = `
             <div class="el-tooltip style-scope yt-live-chat-author-badge-renderer" tabindex="0">
-                <img alt="${altTexts[privilegeType]}" class="style-scope yt-live-chat-author-badge-renderer"
-                     src="./blivechat_files/${levelImages[privilegeType]}">
+                <img alt="${altTexts[privilegeType]}" class="style-scope yt-live-chat-author-badge-renderer" src="${this.defaultImages.memberBadges}">
             </div>
         `;
 
@@ -596,22 +539,36 @@ class YouTubeChatMessageBuilder {
 
 }
 
-
-const chatBuilderManager = new YouTubeChatMessageBuilder();
-
 // 使用示例
 const chatBuilder = new YouTubeChatMessageBuilder();
 
 // 创建普通消息
 const textMessage = chatBuilder.createTextMessage({
-    authorType: 'member',
+    avatar: 'http://39.105.155.193:6380/favicon.ico',
+    authorType: 'moderator',
     privilegeType: '0',
+    memberBadges: '',
     authorName: '测试用户',
     timestamp: '14:11',
     message: [
         { type: 'text', text: '这是一条' },
         { type: 'emoji', alt: '[比心]', src: './blivechat_files/4e029593562283f00d39b99e0557878c4199c71d.png' },
         { type: 'text', text: '测试消息' }
+    ],
+    offsetX: 100,
+    offsetY: 200
+});
+
+// 创建普通消息
+const faceMessage = chatBuilder.createTextMessage({
+    avatar: 'http://39.105.155.193:6380/favicon.ico',
+    authorType: 'member',
+    privilegeType: '1',
+    memberBadges: './blivechat_files/guard-level-1.png',
+    authorName: '测试用户',
+    timestamp: '14:11',
+    message: [
+        { type: 'image', src: './blivechat_files/huangdou_xihuan.png' }
     ],
     offsetX: 100,
     offsetY: 200
@@ -640,80 +597,26 @@ const membershipMessage = chatBuilder.createMembershipMessage({
 
 // 添加到DOM
 itemContainer.appendChild(textMessage);
+itemContainer.appendChild(faceMessage);
 itemContainer.appendChild(paidMessage);
 itemContainer.appendChild(membershipMessage);
 scrollableContainer.scrollTop = scrollableContainer.scrollHeight;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+itemContainer.appendChild(faceMessage);
 
 
 
 class DanmuWebSocketClient {
     constructor() {
         this.socket = null;
-        this.isConnecting = false;
-        this.autoReconnect = true;
         this.reconnectAttempts = 0;
         this.maxReconnectAttempts = 10;
         this.reconnectInterval = 3000; // 3秒
         this.reconnectTimer = null;
 
-        // 统计变量
-        this.interactCount = 0;
-        this.giftCount = 0;
-        this.systemCount = 0;
-
-        // 新的统计变量
-        this.watchedCount = 0;
-        this.popularRankCount = 0;
-        this.onlineRankCount = 0;
-        this.likeCount = 0;
-
-        this.initializeElements();
-
         // 页面加载后自动连接
         setTimeout(() => {
             this.connect();
         }, 1000);
-    }
-
-    initializeElements() {
-        // 消息容器
-        this.danmuMessagesContainer = document.getElementById('danmuMessages');
-        this.giftMessagesContainer = document.getElementById('giftMessages');
-        this.superchatMessagesContainer = document.getElementById('superchatMessages');
-        this.interactMessagesContainer = document.getElementById('interactMessages');
-        this.systemMessagesContainer = document.getElementById('systemMessages');
-
-        // 空状态提示
-        this.danmuEmpty = document.getElementById('danmuEmpty');
-        this.giftEmpty = document.getElementById('giftEmpty');
-        this.superchatEmpty = document.getElementById('superchatEmpty');
-        this.interactEmpty = document.getElementById('interactEmpty');
-        this.systemEmpty = document.getElementById('systemEmpty');
-
-        // 计数元素
-        this.watchedCountElement = document.getElementById('watchedCount');
-        this.popularRankElement = document.getElementById('popularRankCount');
-        this.onlineRankCountElement = document.getElementById('onlineRankCount');
-        this.likeCountElement = document.getElementById('likeCount');
     }
 
     connect() {
@@ -727,7 +630,7 @@ class DanmuWebSocketClient {
 
             this.socket.onopen = () => {
                 this.reconnectAttempts = 0;
-                this.addSystemMessage({
+                this.addDanmuMessage({
                     type: 'system',
                     message: '成功连接到弹幕服务器',
                     timestamp: Date.now() / 1000
@@ -740,7 +643,7 @@ class DanmuWebSocketClient {
                     this.handleMessage(data);
                 } catch (error) {
                     console.error('解析消息错误:', error);
-                    this.addSystemMessage({
+                    this.addDanmuMessage({
                         type: 'system',
                         message: '解析消息错误',
                         timestamp: Date.now() / 1000
@@ -750,7 +653,7 @@ class DanmuWebSocketClient {
 
             this.socket.onclose = (event) => {
                 console.log('WebSocket连接关闭:', event);
-                this.addSystemMessage({
+                this.addDanmuMessage({
                     type: 'system',
                     message: `连接已断开 (代码: ${event.code})`,
                     timestamp: Date.now() / 1000
@@ -760,7 +663,7 @@ class DanmuWebSocketClient {
 
             this.socket.onerror = (error) => {
                 console.error('WebSocket错误:', error);
-                this.addSystemMessage({
+                this.addDanmuMessage({
                     type: 'system',
                     message: '连接错误',
                     timestamp: Date.now() / 1000
@@ -769,7 +672,7 @@ class DanmuWebSocketClient {
 
         } catch (error) {
             console.error('创建连接错误:', error);
-            this.addSystemMessage({
+            this.addDanmuMessage({
                 type: 'system',
                 message: '创建连接错误',
                 timestamp: Date.now() / 1000
@@ -780,7 +683,7 @@ class DanmuWebSocketClient {
 
     handleReconnect() {
         if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-            this.addSystemMessage({
+            this.addDanmuMessage({
                 type: 'system',
                 message: `连接失败，已尝试 ${this.reconnectAttempts} 次`,
                 timestamp: Date.now() / 1000
@@ -791,7 +694,7 @@ class DanmuWebSocketClient {
         this.reconnectAttempts++;
         const delay = Math.min(this.reconnectInterval * Math.pow(1.5, this.reconnectAttempts - 1), 60000); // 最大60秒
 
-        this.addSystemMessage({
+        this.addDanmuMessage({
             type: 'system',
             message: `连接断开，${Math.round(delay/1000)}秒后尝试重连 (${this.reconnectAttempts}/${this.maxReconnectAttempts})`,
             timestamp: Date.now() / 1000
@@ -805,97 +708,78 @@ class DanmuWebSocketClient {
     handleMessage(data) {
         // 根据消息类型处理
         switch (data.type) {
+//            case 'gift':
+//            case 'combo_gift':
+//            case 'guard_buy':
+//            case 'red_pocket':
+//            case 'red_pocket_v2':
+//            case 'user_toast':
+//            case 'user_toast_v2':
+//                this.addGiftMessage(data);
+//                break;
+//
+//            case 'super_chat':
+//            case 'super_chat_jpn':
+//                this.addSuperChatMessage(data);
+//                break;
+//
+            case 'live_start':
+            case 'system':
             case 'danmu':
                 this.addDanmuMessage(data);
                 break;
 
-            case 'gift':
-            case 'combo_gift':
-            case 'guard_buy':
-            case 'red_pocket':
-            case 'red_pocket_v2':
-            case 'user_toast':
-            case 'user_toast_v2':
-                this.addGiftMessage(data);
-                break;
-
-            case 'super_chat':
-            case 'super_chat_jpn':
-                this.addSuperChatMessage(data);
-                break;
-
-            case 'interact':
-            case 'like_click':
-            case 'interaction_combo':
-                this.addInteractMessage(data);
-                break;
-
-            case 'watched_change':
-                this.watchedCount = data.num;
-                this.watchedCountElement.textContent = this.watchedCount;
-                break;
-
-            case 'online_rank_count':
-                this.onlineRankCount = data.count;
-                this.onlineRankCountElement.textContent = this.onlineRankCount;
-                break;
-
-            case 'like_update':
-                this.likeCount = data.click_count;
-                this.likeCountElement.textContent = this.likeCount;
-                break;
-
-            case 'live_start':
-            case 'popular_rank_changed':
-                this.popularRankCount = data.rank;
-                this.popularRankElement.textContent = this.popularRankCount
-                break;
-
-            case 'system':
-                this.addSystemMessage(data);
-                break;
-
             default:
-                this.addUnknownMessage(data);
+                console.log('未知消息类型:', data.type);
         }
-    }
-
-    // 辅助函数：隐藏空状态提示
-    hideEmptyState(container, emptyElement) {
-        if (emptyElement.style.display !== 'none') {
-            emptyElement.style.display = 'none';
-        }
-    }
-
-    // 辅助函数：创建消息元素
-    createMessageElement(data, className, content) {
-        const messageElement = document.createElement('div');
-        messageElement.className = `message ${className}`;
-        messageElement.innerHTML = content;
-        return messageElement;
     }
 
     // 弹幕消息
     addDanmuMessage(data) {
         const time = new Date(data.timestamp * 1000).toLocaleTimeString();
-        const content = `
-            <div class="message-header">
-                <span>${time}</span>
-                <span>弹幕</span>
-            </div>
-            <div class="message-content">
-                <span class="wealth-info">${data.wealth || ''}</span>
-                <span class="medal-info">${data.medal || ''}</span>
-                <span class="user-info">${data.user}</span>：
-                ${data.content}
-                ${data.reply_to ? `<span style="color: #888;">${data.reply_to}</span>` : ''}
-            </div>
-        `;
-
-        const messageElement = this.createMessageElement(data, 'message-danmu', content);
-        this.danmuMessagesContainer.appendChild(messageElement);
-        this.hideEmptyState(this.danmuMessagesContainer, this.danmuEmpty);
-        this.scrollToBottom(this.danmuMessagesContainer);
+        let textMessage;
+        switch(data.type) {
+            case 'system':
+                // 创建系统消息
+                textMessage = chatBuilder.createTextMessage({
+                    authorType: 'moderator',
+                    privilegeType: '0',
+                    authorName: '系统消息',
+                    timestamp: time,
+                    message: data.message,
+                    offsetX: 100,
+                    offsetY: 200
+                });
+                break;
+            case 'live_start':
+                // 创建系统消息
+                textMessage = chatBuilder.createTextMessage({
+                    authorType: 'moderator',
+                    privilegeType: '0',
+                    authorName: '开播消息',
+                    timestamp: time,
+                    message: '🔴直播开始：房间' + data.roomid + '时间' + time + '平台' + data.live_platform,
+                    offsetX: 100,
+                    offsetY: 200
+                });
+                break;
+            case 'danmu':
+                // 创建普通消息
+                textMessage = chatBuilder.createTextMessage({
+                    avatar: data.face,
+                    authorType: data.authorType,
+                    privilegeType: data.guard_level,
+                    memberBadges: data.guard_icon,
+                    authorName: data.user,
+                    timestamp: time,
+                    message: data.message_list,
+                    offsetX: 100,
+                    offsetY: 200
+                });
+                break;
+        }
+        itemContainer.appendChild(textMessage);
+        this.scrollToBottom();
     }
 
     // 礼物消息
@@ -987,8 +871,7 @@ class DanmuWebSocketClient {
 
         const messageElement = this.createMessageElement(data, className, content);
         this.giftMessagesContainer.appendChild(messageElement);
-        this.hideEmptyState(this.giftMessagesContainer, this.giftEmpty);
-        this.scrollToBottom(this.giftMessagesContainer);
+        this.scrollToBottom();
     }
 
     // 醒目留言消息
@@ -1013,102 +896,8 @@ class DanmuWebSocketClient {
         this.scrollToBottom(this.superchatMessagesContainer);
     }
 
-    // 互动消息
-    addInteractMessage(data) {
-        const time = new Date(data.timestamp * 1000).toLocaleTimeString();
-        let content = '';
-        let className = 'message-interact';
-
-        if (data.type === 'like_click') {
-            content = `
-                <div class="message-header">
-                    <span>${time}</span>
-                    <span>点赞</span>
-                </div>
-                <div class="message-content">
-                    <span class="wealth-info">${data.wealth || ''}</span>
-                    <span class="medal-info">${data.medal || ''}</span>
-                    <span class="user-info">${data.user}</span>
-                    👍 ${data.like_text}
-                </div>
-            `;
-            className = 'message-interact message-like';
-        } else if (data.type === 'interaction_combo') {
-            content = `
-                <div class="message-header">
-                    <span>${time}</span>
-                    <span>连续互动</span>
-                </div>
-                <div class="message-content">
-                    ${data.message}
-                </div>
-            `;
-        } else {
-            content = `
-                <div class="message-header">
-                    <span>${time}</span>
-                    <span>互动</span>
-                </div>
-                <div class="message-content">
-                    <span class="wealth-info">${data.wealth || ''}</span>
-                    <span class="medal-info">${data.medal || ''}</span>
-                    <span class="user-info">${data.user}</span>
-                    ${data.action}
-                </div>
-            `;
-        }
-
-        const messageElement = this.createMessageElement(data, className, content);
-        this.interactMessagesContainer.appendChild(messageElement);
-        this.hideEmptyState(this.interactMessagesContainer, this.interactEmpty);
-        this.scrollToBottom(this.interactMessagesContainer);
-    }
-
-    // 系统消息
-    addSystemMessage(data) {
-        const time = new Date(data.timestamp * 1000).toLocaleTimeString();
-        let content = '';
-
-        switch(data.type) {
-            case 'system':
-                content = `
-                    <div class="message-header">
-                        <span>${time}</span>
-                        <span>系统</span>
-                    </div>
-                    <div class="message-content">
-                        ${data.message}
-                    </div>
-                `;
-                break;
-        }
-
-        const messageElement = this.createMessageElement(data, 'message-system', content);
-        this.systemMessagesContainer.appendChild(messageElement);
-        this.hideEmptyState(this.systemMessagesContainer, this.systemEmpty);
-        this.scrollToBottom(this.systemMessagesContainer);
-    }
-
-    addUnknownMessage(data) {
-        const time = new Date(data.timestamp * 1000).toLocaleTimeString();
-        const content = `
-            <div class="message-header">
-                <span>${time}</span>
-                <span>未知消息</span>
-            </div>
-            <div class="message-content">
-                未知命令: ${data.cmd}
-            </div>
-        `;
-
-        const messageElement = this.createMessageElement(data, 'message-system', content);
-        this.systemMessagesContainer.appendChild(messageElement);
-        this.hideEmptyState(this.systemMessagesContainer, this.systemEmpty);
-        this.scrollToBottom(this.systemMessagesContainer);
-    }
-
-    scrollToBottom(container) {
-        container.scrollTop = container.scrollHeight;
+    scrollToBottom() {
+        scrollableContainer.scrollTop = scrollableContainer.scrollHeight;
     }
 }
 
