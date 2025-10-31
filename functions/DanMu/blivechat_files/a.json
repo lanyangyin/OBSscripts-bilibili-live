@@ -1,15 +1,15 @@
 {
     "cmd": "DANMU_MSG",
     "dm_v2": "",
-    "info": [[0, 1, 25, 16777215, 1761921767697, -169369723, 0, "bc90aedc", 0, 0, 0, "", 0, "{}", "{}", {
-                "extra": "{\"send_from_me\":false,\"master_player_hidden\":false,\"mode\":0,\"color\":16777215,\"dm_type\":0,\"font_size\":25,\"player_mode\":1,\"show_player_type\":0,\"content\":\"[dog]\",\"user_hash\":\"3163598556\",\"emoticon_unique\":\"\",\"bulge_display\":0,\"recommend_score\":3,\"main_state_dm_color\":\"\",\"objective_state_dm_color\":\"\",\"direction\":0,\"pk_direction\":0,\"quartet_direction\":0,\"anniversary_crowd\":0,\"yeah_space_type\":\"\",\"yeah_space_url\":\"\",\"jump_to_url\":\"\",\"space_type\":\"\",\"space_url\":\"\",\"animation\":{},\"emots\":{\"[dog]\":{\"count\":1,\"descript\":\"[dog]\",\"emoji\":\"[dog]\",\"emoticon_id\":208,\"emoticon_unique\":\"emoji_208\",\"height\":20,\"url\":\"http://i0.hdslb.com/bfs/live/4428c84e694fbf4e0ef6c06e958d9352c3582740.png\",\"width\":20}},\"is_audited\":false,\"id_str\":\"40deb84c43482f3d1564d30c186904ca5787\",\"icon\":null,\"show_reply\":true,\"reply_mid\":0,\"reply_uname\":\"\",\"reply_uname_color\":\"\",\"reply_is_mystery\":false,\"reply_type_enum\":0,\"hit_combo\":0,\"esports_jump_url\":\"\",\"is_mirror\":false,\"is_collaboration_member\":false}",
+    "info": [[0, 4, 25, 14893055, 1761922473921, -1540205073, 0, "9ac99d4e", 0, 0, 5, "#1453BAFF,#4C2263A2,#3353BAFF", 0, "{}", "{}", {
+                "extra": "{\"send_from_me\":false,\"master_player_hidden\":false,\"mode\":0,\"color\":14893055,\"dm_type\":0,\"font_size\":25,\"player_mode\":4,\"show_player_type\":0,\"content\":\"\u4e70\u4e2a\u8111\u53f6\u516c\u53f8\u73a9\u73a9\",\"user_hash\":\"2596904270\",\"emoticon_unique\":\"\",\"bulge_display\":0,\"recommend_score\":3,\"main_state_dm_color\":\"\",\"objective_state_dm_color\":\"\",\"direction\":0,\"pk_direction\":0,\"quartet_direction\":0,\"anniversary_crowd\":0,\"yeah_space_type\":\"\",\"yeah_space_url\":\"\",\"jump_to_url\":\"\",\"space_type\":\"\",\"space_url\":\"\",\"animation\":{},\"emots\":null,\"is_audited\":false,\"id_str\":\"1c31ad4b47afcfc943bb8151b16904cd4108\",\"icon\":null,\"show_reply\":true,\"reply_mid\":0,\"reply_uname\":\"\",\"reply_uname_color\":\"\",\"reply_is_mystery\":false,\"reply_type_enum\":0,\"hit_combo\":0,\"esports_jump_url\":\"\",\"is_mirror\":false,\"is_collaboration_member\":false}",
                 "mode": 0,
                 "show_player_type": 0,
                 "user": {
                     "base": {
-                        "face": "https://i0.hdslb.com/bfs/face/4b397d3a6ea9dfd58c62152c69191a6b6ebe494d.jpg",
+                        "face": "https://i0.hdslb.com/bfs/face/31d7d5f5f1e4afddf6886ce2fd41c9c61852d0ab.jpg",
                         "is_mystery": false,
-                        "name": "\u6a61\u5851\u4e50",
+                        "name": "\u987e\u5fb7\u6b63_official",
                         "name_color": 0,
                         "name_color_str": "",
                         "official_info": {
@@ -19,8 +19,8 @@
                             "type": -1
                         },
                         "origin_info": {
-                            "face": "https://i0.hdslb.com/bfs/face/4b397d3a6ea9dfd58c62152c69191a6b6ebe494d.jpg",
-                            "name": "\u6a61\u5851\u4e50"
+                            "face": "https://i0.hdslb.com/bfs/face/31d7d5f5f1e4afddf6886ce2fd41c9c61852d0ab.jpg",
+                            "name": "\u987e\u5fb7\u6b63_official"
                         },
                         "risk_ctrl_info": null
                     },
@@ -29,25 +29,25 @@
                         "is_guard_leader": false
                     },
                     "medal": {
-                        "color": 9272486,
-                        "color_border": 9272486,
-                        "color_end": 9272486,
-                        "color_start": 9272486,
-                        "guard_icon": "",
-                        "guard_level": 0,
+                        "color": 7996451,
+                        "color_border": 6809855,
+                        "color_end": 15304379,
+                        "color_start": 7996451,
+                        "guard_icon": "https://i0.hdslb.com/bfs/live/48360c8f3b7de8031e86ff1ef4a2dfc0ec2a61c2.png",
+                        "guard_level": 3,
                         "honor_icon": "",
-                        "id": 1758116,
+                        "id": 811255,
                         "is_light": 1,
-                        "level": 11,
-                        "name": "\u9274\u4e2d\u4eba",
-                        "ruid": 143474500,
-                        "score": 199,
+                        "level": 36,
+                        "name": "\u7b11\u521d\u58f0",
+                        "ruid": 2117027592,
+                        "score": 154051,
                         "typ": 0,
                         "user_receive_count": 0,
-                        "v2_medal_color_border": "#C770A499",
-                        "v2_medal_color_end": "#C770A499",
-                        "v2_medal_color_level": "#C770A4E6",
-                        "v2_medal_color_start": "#C770A499",
+                        "v2_medal_color_border": "#58A1F8",
+                        "v2_medal_color_end": "#4C7DFF99",
+                        "v2_medal_color_level": "#4C7DFFE6",
+                        "v2_medal_color_start": "#4C7DFF99",
                         "v2_medal_color_text": "#FFFFFF"
                     },
                     "title": {
@@ -55,15 +55,15 @@
                         "title_css_id": ""
                     },
                     "uhead_frame": null,
-                    "uid": 3546965388298701,
+                    "uid": 24879480,
                     "wealth": null
                 }
             }, {
                 "activity_identity": "",
                 "activity_source": 0,
                 "not_show": 0
-            }, 0], "[dog]", [3546965388298701, "\u6a61\u5851\u4e50", 1, 0, 0, 10000, 1, ""], [11, "\u9274\u4e2d\u4eba", "\u5170\u9633\u97f3", 25322725, 9272486, "", 0, 9272486, 9272486, 9272486, 0, 1, 143474500], [0, 0, 9868950, ">50000", 0], ["", ""], 0, 0, null, {
-            "ct": "A995620A",
-            "ts": 1761921767
-        }, 0, 0, null, null, 0, 140, [1], null]
+            }, 43], "\u4e70\u4e2a\u8111\u53f6\u516c\u53f8\u73a9\u73a9", [24879480, "\u987e\u5fb7\u6b63_official", 1, 0, 0, 10000, 1, "#00D1F1"], [36, "\u7b11\u521d\u58f0", "\u987e\u7b11\u7b11\u7b11", 25502112, 7996451, "", 0, 6809855, 7996451, 15304379, 3, 1, 2117027592], [20, 0, 6406234, ">50000", 0], ["", ""], 0, 3, null, {
+            "ct": "6075983A",
+            "ts": 1761922473
+        }, 0, 0, null, null, 0, 884, [32], null]
 }
