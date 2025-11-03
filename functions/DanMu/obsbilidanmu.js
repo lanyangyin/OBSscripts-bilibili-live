@@ -280,6 +280,7 @@ class YouTubeChatMessageBuilder {
         cardElement.style.display = 'flex';
         cardElement.style.setProperty('flex-direction', 'row !important');
         cardElement.style.setProperty('align-items', 'flex-start');
+        cardElement.style.setProperty('width', '100%');
 
         // 头像父元素
         const authorPhotoElement = message.querySelector('#author-photo');
@@ -307,12 +308,17 @@ class YouTubeChatMessageBuilder {
         if (timestamp) timestamp.textContent = data.sendTime || '00:00';
         timestamp.style.setProperty('font-size', `${this.defaultImages.fanMedalTextSize}px`);  // 字体大小
 
-        // 用户名称
-        const authorName = message.querySelector('#author-name-text');
-        if (authorName) authorName.textContent = data.uName || '用户';
-
         const authorNameElement = message.querySelector('#author-name');
         authorNameElement.setAttribute('type', `${this.defaultImages.identityTitle}`);
+
+        // 用户名称
+        const authorNameText = message.querySelector('#author-name-text');
+        if (authorNameText) authorNameText.textContent = data.uName || '用户';
+
+        const imgMsg = message.querySelector('#image-and-message');
+        imgMsg.style.width = 'auto';
+        imgMsg.style.height = 'auto';
+
 
         const repeatedElement = message.querySelector('.el-badge.style-scope.yt-live-chat-text-message-renderer');
         repeatedElement.style.setProperty('--repeated-mark-color', 'hsl(210, 100%, 62.5%)');
@@ -352,7 +358,6 @@ class YouTubeChatMessageBuilder {
         };
 
         const message = this.createPaidMessageTemplate().cloneNode(true);
-
         message.setAttribute('price', data.price);
         message.setAttribute('price-level', data.priceLevel);
         message.setAttribute('offsetx', `${data.offsetX || 0}px`);
@@ -447,9 +452,8 @@ class YouTubeChatMessageBuilder {
                 if (item.type === 'text') {
                     const span = document.createElement('span');
                     span.textContent = item.text;
-                    if (item.color !== '') {
-                        span.style.setProperty('color', item.color, 'important');
-                    }
+                    if (item.color !== '') span.style.setProperty('color', item.color, 'important');
+                    if (item.shadow !== '') span.style.setProperty('text-shadow', `${item.shadow}`);
                     container.appendChild(span);
                 } else if (item.type === 'emoji') {
                     const img = document.createElement('img');
@@ -463,8 +467,9 @@ class YouTubeChatMessageBuilder {
                     const div = document.createElement('div');
                     div.className = 'el-image content-img';
                     div.style.width = item.width || '120px';
-//                    div.style.height = item.height || '120px';
-                    console.log('大表情高度:', item.height || '120px');
+                    console.log('大表情宽度:', parseInt(div.style.width));
+                    div.style.height = `${parseInt(item.height) * parseInt(div.style.width) / parseInt(item.width)}px`;
+                    console.log('大表情高度:', div.style.height);
                     const img = document.createElement('img');
                     img.className = 'el-image__inner';
                     img.src = item.src;
@@ -487,9 +492,9 @@ class YouTubeChatMessageBuilder {
         badgesContainer.innerHTML = '';
 
         // 粉丝徽章
-        if (this.defaultImages.fanMedalName !== '') {
+        if (this.defaultImages.isFanGroup) {
             const badge = this.createMedal();
-            if (this.defaultImages.isFanGroup) badge.setAttribute('is-fan-group', `${this.defaultImages.isFanGroup}`);
+            badge.setAttribute('is-fan-group', `${this.defaultImages.isFanGroup}`);
             badge.setAttribute('medal-name', `${this.defaultImages.fanMedalName}`);
             badge.setAttribute('medal-nevel', `${this.defaultImages.fanMedalLevel}`);
             badge.style.setProperty('--yt-live-chat-medal-background-color', `linear-gradient(to right, ${this.defaultImages.fanMedalColorStart}, ${this.defaultImages.fanMedalColorEnd})`);
@@ -549,7 +554,7 @@ class YouTubeChatMessageBuilder {
         }
 
         // 房管徽章
-        if (identityTitle === 'moderator') {
+        if (this.defaultImages.isAdmin) {
             const badge = this.createModeratorBadge();
             badgesContainer.appendChild(badge);
         }
@@ -740,7 +745,7 @@ const textMessage = chatBuilder.createTextMessage({
     privilegeLevel: '0',
     fleetBadge: '',
     uName: '测试用户',
-    timestamp: '14:11',
+    sendTime: '14:11',
     messageData: [
         { type: 'text', text: '这是一条' },
         { type: 'emoji', alt: '[比心]', src: './blivechat_files/4e029593562283f00d39b99e0557878c4199c71d.png' },
@@ -758,7 +763,7 @@ const faceMessage = chatBuilder.createTextMessage({
     fleetTitle: '总督',
     fleetBadge: './blivechat_files/guard-level-1.png',
     uName: '测试用户',
-    timestamp: '14:11',
+    sendTime: '14:11',
     messageData: [
         { type: 'image', alt: '[huangdou_xihuan]', src: './blivechat_files/huangdou_xihuan.png' }
     ],
@@ -774,7 +779,7 @@ const moderatorMessage = chatBuilder.createTextMessage({
     fleetTitle: '总督',
     fleetBadge: './blivechat_files/guard-level-1.png',
     uName: '测试用户',
-    timestamp: '14:11',
+    sendTime: '14:11',
     messageData: "moderatorMessage",
 });
 
@@ -783,7 +788,7 @@ const paidMessage = chatBuilder.createPaidMessage({
     uName: '付费用户',
     price: '30.00',
     priceLevel: '30',
-    timestamp: '14:11',
+    sendTime: '14:11',
     messageData: '这是一条付费消息',
 });
 
@@ -795,7 +800,7 @@ const membershipMessage = chatBuilder.createMembershipMessage({
     fleetTitle: '提督',
     fleetBadge: './blivechat_files/guard-level-2.png',
     subtext: '新会员',
-    timestamp: '14:11',
+    sendTime: '14:11',
 });
 
 // 添加到DOM
@@ -803,8 +808,9 @@ itemContainer.appendChild(textMessage);
 itemContainer.appendChild(faceMessage);
 itemContainer.appendChild(paidMessage);
 itemContainer.appendChild(membershipMessage);
-scrollableContainer.scrollTop = scrollableContainer.scrollHeight;
 itemContainer.appendChild(moderatorMessage);
+
+scrollableContainer.scrollTop = scrollableContainer.scrollHeight;
 
 
 
@@ -927,6 +933,7 @@ class DanmuWebSocketClient {
 //                break;
 
             case 'live_start':
+            case 'interact':
             case 'system':
             case 'danmu':
                 this.addDanmuMessage(data);
@@ -939,40 +946,29 @@ class DanmuWebSocketClient {
 
     // 弹幕消息
     addDanmuMessage(data) {
-        const time = new Date(data.sendTime * 1000).toLocaleTimeString();
+        const time = new Date(data.timestamp * 1000).toLocaleTimeString();
         let textMessage;
         switch(data.type) {
+            case 'live_start':
             case 'system':
-                // 创建系统消息
-                textMessage = chatBuilder.createTextMessage({
-                    facePicture: 'https://static.hdslb.com/images/member/noface.gif',
+                const sysMessageInfo = {
                     facePictureX: '40',  // 头像宽度px
                     facePictureY: '40',  // 头像高度px
                     authorType: 'moderator',
                     privilegeType: '0',
                     authorName: '系统消息',
-                    timestamp: time,
+                    sendTime: time,
                     messageData: data.messageData,
+                    isAdmin: true,
                     lineBreakDisplay: true,
-                });
-                break;
-            case 'live_start':
+                }
                 // 创建系统消息
-                textMessage = chatBuilder.createTextMessage({
-                    facePicture: 'https://static.hdslb.com/images/member/noface.gif',
-                    facePictureX: '40',  // 头像宽度px
-                    facePictureY: '40',  // 头像高度px
-                    authorType: 'moderator',
-                    privilegeType: '0',
-                    authorName: '开播消息',
-                    timestamp: time,
-                    messageData: `🔴直播开始：房间${data.roomid}时间${time}平台${data.live_platform}`,
-                    lineBreakDisplay: true,
-                });
+                textMessage = chatBuilder.createTextMessage(sysMessageInfo);
+                console.log('系统消息:', sysMessageInfo);
                 break;
+            case 'interact':
             case 'danmu':
-                // 创建普通消息
-                textMessage = chatBuilder.createTextMessage({
+                const danmuMessageInfo = {
                     uName: data.uName,
                     facePicture: data.facePicture,
                     facePictureX: data.facePictureX,
@@ -997,7 +993,10 @@ class DanmuWebSocketClient {
                     isAdmin: data.isAdmin,
                     isFanGroup: data.isFanGroup,
                     lineBreakDisplay: data.lineBreakDisplay,
-                });
+                }
+                // 创建普通消息
+                textMessage = chatBuilder.createTextMessage(danmuMessageInfo);
+                console.log('消息:', danmuMessageInfo);
                 break;
         }
         itemContainer.appendChild(textMessage);
