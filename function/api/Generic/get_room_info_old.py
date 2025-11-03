@@ -157,6 +157,7 @@ class BilibiliApiGeneric:
 
 
 if __name__ == "__main__":
+    from _Input.function.api import Generic as DataInput
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                       '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
@@ -166,7 +167,7 @@ if __name__ == "__main__":
     api = BilibiliApiGeneric(headers, verify_ssl=True)
 
     # 获取房间信息
-    result = api.get_room_info_old(143474500)
+    result = api.get_room_info_old(DataInput.get_room_info_old_for_uid)
 
     if result["success"]:
         print("获取房间信息成功:")

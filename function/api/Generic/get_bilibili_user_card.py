@@ -132,6 +132,7 @@ class BilibiliApiGeneric:
 
 # 使用示例
 if __name__ == "__main__":
+    from _Input.function.api import Generic as DataInput
     Headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                       '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
@@ -141,7 +142,7 @@ if __name__ == "__main__":
     api = BilibiliApiGeneric(Headers, verify_ssl=True)
 
     # 获取用户mid=143474500的信息，并请求主页头图
-    result = api.get_bilibili_user_card(mid=143474500, photo=True)
+    result = api.get_bilibili_user_card(mid=DataInput.get_bilibili_user_card_for_uid, photo=True)
 
     if result["success"]:
         user_data = result["data"]

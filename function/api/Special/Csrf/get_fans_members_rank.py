@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 from typing import Dict, Any
 
@@ -144,160 +145,137 @@ class BilibiliCSRFAuthenticator:
             "message": "用户信息获取成功"
         }
 
-    def dynamic_v1_feed_space(self, host_mid: int, all: bool = False) -> Dict[str, Any]:
+    def get_fans_members_rank(self, uid: int) -> Dict[str, Any]:
         """
-        获取用户动态列表
+        获取指定用户的粉丝团成员列表
 
         Args:
-            host_mid: 用户ID
-            all: 是否获取全部动态（分页获取）
+            uid: 要查询的B站用户UID
 
         Returns:
-            包含动态列表的字典：
+            包含查询结果的字典：
             - success: 操作是否成功
             - message: 结果描述信息
-            - data: 成功时的动态数据
+            - data: 成功时的粉丝团成员列表数据
             - error: 失败时的错误信息
             - status_code: HTTP状态码（如果有）
+            - total_count: 总成员数量（成功时）
         """
         try:
-            # 检查管理器是否正常初始化
+            # 检查认证器是否正常初始化
             if not self.initialization_result["success"]:
                 return {
                     "success": False,
-                    "message": "获取动态列表失败",
+                    "message": "获取粉丝团成员列表失败",
                     "error": "认证器未正确初始化",
                     "status_code": None
                 }
 
-            # 检查用户ID是否有效
-            if not host_mid or host_mid <= 0:
+            # 验证UID参数
+            if not uid or uid <= 0:
                 return {
                     "success": False,
-                    "message": "获取动态列表失败",
-                    "error": "用户ID无效",
+                    "message": "获取粉丝团成员列表失败",
+                    "error": "无效的用户UID",
                     "status_code": None
                 }
 
-            # 构建API请求
-            api_url = "https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space"
-            params = {
-                "offset": "",
-                "host_mid": host_mid
-            }
+            api_url = "https://api.live.bilibili.com/xlive/general-interface/v1/rank/getFansMembersRank"
+            headers = self.headers
+            page = 1
+            fans_members = []
+            has_more_data = True
+            max_retries = 3
 
-            # 发送请求
-            response = requests.get(
-                url=api_url,
-                headers=self.headers,
-                params=params,
-                verify=self.verify_ssl,
-                timeout=30
-            )
-
-            # 检查HTTP状态码
-            if response.status_code != 200:
-                return {
-                    "success": False,
-                    "message": "获取动态列表失败",
-                    "error": f"HTTP错误: {response.status_code}",
-                    "status_code": response.status_code,
-                    "response_text": response.text
+            while has_more_data:
+                params = {
+                    "ruid": uid,
+                    "page": page,
+                    "page_size": 30,
                 }
 
-            # 解析响应
-            result = response.json()
+                # 添加重试机制
+                for attempt in range(max_retries):
+                    try:
+                        response = requests.get(
+                            api_url,
+                            headers=headers,
+                            params=params,
+                            verify=self.verify_ssl,
+                            timeout=30
+                        )
 
-            # 检查B站API返回状态
-            if result.get("code") != 0:
-                return {
-                    "success": False,
-                    "message": "B站API返回错误",
-                    "error": result.get("message", "未知错误"),
-                    "status_code": response.status_code,
-                    "api_code": result.get("code")
-                }
+                        # 检查HTTP状态码
+                        if response.status_code != 200:
+                            if attempt < max_retries - 1:
+                                time.sleep(2)  # 等待后重试
+                                continue
+                            else:
+                                return {
+                                    "success": False,
+                                    "message": "获取粉丝团成员列表失败",
+                                    "error": f"HTTP错误: {response.status_code}",
+                                    "status_code": response.status_code
+                                }
 
-            # 检查数据是否存在
-            if "data" not in result or "items" not in result["data"]:
-                return {
-                    "success": False,
-                    "message": "API响应格式异常",
-                    "error": "响应中缺少必要的数据字段",
-                    "status_code": response.status_code,
-                    "response_data": result
-                }
+                        result = response.json()
 
-            # 获取动态数据
-            dynamics = result["data"]["items"]
+                        # 检查API返回状态
+                        if result.get("code") != 0:
+                            return {
+                                "success": False,
+                                "message": "B站API返回错误",
+                                "error": result.get("message", "未知错误"),
+                                "status_code": response.status_code,
+                                "api_code": result.get("code")
+                            }
 
-            # 如果需要获取全部动态，则继续分页请求
-            if all and result["data"].get("has_more", False):
-                while result["data"].get("has_more", False):
-                    params["offset"] = result["data"].get("offset", "")
+                        # 处理数据
+                        current_page_items = result["data"].get("item", [])
+                        if current_page_items:
+                            fans_members.extend(current_page_items)
+                            page += 1
+                        else:
+                            has_more_data = False
 
-                    # 发送分页请求
-                    response = requests.get(
-                        url=api_url,
-                        headers=self.headers,
-                        params=params,
-                        verify=self.verify_ssl,
-                        timeout=30
-                    )
+                        break  # 成功获取数据，跳出重试循环
 
-                    # 检查HTTP状态码
-                    if response.status_code != 200:
-                        break
-
-                    # 解析响应
-                    result = response.json()
-
-                    # 检查B站API返回状态
-                    if result.get("code") != 0:
-                        break
-
-                    # 检查数据是否存在
-                    if "data" not in result or "items" not in result["data"]:
-                        break
-
-                    # 添加新获取的动态
-                    for item in result["data"]["items"]:
-                        if item not in dynamics:
-                            dynamics.append(item)
+                    except requests.exceptions.Timeout:
+                        if attempt < max_retries - 1:
+                            time.sleep(5)  # 超时后等待5秒重试
+                            continue
+                        else:
+                            return {
+                                "success": False,
+                                "message": "获取粉丝团成员列表失败",
+                                "error": "请求超时",
+                                "status_code": None
+                            }
+                    except requests.exceptions.RequestException as e:
+                        if attempt < max_retries - 1:
+                            time.sleep(5)  # 网络错误后等待5秒重试
+                            continue
+                        else:
+                            return {
+                                "success": False,
+                                "message": "获取粉丝团成员列表失败",
+                                "error": f"网络请求异常: {str(e)}",
+                                "status_code": None
+                            }
 
             # 成功返回
             return {
                 "success": True,
-                "message": "动态列表获取成功",
-                "data": dynamics,
-                "status_code": response.status_code
+                "message": "粉丝团成员列表获取成功",
+                "data": fans_members,
+                "total_count": len(fans_members),
+                "status_code": 200
             }
 
-        except requests.exceptions.Timeout:
-            return {
-                "success": False,
-                "message": "获取动态列表失败",
-                "error": "请求超时",
-                "status_code": None
-            }
-        except requests.exceptions.ConnectionError:
-            return {
-                "success": False,
-                "message": "获取动态列表失败",
-                "error": "网络连接错误",
-                "status_code": None
-            }
-        except requests.exceptions.RequestException as e:
-            return {
-                "success": False,
-                "message": "获取动态列表失败",
-                "error": f"网络请求异常: {str(e)}",
-                "status_code": None
-            }
         except Exception as e:
             return {
                 "success": False,
-                "message": "获取动态列表过程中发生未知错误",
+                "message": "获取粉丝团成员列表过程中发生未知错误",
                 "error": str(e),
                 "status_code": None
             }
@@ -305,8 +283,9 @@ class BilibiliCSRFAuthenticator:
 
 # 使用示例
 if __name__ == "__main__":
+    from _Input.function.api.Special import Csrf as DataInput
     # 示例用法
-    BULC = BilibiliUserConfigManager(Path('../../../../cookies/config.json'))
+    BULC = BilibiliUserConfigManager(DataInput.cookie_file_path)
     cookies = BULC.get_user_cookies()['data']
     Headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
@@ -322,27 +301,17 @@ if __name__ == "__main__":
         # 获取用户信息
         user_info = authenticator.get_user_info()
         if user_info["success"]:
-            # 获取动态列表
-            dynamics_result = authenticator.dynamic_v1_feed_space(143474500, True)
+            print("用户信息:", user_info)
 
-            if dynamics_result["success"]:
-                # 处理成功的动态数据
-                dynamics = dynamics_result["data"]
-                print(dynamics)
-                # 在这里处理动态数据
-                pass
+            # 获取粉丝团成员列表
+            fans_result = authenticator.get_fans_members_rank(DataInput.get_emoticons_for_uid)
+
+            if fans_result["success"]:
+                print(f"成功获取 {fans_result['total_count']} 名粉丝团成员")
+                print("粉丝团成员列表:", fans_result["data"])
             else:
-                # 处理获取动态失败的情况
-                error_message = dynamics_result.get("error", "未知错误")
-                # 在这里处理错误
-                pass
+                print(f"获取粉丝团成员列表失败: {fans_result['error']}")
         else:
-            # 处理获取用户信息失败的情况
-            error_message = user_info.get("error", "未知错误")
-            # 在这里处理错误
-            pass
+            print("获取用户信息失败:", user_info.get("error", "未知错误"))
     else:
-        # 处理初始化失败的情况
-        error_message = authenticator.initialization_result.get("error", "未知错误")
-        # 在这里处理错误
-        pass
+        print("认证器初始化失败:", authenticator.initialization_result.get("error", "未知错误"))

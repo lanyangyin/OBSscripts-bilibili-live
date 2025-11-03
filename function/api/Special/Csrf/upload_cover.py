@@ -307,8 +307,10 @@ class BilibiliCSRFAuthenticator:
             }
 
 
-if __name__ == '__main__':
-    BULC = BilibiliUserConfigManager(Path('../../../../cookies/config.json'))
+if __name__ == "__main__":
+    from _Input.function.api.Special import Csrf as DataInput
+    # 示例用法
+    BULC = BilibiliUserConfigManager(DataInput.cookie_file_path)
     cookies = BULC.get_user_cookies()['data']
     Headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
@@ -316,7 +318,7 @@ if __name__ == '__main__':
         'cookie': dict_to_cookie_string(cookies)
     }
 
-    PIL_Image = Image.open('../../TestOutput/img/Screenshot_20210620-170526.png')
+    PIL_Image = Image.open(DataInput.upl_cover_img_pah)
     PIL_Image_bytes = convert_pil_image_to_bytes(PIL_Image, "JPEG", 0)
 
     # 创建认证器实例并上传封面

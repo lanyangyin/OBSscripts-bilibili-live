@@ -144,52 +144,35 @@ class BilibiliCSRFAuthenticator:
             "message": "用户信息获取成功"
         }
 
-    def get_emoticons(self, room_id: int) -> Dict[str, Any]:
+    def get_navigation_info(self) -> Dict[str, Any]:
         """
-        获取直播间表情列表
-
-        Args:
-            room_id: 直播间ID
+        获取登录后导航栏用户信息
 
         Returns:
-            包含表情列表的字典：
+            包含导航信息的字典：
             - success: 操作是否成功
             - message: 结果描述信息
-            - data: 成功时的数据（表情列表）
+            - data: 成功时的数据（包含用户详细信息）
             - error: 失败时的错误信息
             - status_code: HTTP状态码（如果有）
         """
         try:
-            # 检查认证器是否正常初始化
+            # 检查管理器是否正常初始化
             if not self.initialization_result["success"]:
                 return {
                     "success": False,
-                    "message": "获取表情列表失败",
+                    "message": "获取导航信息失败",
                     "error": "认证器未正确初始化",
                     "status_code": None
                 }
 
-            # 检查房间ID是否有效
-            if not room_id or room_id <= 0:
-                return {
-                    "success": False,
-                    "message": "获取表情列表失败",
-                    "error": "房间ID无效",
-                    "status_code": None
-                }
-
             # 构建API请求
-            api_url = "https://api.live.bilibili.com/xlive/web-ucenter/v2/emoticon/GetEmoticons"
-            params = {
-                "platform": "pc",
-                "room_id": room_id
-            }
+            api_url = "https://api.bilibili.com/x/web-interface/nav"
 
             # 发送请求
             response = requests.get(
                 url=api_url,
                 headers=self.headers,
-                params=params,
                 verify=self.verify_ssl,
                 timeout=30
             )
@@ -198,7 +181,7 @@ class BilibiliCSRFAuthenticator:
             if response.status_code != 200:
                 return {
                     "success": False,
-                    "message": "获取表情列表失败",
+                    "message": "获取导航信息失败",
                     "error": f"HTTP错误: {response.status_code}",
                     "status_code": response.status_code,
                     "response_text": response.text
@@ -218,7 +201,7 @@ class BilibiliCSRFAuthenticator:
                 }
 
             # 检查数据是否存在
-            if "data" not in result or "data" not in result["data"]:
+            if "data" not in result:
                 return {
                     "success": False,
                     "message": "API响应格式异常",
@@ -230,36 +213,36 @@ class BilibiliCSRFAuthenticator:
             # 成功返回
             return {
                 "success": True,
-                "message": "表情列表获取成功",
-                "data": result["data"]["data"],
+                "message": "导航信息获取成功",
+                "data": result["data"],
                 "status_code": response.status_code
             }
 
         except requests.exceptions.Timeout:
             return {
                 "success": False,
-                "message": "获取表情列表失败",
+                "message": "获取导航信息失败",
                 "error": "请求超时",
                 "status_code": None
             }
         except requests.exceptions.ConnectionError:
             return {
                 "success": False,
-                "message": "获取表情列表失败",
+                "message": "获取导航信息失败",
                 "error": "网络连接错误",
                 "status_code": None
             }
         except requests.exceptions.RequestException as e:
             return {
                 "success": False,
-                "message": "获取表情列表失败",
+                "message": "获取导航信息失败",
                 "error": f"网络请求异常: {str(e)}",
                 "status_code": None
             }
         except Exception as e:
             return {
                 "success": False,
-                "message": "获取表情列表过程中发生未知错误",
+                "message": "获取导航信息过程中发生未知错误",
                 "error": str(e),
                 "status_code": None
             }
@@ -267,8 +250,9 @@ class BilibiliCSRFAuthenticator:
 
 # 使用示例
 if __name__ == "__main__":
+    from _Input.function.api.Special import Csrf as DataInput
     # 示例用法
-    BULC = BilibiliUserConfigManager(Path('../../../../cookies/config.json'))
+    BULC = BilibiliUserConfigManager(DataInput.cookie_file_path)
     cookies = BULC.get_user_cookies()['data']
     Headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
@@ -286,13 +270,14 @@ if __name__ == "__main__":
         if user_info["success"]:
             print("# 在这里处理成功的用户信息", user_info)
 
-            # 获取表情列表
-            emoticons_result = authenticator.get_emoticons(203227)
-            if emoticons_result["success"]:
-                print("表情列表获取成功")
-                print(emoticons_result["data"])
+            # 获取导航信息
+            nav_info = authenticator.get_navigation_info()
+            if nav_info["success"]:
+                print("导航信息获取成功")
+                print(f"用户昵称: {nav_info['data'].get('uname', '未知')}")
+                print(f"会员状态: {'是' if nav_info['data'].get('vipStatus') else '否'}")
             else:
-                print(f"获取表情列表失败: {emoticons_result['error']}")
+                print(f"获取导航信息失败: {nav_info['error']}")
         else:
             print("# 在这里处理获取用户信息失败的情况")
     else:

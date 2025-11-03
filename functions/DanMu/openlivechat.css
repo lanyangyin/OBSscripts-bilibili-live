@@ -1,0 +1,893 @@
+:root{
+
+--nor-name:#B4E5EA;
+
+--nor-mes:#6FD6DD;
+
+--mem3-name:#B4D2EA;
+
+--mem3-mes:#6FABDD;
+
+--mem2-name:#C2B4EA;
+
+--mem2-mes:#8B6FDD;
+
+--mem1-name:#EAB4B8;
+
+--mem1-mes:#DD6F76;
+
+--own-name:#9ED9AB;
+
+--own-mes:#63C478;
+
+}
+
+
+
+@font-face {
+
+font-family: 'allfonts';
+
+src: url(https://i1.xuehusang.cn/font/MiSans-Semibold.ttf);
+
+}
+
+body,
+
+yt-live-chat-ticker-renderer,
+
+yt-live-chat-renderer,
+
+#item-scroller,
+
+#author-name{
+
+overflow:hidden !important;
+
+background: transparent !important;
+
+}
+
+#chat-badges{
+
+display:none !important;
+
+}
+
+yt-live-chat-interact-message-renderer,
+
+yt-live-chat-text-message-renderer,
+
+yt-live-chat-membership-item-renderer,
+
+yt-live-chat-paid-message-renderer{
+
+animation-name: slideInUp;
+
+animation-duration:0.7s;
+
+animation-fill-mode: both;
+
+}
+
+@keyframes slideInUp{
+
+0% {
+
+transform: translateY(100%);
+
+visibility: visible;
+
+}
+
+100% {
+
+transform: translateY(0);
+
+}
+
+}
+
+yt-live-chat-membership-item-renderer *,
+
+yt-live-chat-paid-message-renderer *{
+
+background-color: transparent !important;
+
+box-shadow:none !important;
+
+}
+
+yt-live-chat-text-message-renderer{
+
+overflow:visible !important;
+
+position:relative;
+
+}
+
+yt-live-chat-text-message-renderer[author-type="member"][privilegetype="1"] yt-live-chat-author-chip::before,
+
+yt-live-chat-text-message-renderer[author-type="member"][privilegetype="3"] yt-live-chat-author-chip::before{
+
+background:#e78da1 !important;
+
+}
+
+#chat-medal *{
+
+border:none !important;
+
+overflow:visible !important;
+
+display:flex !important;
+
+align-items:center;
+
+font-size:12pt !important;
+
+border-radius:5px !important;
+
+}
+
+#medal-name{
+
+display:none !important;
+
+}
+
+/* 通用设置 */
+
+yt-live-chat-renderer *{
+
+font-family: 'allfonts';
+
+font-size:25pt !important;
+
+color:white !important;
+
+}
+
+#author-name{
+
+font-size:17pt !important;
+
+}
+
+#author-photo,#author-photo img{
+
+width:60px !important;
+
+height:60px !important;
+
+}
+
+#author-photo img{
+
+border-radius:50%;
+
+}
+
+yt-live-chat-text-message-renderer{
+
+display:flex;
+
+}
+
+yt-live-chat-text-message-renderer #card,
+
+yt-live-chat-text-message-renderer #content{
+
+width:100%;
+
+}
+
+yt-live-chat-text-message-renderer #image-and-message{
+
+width:fit-content;
+
+}
+
+yt-live-chat-text-message-renderer #image-and-message .emoji[id^=official],
+
+yt-live-chat-text-message-renderer #image-and-message .emoji[id^=room],
+
+yt-live-chat-text-message-renderer #image-and-message .emoji[id^=upower],
+
+#image-and-message img[display=block],
+
+#image-and-message img[display=inline]{
+
+height:60px;
+
+width:auto;
+
+display:inline !important;
+
+}
+
+yt-live-chat-text-message-renderer{
+
+display:flex;
+
+align-items:center !important;
+
+margin:0px 40px 0 0 !important;
+
+}
+
+yt-live-chat-text-message-renderer yt-live-chat-author-chip{
+
+margin:0 0 10px 0;
+
+}
+
+yt-live-chat-text-message-renderer #author-photo{
+
+margin:20px 0 0 0;
+
+}
+
+yt-live-chat-text-message-renderer[author-type="member"] #author-name{
+
+position:relative;
+
+margin-left:40px;
+
+overflow:visible !important;
+
+}
+
+/* 普通 */
+
+yt-live-chat-text-message-renderer[author-type=""] #medal-level{
+
+color:var(--nor-name) !important;
+
+}
+
+yt-live-chat-text-message-renderer[author-type=""] yt-live-chat-author-chip{
+
+background-color:var(--nor-name) !important;
+
+padding:0 10px;
+
+border-radius:20px 20px 20px 0px;
+
+}
+
+yt-live-chat-text-message-renderer[author-type=""] #image-and-message{
+
+background-color:var(--nor-mes) !important;
+
+border-radius:0px 20px 20px 20px;
+
+padding:10px 20px !important;
+
+}
+
+/* 主播 */
+
+yt-live-chat-text-message-renderer[author-type="owner"] #medal-level{
+
+color:var(--own-name) !important;
+
+}
+
+yt-live-chat-text-message-renderer[author-type="owner"] yt-live-chat-author-chip{
+
+background-color:var(--own-name) !important;
+
+padding:0 10px;
+
+border-radius:20px 20px 20px 0px;
+
+}
+
+yt-live-chat-text-message-renderer[author-type="owner"] #image-and-message{
+
+background-color:var(--own-mes) !important;
+
+border-radius:0px 20px 20px 20px;
+
+padding:10px 20px !important;
+
+}
+
+/* 舰长 */
+
+yt-live-chat-text-message-renderer[author-type="member"][privilegetype="3"] #medal-level{
+
+color:var(--mem3-name) !important;
+
+}
+
+yt-live-chat-text-message-renderer[author-type="member"][privilegetype="3"] yt-live-chat-author-chip{
+
+background-color:var(--mem3-name) !important;
+
+padding:0 10px;
+
+border-radius:20px 20px 20px 0px;
+
+}
+
+yt-live-chat-text-message-renderer[author-type="member"][privilegetype="3"] #image-and-message{
+
+background-color:var(--mem3-mes) !important;
+
+border-radius:0px 20px 20px 20px;
+
+padding:10px 20px !important;
+
+}
+
+yt-live-chat-text-message-renderer[author-type="member"][privilegetype="3"] #author-name::before{
+
+content:"";
+
+width:30px;
+
+height:50px;
+
+background: url('data:image/svg+xml,<%3Fxml version="1.0" encoding="UTF-8"%3F><svg id="_图层_2" data-name="图层 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20.52 26.94"><defs><style> .cls-1 { fill: %236fabdd; stroke-width: 0px; } </style></defs><g id="_图层_1-2" data-name="图层 1"><g id="_图层_1-2" data-name=" 图层 1-2"><path class="cls-1" d="m19.93,14.2c-.41.53-1.14,1.33-2.25,2-1.02.61-1.96.88-2.6,1.02l.82,1.02c0,.88-3.21,1.66-3.21,1.66l-.35-8.83,3.41-.82c.12.08.63.43,1.23.27.78-.2,1.08-1.16,1.06-1.78,0-.57-.27-1.53-1.04-1.72-.59-.14-1.12.27-1.23.33-1.35-.25-2.7-.49-4.03-.74,1.19-.55,2-1.76,2-3.15,0-1.92-1.55-3.47-3.47-3.47s-3.47,1.55-3.47,3.47c0,1.39.82,2.6,2,3.15-1.35.25-2.7.49-4.03.74-.1-.08-.63-.47-1.23-.33-.76.18-1.02,1.14-1.04,1.72,0,.61.29,1.57,1.06,1.78.59.16,1.12-.18,1.23-.27l3.41.82-.35,8.83s-3.21-.76-3.21-1.66l.82-1.02c-.63-.12-1.59-.41-2.6-1.02-1.12-.67-1.84-1.47-2.25-2,0,0-1.43,4.25,0,7.32l1.57-.82c.57,1.06,1.84,3.07,4.23,4.62,1.45.94,2.84,1.39,3.82,1.61,1.06-.18,3.47-.78,5.62-2.8,1.31-1.23,2.02-2.53,2.43-3.41l1.57.82c1.43-3.09,0-7.32,0-7.32l.04-.02ZM10.3,2.58c.49,0,.88.39.88.88s-.39.88-.88.88-.88-.39-.88-.88.39-.88.88-.88Z"/></g></g></svg>') no-repeat;
+
+background-image-size:100% 100% !important;
+
+position:absolute;
+
+top:60%;
+
+transform:translatey(-50%);
+
+left:-37px;
+
+}
+
+/* 提督 */
+
+yt-live-chat-text-message-renderer[author-type="member"][privilegetype="2"] #medal-level{
+
+color:var(--mem2-name) !important;
+
+}
+
+yt-live-chat-text-message-renderer[author-type="member"][privilegetype="2"] yt-live-chat-author-chip{
+
+background-color:var(--mem2-name) !important;
+
+padding:0 10px;
+
+border-radius:20px 20px 20px 0px;
+
+}
+
+yt-live-chat-text-message-renderer[author-type="member"][privilegetype="2"] #image-and-message{
+
+background-color:var(--mem2-mes) !important;
+
+border-radius:0px 20px 20px 20px;
+
+padding:10px 20px !important;
+
+}
+
+yt-live-chat-text-message-renderer[author-type="member"][privilegetype="2"] #author-name::before{
+
+content:"";
+
+width:30px;
+
+height:50px;
+
+background:url('data:image/svg+xml,<%3Fxml version="1.0" encoding="UTF-8"%3F><svg id="_图层_2" data-name="图层 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20.52 26.94"><defs><style> .cls-1 { fill: %238b6fdd; stroke-width: 0px; } </style></defs><g id="_图层_1-2" data-name="图层 1"><g id="_图层_1-2" data-name=" 图层 1-2"><path class="cls-1" d="m19.93,14.2c-.41.53-1.14,1.33-2.25,2-1.02.61-1.96.88-2.6,1.02l.82,1.02c0,.88-3.21,1.66-3.21,1.66l-.35-8.83,3.41-.82c.12.08.63.43,1.23.27.78-.2,1.08-1.16,1.06-1.78,0-.57-.27-1.53-1.04-1.72-.59-.14-1.12.27-1.23.33-1.35-.25-2.7-.49-4.03-.74,1.19-.55,2-1.76,2-3.15,0-1.92-1.55-3.47-3.47-3.47s-3.47,1.55-3.47,3.47c0,1.39.82,2.6,2,3.15-1.35.25-2.7.49-4.03.74-.1-.08-.63-.47-1.23-.33-.76.18-1.02,1.14-1.04,1.72,0,.61.29,1.57,1.06,1.78.59.16,1.12-.18,1.23-.27l3.41.82-.35,8.83s-3.21-.76-3.21-1.66l.82-1.02c-.63-.12-1.59-.41-2.6-1.02-1.12-.67-1.84-1.47-2.25-2,0,0-1.43,4.25,0,7.32l1.57-.82c.57,1.06,1.84,3.07,4.23,4.62,1.45.94,2.84,1.39,3.82,1.61,1.06-.18,3.47-.78,5.62-2.8,1.31-1.23,2.02-2.53,2.43-3.41l1.57.82c1.43-3.09,0-7.32,0-7.32l.04-.02ZM10.3,2.58c.49,0,.88.39.88.88s-.39.88-.88.88-.88-.39-.88-.88.39-.88.88-.88Z"/></g></g></svg>') no-repeat;
+
+background-image-size:100% 100% !important;
+
+position:absolute;
+
+top:60%;
+
+transform:translatey(-50%);
+
+left:-37px;
+
+}
+
+/* 总督 */
+
+yt-live-chat-text-message-renderer[author-type="member"][privilegetype="1"] #medal-level{
+
+color:var(--mem1-name) !important;
+
+}
+
+yt-live-chat-text-message-renderer[author-type="member"][privilegetype="1"] yt-live-chat-author-chip{
+
+background-color:var(--mem1-name) !important;
+
+padding:0 10px;
+
+border-radius:20px 20px 20px 0px;
+
+}
+
+yt-live-chat-text-message-renderer[author-type="member"][privilegetype="1"] #image-and-message{
+
+background-color:var(--mem1-mes) !important;
+
+border-radius:0px 20px 20px 20px;
+
+padding:10px 20px !important;
+
+}
+
+yt-live-chat-text-message-renderer[author-type="member"][privilegetype="1"] #author-name::before{
+
+content:"";
+
+width:30px;
+
+height:50px;
+
+background:url('data:image/svg+xml,<%3Fxml version="1.0" encoding="UTF-8"%3F><svg id="_图层_2" data-name="图层 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20.52 26.94"><defs><style> .cls-1 { fill: %23dd6f76; stroke-width: 0px; } </style></defs><g id="_图层_1-2" data-name="图层 1"><g id="_图层_1-2" data-name=" 图层 1-2"><path class="cls-1" d="m19.93,14.2c-.41.53-1.14,1.33-2.25,2-1.02.61-1.96.88-2.6,1.02l.82,1.02c0,.88-3.21,1.66-3.21,1.66l-.35-8.83,3.41-.82c.12.08.63.43,1.23.27.78-.2,1.08-1.16,1.06-1.78,0-.57-.27-1.53-1.04-1.72-.59-.14-1.12.27-1.23.33-1.35-.25-2.7-.49-4.03-.74,1.19-.55,2-1.76,2-3.15,0-1.92-1.55-3.47-3.47-3.47s-3.47,1.55-3.47,3.47c0,1.39.82,2.6,2,3.15-1.35.25-2.7.49-4.03.74-.1-.08-.63-.47-1.23-.33-.76.18-1.02,1.14-1.04,1.72,0,.61.29,1.57,1.06,1.78.59.16,1.12-.18,1.23-.27l3.41.82-.35,8.83s-3.21-.76-3.21-1.66l.82-1.02c-.63-.12-1.59-.41-2.6-1.02-1.12-.67-1.84-1.47-2.25-2,0,0-1.43,4.25,0,7.32l1.57-.82c.57,1.06,1.84,3.07,4.23,4.62,1.45.94,2.84,1.39,3.82,1.61,1.06-.18,3.47-.78,5.62-2.8,1.31-1.23,2.02-2.53,2.43-3.41l1.57.82c1.43-3.09,0-7.32,0-7.32l.04-.02ZM10.3,2.58c.49,0,.88.39.88.88s-.39.88-.88.88-.88-.39-.88-.88.39-.88.88-.88Z"/></g></g></svg>') no-repeat;
+
+background-image-size:100% 100% !important;
+
+position:absolute;
+
+top:60%;
+
+transform:translatey(-50%);
+
+left:-37px;
+
+}
+
+/* 礼物 */
+
+yt-live-chat-paid-message-renderer #header-content *{
+
+display:inline !important;
+
+font-size:20pt !important;
+
+}
+
+yt-live-chat-paid-message-renderer #timestamp{
+
+display:none !important;
+
+}
+
+yt-live-chat-paid-message-renderer[price-level="0"] #header{
+
+background-color:#A8A8A8 !important;
+
+border-radius:30px !important;
+
+}
+
+yt-live-chat-paid-message-renderer[price-level="0"] #purchase-amount{
+
+color:#A8A8A8 !important;
+
+}
+
+yt-live-chat-paid-message-renderer #purchase-amount{
+
+float:right;
+
+color:#DD9E4D !important;
+
+background:white !important;
+
+padding:2px 20px;
+
+border-radius:30px !important;
+
+}
+
+yt-live-chat-paid-message-renderer #header{
+
+background-color:#EAC390 !important;
+
+border-radius:30px 30px 0 0 !important;
+
+}
+
+yt-live-chat-paid-message-renderer{
+
+margin:10px 0 0 0;
+
+}
+
+yt-live-chat-paid-message-renderer #content{
+
+background-color:#DD9E4D !important;
+
+border-radius:0px 0px 30px 30px !important;
+
+}
+
+/* sc */
+
+yt-live-chat-paid-message-renderer[giftname="superchat"] #purchase-amount{
+
+float:right;
+
+color:#DD4A45 !important;
+
+background:white !important;
+
+padding:2px 20px;
+
+border-radius:30px !important;
+
+}
+
+yt-live-chat-paid-message-renderer[giftname="superchat"] #header{
+
+background-color:#EA8B88 !important;
+
+border-radius:30px 30px 0 0 !important;
+
+}
+
+yt-live-chat-paid-message-renderer[giftname="superchat"] #content{
+
+background-color:#DD4A45 !important;
+
+border-radius:0px 0px 30px 30px !important;
+
+}
+
+/* 上舰 */
+
+yt-live-chat-membership-item-renderer{
+
+margin:20px 30px;
+
+border-radius:30px !important;
+
+padding:20px 20px 20px 150px !important;
+
+}
+
+#header-subtext{
+
+display:none;
+
+}
+
+yt-live-chat-membership-item-renderer[privilegetype="1"]{
+
+background:var(--mem1-mes);
+
+}
+
+yt-live-chat-membership-item-renderer[privilegetype="2"]{
+
+background:var(--mem2-mes);
+
+}
+
+yt-live-chat-membership-item-renderer[privilegetype="3"]{
+
+background:var(--mem3-mes);
+
+}
+
+yt-live-chat-membership-item-renderer[privilegetype="1"]::before{
+
+content:"";
+
+width:25px;
+
+height:calc(100% - 20px);
+
+background-color:var(--mem1-name);
+
+position:absolute;
+
+top:50%;
+
+transform:translatey(-50%);
+
+border-radius:30px !important;
+
+margin-left:-30px;
+
+}
+
+yt-live-chat-membership-item-renderer[privilegetype="2"]::before{
+
+content:"";
+
+width:25px;
+
+height:calc(100% - 20px);
+
+background-color:var(--mem2-name);
+
+position:absolute;
+
+top:50%;
+
+transform:translatey(-50%);
+
+border-radius:30px !important;
+
+margin-left:-30px;
+
+}
+
+yt-live-chat-membership-item-renderer[privilegetype="3"]::before{
+
+content:"";
+
+width:25px;
+
+height:calc(100% - 20px);
+
+background-color:var(--mem3-name);
+
+position:absolute;
+
+top:50%;
+
+transform:translatey(-50%);
+
+border-radius:30px !important;
+
+margin-left:-30px;
+
+}
+
+yt-live-chat-membership-item-renderer[privilegetype="1"]::after{
+
+content:"";
+
+width:65px;
+
+height:75px;
+
+background:url('data:image/svg+xml,<%3Fxml version="1.0" encoding="UTF-8"%3F><svg id="_图层_2" data-name="图层 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45.67 59.94"><defs><style> .cls-1 { fill: %23eab4b8; stroke-width: 0px; } </style></defs><g id="_图层_1-2" data-name="图层 1"><g id="_图层_1-2" data-name=" 图层 1-2"><path class="cls-1" d="m44.35,31.61c-.91,1.18-2.55,2.96-5,4.46-2.27,1.36-4.37,1.96-5.78,2.27l1.82,2.27c0,1.96-7.14,3.68-7.14,3.68l-.77-19.65,7.6-1.82c.27.18,1.41.96,2.73.59,1.73-.45,2.41-2.59,2.36-3.96,0-1.27-.59-3.41-2.32-3.82-1.32-.32-2.5.59-2.73.73-3-.55-6-1.09-8.96-1.64,2.64-1.23,4.46-3.91,4.46-7,0-4.28-3.46-7.73-7.73-7.73s-7.73,3.46-7.73,7.73c0,3.09,1.82,5.78,4.46,7-3,.55-6,1.09-8.96,1.64-.23-.18-1.41-1.05-2.73-.73-1.68.41-2.27,2.55-2.32,3.82,0,1.36.64,3.5,2.36,3.96,1.32.36,2.5-.41,2.73-.59l7.6,1.82-.77,19.65s-7.14-1.68-7.14-3.68l1.82-2.27c-1.41-.27-3.55-.91-5.78-2.27-2.5-1.5-4.09-3.27-5-4.46,0,0-3.18,9.46,0,16.28l3.5-1.82c1.27,2.36,4.09,6.82,9.41,10.28,3.23,2.09,6.32,3.09,8.5,3.59,2.36-.41,7.73-1.73,12.51-6.23,2.91-2.73,4.5-5.64,5.41-7.6l3.5,1.82c3.18-6.87,0-16.28,0-16.28l.09-.05ZM22.93,5.73c1.09,0,1.96.86,1.96,1.96s-.86,1.96-1.96,1.96-1.96-.86-1.96-1.96.86-1.96,1.96-1.96Z"/></g></g></svg>') no-repeat;
+
+position:absolute;
+
+top:50%;
+
+transform:translatey(-50%);
+
+border-radius:30px !important;
+
+margin-left:-110px;
+
+}
+
+yt-live-chat-membership-item-renderer[privilegetype="2"]::after{
+
+content:"";
+
+width:65px;
+
+height:75px;
+
+background:url('data:image/svg+xml,<%3Fxml version="1.0" encoding="UTF-8"%3F><svg id="_图层_2" data-name="图层 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45.67 59.94"><defs><style> .cls-1 { fill: %23c2b4ea; stroke-width: 0px; } </style></defs><g id="_图层_1-2" data-name="图层 1"><g id="_图层_1-2" data-name=" 图层 1-2"><path class="cls-1" d="m44.35,31.61c-.91,1.18-2.55,2.96-5,4.46-2.27,1.36-4.37,1.96-5.78,2.27l1.82,2.27c0,1.96-7.14,3.68-7.14,3.68l-.77-19.65,7.6-1.82c.27.18,1.41.96,2.73.59,1.73-.45,2.41-2.59,2.36-3.96,0-1.27-.59-3.41-2.32-3.82-1.32-.32-2.5.59-2.73.73-3-.55-6-1.09-8.96-1.64,2.64-1.23,4.46-3.91,4.46-7,0-4.28-3.46-7.73-7.73-7.73s-7.73,3.46-7.73,7.73c0,3.09,1.82,5.78,4.46,7-3,.55-6,1.09-8.96,1.64-.23-.18-1.41-1.05-2.73-.73-1.68.41-2.27,2.55-2.32,3.82,0,1.36.64,3.5,2.36,3.96,1.32.36,2.5-.41,2.73-.59l7.6,1.82-.77,19.65s-7.14-1.68-7.14-3.68l1.82-2.27c-1.41-.27-3.55-.91-5.78-2.27-2.5-1.5-4.09-3.27-5-4.46,0,0-3.18,9.46,0,16.28l3.5-1.82c1.27,2.36,4.09,6.82,9.41,10.28,3.23,2.09,6.32,3.09,8.5,3.59,2.36-.41,7.73-1.73,12.51-6.23,2.91-2.73,4.5-5.64,5.41-7.6l3.5,1.82c3.18-6.87,0-16.28,0-16.28l.09-.05ZM22.93,5.73c1.09,0,1.96.86,1.96,1.96s-.86,1.96-1.96,1.96-1.96-.86-1.96-1.96.86-1.96,1.96-1.96Z"/></g></g></svg>') no-repeat;
+
+position:absolute;
+
+top:50%;
+
+transform:translatey(-50%);
+
+border-radius:30px !important;
+
+margin-left:-110px;
+
+}
+
+yt-live-chat-membership-item-renderer[privilegetype="3"]::after{
+
+content:"";
+
+width:65px;
+
+height:75px;
+
+background:url('data:image/svg+xml,<%3Fxml version="1.0" encoding="UTF-8"%3F><svg id="_图层_2" data-name="图层 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45.67 59.94"><defs><style> .cls-1 { fill: %23b4d2ea; stroke-width: 0px; } </style></defs><g id="_图层_1-2" data-name="图层 1"><g id="_图层_1-2" data-name=" 图层 1-2"><path class="cls-1" d="m44.35,31.61c-.91,1.18-2.55,2.96-5,4.46-2.27,1.36-4.37,1.96-5.78,2.27l1.82,2.27c0,1.96-7.14,3.68-7.14,3.68l-.77-19.65,7.6-1.82c.27.18,1.41.96,2.73.59,1.73-.45,2.41-2.59,2.36-3.96,0-1.27-.59-3.41-2.32-3.82-1.32-.32-2.5.59-2.73.73-3-.55-6-1.09-8.96-1.64,2.64-1.23,4.46-3.91,4.46-7,0-4.28-3.46-7.73-7.73-7.73s-7.73,3.46-7.73,7.73c0,3.09,1.82,5.78,4.46,7-3,.55-6,1.09-8.96,1.64-.23-.18-1.41-1.05-2.73-.73-1.68.41-2.27,2.55-2.32,3.82,0,1.36.64,3.5,2.36,3.96,1.32.36,2.5-.41,2.73-.59l7.6,1.82-.77,19.65s-7.14-1.68-7.14-3.68l1.82-2.27c-1.41-.27-3.55-.91-5.78-2.27-2.5-1.5-4.09-3.27-5-4.46,0,0-3.18,9.46,0,16.28l3.5-1.82c1.27,2.36,4.09,6.82,9.41,10.28,3.23,2.09,6.32,3.09,8.5,3.59,2.36-.41,7.73-1.73,12.51-6.23,2.91-2.73,4.5-5.64,5.41-7.6l3.5,1.82c3.18-6.87,0-16.28,0-16.28l.09-.05ZM22.93,5.73c1.09,0,1.96.86,1.96,1.96s-.86,1.96-1.96,1.96-1.96-.86-1.96-1.96.86-1.96,1.96-1.96Z"/></g></g></svg>') no-repeat;
+
+position:absolute;
+
+top:50%;
+
+transform:translatey(-50%);
+
+border-radius:30px !important;
+
+margin-left:-110px;
+
+}
+
+yt-live-chat-membership-item-renderer[privilegetype="3"] yt-live-chat-author-chip::after{
+
+content:"舰长就任";
+
+position:static !important;
+
+}
+
+yt-live-chat-membership-item-renderer[privilegetype="2"] yt-live-chat-author-chip::after{
+
+content:"提督就任";
+
+position:static !important;
+
+}
+
+yt-live-chat-membership-item-renderer[privilegetype="1"] yt-live-chat-author-chip::after{
+
+content:"总督就任";
+
+position:static !important;
+
+}
+
+yt-live-chat-membership-item-renderer[privilegetype="1"] yt-live-chat-author-chip{
+
+display:flex !important;
+
+flex-direction: column;
+
+align-items: flex-start;
+
+}
+
+yt-live-chat-membership-item-renderer #author-name{
+
+font-size:25pt !important;
+
+background:white !important;
+
+padding:0 20px;
+
+border-radius:30px !important;
+
+}
+
+yt-live-chat-membership-item-renderer[privilegetype="3"] #author-name{
+
+color:var(--mem3-mes) !important;
+
+}
+
+yt-live-chat-membership-item-renderer[privilegetype="2"] #author-name{
+
+color:var(--mem2-mes) !important;
+
+}
+
+yt-live-chat-membership-item-renderer[privilegetype="1"] #author-name{
+
+color:var(--mem1-mes) !important;
+
+}
+
+/* 置顶 */
+
+yt-live-chat-ticker-renderer *{
+
+background:transparent !important;
+
+font-family: 'allfonts' !important;
+
+font-size:20pt !important;
+
+}
+
+yt-live-chat-ticker-paid-message-item-renderer{
+
+overflow:visible !important;
+
+}
+
+yt-live-chat-ticker-renderer #author-photo img,
+
+yt-live-chat-ticker-renderer #author-photo{
+
+border-radius:50% !important;
+
+width:20px !important;
+
+height:20px !important
+
+}
+
+yt-live-chat-ticker-paid-message-item-renderer[type="1"] #content{
+
+border:3px solid #DD9E4D;
+
+background:#DD9E4D !important;
+
+border-radius:50px !important;
+
+width:fit-content;
+
+padding:0 0 0 5px;
+
+}
+
+yt-live-chat-ticker-paid-message-item-renderer[type="2"][privilegetype="1"] #content{
+
+border:3px solid var(--mem1-mes);
+
+background:var(--mem1-mes) !important;
+
+border-radius:50px !important;
+
+width:fit-content;
+
+padding:0 0 0 5px;
+
+}
+
+yt-live-chat-ticker-paid-message-item-renderer[type="2"][privilegetype="2"] #content{
+
+border:3px solid var(--mem2-mes);
+
+background:var(--mem2-mes) !important;
+
+border-radius:50px !important;
+
+width:fit-content;
+
+padding:0 0 0 5px;
+
+}
+
+yt-live-chat-ticker-paid-message-item-renderer[type="2"][privilegetype="3"] #content{
+
+border:3px solid var(--mem3-mes);
+
+background:var(--mem3-mes) !important;
+
+border-radius:50px !important;
+
+width:fit-content;
+
+padding:0 0 0 5px;
+
+}
+
+yt-live-chat-ticker-paid-message-item-renderer[type="3"] #content{
+
+border:3px solid #DD4A45;
+
+background:#DD4A45 !important;
+
+border-radius:50px !important;
+
+width:fit-content;
+
+padding:0 0 0 5px;
+
+}
+
+yt-live-chat-ticker-paid-message-item-renderer[type="2"][privilegetype="1"] #content:after{
+
+content:"新总督" !important;
+
+}
+
+yt-live-chat-ticker-paid-message-item-renderer[type="2"][privilegetype="2"] #content:after{
+
+content:"新提督" !important;
+
+}
+
+yt-live-chat-ticker-paid-message-item-renderer[type="2"][privilegetype="3"] #content:after{
+
+content:"新舰长" !important;
+
+}

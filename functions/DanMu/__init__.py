@@ -16,7 +16,7 @@ from typing import Set, Optional, Union, Dict, Any
 from PIL import Image
 
 from function.api.Authentication.Wbi.get_danmu_info import WbiSigna
-from function.api.Special.Get.get_user_live_info import BilibiliCSRFAuthenticator
+from function.api.Special.Csrf import BilibiliCSRFAuthenticator
 from function.tools.EncodingConversion.parse_cookie import parse_cookie
 from function.tools.EncodingConversion.dict_to_cookie_string import dict_to_cookie_string
 from function.tools.EncodingConversion.DanmuProtoDecoder import DanmuProtoDecoder
@@ -451,10 +451,75 @@ class Danmu:
 
 
 if __name__ == "__main__":
-    from _Input.functions.DanMu import Danmu as Dm
+    from _Input.functions.DanMu import Danmu as DataInput
     from function.tools.EncodingConversion.url2pillow_image import url2pillow_image
+    from function.api.Generic import BilibiliApiGeneric
     import signal
     import sys
+    BULC = BilibiliUserConfigManager(Path('../../cookies/config.json'))
+    cookies = BULC.get_user_cookies()['data']
+    Headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                      '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+        'cookie': dict_to_cookie_string(cookies)
+    }
+    face_picture_size = (40, 40)
+    is_medal_other_display = False
+    """是否显示其他的粉丝徽章"""
+    is_medal_un_light_display = True
+    """是否显示未点亮的粉丝徽章"""
+    fan_medal_text_size = '14px'
+    """粉丝勋章文字大小"""
+    message_text_size = '16px'
+    """内容文字大小"""
+    time_text_size = '11px'
+    """时间文字大小"""
+    own_big_expression = {"额": "./img/emoji/emoji_208.png"}
+    """自定义的大图片的名称和位置"""
+    line_break_display = True
+    """换行显示"""
+    is_tag_administrator = False
+    """是否标记管理员"""
+
+    b_a_g = BilibiliApiGeneric(Headers)
+    get_room_base = b_a_g.get_room_base_info(DataInput.room_id)
+
+    def get_guard_dict(api, roomid, ruid, **kwargs):
+        """
+        获取大航海成员字典的包装函数
+
+        Args:
+            api: BilibiliApiGeneric 实例
+            roomid: 直播间号
+            ruid: 主播UID
+            **kwargs: 其他参数传递给 get_guard_list
+
+        Returns:
+            包含操作结果的字典，其中data字段包含guard_dict
+        """
+        # 确保获取完整列表
+        kwargs['include_total_list'] = True
+
+        # 调用原函数
+        result = api.get_guard_list(roomid, ruid, **kwargs)
+
+        if result["success"]:
+            # 转换列表为字典
+            guard_dict = {}
+            total_list = result["data"].get("total_list", [])
+
+            for guard in total_list:
+                uid = guard["uinfo"]["uid"]
+                guard_level = guard["uinfo"]["guard"]["level"]
+                guard_dict[uid] = guard_level
+
+            # 将字典添加到返回数据中
+            result["data"]["guard_dict"] = guard_dict
+
+        return result
+
+    result = get_guard_dict(b_a_g, DataInput.room_id, get_room_base["data"]["uid"], page=1, typ=5, include_total_list=True)
+    guard_dict = result["data"]["guard_dict"]
 
 
     # 在 main 部分添加
@@ -473,16 +538,9 @@ if __name__ == "__main__":
     print("WebSocket 服务器启动中...")
     time.sleep(2)  # 等待服务器启动
 
-    BULC = BilibiliUserConfigManager(Path('../../cookies/config.json'))
-    cookies = BULC.get_user_cookies()['data']
-    Headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-                      '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
-        'cookie': dict_to_cookie_string(cookies)
-    }
 
     dm = Danmu(Headers)
-    cdm = dm.connect_room(Dm.room_id)
+    cdm = dm.connect_room(DataInput.room_id)
     cdm.num_r = 30
 
 
@@ -540,6 +598,14 @@ if __name__ == "__main__":
 
 
     def danmu_processing(content: dict):
+        """
+
+        Args:
+            content: 直播间消息
+
+        Returns:
+
+        """
         if content['cmd'] == "LIVE":
             # 直播开始 (LIVE)
             contentdata = content
@@ -660,193 +726,223 @@ if __name__ == "__main__":
             })
 
         elif content['cmd'] == "DANMU_MSG":
-            # 弹幕 (DANMU_MSG)
-            contentinfo = content['info']
-            danmu_extra = json.loads(contentinfo[0][15]['extra'])
-            """弹幕额外信息"""
-
-            is_housing_management = contentinfo[2][2]
-            """是不是直播间管理员"""
-
-            danmu_extra_emots = danmu_extra['emots']
-            """表情相关信息"""
-
-            expression_information = contentinfo[0][13]
-            """表情信息，没有时为‘{}’"""
-            if expression_information != "{}":
-                expression_url = expression_information["url"]
-                """表情图片url"""
-                expression_emoticon_unique = expression_information["emoticon_unique"]
-                """表情特殊昵称"""
-                expression_height = expression_information["height"]
-                """表情图片高度"""
-                expression_width = expression_information["width"]
-                """表情图片宽度"""
-
-            reply_uname = danmu_extra['reply_uname']
-            """@对象的昵称"""
-            reply_uname_color = danmu_extra['reply_uname_color']
-            """@对象的昵称在弹幕中的颜色"""
-
-            damu_text = contentinfo[1]
-            """弹幕文本"""
-
-            own_big_expression = {}
-            """自定义的大图片的名称和位置"""
-            pattern = r'(\[.*?\])'
-            emoji_name_text_separation_list = [emoji_name_text_separation for emoji_name_text_separation in re.split(pattern, damu_text) if emoji_name_text_separation]
-            """分离的带‘[]’的表情名称和普通文本"""
-            message_list = []
-            """弹幕消息格式化成的列表"""
-            if reply_uname:
-                afo = f"@{reply_uname}  "
-                message_list.append({
-                    'type': 'text',
-                    'color': reply_uname_color,
-                    'text': afo
-                })
-            for emoji_name_text_separation in emoji_name_text_separation_list:
-                if expression_information != "{}":  # 大表情
-                    file_path = f"./blivechat_files/{expression_information['emoticon_unique']}.png"
-                    if not os.path.exists(file_path):
-                        pillow_img = url2pillow_image(expression_information["url"], Headers)["PilImg"]
-                        pillow_img.save(file_path)
-                    else:
-                        pillow_img = Image.open(file_path)
-                    width, height = pillow_img.size
-                    message_list.append({
-                        'type': 'image',
-                        'height': height,
-                        'width': width,
-                        'src': file_path
-                    })
-                    continue
-                # 检查是否是表情
-                if emoji_name_text_separation.startswith('[') and emoji_name_text_separation.endswith(']'):
-                    if emoji_name_text_separation in danmu_extra_emots:  # 小表情
-                        file_path = f"./blivechat_files/{danmu_extra_emots[emoji_name_text_separation]['emoticon_unique']}.png"
-                        if not os.path.exists(file_path):
-                            pillow_img = url2pillow_image(danmu_extra_emots[emoji_name_text_separation]['url'], Headers)["PilImg"]
-                            pillow_img.save(file_path)
-                        message_list.append({
-                            'type': 'emoji',
-                            'alt': emoji_name_text_separation,
-                            'src': file_path
-                        })
-                        continue
-
-                if own_big_expression:
-                    pattern = r'(' + '|'.join([re.escape(sep) for sep in list(own_big_expression.keys())]) + ')'
-                    parts = re.split(pattern, emoji_name_text_separation)
-                    for own_big_expression_name_text_separation in [part for part in parts if part]:
-                        if own_big_expression_name_text_separation in own_big_expression:
-                            message_list.append({
-                                'type': 'image',
-                                'src': own_big_expression[own_big_expression_name_text_separation]
-                            })
-                        else:
-                            # 普通文本
-                            message_list.append({
-                                'type': 'text',
-                                'text': emoji_name_text_separation
-                            })
-                else:
-                    # 普通文本
-                    message_list.append({
-                        'type': 'text',
-                        'text': emoji_name_text_separation
-                    })
-
-            wealth_level = contentinfo[16][0]
-            """消费等级"""
-            file_path = f'./blivechat_files/{re.split("/", contentinfo[0][15]["user"]["base"]["face"])[-1]}'
-            if not os.path.exists(file_path):
-                pillow_img = url2pillow_image(contentinfo[0][15]["user"]["base"]["face"], Headers)["PilImg"]
-                pillow_img.save(file_path)
-            face_url = file_path
-            """头像图片url"""
-            uname = contentinfo[0][15]["user"]['base']["name"]
+            user_name = '' # 昵称
             """发送者昵称"""
-            medal = contentinfo[0][15]["user"]['medal']
+            user_face_picture = ''  # 头像
+            """头像"""
+            face_picture_x = '40' # 头像宽度
+            """头像宽度"""
+            face_picture_y = '40'  # 头像高度
+            """头像高度"""
+            user_id = '' # id
+            """发送者id"""
+            identity_title = '' # 身份头衔：管理员 moderator，船员 member，主播 owner，普通为空
+            """身份头衔"""
+            privilege_level = '0' # 特权级别 1,2,3,0
+            """特权级别"""
+            fleet_title = ''  # 舰队称号
+            """舰队称号"""
+            fan_medal_name = ''
+            """粉丝勋章名称"""
+            fan_medal_level = '0'
+            """粉丝勋章等级"""
+            fan_medal_color_start = ''
+            """粉丝勋章开始颜色"""
+            fan_medal_color_end = ''
+            """粉丝勋章结束颜色"""
+            fan_medal_color_border = ''
+            """粉丝勋章边框颜色"""
+            fan_medal_color_text = ''
+            """粉丝勋章文本色"""
+            fan_medal_color_level = ''
+            """粉丝勋章等级颜色"""
+            fleet_badge = ''  # 舰队徽章
+            """舰队徽章"""
+            message_data = []  # 消息数据
+            """消息数据"""
+            timestamp = '0'  # 发送时间
+            """发送时间"""
+            is_admin = False  # 是否管理员
+            """是否管理员"""
+            is_fan_group = False # 是否有粉丝勋章
+            """是否有粉丝勋章"""
+
+            # 弹幕 (DANMU_MSG)
+            content_info = content['info']
+
+            user_name = content_info[0][15]["user"]['base']["name"]
+
+            user_face_picture = f'./img/face/{re.split("/", content_info[0][15]["user"]["base"]["face"])[-1]}'
+            if not os.path.exists(user_face_picture):
+                # 先检查返回值
+                result = url2pillow_image(content_info[0][15]["user"]["base"]["face"], Headers)
+                if result and "PilImg" in result and result["PilImg"] is not None:
+                    pillow_img = result["PilImg"]
+                    pillow_img.save(user_face_picture)
+                    face_picture_x, face_picture_y = pillow_img.size
+                else:
+                    print(f"无法获取图片: {result['Message']}")
+            else:
+                pillow_img = Image.open(user_face_picture)
+                face_picture_x, face_picture_y = pillow_img.size
+            if face_picture_size:
+                face_picture_x, face_picture_y = face_picture_size
+
+            user_id = content_info[0][15]["user"]["uid"]
+
+            if user_id in guard_dict:
+                identity_title = "member"  # 舰长
+                privilege_level = guard_dict[user_id]
+                fleet_title = {'1': '总督','2': '提督','3': '舰长'}[str(privilege_level)]                # if is_medal_other_display:
+                #     fleet_badge = f'https://blc.huixinghao.cn/static/img/icons/guard-level-{privilege_level}.png'
+            if user_id == get_room_base["data"]["uid"]:
+                identity_title = "owner"  # 房主
+            elif content_info[2][2]:
+                if is_tag_administrator:
+                    identity_title = "moderator"  # 管理员
+
+            medal = content_info[0][15]["user"]['medal']
             """勋章基础信息"""
-            guard_level = 0
-            guard_icon = ""
+
             if medal:
-                guard_level = medal['guard_level']
-                """舰长等级"""
-                guard_icon = medal['guard_icon']
-                """舰长勋章图标url"""
-                medal_is_light = medal["is_light"]
-                """粉丝勋章点亮状态"""
-                fans_medal_name = medal["name"]
-                """粉丝勋章名称"""
-                fans_medal_level = medal["level"]
-                """粉丝勋章等级0.普通 1.总督 2.提督 3，舰长"""
-                fans_medal_from_uid = medal["ruid"]
-                """粉丝勋章创建者id"""
-                fans_medal_id = medal["id"]
-                """粉丝勋章id"""
-                fans_medal_color_start = medal["v2_medal_color_start"]
-                """粉丝勋章开始颜色"""
-                fans_medal_color_end = medal["v2_medal_color_end"]
-                """粉丝勋章结束颜色"""
-                fans_medal_color_border = medal["v2_medal_color_border"]
-                """粉丝勋章边框颜色"""
-                fans_medal_color_text = medal["v2_medal_color_text"]
-                """粉丝勋章文本色"""
-                fans_medal_color_level = medal["v2_medal_color_level"]
-                """粉丝勋章等级颜色"""
-            if contentinfo[3]:
-                guard_level = contentinfo[3][10]
-            if guard_icon:
-                file_path = f'./blivechat_files/{re.split("/", guard_icon)[-1]}'
-                if not os.path.exists(file_path):
-                    pillow_img = url2pillow_image(guard_icon, Headers)["PilImg"]
-                    pillow_img.save(file_path)
-                guard_icon = file_path
+                # 检查点亮条件
+                light_ok = is_medal_un_light_display or medal.get("is_light", False)
+                # 检查归属条件
+                owner_ok = is_medal_other_display or medal.get("ruid") == get_room_base["data"]["uid"]
+                # 同时满足两个条件才显示
+                if light_ok and owner_ok:
+                    fan_medal_name = medal["name"]
+                    """粉丝勋章名称"""
+                    fan_medal_level = medal["level"]
+                    """粉丝勋章等级"""
+                    fan_medal_color_start = medal["v2_medal_color_start"]
+                    """粉丝勋章开始颜色"""
+                    fan_medal_color_end = medal["v2_medal_color_end"]
+                    """粉丝勋章结束颜色"""
+                    fan_medal_color_border = medal["v2_medal_color_border"]
+                    """粉丝勋章边框颜色"""
+                    fan_medal_color_text = medal["v2_medal_color_text"]
+                    """粉丝勋章文本色"""
+                    fan_medal_color_level = medal["v2_medal_color_level"]
+                    """粉丝勋章等级颜色"""
+                    if fleet_title:
+                        fleet_badge_path = f"./img/fleet/{fleet_title}.png"
+                        if not os.path.exists(fleet_badge_path):
+                            pillow_img = url2pillow_image(medal['guard_icon'], Headers)["PilImg"]
+                            pillow_img.save(fleet_badge_path)
+                        fleet_badge = fleet_badge_path
+                        """舰长勋章图标url"""
 
-            fans_medal = contentinfo[3]
-            """勋章信息列表，没有的话为空"""
-            fans_medal_from_uname = ""
-            """粉丝勋章创建者昵称"""
-            if fans_medal:
-                fans_medal_from_uname = contentinfo[3][2]
+            danmu_extra = json.loads(content_info[0][15]['extra'])
+            """弹幕额外信息"""
+            if danmu_extra['reply_uname']:
+                message_data.append({
+                    'type': 'text',
+                    'color': danmu_extra['reply_uname_color'],
+                    'text': f"@{danmu_extra['reply_uname']}  "
+                })
+            image_information = content_info[0][13]
+            """表情信息，没有时为‘{}’"""
+            if image_information != "{}":  # 大表情
+                image_information_path = f"./img/image_information/{image_information['emoticon_unique']}.png"
+                if not os.path.exists(image_information_path):
+                    pillow_img = url2pillow_image(image_information["url"], Headers)["PilImg"]
+                    pillow_img.save(image_information_path)
+                else:
+                    pillow_img = Image.open(image_information_path)
+                image_information_path_width, image_information_path_height = pillow_img.size
+                message_data.append({
+                    'type': 'image',
+                    'alt': danmu_extra['content'],
+                    'width': f'{image_information_path_width}px',
+                    'height': f'{image_information_path_height}px',
+                    'src': image_information_path
+                })
+            else:
+                damu_text = content_info[1]
+                """弹幕文本"""
+                pattern = r'(\[.*?\])'
+                emoji_name_text_separation_list = re.split(pattern, damu_text)
+                """分离的带‘[]’的表情名称和普通文本"""
+                pattern = r'(' + '|'.join([re.escape(sep) for sep in list(own_big_expression.keys())+list(danmu_extra['emots'] if danmu_extra['emots'] else [])]) + ')'
+                emoji_text_own_separation_list = re.split(pattern, damu_text)
+                for damu_split in emoji_text_own_separation_list:
+                    if not damu_split:
+                        continue
+                    # emoji
+                    if danmu_extra['emots']:
+                        if damu_split in danmu_extra['emots']:
+                            file_path = f"./img/emoji/{danmu_extra['emots'][damu_split]['emoticon_unique']}.png"
+                            if not os.path.exists(file_path):
+                                pillow_img = url2pillow_image(danmu_extra['emots'][damu_split]['url'], Headers)["PilImg"]
+                                pillow_img.save(file_path)
+                            message_data.append({
+                                'type': 'emoji',
+                                'alt': damu_split,
+                                'src': file_path
+                            })
+                            continue
+                    # 自定表情
+                    if own_big_expression:
+                        if damu_split in own_big_expression:
+                            pillow_img = Image.open(own_big_expression[damu_split])
+                            width, height = pillow_img.size
+                            message_data.append({
+                                'type': 'image',
+                                'alt': damu_split,
+                                'height': f'{height}px',
+                                'width': f'{width}px',
+                                'src': own_big_expression[damu_split]
+                            })
+                            continue
+                    # 普通文本
+                    message_data.append({
+                        'type': 'text',
+                        'text': damu_split
+                    })
 
-            send_time = contentinfo[9]['ts']
-            """弹幕发送时间戳"""
-            wfo = ''
-            if wealth_level != 0:
-                wfo = f"[{wealth_level}]"
+            timestamp = content_info[9]['ts']
 
-            mfo = ''
-            # if contentinfo[0][15]['user']['medal']:
-            #     fmedal = contentinfo[0][15]['user']['medal']
-            #     mfo = f"【{fmedal['name']}|{fmedal['level']}】"
-            if contentinfo[3]:
-                medal = contentinfo[3]
-                mfo = f"【{medal[1]}|{medal[0]}】"
+            is_admin = content_info[2][2]
 
-            afo = ""
-            if reply_uname:
-                afo = f"@{reply_uname}  "
-
-            tfo = damu_text
-
-            print(f"{wfo}{mfo}{uname}:\n\t>>>{afo}{tfo}")
+            if fan_medal_name:
+                is_fan_group = True
+            print(f"{f'[{content_info[16][0]}]' if content_info[16][0] else ''}{f'【{fan_medal_name}|{fan_medal_level}】' if fan_medal_name else ''}{user_name} 《{identity_title}|{fleet_title}》:")
+            print(f"\t>>>  {'@' if danmu_extra['reply_uname'] else ''}{(danmu_extra['reply_uname'] + '    ')if danmu_extra['reply_uname'] else ''}{content_info[1]}    |\t{timestamp}")
             # 转发到 WebSocket
             danmu_ws_server.send_danmu_message({
                 "type": "danmu",
-                "authorType": "moderator" if contentinfo[2][2] else "member" if guard_level else "",
-                "message_list": message_list,
-                "user": uname,
-                "face": face_url,
-                "guard_level": guard_level,
-                "guard_icon": guard_icon,
-                "medal": mfo,
-                "wealth": wfo,
-                "content": tfo,
-                "reply_to": afo.strip(),
-                "timestamp": send_time
+                "uName": user_name,
+                "facePicture": user_face_picture,
+                "facePictureX": face_picture_x,
+                "facePictureY": face_picture_y,
+                "uId": user_id,
+                "identityTitle": identity_title,
+                "privilegeLevel": privilege_level,
+                "fleetTitle": fleet_title,
+                "fanMedalName": fan_medal_name,
+                "fanMedalLevel": fan_medal_level,
+                "fanMedalColorStart": fan_medal_color_start,
+                "fanMedalColorEnd": fan_medal_color_end,
+                "fanMedalColorBorder": fan_medal_color_border,
+                "fanMedalColorText": fan_medal_color_text,
+                "fanMedalColorLevel": fan_medal_color_level,
+                "fanMedalTextSize": fan_medal_text_size,
+                "fleetBadge": fleet_badge,
+                "messageData": message_data,
+                "messageTextSize": message_text_size,
+                "sendTime": timestamp,
+                "timeTextSize": time_text_size,
+                "isAdmin": is_admin,
+                "isFanGroup": is_fan_group,
+                "lineBreakDisplay": line_break_display,
+
+                "user": user_name,
+                "medal": f'【{fan_medal_name}|{fan_medal_level}】' if fan_medal_name else None,
+                "wealth": f'[{content_info[16][0]}]' if content_info[16][0] else None,
+                "content": content_info[1],
+                "reply_to": f"{'@' if danmu_extra['reply_uname'] else None}{(danmu_extra['reply_uname'] if danmu_extra['reply_uname'] else None)}",
+                "timestamp": timestamp
             })
 
         elif content['cmd'] == "COMBO_SEND":
@@ -894,39 +990,113 @@ if __name__ == "__main__":
                 "timestamp": time.time()
             })
 
-        elif content['cmd'] == "INTERACT_WORD_V2":
-            # 用户交互消息【Proto格式】
-            contentdata = content['data']
-            tfo = "❓进入直播间或关注消息或分享直播间"
-            if contentdata['msg_type'] == 1:
-                tfo = "🏠进入直播间"
-            elif contentdata['msg_type'] == 2:
-                tfo = "⭐关注直播间"
-            elif contentdata['msg_type'] == 2:
-                tfo = "💫分享直播间"
-            ufo = contentdata['uname']
-            mfo = ""
-            if contentdata['fans_medal']:
-                fmedal = contentdata['fans_medal']
-                mfo = f"【{fmedal['medal_name']}|{fmedal['medal_level']}】"
-            wfo = ''
-            try:
-                if content['data']['uinfo']['wealth']['level']:
-                    wfo = f"[{content['data']['uinfo']['wealth']['level']}]"
-            except:
-                pass
-            pass
-            print(f"{tfo}：\t{wfo}{mfo}{ufo}")
-            # 转发到 WebSocket
-            danmu_ws_server.send_danmu_message({
-                "type": "interact",
-                "user": ufo,
-                "medal": mfo,
-                "wealth": wfo,
-                "action": tfo,
-                "msg_type": contentdata['msg_type'],
-                "timestamp": time.time()
-            })
+        # elif content['cmd'] == "INTERACT_WORD_V2":
+        #     user_name = '' # 昵称
+        #     """发送者昵称"""
+        #     user_face_picture = ''  # 头像
+        #     """头像"""
+        #     face_picture_x = '40' # 头像宽度
+        #     """头像宽度"""
+        #     face_picture_y = '40'  # 头像高度
+        #     """头像高度"""
+        #     user_id = '' # id
+        #     """发送者id"""
+        #     identity_title = '' # 身份头衔：管理员 moderator，船员 member，主播 owner，普通为空
+        #     """身份头衔"""
+        #     privilege_level = '0' # 特权级别 1,2,3,0
+        #     """特权级别"""
+        #     fleet_title = ''  # 舰队称号
+        #     """舰队称号"""
+        #     fan_medal_name = ''
+        #     """粉丝勋章名称"""
+        #     fan_medal_level = '0'
+        #     """粉丝勋章等级"""
+        #     fan_medal_color_start = ''
+        #     """粉丝勋章开始颜色"""
+        #     fan_medal_color_end = ''
+        #     """粉丝勋章结束颜色"""
+        #     fan_medal_color_border = ''
+        #     """粉丝勋章边框颜色"""
+        #     fan_medal_color_text = ''
+        #     """粉丝勋章文本色"""
+        #     fan_medal_color_level = ''
+        #     """粉丝勋章等级颜色"""
+        #     fleet_badge = ''  # 舰队徽章
+        #     """舰队徽章"""
+        #     message_data = []  # 消息数据
+        #     """消息数据"""
+        #     timestamp = '0'  # 发送时间
+        #     """发送时间"""
+        #     is_admin = False  # 是否管理员
+        #     """是否管理员"""
+        #     is_fan_group = False # 是否有粉丝勋章
+        #     """是否有粉丝勋章"""
+        #
+        #     # 用户交互消息【Proto格式】
+        #     contentdata = content['data']
+        #     user_name = contentdata['uname']
+        #
+        #     user_face_picture = f'./img/face/{re.split("/", content["uinfo"]["base"]["face"])[-1]}'
+        #     if not os.path.exists(user_face_picture):
+        #         # 先检查返回值
+        #         result = url2pillow_image(content["uinfo"]["base"]["face"], Headers)
+        #         if result and "PilImg" in result and result["PilImg"] is not None:
+        #             pillow_img = result["PilImg"]
+        #             pillow_img.save(user_face_picture)
+        #             face_picture_x, face_picture_y = pillow_img.size
+        #         else:
+        #             print(f"无法获取图片: {result['Message']}")
+        #     else:
+        #         pillow_img = Image.open(user_face_picture)
+        #         face_picture_x, face_picture_y = pillow_img.size
+        #     if face_picture_size:
+        #         face_picture_x, face_picture_y = face_picture_size
+        #
+        #     user_id = content["uinfo"]["uid"]
+        #
+        #     if user_id in guard_dict:
+        #         identity_title = "member"  # 舰长
+        #         privilege_level = guard_dict[user_id]
+        #         fleet_title = {'1': '总督','2': '提督','3': '舰长'}[str(privilege_level)]                # if is_medal_other_display:
+        #         #     fleet_badge = f'https://blc.huixinghao.cn/static/img/icons/guard-level-{privilege_level}.png'
+        #     if user_id == get_room_base["data"]["uid"]:
+        #         identity_title = "owner"  # 房主
+        #     elif content_info[2][2]:
+        #         if is_tag_administrator:
+        #             identity_title = "moderator"  # 管理员
+        #
+        #
+        #
+        #     tfo = "❓进入直播间或关注消息或分享直播间"
+        #     if contentdata['msg_type'] == 1:
+        #         tfo = "🏠进入直播间"
+        #     elif contentdata['msg_type'] == 2:
+        #         tfo = "⭐关注直播间"
+        #     elif contentdata['msg_type'] == 2:
+        #         tfo = "💫分享直播间"
+        #     ufo = contentdata['uname']
+        #     mfo = ""
+        #     if contentdata['fans_medal']:
+        #         fmedal = contentdata['fans_medal']
+        #         mfo = f"【{fmedal['medal_name']}|{fmedal['medal_level']}】"
+        #     wfo = ''
+        #     try:
+        #         if content['data']['uinfo']['wealth']['level']:
+        #             wfo = f"[{content['data']['uinfo']['wealth']['level']}]"
+        #     except:
+        #         pass
+        #     pass
+        #     print(f"{tfo}：\t{wfo}{mfo}{ufo}")
+        #     # 转发到 WebSocket
+        #     danmu_ws_server.send_danmu_message({
+        #         "type": "interact",
+        #         "user": ufo,
+        #         "medal": mfo,
+        #         "wealth": wfo,
+        #         "action": tfo,
+        #         "msg_type": contentdata['msg_type'],
+        #         "timestamp": time.time()
+        #     })
 
         elif content['cmd'] == "LIKE_INFO_V3_CLICK":
             # 直播间用户点赞 (LIKE_INFO_V3_CLICK)
@@ -1084,6 +1254,7 @@ if __name__ == "__main__":
         elif content['cmd'] == "SEND_GIFT":
             # 送礼 (SEND_GIFT)
             contentdata = content['data']
+
             ufo = contentdata['uname']
             mfo = ""
             if contentdata['medal_info']['medal_name']:

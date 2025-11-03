@@ -6,7 +6,7 @@ import requests
 from function.tools.EncodingConversion.parse_cookie import parse_cookie
 from function.tools.EncodingConversion.dict_to_cookie_string import dict_to_cookie_string
 from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
-from function.api.Special.Get.get_room_highlight_info import BilibiliRoomInfoManager as GetRoomHighlightInfo
+from function.api.Special.Room import BilibiliRoomInfoManager as GetRoomHighlightInfo
 
 
 
@@ -267,8 +267,9 @@ class BilibiliCSRFAuthenticator:
 
 # 使用示例
 if __name__ == "__main__":
+    from _Input.function.api.Special import Csrf as DataInput
     # 示例用法
-    BULC = BilibiliUserConfigManager(Path('../../../../cookies/config.json'))
+    BULC = BilibiliUserConfigManager(DataInput.cookie_file_path)
     cookies = BULC.get_user_cookies()['data']
     Headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
@@ -293,7 +294,7 @@ if __name__ == "__main__":
             if highlight_info["success"]:
                 room_id = highlight_info["data"]["room_id"]
                 # 更改分区（示例分区ID为255）
-                result = authenticator.change_room_area(room_id, 255)
+                result = authenticator.change_room_area(room_id, DataInput.change_room_areaid)
                 print(result)
 
                 if result["success"]:

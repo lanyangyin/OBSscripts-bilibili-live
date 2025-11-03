@@ -159,6 +159,7 @@ class BilibiliApiGeneric:
 
 
 if __name__ == "__main__":
+    from _Input.function.api import Generic as DataInput
     Headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                       '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
@@ -169,7 +170,7 @@ if __name__ == "__main__":
 
     try:
         # 获取主播常用分区
-        room_id = 25322725
+        room_id = DataInput.get_anchor_common_areas_for_room_id
         result = api.get_anchor_common_areas(room_id)
 
         if result["success"]:

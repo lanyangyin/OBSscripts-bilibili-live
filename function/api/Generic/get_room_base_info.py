@@ -147,6 +147,7 @@ class BilibiliApiGeneric:
 
 
 if __name__ == "__main__":
+    from _Input.function.api import Generic as DataInput
     Headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                       '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
@@ -156,7 +157,7 @@ if __name__ == "__main__":
     api = BilibiliApiGeneric(Headers, verify_ssl=True)
 
     # 获取直播间信息（使用短ID）
-    result = api.get_room_base_info(25322725)
+    result = api.get_room_base_info(DataInput.get_room_base_info_for_room_id)
 
     if result["success"]:
         room_info = result["data"]

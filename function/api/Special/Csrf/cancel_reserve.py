@@ -295,8 +295,9 @@ class BilibiliCSRFAuthenticator:
 
 # 使用示例
 if __name__ == "__main__":
+    from _Input.function.api.Special import Csrf as DataInput
     # 示例用法
-    BULC = BilibiliUserConfigManager(Path('../../../../cookies/config.json'))
+    BULC = BilibiliUserConfigManager(DataInput.cookie_file_path)
     cookies = BULC.get_user_cookies()['data']
     Headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
@@ -315,7 +316,7 @@ if __name__ == "__main__":
             print("用户信息:", user_info["data"])
 
             # 取消预约示例
-            reserve_result = authenticator.cancel_reserve(5040341)
+            reserve_result = authenticator.cancel_reserve(DataInput.cancel_reserve_id)
             if reserve_result["success"]:
                 print("取消预约成功")
                 print("API返回数据:", reserve_result["data"])

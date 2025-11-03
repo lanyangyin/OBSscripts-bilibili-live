@@ -6,7 +6,7 @@ import requests
 from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
 from function.tools.EncodingConversion.dict_to_cookie_string import dict_to_cookie_string
 from function.tools.EncodingConversion.parse_cookie import parse_cookie
-from function.api.Special.Get.get_room_highlight_info import BilibiliRoomInfoManager as GetRoomHighlightInfo
+from function.api.Special.Room import BilibiliRoomInfoManager as GetRoomHighlightInfo
 
 
 class BilibiliCSRFAuthenticator:
@@ -271,8 +271,10 @@ class BilibiliCSRFAuthenticator:
             }
 
 
-if __name__ == '__main__':
-    BULC = BilibiliUserConfigManager(Path('../../../../cookies/config.json'))
+if __name__ == "__main__":
+    from _Input.function.api.Special import Csrf as DataInput
+    # 示例用法
+    BULC = BilibiliUserConfigManager(DataInput.cookie_file_path)
     cookies = BULC.get_user_cookies()['data']
     Headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
@@ -296,7 +298,7 @@ if __name__ == '__main__':
         if room_info["success"]:
             room_id = room_info["data"]["room_id"]
             # 使用有意义的公告内容，而不是初始化消息
-            content = "这是测试公告内容"
+            content = DataInput.change_room_news
 
             # 更新直播公告
             result = authenticator.change_room_news(room_id, content)

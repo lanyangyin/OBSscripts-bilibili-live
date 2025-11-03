@@ -262,8 +262,10 @@ class BilibiliCSRFAuthenticator:
             }
 
 
-if __name__ == '__main__':
-    BULC = BilibiliUserConfigManager(Path('../../../../cookies/config.json'))
+if __name__ == "__main__":
+    from _Input.function.api.Special import Csrf as DataInput
+    # 示例用法
+    BULC = BilibiliUserConfigManager(DataInput.cookie_file_path)
     cookies = BULC.get_user_cookies()['data']
     Headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
@@ -271,7 +273,7 @@ if __name__ == '__main__':
         'cookie': dict_to_cookie_string(cookies)
     }
 
-    jpg_url = "http://i0.hdslb.com/bfs/live/new_room_cover/d9272fcab18d330e1b872dc39e8b9e83ab9d6cfa.jpg"
+    jpg_url = DataInput.upd_cover_img_url
 
     # 创建认证器实例并更新封面
     authenticator = BilibiliCSRFAuthenticator(Headers)

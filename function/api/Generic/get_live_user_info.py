@@ -11,7 +11,7 @@ class BilibiliApiGeneric:
         self.headers = headers
         self.verify_ssl = verify_ssl
 
-    def live_user_v1_master_info(self, uid: int) -> Dict[str, Any]:
+    def get_live_user_info(self, uid: int) -> Dict[str, Any]:
         """
         获取主播信息
 
@@ -123,6 +123,7 @@ class BilibiliApiGeneric:
 
 
 if __name__ == "__main__":
+    from _Input.function.api import Generic as DataInput
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                       '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
@@ -132,7 +133,7 @@ if __name__ == "__main__":
     api = BilibiliApiGeneric(headers)
 
     # 获取主播信息
-    result = api.live_user_v1_master_info(143474500)
+    result = api.get_live_user_info(DataInput.get_live_user_info_for_uid)
 
     if result["success"]:
         print("获取主播信息成功:")
