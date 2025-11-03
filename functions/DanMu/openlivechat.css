@@ -182,6 +182,17 @@ width:100%;
 
 }
 
+yt-live-chat-text-message-renderer #content{
+
+width:100%;
+
+display:flex;
+
+flex-direction:column;
+
+align-items:flex-start;
+}
+
 yt-live-chat-text-message-renderer #image-and-message{
 
 width:fit-content;

@@ -103,7 +103,7 @@ yt-live-chat-text-message-renderer #star{
   width: 60px !important;
   height: 100% !important;
   z-index: 999 !important;
-  background-image: url('/static/img/common/joi/star.png') !important;
+  background-image: url('http://39.105.155.193:6380/static/img/common/joi/star.png') !important;
   background-size: 60px 60px !important;
   background-repeat: repeat-y !important;
 }
@@ -304,7 +304,7 @@ yt-live-chat-membership-item-renderer #header::after {
   right: -1px;
   width: 80%;
   height: 90%;
-  background-image: url('/static/img/common/joi/star.png') !important;
+  background-image: url('http://39.105.155.193:6380/static/img/common/joi/star.png') !important;
   border-radius: 94% 6% 0% 100% / 100% 0% 100% 0%;
   background-size: 72px 72px !important;
   background-repeat: repeat !important;
@@ -330,7 +330,7 @@ yt-live-chat-membership-item-renderer #author-photo::before {
   left: -3px !important;
   width: 24.72px !important;
   height: 31.36px !important;
-  background-image: url('/static/img/common/joi/hat.png') !important;
+  background-image: url('http://39.105.155.193:6380/static/img/common/joi/hat.png') !important;
   background-size: 100% 100% !important;
   animation: hat-down 1.6s;
 }
@@ -342,7 +342,7 @@ yt-live-chat-membership-item-renderer #author-photo::after {
   left: 11.6px !important;
   width: 16.8px !important;
   height: 11.120000000000001px !important;
-  background-image: url('/static/img/common/joi/scarf.png') !important;
+  background-image: url('http://39.105.155.193:6380/static/img/common/joi/scarf.png') !important;
   background-size: 100% 100% !important;
   animation: scarf-up 1.6s;
 }
@@ -440,14 +440,13 @@ yt-live-chat-paid-message-renderer #author-photo {
   margin-right: 0 !important;
 }
 yt-live-chat-paid-message-renderer #author-photo::before {
-
   content: '';
   position: absolute !important;
   top: -4px !important;
   left: -3px !important;
   width: 24.72px !important;
   height: 31.36px !important;
-  background-image: url('/static/img/common/joi/hat.png') !important;
+  background-image: url('http://39.105.155.193:6380/static/img/common/joi/hat.png') !important;
   background-size: 100% 100% !important;
 }
 yt-live-chat-paid-message-renderer #author-photo::after {
@@ -458,7 +457,42 @@ yt-live-chat-paid-message-renderer #author-photo::after {
   left: 11.6px !important;
   width: 16.8px !important;
   height: 11.120000000000001px !important;
-  background-image: url('/static/img/common/joi/scarf.png') !important;
+  background-image: url('http://39.105.155.193:6380/static/img/common/joi/scarf.png') !important;
+  background-size: 100% 100% !important;
+}
+yt-live-chat-text-message-renderer::before {
+  content: '';
+  display: block !important;
+  position: absolute !important;
+  z-index: 10;
+  top: -8px !important;
+  left: 4.72px !important;
+  height: 16px !important;
+  width: 10px !important;
+  transform-origin: left;
+  animation: fade-in;animation-duration: 1s;-webkit-animation:fade-in 1s;
+  background-image: url('http://39.105.155.193:6380/static/img/common/joi/ear.png') !important;
+  background-size: 100% 100% !important;
+}
+yt-live-chat-text-message-renderer #author-photo::before {
+  content: '';
+  position: absolute !important;
+  top: -4px !important;
+  left: -3px !important;
+  width: 24.72px !important;
+  height: 31.36px !important;
+  background-image: url('http://39.105.155.193:6380/static/img/common/joi/hat.png') !important;
+  background-size: 100% 100% !important;
+}
+yt-live-chat-text-message-renderer #author-photo::after {
+
+  content: '';
+  position: absolute !important;
+  bottom: -5px !important;
+  left: 11.6px !important;
+  width: 16.8px !important;
+  height: 11.120000000000001px !important;
+  background-image: url('http://39.105.155.193:6380/static/img/common/joi/scarf.png') !important;
   background-size: 100% 100% !important;
 }
 yt-live-chat-paid-message-renderer #author-photo img {
@@ -486,7 +520,18 @@ yt-live-chat-paid-message-renderer #purchase-amount::after {
   height: 14px;
   width: 14px;
   background-size: 100% 100% !important;
-  background-image: url('/static/img/common/joi/heartJoi.png');
+  background-image: url('http://39.105.155.193:6380/static/img/common/joi/heartJoi.png');
+}
+yt-live-chat-text-message-renderer::after {
+  content: '';
+  display: block !important;
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  height: 33px;
+  width: 21px;
+  background-size: 100% 100% !important;
+  background-image: url('http://39.105.155.193:6380/static/img/common/joi/flower.png');
 }
 yt-live-chat-paid-message-renderer #header #header-content-primary-column {
   flex-direction: row !important;
@@ -514,7 +559,7 @@ yt-live-chat-paid-message-renderer #content::after {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('/static/img/common/joi/star.png') !important;
+  background-image: url('http://39.105.155.193:6380/static/img/common/joi/star.png') !important;
   background-size: 80px 80px !important;
   background-repeat: repeat !important;
   opacity: 0.8;

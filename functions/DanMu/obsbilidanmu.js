@@ -234,7 +234,7 @@ class YouTubeChatMessageBuilder {
     // 创建普通文本消息
     createTextMessage(data) {
         // 先初始化默认图片配置
-        this.defaultImages = {
+        this.TextMessageData = {
             uName: '', // 昵称
             uId: '', // id
             facePicture: 'https://static.hdslb.com/images/member/noface.gif',  // 头像
@@ -263,86 +263,89 @@ class YouTubeChatMessageBuilder {
             ...data
         };
 
-        const message = this.createTextMessageTemplate().cloneNode(true);
-        message.setAttribute('author-type', this.defaultImages.identityTitle);
-        if (this.defaultImages.isAdmin) message.setAttribute('is-admin', this.defaultImages.isAdmin);
-        if (this.defaultImages.isFanGroup) message.setAttribute('is-fan-group', this.defaultImages.isFanGroup);
-        message.setAttribute('medal-level', this.defaultImages.fanMedalLevel);
-        message.setAttribute('privilegetype', this.defaultImages.privilegeLevel);
-        message.style.position = 'relative';
-        message.style.setProperty('font-size', `${this.defaultImages.messageTextSize}px`);  // 字体大小
-        message.style.padding = '4px 24px';  // 上下间距 左右间距
-        message.style.display = 'flex';
-        message.style.setProperty('flex-direction', 'row');
-        message.style.setProperty('align-items', 'flex-start');
+        const MainMessageWebPageElement = this.createTextMessageTemplate().cloneNode(true);
+        MainMessageWebPageElement.setAttribute('author-type', this.TextMessageData.identityTitle);
+        if (this.TextMessageData.isAdmin) MainMessageWebPageElement.setAttribute('is-admin', this.TextMessageData.isAdmin);
+        if (this.TextMessageData.isFanGroup) MainMessageWebPageElement.setAttribute('is-fan-group', this.TextMessageData.isFanGroup);
+        MainMessageWebPageElement.setAttribute('medal-level', this.TextMessageData.fanMedalLevel);
+        MainMessageWebPageElement.setAttribute('privilegetype', this.TextMessageData.privilegeLevel);
+        MainMessageWebPageElement.style.position = 'relative';
+        MainMessageWebPageElement.style.setProperty('font-size', `${this.TextMessageData.messageTextSize}px`);  // 字体大小
+        MainMessageWebPageElement.style.padding = '4px 24px';  // 上下间距 左右间距
+        MainMessageWebPageElement.style.display = 'flex';
+        MainMessageWebPageElement.style.setProperty('flex-direction', 'row');
+        MainMessageWebPageElement.style.setProperty('align-items', 'flex-start');
 
-        const cardElement = message.querySelector('#card');
+        const cardElement = MainMessageWebPageElement.querySelector('#card');
         cardElement.style.display = 'flex';
         cardElement.style.setProperty('flex-direction', 'row !important');
         cardElement.style.setProperty('align-items', 'flex-start');
         cardElement.style.setProperty('width', '100%');
 
         // 头像父元素
-        const authorPhotoElement = message.querySelector('#author-photo');
-        authorPhotoElement.height = `${this.defaultImages.facePictureY}`;
-        authorPhotoElement.width = `${this.defaultImages.facePictureX}`;
+        const authorPhotoElement = MainMessageWebPageElement.querySelector('#author-photo');
+        authorPhotoElement.height = `${this.TextMessageData.facePictureY}`;
+        authorPhotoElement.width = `${this.TextMessageData.facePictureX}`;
         authorPhotoElement.style.setProperty('background-color', 'transparent');
+        authorPhotoElement.style.setProperty('overflow', 'visible');
 
         // 头像
-        const imgElement = message.querySelector('#img');
-        imgElement.height = `${this.defaultImages.facePictureY}`;
-        imgElement.width = `${this.defaultImages.facePictureX}`;
-        imgElement.src = `${this.defaultImages.facePicture}`;
-        imgElement.alt = `${this.defaultImages.uId}`;
+        const imgElement = MainMessageWebPageElement.querySelector('#img');
+        imgElement.height = `${this.TextMessageData.facePictureY}`;
+        imgElement.width = `${this.TextMessageData.facePictureX}`;
+        imgElement.src = `${this.TextMessageData.facePicture}`;
+        imgElement.alt = `${this.TextMessageData.uId}`;
         imgElement.style.setProperty('background-color', 'transparent');
 
-        if (this.defaultImages.lineBreakDisplay) {
-            const contentElement = message.querySelector('#content');
+        if (this.TextMessageData.lineBreakDisplay) {
+            const contentElement = MainMessageWebPageElement.querySelector('#content');
             contentElement.style.display = 'flex';
             contentElement.style.setProperty('flex-direction', 'column');
             contentElement.style.setProperty('align-items', 'flex-start');
         }
 
         // 时间戳
-        const timestamp = message.querySelector('#timestamp');
+        const timestamp = MainMessageWebPageElement.querySelector('#timestamp');
         if (timestamp) timestamp.textContent = data.sendTime || '00:00';
-        timestamp.style.setProperty('font-size', `${this.defaultImages.fanMedalTextSize}px`);  // 字体大小
+        timestamp.style.setProperty('font-size', `${this.TextMessageData.fanMedalTextSize}px`);  // 字体大小
 
-        const authorNameElement = message.querySelector('#author-name');
-        authorNameElement.setAttribute('type', `${this.defaultImages.identityTitle}`);
+        const authorNameElement = MainMessageWebPageElement.querySelector('#author-name');
+        authorNameElement.setAttribute('type', `${this.TextMessageData.identityTitle}`);
 
         // 用户名称
-        const authorNameText = message.querySelector('#author-name-text');
+        const authorNameText = MainMessageWebPageElement.querySelector('#author-name-text');
         if (authorNameText) authorNameText.textContent = data.uName || '用户';
 
-        const imgMsg = message.querySelector('#image-and-message');
+        const imgMsg = MainMessageWebPageElement.querySelector('#image-and-message');
         imgMsg.style.width = 'auto';
         imgMsg.style.height = 'auto';
 
 
-        const repeatedElement = message.querySelector('.el-badge.style-scope.yt-live-chat-text-message-renderer');
+        const repeatedElement = MainMessageWebPageElement.querySelector('.el-badge.style-scope.yt-live-chat-text-message-renderer');
         repeatedElement.style.setProperty('--repeated-mark-color', 'hsl(210, 100%, 62.5%)');
         repeatedElement.style.display = 'none';
 
         // 消息内容
-        const messageContent = message.querySelector('#message');
+        const messageContent = MainMessageWebPageElement.querySelector('#message');
         if (messageContent) this.buildMessageContent(messageContent, data.messageData);
 
         // 徽章
-        this.updateBadges(message, data.identityTitle, data.privilegeLevel);
+        this.updateBadges(MainMessageWebPageElement, this.TextMessageData);
 
-        return message;
+        return MainMessageWebPageElement;
     }
 
     // 创建付费消息
     createPaidMessage(data) {
         // 先初始化默认图片配置
-        this.defaultImages = {
-            authorName: '', // 昵称
-            avatar: './blivechat_files/noface.gif', // 头像位置
-            timestamp: '00:00', // 时间
-            message: '', // 文字内容
-            showOnlyHeader: false, // 是否显示文字区域
+        this.paidMessageData = {
+            uName: '', // 昵称
+            uId: '',
+            facePicture: 'https://static.hdslb.com/images/member/noface.gif', // 头像位置
+            facePictureX: '40',  // 头像宽度px
+            facePictureY: '40',  // 头像高度px
+            sendTime: '00:00', // 时间
+            messageData: '', // 文字内容
             price: '0', // 显示金额（元）
             priceLevel: '0',  // 金额等级
             messagePrimaryColor: 'rgba(29,233,182,1)', // 文字区域颜色
@@ -351,96 +354,116 @@ class YouTubeChatMessageBuilder {
             messageAuthorNameColor: 'rgba(0,0,0,0.541176)', // 昵称文字颜色
             messageTimestampColor: 'rgba(0,0,0,0.501961)', // 时间文字颜色
             messageColor: 'rgba(0,0,0,1)', // 文字颜色
-            offsetX: 0, // 横向偏移量
-            offsetY: 0, // 纵向偏移量
+            showOnlyHeader: false, // 是否显示文字区域
 
             ...data
         };
 
-        const message = this.createPaidMessageTemplate().cloneNode(true);
-        message.setAttribute('price', data.price);
-        message.setAttribute('price-level', data.priceLevel);
-        message.setAttribute('offsetx', `${data.offsetX || 0}px`);
-        message.setAttribute('offsety', `${data.offsetY || 0}px`);
-        message.style.setProperty('--x-offset', `${data.offsetX || 0}px`);
-        message.style.setProperty('--y-offset', `${data.offsetY || 0}px`);
-        message.style.setProperty('--yt-live-chat-paid-message-primary-color', this.defaultImages.messagePrimaryColor);
-        message.style.setProperty('--yt-live-chat-paid-message-secondary-color', this.defaultImages.messageSecondaryColor);
-        message.style.setProperty('--yt-live-chat-paid-message-header-color', this.defaultImages.messageHeaderColor);
-        message.style.setProperty('--yt-live-chat-paid-message-author-name-color', this.defaultImages.messageAuthorNameColor);
-        message.style.setProperty('--yt-live-chat-paid-message-timestamp-color', this.defaultImages.messageTimestampColor);
-        message.style.setProperty('--yt-live-chat-paid-message-color', this.defaultImages.messageColor);
-        if (this.defaultImages.showOnlyHeader) {
-            message.setAttribute('show-only-header', true);
-        }
+        const PaidMessageWebPageElement = this.createPaidMessageTemplate().cloneNode(true);
+        PaidMessageWebPageElement.setAttribute('price', data.price);
+        PaidMessageWebPageElement.setAttribute('price-level', data.priceLevel);
+        PaidMessageWebPageElement.style.setProperty('--yt-live-chat-paid-message-primary-color', this.paidMessageData.messagePrimaryColor);
+        PaidMessageWebPageElement.style.setProperty('--yt-live-chat-paid-message-secondary-color', this.paidMessageData.messageSecondaryColor);
+        PaidMessageWebPageElement.style.setProperty('--yt-live-chat-paid-message-header-color', this.paidMessageData.messageHeaderColor);
+        PaidMessageWebPageElement.style.setProperty('--yt-live-chat-paid-message-author-name-color', this.paidMessageData.messageAuthorNameColor);
+        PaidMessageWebPageElement.style.setProperty('--yt-live-chat-paid-message-timestamp-color', this.paidMessageData.messageTimestampColor);
+        PaidMessageWebPageElement.style.setProperty('--yt-live-chat-paid-message-color', this.paidMessageData.messageColor);
+        if (this.paidMessageData.showOnlyHeader) PaidMessageWebPageElement.setAttribute('show-only-header', true);
 
-        this.fillPaidMessageContent(message, data);
+        const authorPhotoElement = PaidMessageWebPageElement.querySelector('#author-photo');
+        authorPhotoElement.height = this.paidMessageData.facePictureY;
+        authorPhotoElement.width = this.paidMessageData.facePictureX;
+        authorPhotoElement.loaded = "";
+        authorPhotoElement.style.setProperty('background-color', 'transparent');
 
-        return message;
+        const styleShadow = PaidMessageWebPageElement.querySelector('.style-scope.yt-img-shadow');
+        styleShadow.height = "40";
+        styleShadow.width = "40";
+        styleShadow.alt = this.paidMessageData.uId
+        styleShadow.src = this.paidMessageData.facePicture
+
+        const authorName = PaidMessageWebPageElement.querySelector('#author-name');
+        if (authorName) authorName.textContent = this.paidMessageData.uName;
+
+        const purchaseAmount = PaidMessageWebPageElement.querySelector('#purchase-amount');
+        if (purchaseAmount) purchaseAmount.textContent = `CN¥${this.paidMessageData.price}`;
+
+        const timestamp = PaidMessageWebPageElement.querySelector('#timestamp');
+        if (timestamp) timestamp.textContent = this.paidMessageData.sendTime || '00:00';
+
+        const messageContent = PaidMessageWebPageElement.querySelector('#message');
+        if (messageContent) messageContent.textContent = this.paidMessageData.messageData;
+
+        const contentContent = PaidMessageWebPageElement.querySelector('#content');
+        if (this.paidMessageData.showOnlyHeader) {
+            if (contentContent) contentContent.style.visibility = 'hidden';
+            if (contentContent) contentContent.style.display = 'none';
+            if (contentContent) contentContent.style.padding = '0';
+        };
+        return PaidMessageWebPageElement;
     }
 
     // 创建会员加入消息
     createMembershipMessage(data) {
         // 先初始化默认图片配置
-        this.defaultImages = {
-            authorName: '', // 昵称
-            avatar: './blivechat_files/noface.gif', // 头像位置
-            memberBadges: "",  // 舰长勋章图标位置
+        this.membershipMessageData = {
+            uName: '', // 昵称
+            uId: '', // id
+            facePicture: 'https://static.hdslb.com/images/member/noface.gif',  // 头像
+            facePictureX: '40',  // 头像宽度px
+            facePictureY: '40',  // 头像高度px
+            sendTime: '00:00', // 时间
+            messageData: '', // 文字内容
+            fleetBadge: '',  // 舰队徽章
             membershipCardColor: "#820f9d", // 低层颜色
             membershipHeaderColor: "#820f9d",  // 上层颜色
-            authorType: "member",
-            privilegeType: '1', // 舰长级别
-            offsetX: 0, // 横向偏移量
-            offsetY: 0, // 纵向偏移量
+            identityTitle: '', // 身份头衔：管理员 moderator，船员 member，主播 owner，普通为空
+            privilegeLevel: '0', // 特权级别 1,2,3,0
+            fleetTitle: '',  // 舰队称号
 
             ...data
         };
 
-        const message = this.createMembershipMessageTemplate().cloneNode(true);
+        const membershipMessageWebPageElement = this.createMembershipMessageTemplate().cloneNode(true);
+        membershipMessageWebPageElement.setAttribute('privilegetype', this.membershipMessageData.privilegeLevel || '0');
+        membershipMessageWebPageElement.setAttribute('show-only-header', "");
 
-        message.setAttribute('privilegetype', data.privilegeType || '0');
-        message.setAttribute('offsetx', `${data.offsetX || 0}px`);
-        message.setAttribute('offsety', `${data.offsetY || 0}px`);
-        message.style.setProperty('--x-offset', `${data.offsetX || 0}px`);
-        message.style.setProperty('--y-offset', `${data.offsetY || 0}px`);
+        const card = membershipMessageWebPageElement.querySelector('#card');
+        card.style.setProperty('background-color', this.membershipMessageData.membershipCardColor);
 
-        this.fillMembershipMessageContent(message, data);
+        const header = membershipMessageWebPageElement.querySelector('#header');
+        header.style.setProperty('background-color', this.membershipMessageData.membershipHeaderColor);
 
-        return message;
+        const authorPhoto = membershipMessageWebPageElement.querySelector('#author-photo');
+        authorPhoto.height = this.membershipMessageData.facePictureY;
+        authorPhoto.width = this.membershipMessageData.facePictureX;
+        authorPhoto.style.setProperty('background-color', 'transparent');
+        authorPhoto.loaded = '';
+
+        const img = membershipMessageWebPageElement.querySelector('#img');
+        img.height = this.membershipMessageData.facePictureY;
+        img.width = this.membershipMessageData.facePictureX;
+        img.alt = this.membershipMessageData.uId;
+        img.src = this.membershipMessageData.facePicture;
+
+        const authorName = membershipMessageWebPageElement.querySelector('#author-name');
+        if (authorName) authorName.textContent = this.membershipMessageData.uName;
+
+        const imgRenderer = membershipMessageWebPageElement.querySelector('img.style-scope.yt-live-chat-author-badge-renderer');
+        imgRenderer.alt = this.membershipMessageData.fleetTitle;
+        imgRenderer.src = this.membershipMessageData.fleetBadge;
+
+        const headerSubtext = membershipMessageWebPageElement.querySelector('#header-subtext');
+        if (headerSubtext) headerSubtext.textContent = this.membershipMessageData.messageData || '新会员';
+
+        const timestamp = membershipMessageWebPageElement.querySelector('#timestamp');
+        if (timestamp) timestamp.textContent = this.membershipMessageData.sendTime || '00:00';
+
+        this.updateBadges(membershipMessageWebPageElement, this.membershipMessageData);
+
+        return membershipMessageWebPageElement;
     }
     //-----------------//
-    // 填充付费消息内容
-    fillPaidMessageContent(element, data) {
-        const authorName = element.querySelector('#author-name');
-        const purchaseAmount = element.querySelector('#purchase-amount');
-        const timestamp = element.querySelector('#timestamp');
-        const messageContent = element.querySelector('#message');
-        const contentContent = element.querySelector('#content');
-
-        if (authorName) authorName.textContent = data.authorName;
-        if (purchaseAmount) purchaseAmount.textContent = `CN¥${data.price}`;
-        if (timestamp) timestamp.textContent = data.timestamp || '00:00';
-        if (messageContent) messageContent.textContent = data.message;
-        if (this.defaultImages.showOnlyHeader) {
-            if (contentContent) contentContent.style.visibility = 'hidden';
-            if (contentContent) contentContent.style.display = 'none';
-            if (contentContent) contentContent.style.padding = '0';
-        }
-    }
-
-    // 填充会员消息内容
-    fillMembershipMessageContent(element, data) {
-        const authorName = element.querySelector('#author-name');
-        const headerSubtext = element.querySelector('#header-subtext');
-        const timestamp = element.querySelector('#timestamp');
-
-        if (authorName) authorName.textContent = data.authorName;
-        if (headerSubtext) headerSubtext.textContent = data.subtext || '新会员';
-        if (timestamp) timestamp.textContent = data.timestamp || '00:00';
-
-        this.updateBadges(element, data.authorType, data.privilegeType);
-    }
-
     // 构建消息内容（支持文本和表情）
     buildMessageContent(container, content) {
         container.innerHTML = '';
@@ -482,24 +505,20 @@ class YouTubeChatMessageBuilder {
     }
     //-----------------//
     // 更新用户徽章
-    updateBadges(element, identityTitle, privilegeLevel) {
+    updateBadges(element, data) {
         const medalContainer = element.querySelector('#chat-medal');
         if (!medalContainer) return;
         medalContainer.innerHTML = '';
 
-        const badgesContainer = element.querySelector('#chat-badges');
-        if (!badgesContainer) return;
-        badgesContainer.innerHTML = '';
-
         // 粉丝徽章
-        if (this.defaultImages.isFanGroup) {
+        if (data.isFanGroup) {
             const badge = this.createMedal();
-            badge.setAttribute('is-fan-group', `${this.defaultImages.isFanGroup}`);
-            badge.setAttribute('medal-name', `${this.defaultImages.fanMedalName}`);
-            badge.setAttribute('medal-nevel', `${this.defaultImages.fanMedalLevel}`);
-            badge.style.setProperty('--yt-live-chat-medal-background-color', `linear-gradient(to right, ${this.defaultImages.fanMedalColorStart}, ${this.defaultImages.fanMedalColorEnd})`);
-            badge.style.setProperty('--yt-live-chat-medal-border-color', this.defaultImages.fanMedalColorBorder);
-            badge.style.setProperty('--yt-live-chat-medal-text-color', this.defaultImages.fanMedalColorLevel); // 粉丝勋章等级颜色
+            badge.setAttribute('is-fan-group', `${data.isFanGroup}`);
+            badge.setAttribute('medal-name', `${data.fanMedalName}`);
+            badge.setAttribute('medal-nevel', `${data.fanMedalLevel}`);
+            badge.style.setProperty('--yt-live-chat-medal-background-color', `linear-gradient(to right, ${data.fanMedalColorStart}, ${data.fanMedalColorEnd})`);
+            badge.style.setProperty('--yt-live-chat-medal-border-color', data.fanMedalColorBorder);
+            badge.style.setProperty('--yt-live-chat-medal-text-color', data.fanMedalColorLevel); // 粉丝勋章等级颜色
             badge.style.margin = '0 0 0 4px'; // 上间隔 右间隔 下间隔 左间隔
             badge.style.setProperty('text-shadow', '0px 0px 0px #000000'); // 水平阴影的位置 垂直阴影的位置 模糊的距离 阴影的颜色.
             badge.style.display = 'inline-block';
@@ -521,14 +540,14 @@ class YouTubeChatMessageBuilder {
             medalCard.style.setProperty('overflow', 'hidden');
 
             const clsMedalRenderer = badge.querySelector('.yt-live-chat-author-medal-renderer');
-            clsMedalRenderer.style.setProperty('font-size', `${this.defaultImages.timeTextSize}px`);
+            clsMedalRenderer.style.setProperty('font-size', `${data.timeTextSize}px`);
             clsMedalRenderer.style.setProperty('line-height', '14px');
 
             const medalName = badge.querySelector('#medal-name');
             medalName.style.setProperty('text-shadow', 'none');
             medalName.style.padding = '2px 4px';  // 上下间距 左右间距
-            medalName.style.color = this.defaultImages.fanMedalColorText;
-            medalName.textContent = this.defaultImages.fanMedalName;
+            medalName.style.color = data.fanMedalColorText;
+            medalName.textContent = data.fanMedalName;
 
             const medalLevel = badge.querySelector('#medal-level');
             medalLevel.style.padding = '2px 4px';  // 上下间距 左右间距
@@ -539,22 +558,26 @@ class YouTubeChatMessageBuilder {
             medalLevel.style.color = 'var(--yt-live-chat-medal-text-color,#222)';
             medalLevel.style.setProperty('border-top-right-radius', '2px');
             medalLevel.style.setProperty('border-bottom-right-radius', '2px');
-            medalLevel.textContent = this.defaultImages.fanMedalLevel;
+            medalLevel.textContent = data.fanMedalLevel;
 
             medalContainer.appendChild(badge);
         }
 
+        const badgesContainer = element.querySelector('#chat-badges');
+        if (!badgesContainer) return;
+        badgesContainer.innerHTML = '';
+
         // 舰长徽章
-        if (privilegeLevel && privilegeLevel !== '0') {
+        if (data.privilegeType && data.privilegeType !== '0') {
             const badge = this.createMemberBadge();
             const img = badge.querySelector('img');
-            img.alt = `${this.defaultImages.fleetTitle}`
-            img.src = `${this.defaultImages.fleetBadge}`
+            img.alt = `${data.fleetTitle}`
+            img.src = `${data.fleetBadge}`
             badgesContainer.appendChild(badge);
         }
 
         // 房管徽章
-        if (this.defaultImages.isAdmin) {
+        if (data.isAdmin) {
             const badge = this.createModeratorBadge();
             badgesContainer.appendChild(badge);
         }
@@ -657,6 +680,8 @@ class YouTubeChatMessageBuilder {
                     </span>
                     <div id="content-plus" style="display: none;"></div>
                 </div>
+                <div class="joi-style" id="paw" style="display: none;"></div>
+                <div class="joi-style" id="star" style="display: none;"></div>
             </div>
         `;
 
@@ -671,8 +696,8 @@ class YouTubeChatMessageBuilder {
         template.innerHTML = `
             <div class="style-scope yt-live-chat-paid-message-renderer" id="card">
                 <div class="style-scope yt-live-chat-paid-message-renderer" id="header">
-                    <yt-img-shadow class="no-transition style-scope yt-live-chat-paid-message-renderer" height="40" id="author-photo" loaded="" style="background-color: transparent;" width="40">
-                        <img class="style-scope yt-img-shadow" height="40" src="${this.defaultImages.avatar}" width="40">
+                    <yt-img-shadow class="no-transition style-scope yt-live-chat-paid-message-renderer" id="author-photo">
+                        <img class="style-scope yt-img-shadow">
                     </yt-img-shadow>
                     <div class="style-scope yt-live-chat-paid-message-renderer" id="header-content">
                         <div class="style-scope yt-live-chat-paid-message-renderer" id="header-content-primary-column">
@@ -697,22 +722,37 @@ class YouTubeChatMessageBuilder {
 
         // 会员消息的HTML结构
         template.innerHTML = `
-            <div class="style-scope yt-live-chat-membership-item-renderer" id="card" style="background-color: ${this.defaultImages.membershipCardColor}">
-                <div class="style-scope yt-live-chat-membership-item-renderer" id="header" style="background-color: ${this.defaultImages.membershipHeaderColor}">
-                    <yt-img-shadow class="no-transition style-scope yt-live-chat-membership-item-renderer" height="40" id="author-photo">
-                        <img class="style-scope yt-img-shadow" height="40" src="${this.defaultImages.avatar}" width="40">
+            <div class="style-scope yt-live-chat-membership-item-renderer" id="card">
+                <div class="style-scope yt-live-chat-membership-item-renderer" id="header">
+                    <div id="author-border" style="display: none;"></div>
+                    <yt-img-shadow class="no-transition style-scope yt-live-chat-membership-item-renderer" id="author-photo">
+                        <img id="img" class="style-scope yt-img-shadow">
                     </yt-img-shadow>
                     <div class="style-scope yt-live-chat-membership-item-renderer" id="header-content">
                         <div class="style-scope yt-live-chat-membership-item-renderer" id="header-content-primary-column">
                             <div class="style-scope yt-live-chat-membership-item-renderer" id="header-content-inner-column">
                                 <yt-live-chat-author-chip class="style-scope yt-live-chat-membership-item-renderer">
-                                    <span class="member style-scope yt-live-chat-author-chip" dir="auto" id="author-name"></span>
-                                    <span class="style-scope yt-live-chat-author-chip" id="chat-badges"></span>
+                                    <span class="member style-scope yt-live-chat-author-chip" dir="auto" id="author-name">
+                                        <!--用户昵称-->
+                                        <span id="chip-badges" class="style-scope yt-live-chat-author-chip"></span>
+                                    </span>
+                                    <span class="style-scope yt-live-chat-author-chip" id="chat-badges">
+                                        <yt-live-chat-author-badge-renderer type="member" class="style-scope yt-live-chat-author-chip">
+                                            <div id="image" class="el-tooltip style-scope yt-live-chat-author-badge-renderer" tabindex="0">
+                                                <img src="/static/img/icons/guard-level-3.png" alt="舰长" class="style-scope yt-live-chat-author-badge-renderer">
+                                                <!---->
+                                            </div>
+                                        </yt-live-chat-author-badge-renderer>
+                                    </span>
                                 </yt-live-chat-author-chip>
                             </div>
-                            <div class="style-scope yt-live-chat-membership-item-renderer" id="header-subtext"></div>
+                            <div class="style-scope yt-live-chat-membership-item-renderer" id="header-subtext">
+                                <!--内容-->
+                            </div>
                         </div>
-                        <div class="style-scope yt-live-chat-membership-item-renderer" id="timestamp"></div>
+                        <div class="style-scope yt-live-chat-membership-item-renderer" id="timestamp">
+                            <!--时间-->
+                        </div>
                     </div>
                 </div>
             </div>
