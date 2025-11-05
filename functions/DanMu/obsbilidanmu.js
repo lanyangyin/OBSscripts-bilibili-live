@@ -259,6 +259,7 @@ class YouTubeChatMessageBuilder {
             isAdmin: false,  // 是否管理员
             isFanGroup: false, // 是否有粉丝勋章或者是否有本直播间的粉丝勋章
             lineBreakDisplay: false,
+            isTimestampDisplay: false,
 
             ...data
         };
@@ -306,15 +307,20 @@ class YouTubeChatMessageBuilder {
 
         // 时间戳
         const timestamp = MainMessageWebPageElement.querySelector('#timestamp');
-        if (timestamp) timestamp.textContent = data.sendTime || '00:00';
-        timestamp.style.setProperty('font-size', `${this.TextMessageData.fanMedalTextSize}px`);  // 字体大小
+        timestamp.textContent = data.sendTime || '00:00';
+        timestamp.style.setProperty('font-size', `${this.TextMessageData.timeTextSize}px`);  // 字体大小
+        if (this.TextMessageData.isTimestampDisplay) {
+            timestamp.style.display = "inline";
+        } else {
+            timestamp.style.display = "none";
+        }
 
         const authorNameElement = MainMessageWebPageElement.querySelector('#author-name');
-        authorNameElement.setAttribute('type', `${this.TextMessageData.identityTitle}`);
+        authorNameElement.setAttribute('type', this.TextMessageData.identityTitle);
 
         // 用户名称
         const authorNameText = MainMessageWebPageElement.querySelector('#author-name-text');
-        if (authorNameText) authorNameText.textContent = data.uName || '用户';
+        authorNameText.textContent = data.uName || '用户';
 
         const imgMsg = MainMessageWebPageElement.querySelector('#image-and-message');
         imgMsg.style.width = 'auto';
@@ -327,7 +333,7 @@ class YouTubeChatMessageBuilder {
 
         // 消息内容
         const messageContent = MainMessageWebPageElement.querySelector('#message');
-        if (messageContent) this.buildMessageContent(messageContent, data.messageData);
+        this.buildMessageContent(messageContent, data.messageData);
 
         // 徽章
         this.updateBadges(MainMessageWebPageElement, this.TextMessageData);
@@ -345,7 +351,6 @@ class YouTubeChatMessageBuilder {
             facePictureX: '40',  // 头像宽度px
             facePictureY: '40',  // 头像高度px
             sendTime: '00:00', // 时间
-            messageData: '', // 文字内容
             price: '0', // 显示金额（元）
             priceLevel: '0',  // 金额等级
             messagePrimaryColor: 'rgba(29,233,182,1)', // 文字区域颜色
@@ -354,7 +359,8 @@ class YouTubeChatMessageBuilder {
             messageAuthorNameColor: 'rgba(0,0,0,0.541176)', // 昵称文字颜色
             messageTimestampColor: 'rgba(0,0,0,0.501961)', // 时间文字颜色
             messageColor: 'rgba(0,0,0,1)', // 文字颜色
-            showOnlyHeader: false, // 是否显示文字区域
+            messageData: '', // 文字内容
+            showOnlyHeader: false, // 是否不显示文字区域
 
             ...data
         };
@@ -376,11 +382,11 @@ class YouTubeChatMessageBuilder {
         authorPhotoElement.loaded = "";
         authorPhotoElement.style.setProperty('background-color', 'transparent');
 
-        const styleShadow = PaidMessageWebPageElement.querySelector('.style-scope.yt-img-shadow');
-        styleShadow.height = "40";
-        styleShadow.width = "40";
-        styleShadow.alt = this.paidMessageData.uId
-        styleShadow.src = this.paidMessageData.facePicture
+        const img = PaidMessageWebPageElement.querySelector('#img');
+        img.height = "40";
+        img.width = "40";
+        img.alt = this.paidMessageData.uId
+        img.src = this.paidMessageData.facePicture
 
         const authorName = PaidMessageWebPageElement.querySelector('#author-name');
         if (authorName) authorName.textContent = this.paidMessageData.uName;
@@ -415,8 +421,7 @@ class YouTubeChatMessageBuilder {
             sendTime: '00:00', // 时间
             messageData: '', // 文字内容
             fleetBadge: '',  // 舰队徽章
-            membershipCardColor: "#820f9d", // 低层颜色
-            membershipHeaderColor: "#820f9d",  // 上层颜色
+            membershipHeaderColor: "#820f9d",  // 背景颜色
             identityTitle: '', // 身份头衔：管理员 moderator，船员 member，主播 owner，普通为空
             privilegeLevel: '0', // 特权级别 1,2,3,0
             fleetTitle: '',  // 舰队称号
@@ -427,12 +432,10 @@ class YouTubeChatMessageBuilder {
         const membershipMessageWebPageElement = this.createMembershipMessageTemplate().cloneNode(true);
         membershipMessageWebPageElement.setAttribute('privilegetype', this.membershipMessageData.privilegeLevel || '0');
         membershipMessageWebPageElement.setAttribute('show-only-header', "");
+        membershipMessageWebPageElement.style.setProperty('--yt-live-chat-sponsor-color', this.membershipMessageData.membershipHeaderColor);
 
         const card = membershipMessageWebPageElement.querySelector('#card');
         card.style.setProperty('background-color', this.membershipMessageData.membershipCardColor);
-
-        const header = membershipMessageWebPageElement.querySelector('#header');
-        header.style.setProperty('background-color', this.membershipMessageData.membershipHeaderColor);
 
         const authorPhoto = membershipMessageWebPageElement.querySelector('#author-photo');
         authorPhoto.height = this.membershipMessageData.facePictureY;
@@ -448,10 +451,6 @@ class YouTubeChatMessageBuilder {
 
         const authorName = membershipMessageWebPageElement.querySelector('#author-name');
         if (authorName) authorName.textContent = this.membershipMessageData.uName;
-
-        const imgRenderer = membershipMessageWebPageElement.querySelector('img.style-scope.yt-live-chat-author-badge-renderer');
-        imgRenderer.alt = this.membershipMessageData.fleetTitle;
-        imgRenderer.src = this.membershipMessageData.fleetBadge;
 
         const headerSubtext = membershipMessageWebPageElement.querySelector('#header-subtext');
         if (headerSubtext) headerSubtext.textContent = this.membershipMessageData.messageData || '新会员';
@@ -507,8 +506,11 @@ class YouTubeChatMessageBuilder {
     // 更新用户徽章
     updateBadges(element, data) {
         const medalContainer = element.querySelector('#chat-medal');
-        if (!medalContainer) return;
-        medalContainer.innerHTML = '';
+        if (!medalContainer) {
+        } else {
+            medalContainer.style.setProperty('font-size', `${data.fanMedalTextSize}px`);  // 字体大小
+            medalContainer.innerHTML = '';
+        }
 
         // 粉丝徽章
         if (data.isFanGroup) {
@@ -564,15 +566,17 @@ class YouTubeChatMessageBuilder {
         }
 
         const badgesContainer = element.querySelector('#chat-badges');
-        if (!badgesContainer) return;
-        badgesContainer.innerHTML = '';
+        if (!badgesContainer) {
+        } else {
+            badgesContainer.innerHTML = '';
+        }
 
         // 舰长徽章
-        if (data.privilegeType && data.privilegeType !== '0') {
+        if (data.privilegeLevel && data.privilegeLevel !== '0') {
             const badge = this.createMemberBadge();
             const img = badge.querySelector('img');
-            img.alt = `${data.fleetTitle}`
-            img.src = `${data.fleetBadge}`
+            img.alt = data.fleetTitle;
+            img.src = data.fleetBadge;
             badgesContainer.appendChild(badge);
         }
 
@@ -668,6 +672,7 @@ class YouTubeChatMessageBuilder {
                         </span>
                         <span class="style-scope yt-live-chat-author-chip" id="chat-badges">
                             <!--舰长徽章-->
+                            <!--房管徽章-->
                         </span>
                     </yt-live-chat-author-chip>
                     <span class="style-scope yt-live-chat-text-message-renderer" id="image-and-message">
@@ -697,7 +702,7 @@ class YouTubeChatMessageBuilder {
             <div class="style-scope yt-live-chat-paid-message-renderer" id="card">
                 <div class="style-scope yt-live-chat-paid-message-renderer" id="header">
                     <yt-img-shadow class="no-transition style-scope yt-live-chat-paid-message-renderer" id="author-photo">
-                        <img class="style-scope yt-img-shadow">
+                        <img class="style-scope yt-img-shadow" id="img">
                     </yt-img-shadow>
                     <div class="style-scope yt-live-chat-paid-message-renderer" id="header-content">
                         <div class="style-scope yt-live-chat-paid-message-renderer" id="header-content-primary-column">
@@ -737,12 +742,8 @@ class YouTubeChatMessageBuilder {
                                         <span id="chip-badges" class="style-scope yt-live-chat-author-chip"></span>
                                     </span>
                                     <span class="style-scope yt-live-chat-author-chip" id="chat-badges">
-                                        <yt-live-chat-author-badge-renderer type="member" class="style-scope yt-live-chat-author-chip">
-                                            <div id="image" class="el-tooltip style-scope yt-live-chat-author-badge-renderer" tabindex="0">
-                                                <img src="/static/img/icons/guard-level-3.png" alt="舰长" class="style-scope yt-live-chat-author-badge-renderer">
-                                                <!---->
-                                            </div>
-                                        </yt-live-chat-author-badge-renderer>
+                                        <!--舰长徽章-->
+                                        <!--房管徽章-->
                                     </span>
                                 </yt-live-chat-author-chip>
                             </div>
@@ -766,89 +767,86 @@ class YouTubeChatMessageBuilder {
     }
 }
 
-// 使用示例
+// 使用示例 = ============================================================================================================
 const chatBuilder = new YouTubeChatMessageBuilder();
 
-// 创建普通消息
-const textMessage = chatBuilder.createTextMessage({
+// 创建普通消息 粉丝勋章 舰长 管理员 换行 时间
+const ordinaryMessage = chatBuilder.createTextMessage({
+    uName: '测试用户',
+    uId: '0',
     facePicture: 'https://static.hdslb.com/images/member/noface.gif',
     facePictureX: '40',  // 头像宽度px
-    facePictureY: '40',  // 头像高度px
-    fanMedalName: '粉丝勋章名称', // 粉丝勋章名称
+    facePictureY: '50',  // 头像高度px
+    identityTitle: 'moderator',
+    privilegeLevel: '1',
+    fanMedalName: '粉丝勋章', // 粉丝勋章名称
     fanMedalLevel: '24', // 粉丝勋章等级
     fanMedalColorStart: '#3FB4F699', // 粉丝勋章开始颜色
     fanMedalColorEnd: '#3FB4F699', // 粉丝勋章结束颜色
     fanMedalColorBorder: '#3FB4F699', // 粉丝勋章边框颜色
     fanMedalColorText: '#FFFFFF', // 粉丝勋章文本色
     fanMedalColorLevel: '#3FB4F6E6', // 粉丝勋章等级颜色
-    identityTitle: 'moderator',
-    privilegeLevel: '0',
-    fleetBadge: '',
-    uName: '测试用户',
-    sendTime: '14:11',
+    fanMedalTextSize: '20',
+    fleetBadge: 'https://blc.huixinghao.cn/static/img/icons/guard-level-1.png',
     messageData: [
-        { type: 'text', text: '这是一条' },
-        { type: 'emoji', alt: '[比心]', src: './blivechat_files/4e029593562283f00d39b99e0557878c4199c71d.png' },
+        {type: 'text', color: '#1565c0', text: '@用户  '},
+        { type: 'text', text: '这是一条测试消息' },
+        { type: 'emoji', alt: '[比心]', src: 'https://static.hdslb.com/images/member/noface.gif' },
+        {type: 'image',alt: '[比心]',width: '16px',height: '16px', src: 'https://static.hdslb.com/images/member/noface.gif'},
+        {type: 'image',alt: '[比心]',width: '16px',height: '16px', src: 'https://static.hdslb.com/images/member/noface.gif'},
         { type: 'text', text: '测试消息' }
     ],
-});
-
-// 创建普通消息
-const faceMessage = chatBuilder.createTextMessage({
-    facePicture: 'https://static.hdslb.com/images/member/noface.gif',
-    facePictureX: '40',  // 头像宽度px
-    facePictureY: '40',  // 头像高度px
-    identityTitle: 'member',
-    privilegeLevel: '1',
-    fleetTitle: '总督',
-    fleetBadge: './blivechat_files/guard-level-1.png',
-    uName: '测试用户',
-    sendTime: '14:11',
-    messageData: [
-        { type: 'image', alt: '[huangdou_xihuan]', src: './blivechat_files/huangdou_xihuan.png' }
-    ],
-});
-
-// 创建普通消息
-const moderatorMessage = chatBuilder.createTextMessage({
-    facePicture: 'https://static.hdslb.com/images/member/noface.gif',
-    facePictureX: '40',  // 头像宽度px
-    facePictureY: '40',  // 头像高度px
-    identityTitle: 'moderator',
-    privilegeLevel: '1',
-    fleetTitle: '总督',
-    fleetBadge: './blivechat_files/guard-level-1.png',
-    uName: '测试用户',
-    sendTime: '14:11',
-    messageData: "moderatorMessage",
+    messageTextSize: '40',
+    sendTime: '00:00',
+    timeTextSize: '10',
+    isAdmin: true,  // 是否管理员
+    isFanGroup: true, // 是否有粉丝勋章或者是否有本直播间的粉丝勋章
+    lineBreakDisplay: true,
+    isTimestampDisplay: true,
 });
 
 // 创建付费消息
 const paidMessage = chatBuilder.createPaidMessage({
-    uName: '付费用户',
-    price: '30.00',
-    priceLevel: '30',
-    sendTime: '14:11',
-    messageData: '这是一条付费消息',
+    uName: '付费用户', // 昵称
+    uId: '0',
+    facePicture: 'https://static.hdslb.com/images/member/noface.gif', // 头像位置
+    facePictureX: '40',  // 头像宽度px
+    facePictureY: '40',  // 头像高度px
+    sendTime: '14:11', // 时间
+    price: '30.00', // 显示金额（元）
+    priceLevel: '30',  // 金额等级
+    messagePrimaryColor: 'rgba(29,233,182,1)', // 文字区域颜色
+    messageSecondaryColor: 'rgba(0,191,165,1)', // 头像昵称金额区域颜色
+    messageHeaderColor: 'rgba(0,0,0,1)', // 金额文字颜色
+    messageAuthorNameColor: 'rgba(0,0,0,0.541176)', // 昵称文字颜色
+    messageTimestampColor: 'rgba(0,0,0,0.501961)', // 时间文字颜色
+    messageColor: 'rgba(0,0,0,1)', // 文字颜色
+    messageData: '这是一条付费消息', // 文字内容
+    showOnlyHeader: true, // 是否不显示文字区域
 });
 
 // 创建会员消息
 const membershipMessage = chatBuilder.createMembershipMessage({
-    uName: '新会员',
-    identityTitle: 'owner',
-    privilegeLevel: '2',
-    fleetTitle: '提督',
-    fleetBadge: './blivechat_files/guard-level-2.png',
-    subtext: '新会员',
-    sendTime: '14:11',
+    uName: '新舰长用户名', // 昵称
+    uId: '0', // id
+    facePicture: 'https://static.hdslb.com/images/member/noface.gif',  // 头像
+    facePictureX: '40',  // 头像宽度px
+    facePictureY: '40',  // 头像高度px
+    sendTime: '14:11', // 时间
+    messageData: '提督上任', // 文字内容
+    fleetBadge: 'https://blc.huixinghao.cn/static/img/icons/guard-level-2.png',  // 舰队徽章
+    membershipHeaderColor: "#820f9d",  // 上层颜色
+    identityTitle: 'owner', // 身份头衔：管理员 moderator，船员 member，主播 owner，普通为空
+    privilegeLevel: '2', // 特权级别 1,2,3,0
+    fleetTitle: '提督',  // 舰队称号
 });
 
 // 添加到DOM
-itemContainer.appendChild(textMessage);
-itemContainer.appendChild(faceMessage);
+itemContainer.appendChild(ordinaryMessage);
 itemContainer.appendChild(paidMessage);
 itemContainer.appendChild(membershipMessage);
-itemContainer.appendChild(moderatorMessage);
+//itemContainer.appendChild(membershipMessage);
+//itemContainer.appendChild(moderatorMessage);
 
 scrollableContainer.scrollTop = scrollableContainer.scrollHeight;
 
@@ -962,10 +960,14 @@ class DanmuWebSocketClient {
 //            case 'red_pocket':
 //            case 'red_pocket_v2':
 //            case 'user_toast':
-//            case 'user_toast_v2':
-//            case 'gift':
-//                this.addGiftMessage(data);
-//                break;
+
+            case 'user_toast_v2':
+                this.addMembershipMessage(data);
+                break;
+
+            case 'gift':
+                this.addGiftMessage(data);
+                break;
 
 //            case 'super_chat':
 //            case 'super_chat_jpn':
@@ -988,6 +990,7 @@ class DanmuWebSocketClient {
     addDanmuMessage(data) {
         const time = new Date(data.timestamp * 1000).toLocaleTimeString();
         let textMessage;
+
         switch(data.type) {
             case 'live_start':
             case 'system':
@@ -1033,6 +1036,7 @@ class DanmuWebSocketClient {
                     isAdmin: data.isAdmin,
                     isFanGroup: data.isFanGroup,
                     lineBreakDisplay: data.lineBreakDisplay,
+                    isTimestampDisplay: data.isTimestampDisplay,
                 }
                 // 创建普通消息
                 textMessage = chatBuilder.createTextMessage(danmuMessageInfo);
@@ -1046,125 +1050,65 @@ class DanmuWebSocketClient {
     // 礼物消息
     addGiftMessage(data) {
         const time = new Date(data.timestamp * 1000).toLocaleTimeString();
-        let content = '';
+        let giftMessage;
 
         switch(data.type) {
             case 'gift':
-                const price = (data.total_coin / 1000).toFixed(2);
+                const giftMessageInfo = {
+                    uName: data.uName, // 昵称
+                    uId: data.uId,
+                    facePicture: data.facePicture, // 头像位置
+                    facePictureX: data.facePictureX,  // 头像宽度px
+                    facePictureY: data.facePictureY,  // 头像高度px
+                    sendTime: time, // 时间
+                    price: data.price, // 显示金额（元）
+                    priceLevel: data.priceLevel,  // 金额等级
+                    messagePrimaryColor: data.messagePrimaryColor, // 文字区域颜色
+                    messageSecondaryColor: data.messageSecondaryColor, // 头像昵称金额区域颜色
+                    messageHeaderColor: data.messageHeaderColor, // 金额文字颜色
+                    messageAuthorNameColor: data.messageAuthorNameColor, // 昵称文字颜色
+                    messageTimestampColor: data.messageTimestampColor, // 时间文字颜色
+                    messageColor: data.messageColor, // 文字颜色
+                    messageData: data.messageData, // 文字内容
+                    showOnlyHeader: data.showOnlyHeader, // 是否不显示文字区域
+                }
                 // 创建付费消息
-                const paidMessage = chatBuilder.createPaidMessage({
-                    authorName: '付费用户',
-                    price: '30.00',
-                    priceLevel: '30',
-                    timestamp: '14:11',
-                    messageData: data.gift_name + 'X' + data.gift_count,
-                    offsetX: 150,
-                    offsetY: 300
-                });
-                break;
-                content = `
-                    <div class="message-header">
-                        <span>${time}</span>
-                        <span>礼物</span>
-                    </div>
-                    <div class="message-content">
-                        <span class="wealth-info">${data.wealth || ''}</span>
-                        <span class="medal-info">${data.medal || ''}</span>
-                        <span class="user-info">${data.user}</span>
-                        赠送了 ${data.gift_count} 个 ${data.gift_name} (${price}元)
-                    </div>
-                `;
-                break;
-
-            case 'combo_gift':
-                const comboPrice = (data.total_coin / 1000).toFixed(2);
-                content = `
-                    <div class="message-header">
-                        <span>${time}</span>
-                        <span>连击礼物</span>
-                    </div>
-                    <div class="message-content">
-                        <span class="wealth-info">${data.wealth || ''}</span>
-                        <span class="medal-info">${data.medal || ''}</span>
-                        <span class="user-info">${data.user}</span>
-                        连续赠送 ${data.combo_num} 个 ${data.gift_name} (${comboPrice}元)
-                    </div>
-                `;
-                className = 'message-gift message-combo';
-                break;
-
-            case 'guard_buy':
-                content = `
-                    <div class="message-header">
-                        <span>${time}</span>
-                        <span>上舰</span>
-                    </div>
-                    <div class="message-content">
-                        <span class="user-info">${data.user}</span>
-                        开通了 ${data.guard_name} x${data.guard_count}
-                    </div>
-                `;
-                className = 'message-gift message-guard';
-                break;
-
-            case 'red_pocket':
-            case 'red_pocket_v2':
-                content = `
-                    <div class="message-header">
-                        <span>${time}</span>
-                        <span>红包</span>
-                    </div>
-                    <div class="message-content">
-                        <span class="wealth-info">${data.wealth || ''}</span>
-                        <span class="medal-info">${data.medal || ''}</span>
-                        <span class="user-info">${data.user}</span>
-                        🔖 ${data.action} ${data.price}元
-                    </div>
-                `;
-                className = 'message-gift message-redpocket';
-                break;
-
-            case 'user_toast':
-            case 'user_toast_v2':
-                content = `
-                    <div class="message-header">
-                        <span>${time}</span>
-                        <span>大航海</span>
-                    </div>
-                    <div class="message-content">
-                        <span class="user-info">${data.user}</span>
-                        🚢 开通了 ${data.guard_name} (${data.price}元/${data.unit})
-                    </div>
-                `;
-                className = 'message-gift message-toast';
+                giftMessage = chatBuilder.createPaidMessage(giftMessageInfo);
+                console.log('礼物消息:', giftMessageInfo);
                 break;
         }
-
-        const messageElement = this.createMessageElement(data, className, content);
-        this.giftMessagesContainer.appendChild(messageElement);
+        itemContainer.appendChild(giftMessage);
         this.scrollToBottom();
     }
 
-    // 醒目留言消息
-    addSuperChatMessage(data) {
+    // 舰长消息
+    addMembershipMessage(data) {
         const time = new Date(data.timestamp * 1000).toLocaleTimeString();
-        const content = `
-            <div class="message-header">
-                <span>${time}</span>
-                <span>醒目留言</span>
-            </div>
-            <div class="message-content">
-                <span class="medal-info">${data.medal || ''}</span>
-                <span class="user-info">${data.user}</span>
-                💬 ${data.price}元 ${data.duration}秒
-                <div class="superchat-message">${data.message}</div>
-            </div>
-        `;
+        let membershipMessage
 
-        const messageElement = this.createMessageElement(data, 'message-superchat', content);
-        this.superchatMessagesContainer.appendChild(messageElement);
-        this.hideEmptyState(this.superchatMessagesContainer, this.superchatEmpty);
-        this.scrollToBottom(this.superchatMessagesContainer);
+        switch(data.type) {
+            case 'user_toast_v2':
+                const membershipMessageInfo = {
+                    uName: data.uName,
+                    uId: data.uId,
+                    facePicture: data.facePicture,
+                    facePictureX: data.facePictureX,
+                    facePictureY: data.facePictureY,
+                    sendTime: time,
+                    messageData: data.messageData,
+                    fleetBadge: data.fleetBadge,
+                    membershipHeaderColor: data.membershipHeaderColor,
+                    identityTitle: data.identityTitle,
+                    privilegeLevel: data.privilegeLevel,
+                    fleetTitle: data.fleetTitle,
+                }
+                // 创建付费消息
+                membershipMessage = chatBuilder.createPaidMessage(membershipMessageInfo);
+                console.log('舰长消息:', membershipMessageInfo);
+                break;
+        }
+        itemContainer.appendChild(membershipMessage);
+        this.scrollToBottom();
     }
 
     scrollToBottom() {
