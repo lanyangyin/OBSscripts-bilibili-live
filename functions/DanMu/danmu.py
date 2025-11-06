@@ -307,12 +307,6 @@ class Danmu:
     class _WebSocketClient:
         HEARTBEAT_INTERVAL = 30
         """心跳间隔"""
-        VERSION_NORMAL = 0
-        """协议版本:0: 普通包 (正文不使用压缩)"""
-        VERSION_ZIP = 2
-        """协议版本:2: 普通包 (正文使用 zlib 压缩)"""
-        VERSION_BTI = 3
-        """协议版本:3: 普通包 (使用 brotli 压缩的多个带文件头的普通包)"""
 
         def __init__(self, url: str, auth_body: dict[str, Union[str, int]]):
             self.url = url
@@ -325,6 +319,8 @@ class Danmu:
             """发送认证包接收时的回调函数"""
             self.num_r = 20
             """同时连接多个弹幕减少丢包"""
+            self.connection_interval = 0.3
+            """同时连接多个弹幕的间隔秒"""
             self.o_m_d = OptimizedMessageDeduplication(GlobalVariableOfData.number_of_cache_entries,
                                                   GlobalVariableOfData.cache_duration)
 
@@ -435,7 +431,7 @@ class Danmu:
             content_bytes = json.dumps(content).encode('utf-8') if content else b''
             header = (len(content_bytes) + 16).to_bytes(4, 'big') + \
                      (16).to_bytes(2, 'big') + \
-                     self.VERSION_NORMAL.to_bytes(2, 'big') + \
+                     (0).to_bytes(2, 'big') + \
                      code.to_bytes(4, 'big') + \
                      (1).to_bytes(4, 'big')
             return header + content_bytes
@@ -449,13 +445,13 @@ class Danmu:
 
             content_bytes = byte_buffer[16:package_len]
 
-            if prot_ver == self.VERSION_NORMAL:
+            if prot_ver == 0:
                 pass
-            elif prot_ver == self.VERSION_ZIP:
+            elif prot_ver == 2:
                 content_bytes = zlib.decompress(content_bytes)
                 await self.unpack(content_bytes)
                 return
-            elif prot_ver == self.VERSION_BTI:
+            elif prot_ver == 3:
                 pass
 
             content = content_bytes.decode('utf-8')
@@ -501,7 +497,7 @@ class Danmu:
                 task = asyncio.create_task(self.connect(), name=f"DanmuConn-{i}")
                 self.connection_tasks.append(task)
                 if i < self.num_r - 1:  # 最后一个连接不需要等待
-                    await asyncio.sleep(0.3)  # 间隔连接
+                    await asyncio.sleep(self.connection_interval)  # 间隔连接
 
             print("所有弹幕连接已启动，等待停止信号...")
 

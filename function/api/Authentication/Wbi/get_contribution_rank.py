@@ -158,7 +158,7 @@ class WbiSigna:
             }
 
             # WBI签名
-            signed_params = wbi(params)
+            signed_params = self.wbi(params)
 
             # 发送请求
             response = requests.get(
