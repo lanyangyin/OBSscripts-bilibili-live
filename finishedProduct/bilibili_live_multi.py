@@ -243,8 +243,8 @@ class Tools:
         return result
 
     @staticmethod
-    def check_ssl_verification(test_url="https://api.bilibili.com", timeout=5) -> Dict[
-        str, Union[str, int, bool, Dict[str, Optional[Union[str, int, bool]]]]]:
+    def check_ssl_verification(test_url="https://api.bilibili.com",
+                               timeout=5) -> Dict[str, Union[str, int, bool, Dict[str, Optional[Union[str, int, bool]]]]]:
         """
         检测 SSL 证书验证是否可用
 
@@ -506,8 +506,8 @@ class Tools:
             return text
 
     @staticmethod
-    def url2dict(url: str, decode: bool = True, handle_multiple: bool = True) -> Dict[
-        str, Union[str, int, float, bool, None, List[Any]]]:
+    def url2dict(url: str, decode: bool = True,
+                 handle_multiple: bool = True) -> Dict[str, Union[str, int, float, bool, None, List[Any]]]:
         """
         将 URL 参数解析为字典，支持复杂参数处理
 
@@ -712,8 +712,8 @@ class Tools:
         return {"str": output_str, "img": img}
 
     @staticmethod
-    def pil_image2central_proportion_cutting(pil_image: Image.Image, target_width2height_ratio: float) -> Optional[
-        Image.Image]:
+    def pil_image2central_proportion_cutting(pil_image: Image.Image,
+                                             target_width2height_ratio: float) -> Optional[Image.Image]:
         """
         对图像进行中心比例裁切，保持目标宽高比
         Args:
@@ -1272,123 +1272,1342 @@ class CommonTitlesManager:
         return json.dumps(self.data, ensure_ascii=False, indent=2)
 
 
+class BilibiliLogInRegister:
+    """
+    B站登录注册相关API
+    """
+
+    def __init__(self, headers: Dict[str, str], verify_ssl: bool = True):
+        """
+        初始化登录注册管理器
+
+        Args:
+            headers: 请求头字典
+            verify_ssl: 是否验证SSL证书
+        """
+        self.headers = headers
+        self.verify_ssl = verify_ssl
+
+    def generate(self) -> Dict[str, Any]:
+        """
+        申请登录二维码
+
+        Returns:
+            包含操作结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（包含url和qrcode_key）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的状态码
+        """
+        try:
+            api = 'https://passport.bilibili.com/x/passport-login/web/qrcode/generate'
+
+            # 发送请求
+            response = requests.get(
+                url=api,
+                headers=self.headers,
+                verify=self.verify_ssl,
+                timeout=10
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "申请二维码失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            try:
+                result = response.json()
+            except ValueError as e:
+                return {
+                    "success": False,
+                    "message": "申请二维码失败",
+                    "error": f"解析响应失败: {str(e)}",
+                    "status_code": response.status_code,
+                    "api_code": None
+                }
+
+            # 检查API返回状态码
+            api_code = result.get("code", -1)
+            if api_code != 0:
+                error_msg = result.get("message") or result.get("msg") or "未知错误"
+                return {
+                    "success": False,
+                    "message": "申请二维码失败",
+                    "error": f"API错误: {error_msg}",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
+
+            # 检查数据是否存在
+            data = result.get("data")
+            if not data:
+                return {
+                    "success": False,
+                    "message": "申请二维码失败",
+                    "error": "API返回数据为空",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
+
+            # 提取必要字段
+            url = data.get("url")
+            qrcode_key = data.get("qrcode_key")
+
+            if not url or not qrcode_key:
+                return {
+                    "success": False,
+                    "message": "申请二维码失败",
+                    "error": "响应中缺少必要的二维码数据",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
+
+            return {
+                "success": True,
+                "message": "二维码申请成功",
+                "data": {
+                    "url": url,
+                    "qrcode_key": qrcode_key
+                },
+                "status_code": response.status_code,
+                "api_code": api_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "申请二维码失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "申请二维码失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "申请二维码失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "申请二维码过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
+            }
+
+    def poll(self, qrcode_key: str) -> Dict[str, Any]:
+        """
+        获取扫码登陆状态，登陆成功获取基础的cookies
+
+        Args:
+            qrcode_key: 扫描秘钥
+
+        Returns:
+            包含操作结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（包含扫码状态和cookies信息）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的状态码
+        """
+        try:
+            # 验证输入参数
+            if not qrcode_key or not isinstance(qrcode_key, str):
+                return {
+                    "success": False,
+                    "message": "查询扫码状态失败",
+                    "error": "二维码密钥无效",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            api = f'https://passport.bilibili.com/x/passport-login/web/qrcode/poll?qrcode_key={qrcode_key}'
+
+            # 发送请求
+            response = requests.get(
+                url=api,
+                headers=self.headers,
+                verify=self.verify_ssl,
+                timeout=10
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "查询扫码状态失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            try:
+                result = response.json()
+            except ValueError as e:
+                return {
+                    "success": False,
+                    "message": "查询扫码状态失败",
+                    "error": f"解析响应失败: {str(e)}",
+                    "status_code": response.status_code,
+                    "api_code": None
+                }
+
+            # 检查API返回状态码
+            api_code = result.get("code", -1)
+            if api_code != 0:
+                error_msg = result.get("message") or result.get("msg") or "未知错误"
+                return {
+                    "success": False,
+                    "message": "查询扫码状态失败",
+                    "error": f"API错误: {error_msg}",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
+
+            # 检查数据是否存在
+            data = result.get("data")
+            if not data:
+                return {
+                    "success": False,
+                    "message": "查询扫码状态失败",
+                    "error": "API返回数据为空",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
+
+            # 提取扫码状态码和消息
+            scan_code = data.get("code")
+            scan_message = data.get("message", "")
+
+            # 根据扫码状态码判断扫码状态
+            status_mapping = {
+                0: "扫码登录成功",
+                86038: "二维码已失效",
+                86090: "二维码已扫码未确认",
+                86101: "未扫码"
+            }
+
+            status_message = status_mapping.get(scan_code, f"未知状态码: {scan_code}")
+
+            # 构建返回数据
+            result_data = {
+                "scan_code": scan_code,
+                "scan_message": scan_message,
+                "status_description": status_message,
+                "url": data.get("url", ""),
+                "refresh_token": data.get("refresh_token", ""),
+                "timestamp": data.get("timestamp", 0)
+            }
+
+            # 如果扫码成功，提取cookies信息
+            if scan_code == 0:
+                url = data.get("url", "")
+                # 从URL中提取cookies参数
+                cookies_info = self._extract_cookies_from_url(url)
+                result_data.update(cookies_info)
+
+            return {
+                "success": True,
+                "message": status_message,
+                "data": result_data,
+                "status_code": response.status_code,
+                "api_code": api_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "查询扫码状态失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "查询扫码状态失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "查询扫码状态失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "查询扫码状态过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
+            }
+
+    def _extract_cookies_from_url(self, url: str) -> Dict[str, str]:
+        """
+        从URL中提取cookies参数
+
+        Args:
+            url: 包含cookies参数的URL
+
+        Returns:
+            包含cookies信息的字典
+        """
+        cookies = {}
+        try:
+            from urllib.parse import urlparse, parse_qs
+
+            parsed_url = urlparse(url)
+            query_params = parse_qs(parsed_url.query)
+
+            # 提取关键cookies字段
+            cookies_fields = ["DedeUserID", "DedeUserID__ckMd5", "SESSDATA", "bili_jct"]
+
+            for field in cookies_fields:
+                if field in query_params:
+                    cookies[field] = query_params[field][0] if query_params[field] else ""
+
+        except Exception:
+            # 如果解析失败，返回空字典
+            pass
+
+        return cookies
+
+
+class ImproveCookies:
+    def __init__(self, headers: Dict[str, str], verify_ssl: bool = True):
+        """完善浏览器headers"""
+        self.headers = headers
+        self.verify_ssl = verify_ssl
+
+    def fetch_buvid3_and_bnut(self) -> Dict[str, Any]:
+        """
+        获取buvid3和b_nut认证信息
+
+        Returns:
+            包含操作结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（包含buvid3和b_nut）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码（如果有）
+        """
+        try:
+            response = requests.get(
+                url='https://www.bilibili.com/',
+                headers=self.headers,
+                verify=self.verify_ssl,
+                timeout=30
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取认证信息失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "response_text": response.text
+                }
+
+            cookies_dict = response.cookies.get_dict()
+
+            # 检查是否成功获取到必要的cookies
+            required_cookies = ["buvid3", "b_nut"]
+            missing_cookies = [cookie for cookie in required_cookies if cookie not in cookies_dict]
+
+            if missing_cookies:
+                return {
+                    "success": False,
+                    "message": "获取认证信息不完整",
+                    "error": f"缺少必要的cookies: {', '.join(missing_cookies)}",
+                    "status_code": response.status_code,
+                    "available_cookies": list(cookies_dict.keys())
+                }
+
+            return {
+                "success": True,
+                "message": "认证信息获取成功",
+                "data": {
+                    "buvid3": cookies_dict["buvid3"],
+                    "b_nut": cookies_dict["b_nut"]
+                },
+                "status_code": response.status_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取认证信息失败",
+                "error": "请求超时",
+                "status_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取认证信息失败",
+                "error": "网络连接错误",
+                "status_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取认证信息失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取认证信息过程中发生未知错误",
+                "error": str(e),
+                "status_code": None
+            }
+
+    def fetch_buvid3_info(self) -> Dict[str, Any]:
+        """
+        获取B站BUVID3信息
+
+        Returns:
+            包含BUVID3信息的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（包含buvid3等）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码（如果有）
+        """
+        try:
+            # 发送API请求获取buvid3
+            response = requests.get(
+                url='https://api.bilibili.com/x/web-frontend/getbuvid',
+                headers=self.headers,
+                verify=self.verify_ssl,
+                timeout=30
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取BUVID3失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            result = response.json()
+
+            # 检查B站API返回状态
+            if result.get("code") != 0:
+                return {
+                    "success": False,
+                    "message": "B站API返回错误",
+                    "error": result.get("message", "未知错误"),
+                    "status_code": response.status_code,
+                    "api_code": result.get("code")
+                }
+
+            # 检查数据是否存在
+            if "data" not in result or "buvid" not in result["data"]:
+                return {
+                    "success": False,
+                    "message": "API响应格式异常",
+                    "error": "响应中缺少必要的buvid字段",
+                    "status_code": response.status_code,
+                    "response_data": result
+                }
+
+            # 成功返回
+            return {
+                "success": True,
+                "message": "BUVID3获取成功",
+                "data": {
+                    "buvid3": result["data"]["buvid"]
+                },
+                "status_code": response.status_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取BUVID3失败",
+                "error": "请求超时",
+                "status_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取BUVID3失败",
+                "error": "网络连接错误",
+                "status_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取BUVID3失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取BUVID3过程中发生未知错误",
+                "error": str(e),
+                "status_code": None
+            }
+
+    def get_buvid_info(self) -> Dict[str, Any]:
+        """
+        获取B站buvid3和buvid4信息
+
+        Returns:
+            包含buvid信息的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（包含b_3和b_4字段）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码（如果有）
+        """
+        try:
+            # 发送API请求获取buvid信息
+            response = requests.get(
+                url="https://api.bilibili.com/x/frontend/finger/spi",
+                headers=self.headers,
+                verify=self.verify_ssl,
+                timeout=30
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取buvid信息失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            result = response.json()
+
+            # 检查B站API返回状态
+            if result.get("code") != 0:
+                return {
+                    "success": False,
+                    "message": "B站API返回错误",
+                    "error": result.get("message", "未知错误"),
+                    "status_code": response.status_code,
+                    "api_code": result.get("code")
+                }
+
+            # 检查数据是否存在
+            if "data" not in result:
+                return {
+                    "success": False,
+                    "message": "API响应格式异常",
+                    "error": "响应中缺少必要的数据字段",
+                    "status_code": response.status_code,
+                    "response_data": result
+                }
+
+            # 成功返回
+            return {
+                "success": True,
+                "message": "buvid信息获取成功",
+                "data": result["data"],
+                "status_code": response.status_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取buvid信息失败",
+                "error": "请求超时",
+                "status_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取buvid信息失败",
+                "error": "网络连接错误",
+                "status_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取buvid信息失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取buvid信息过程中发生未知错误",
+                "error": str(e),
+                "status_code": None
+            }
+
+
 class BilibiliApiGeneric:
     """
-    不登录也能用的api
+    不登录也能用的B站API
     """
 
-    def __init__(self, ssl_verification: bool = True):
-        self.headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\
-            (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0",
-        }
-        self.sslVerification = ssl_verification
+    def __init__(self, headers, verify_ssl: bool = True):
+        self.headers = headers
+        self.verify_ssl = verify_ssl
 
-    def get_bilibili_user_card(self, mid, photo=False) -> dict:
+    def get_area_obj_list(self) -> Dict[str, Any]:
+        """
+        获取B站直播分区信息
+
+        Returns:
+            包含操作结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（分区信息）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的状态码
+        """
+        try:
+            api_url = "https://api.live.bilibili.com/room/v1/Area/getList"
+
+            # 发送API请求
+            response = requests.get(
+                url=api_url,
+                headers=self.headers,
+                timeout=10,
+                verify=self.verify_ssl
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取分区信息失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
+
+            # 解析JSON响应
+            data = response.json()
+
+            # 验证API响应
+            api_code = data.get("code", -1)
+            if api_code != 0:
+                error_msg = data.get("message") or data.get("msg") or "未知错误"
+                return {
+                    "success": False,
+                    "message": "获取分区信息失败",
+                    "error": f"API错误: {error_msg}",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": data
+                }
+
+            # 检查核心数据结构
+            if "data" not in data or not isinstance(data["data"], list):
+                return {
+                    "success": False,
+                    "message": "获取分区信息失败",
+                    "error": "返回数据缺少分区列表",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": data
+                }
+
+            return {
+                "success": True,
+                "message": "获取分区信息成功",
+                "data": data["data"],
+                "status_code": response.status_code,
+                "api_code": api_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取分区信息失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取分区信息失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取分区信息失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取分区信息过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
+            }
+
+    def get_bilibili_user_card(self, mid: Union[int, str], photo: bool = False) -> Dict[str, Any]:
         """
         获取Bilibili用户名片信息
 
-        参数:
-        mid (int/str): 目标用户mid (必需)
-        photo (bool): 是否请求用户主页头图 (可选，默认为False)
+        Args:
+            mid: 目标用户mid
+            photo: 是否请求用户主页头图 (可选，默认为False)
 
-        返回:
-        dict: 解析后的用户信息字典，包含主要字段
+        Returns:
+            包含操作结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（用户信息）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的状态码
         """
-        # API地址
-        url = "https://api.bilibili.com/x/web-interface/card"
-
-        # 请求参数
-        params = {
-            'mid': mid,
-            'photo': 'true' if photo else 'false'
-        }
-
         try:
+            # 验证输入参数
+            if not mid:
+                return {
+                    "success": False,
+                    "message": "获取用户信息失败",
+                    "error": "用户MID不能为空",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            # API地址
+            url = "https://api.bilibili.com/x/web-interface/card"
+
+            # 请求参数
+            params = {
+                'mid': mid,
+                'photo': 'true' if photo else 'false'
+            }
+
             # 发送GET请求
-            response = requests.get(verify=self.sslVerification, url=url, params=params, headers=self.headers,
-                                    timeout=10)
-            response.raise_for_status()  # 检查HTTP错误
+            response = requests.get(
+                url,
+                params=params,
+                headers=self.headers,
+                timeout=10,
+                verify=self.verify_ssl
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取用户信息失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
 
             # 解析JSON响应
             data = response.json()
 
             # 检查API返回状态
-            if data['code'] != 0:
+            api_code = data.get('code', -1)
+            if api_code != 0:
+                error_msg = data.get('message', '未知错误')
                 return {
-                    'error': True,
-                    'code': data['code'],
-                    'message': data['message'],
-                    'ttl': data.get('ttl')
+                    "success": False,
+                    "message": "获取用户信息失败",
+                    "error": f"API错误: {error_msg}",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": data
                 }
 
-            # 提取主要数据
-            result = {
-                'basic_info': {
-                    'mid': data['data']['card'].get('mid'),
-                    'name': data['data']['card'].get('name'),
-                    'sex': data['data']['card'].get('sex'),
-                    'avatar': data['data']['card'].get('face'),
-                    'sign': data['data']['card'].get('sign'),
-                    'level': data['data']['card']['level_info']['current_level'] if 'level_info' in data['data'][
-                        'card'] else 0,
-                    'status': '正常' if data['data']['card'].get('spacesta') == 0 else '封禁'
-                },
-                'stats': {
-                    'following': data['data'].get('following'),
-                    'archive_count': data['data'].get('archive_count'),
-                    'follower': data['data'].get('follower'),
-                    'like_num': data['data'].get('like_num'),
-                    'attention': data['data']['card'].get('attention')  # 关注数
-                },
-                'verification': {
-                    'role': data['data']['card']['Official'].get('role') if 'Official' in data['data'][
-                        'card'] else -1,
-                    'title': data['data']['card']['Official'].get('title') if 'Official' in data['data'][
-                        'card'] else '',
-                    'type': data['data']['card']['Official'].get('type') if 'Official' in data['data'][
-                        'card'] else -1
-                },
-                'vip_info': {
-                    'type': data['data']['card']['vip'].get('vipType') if 'vip' in data['data']['card'] else 0,
-                    'status': data['data']['card']['vip'].get('vipStatus') if 'vip' in data['data']['card'] else 0,
-                    'label': data['data']['card']['vip']['label'].get('text') if 'vip' in data['data'][
-                        'card'] and 'label' in data['data']['card']['vip'] else ''
+            # 返回完整的API响应数据
+            return {
+                "success": True,
+                "message": "获取用户信息成功",
+                "data": data,  # 返回完整的API响应
+                "status_code": response.status_code,
+                "api_code": api_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取用户信息失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取用户信息失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取用户信息失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取用户信息过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
+            }
+
+    def get_guard_list(self, roomid: Union[int, str], ruid: Union[int, str], page: int = 1,
+                       page_size: int = 20, typ: Optional[int] = None,
+                       include_total_list: bool = False) -> Dict[str, Any]:
+        """
+        获取直播间大航海成员列表
+
+        Args:
+            roomid: 直播间号
+            ruid: 主播UID
+            page: 页数（默认1）
+            page_size: 页大小（默认20，最大30）
+            typ: 排序方式（可选，3=按周，4=按月，5=按总航海亲密度）
+            include_total_list: 是否获取并返回完整的大航海列表（默认为False）
+
+        Returns:
+            包含操作结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（大航海成员信息）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的状态码
+        """
+        try:
+            # 验证输入参数
+            if not roomid or not ruid:
+                return {
+                    "success": False,
+                    "message": "获取大航海列表失败",
+                    "error": "房间ID和主播UID不能为空",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            if page <= 0:
+                return {
+                    "success": False,
+                    "message": "获取大航海列表失败",
+                    "error": "页数必须大于0",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            # 限制page_size在有效范围内
+            if page_size <= 0 or page_size > 30:
+                page_size = 20  # 使用默认值
+
+            # API配置
+            api_url = "https://api.live.bilibili.com/xlive/app-room/v2/guardTab/topListNew"
+
+            # 构建请求参数
+            params = {
+                "roomid": str(roomid),
+                "ruid": str(ruid),
+                "page": page,
+                "page_size": page_size
+            }
+
+            # 添加可选的排序参数
+            if typ in [3, 4, 5]:
+                params["typ"] = typ
+
+            # 发送API请求
+            response = requests.get(
+                api_url,
+                headers=self.headers,
+                params=params,
+                timeout=10,
+                verify=self.verify_ssl
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取大航海列表失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
+
+            # 解析JSON响应
+            result = response.json()
+
+            # 验证基本结构
+            if not isinstance(result, dict) or "code" not in result:
+                return {
+                    "success": False,
+                    "message": "获取大航海列表失败",
+                    "error": "API返回无效的响应格式",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_data": result
+                }
+
+            # 检查API错误码
+            api_code = result.get("code", -1)
+            if api_code != 0:
+                error_msg = result.get("message") or result.get("msg") or "未知错误"
+                return {
+                    "success": False,
+                    "message": "获取大航海列表失败",
+                    "error": f"API错误: {error_msg}",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
+
+            # 验证数据格式
+            if "data" not in result or not isinstance(result["data"], dict):
+                return {
+                    "success": False,
+                    "message": "获取大航海列表失败",
+                    "error": "API返回数据格式无效",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
+
+            data = result["data"]
+
+            # 基础返回数据
+            response_data = {
+                "info": data.get("info", {}),  # 统计信息
+                "top3": data.get("top3", []),  # 前三名
+                "list": data.get("list", []),  # 当前页列表
+                "total_info": {
+                    "num": data.get("info", {}).get("num", 0),  # 总人数
+                    "page": data.get("info", {}).get("page", 0),  # 总页数
+                    "now": data.get("info", {}).get("now", 0)  # 当前页
                 }
             }
 
-            # 如果请求了头图
-            if photo and 'space' in data['data']:
-                result['space_image'] = {
-                    'small': data['data']['space'].get('s_img'),
-                    'large': data['data']['space'].get('l_img')
-                }
+            # 如果需要获取完整列表
+            if include_total_list:
+                total_list = self._get_complete_guard_list(roomid, ruid, typ)
+                response_data["total_list"] = total_list
 
-            # 添加勋章信息（如果存在）
-            if 'nameplate' in data['data']['card']:
-                result['nameplate'] = {
-                    'id': data['data']['card']['nameplate'].get('nid'),
-                    'name': data['data']['card']['nameplate'].get('name'),
-                    'image': data['data']['card']['nameplate'].get('image'),
-                    'level': data['data']['card']['nameplate'].get('level')
-                }
+            return {
+                "success": True,
+                "message": "获取大航海列表成功",
+                "data": response_data,
+                "status_code": response.status_code,
+                "api_code": api_code
+            }
 
-            # 添加挂件信息（如果存在）
-            if 'pendant' in data['data']['card']:
-                result['pendant'] = {
-                    'id': data['data']['card']['pendant'].get('pid'),
-                    'name': data['data']['card']['pendant'].get('name'),
-                    'image': data['data']['card']['pendant'].get('image')
-                }
-
-            return result
-
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取大航海列表失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取大航海列表失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None
+            }
         except requests.exceptions.RequestException as e:
-            return {'error': True, 'message': f'网络请求失败: {str(e)}'}
-        except ValueError as e:
-            return {'error': True, 'message': f'JSON解析失败: {str(e)}'}
-        except KeyError as e:
-            return {'error': True, 'message': f'响应数据缺少必要字段: {str(e)}'}
+            return {
+                "success": False,
+                "message": "获取大航海列表失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取大航海列表过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
+            }
+
+    def _get_complete_guard_list(self, roomid: Union[int, str], ruid: Union[int, str],
+                                 typ: Optional[int] = None) -> List[Dict[str, Any]]:
+        """
+        获取完整的大航海成员列表（内部方法）
+
+        Args:
+            roomid: 直播间号
+            ruid: 主播UID
+            typ: 排序方式
+
+        Returns:
+            完整的大航海成员列表
+        """
+        complete_list = []
+        page = 1
+
+        while True:
+            # 构建请求参数
+            params = {
+                "roomid": str(roomid),
+                "ruid": str(ruid),
+                "page": page,
+                "page_size": 30  # 使用最大页大小
+            }
+
+            if typ in [3, 4, 5]:
+                params["typ"] = typ
+
+            try:
+                # 发送API请求
+                response = requests.get(
+                    "https://api.live.bilibili.com/xlive/app-room/v2/guardTab/topListNew",
+                    headers=self.headers,
+                    params=params,
+                    timeout=10,
+                    verify=self.verify_ssl
+                )
+
+                if response.status_code != 200:
+                    break
+
+                result = response.json()
+                if result.get("code") != 0:
+                    break
+
+                data = result["data"]
+
+                # 如果是第一页，包含top3
+                if page == 1:
+                    complete_list.extend(data.get("top3", []))
+
+                # 添加当前页列表
+                current_list = data.get("list", [])
+                complete_list.extend(current_list)
+
+                # 检查是否还有更多页
+                info = data.get("info", {})
+                total_pages = info.get("page", 0)
+                if page >= total_pages or not current_list:
+                    break
+
+                page += 1
+
+            except Exception:
+                break
+
+        return complete_list
+
+    def get_live_user_info(self, uid: int) -> Dict[str, Any]:
+        """
+        获取主播信息
+
+        Args:
+            uid: 目标用户mid
+
+        Returns:
+            包含操作结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（主播信息）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的状态码
+        """
+        try:
+            # 验证输入参数
+            if not uid or uid <= 0:
+                return {
+                    "success": False,
+                    "message": "获取主播信息失败",
+                    "error": "用户ID无效",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            api_url = "https://api.live.bilibili.com/live_user/v1/Master/info"
+            params = {
+                "uid": uid
+            }
+
+            # 发送请求
+            response = requests.get(
+                url=api_url,
+                headers=self.headers,
+                params=params,
+                verify=self.verify_ssl,
+                timeout=10
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取主播信息失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            result = response.json()
+
+            # 根据B站API返回的状态码判断成功与否
+            api_code = result.get("code", -1)
+            if api_code == 0:
+                return {
+                    "success": True,
+                    "message": "获取主播信息成功",
+                    "data": result.get("data", {}),
+                    "status_code": response.status_code,
+                    "api_code": api_code
+                }
+            else:
+                # 提取错误信息
+                error_msg = result.get("msg") or result.get("message", "未知错误")
+                return {
+                    "success": False,
+                    "message": "获取主播信息失败",
+                    "error": error_msg,
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取主播信息失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取主播信息失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取主播信息失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取主播信息过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
+            }
+
+    def get_anchor_common_areas(self, room_id: Union[str, int]) -> Dict[str, Any]:
+        """
+        获取主播常用分区信息
+
+        参数:
+            room_id: 直播间ID（整数或字符串）
+
+        返回:
+            包含操作结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（分区列表）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的状态码
+        """
+        try:
+            # 验证输入参数
+            if not room_id:
+                return {
+                    "success": False,
+                    "message": "获取分区信息失败",
+                    "error": "房间ID不能为空",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            # API配置
+            api_url = "https://api.live.bilibili.com/room/v1/Area/getMyChooseArea"
+            params = {"roomid": str(room_id)}
+
+            # 发送API请求
+            response = requests.get(
+                api_url,
+                headers=self.headers,
+                params=params,
+                timeout=10,
+                verify=self.verify_ssl
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取分区信息失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
+
+            # 解析JSON响应
+            result = response.json()
+
+            # 验证基本结构
+            if not isinstance(result, dict) or "code" not in result:
+                return {
+                    "success": False,
+                    "message": "获取分区信息失败",
+                    "error": "API返回无效的响应格式",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_data": result
+                }
+
+            # 检查API错误码
+            api_code = result.get("code", -1)
+            if api_code != 0:
+                error_msg = result.get("message") or result.get("msg") or "未知错误"
+                return {
+                    "success": False,
+                    "message": "获取分区信息失败",
+                    "error": f"API错误: {error_msg}",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
+
+            # 验证数据格式
+            if "data" not in result or not isinstance(result["data"], list):
+                return {
+                    "success": False,
+                    "message": "获取分区信息失败",
+                    "error": "API返回数据格式无效",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
+
+            # 验证分区数据
+            for area in result["data"]:
+                required_keys = {"id", "name", "parent_id", "parent_name"}
+                if not required_keys.issubset(area.keys()):
+                    return {
+                        "success": False,
+                        "message": "获取分区信息失败",
+                        "error": "分区数据缺少必需字段",
+                        "status_code": response.status_code,
+                        "api_code": api_code,
+                        "response_data": result
+                    }
+
+            return {
+                "success": True,
+                "message": "获取分区信息成功",
+                "data": result["data"],
+                "status_code": response.status_code,
+                "api_code": api_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取分区信息失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取分区信息失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取分区信息失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取分区信息过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
+            }
 
     def get_room_base_info(self, room_id: int) -> Dict[str, Any]:
         """
@@ -1398,371 +2617,273 @@ class BilibiliApiGeneric:
             room_id: 直播间短ID
 
         Returns:
-            包含直播间信息的字典，结构:
-                - "room_id": int,       # 直播间长ID
-                - "uid": int,            # 主播用户mid
-                - "area_id": int,        # 直播间分区ID
-                - "live_status": int,    # 直播状态(0:未开播,1:直播中,2:轮播中)
-                - "live_url": str,       # 直播间网页url
-                - "parent_area_id": int, # 父分区ID
-                - "title": str,          # 直播间标题
-                - "parent_area_name": str, # 父分区名称
-                - "area_name": str,      # 分区名称
-                - "live_time": str,      # 开播时间(yyyy-MM-dd HH:mm:ss)
-                - "description": str,    # 直播间简介
-                - "tags": str,           # 直播间标签(逗号分隔)
-                - "attention": int,      # 关注数
-                - "online": int,         # 在线人数
-                - "short_id": int,       # 直播间短ID(0表示无短号)
-                - "uname": str,          # 主播用户名
-                - "cover": str,          # 直播间封面url
-                - "background": str,     # 直播间背景url
-                - # 其他字段: join_slide, live_id, live_id_str
-
-        Raises:
-            RequestException: 网络请求失败
-            ValueError: API返回错误或数据结构异常
+            包含操作结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（直播间信息）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的状态码
         """
-        api_url = "https://api.live.bilibili.com/xlive/web-room/v1/index/getRoomBaseInfo"
-        params = {
-            "req_biz": "web_room_componet",
-            "room_ids": room_id
-        }
-
         try:
+            # 验证输入参数
+            if not room_id or room_id <= 0:
+                return {
+                    "success": False,
+                    "message": "获取房间信息失败",
+                    "error": "房间ID无效",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            api_url = "https://api.live.bilibili.com/xlive/web-room/v1/index/getRoomBaseInfo"
+            params = {
+                "req_biz": "web_room_componet",
+                "room_ids": room_id
+            }
+
             # 发送API请求
-            response = requests.get(verify=self.sslVerification, url=api_url, headers=self.headers, params=params,
-                                    timeout=10)
-            response.raise_for_status()  # 检查HTTP错误
+            response = requests.get(
+                api_url,
+                headers=self.headers,
+                params=params,
+                verify=self.verify_ssl
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取房间信息失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
 
             # 解析JSON响应
             data = response.json()
 
             # 验证API响应
-            if data.get("code") != 0:
+            api_code = data.get("code", -1)
+            if api_code != 0:
                 error_msg = data.get("message") or data.get("msg") or "未知错误"
-                raise ValueError(f"API错误: {error_msg}")
+                return {
+                    "success": False,
+                    "message": "获取房间信息失败",
+                    "error": f"API错误: {error_msg}",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": data
+                }
 
             # 提取房间信息
-            by_room_ids = data.get("data").get("by_room_ids")
+            by_room_ids = data.get("data", {}).get("by_room_ids", {})
             if not by_room_ids:
-                raise ValueError("未找到房间信息")
+                return {
+                    "success": False,
+                    "message": "获取房间信息失败",
+                    "error": "未找到房间信息",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": data
+                }
 
             # 返回第一个房间信息（即使多个也取第一个）
             room_info = next(iter(by_room_ids.values()), None)
             if not room_info:
-                raise ValueError("房间信息为空")
+                return {
+                    "success": False,
+                    "message": "获取房间信息失败",
+                    "error": "房间信息为空",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": data
+                }
 
-            return room_info
-
-        except requests.exceptions.RequestException as e:
-            raise requests.exceptions.RequestException(f"网络请求失败: {e}") from e
-        except (ValueError, KeyError, TypeError) as e:
-            raise ValueError(f"数据处理失败: {e}") from e
-
-    def get_anchor_common_areas(self, room_id: Union[str, int]) -> Dict[str, Any]:
-        """
-        获取主播常用分区信息
-
-        该API返回主播设置的常用分区列表（通常为3个分区）
-
-         Args:
-            room_id: 直播间ID（整数或字符串）
-
-        Returns:
-        {
-            "code": int,        # 0表示成功\n
-            "msg": str,         # 状态消息\n
-            "message": str,     # 状态消息（通常与msg相同）\n
-            "data": [           # 常用分区列表\n
-                {
-                    "id": str,             # 分区ID\n
-                    "pic": str,             # 分区图标URL\n
-                    "hot_status": str,      # 热门状态（0:非热门）\n
-                    "name": str,            # 分区名称\n
-                    "parent_id": str,       # 父分区ID\n
-                    "parent_name": str,     # 父分区名称\n
-                    "act_flag": int         # 活动标志（通常为0）\n
-                },
-                ...  # 更多分区（通常最多3个）\n
-            ]
-        }
-
-        Raises:
-            ValueError: 输入参数无效
-            requests.RequestException: 网络请求失败
-            RuntimeError: API返回错误或无效数据
-        """
-        # 验证房间ID
-        if not room_id:
-            raise ValueError("房间ID不能为空")
-
-        # API配置
-        api_url = "https://api.live.bilibili.com/room/v1/Area/getMyChooseArea"
-        params = {"roomid": str(room_id)}
-
-        try:
-            # 发送API请求
-            response = requests.get(verify=self.sslVerification, url=api_url, headers=self.headers, params=params,
-                                    timeout=10)
-            response.raise_for_status()  # 检查HTTP错误
-
-            # 解析JSON响应
-            result = response.json()
-
-            # 验证基本结构
-            if not isinstance(result, dict) or "code" not in result:
-                raise RuntimeError("API返回无效的响应格式")
-
-            # 检查API错误码
-            if result.get("code") != 0:
-                error_msg = result.get("message") or result.get("msg") or "未知错误"
-                raise RuntimeError(f"API返回错误: {error_msg} (code: {result['code']})")
-
-            # 验证数据格式
-            if "data" not in result or not isinstance(result["data"], list):
-                raise RuntimeError("API返回数据格式无效")
-
-            # 验证分区数据
-            for area in result["data"]:
-                required_keys = {"id", "name", "parent_id", "parent_name"}
-                if not required_keys.issubset(area.keys()):
-                    raise RuntimeError("分区数据缺少必需字段")
-
-            return result
-
-        except requests.exceptions.RequestException as e:
-            raise requests.exceptions.RequestException(
-                f"获取主播分区信息失败: {e}"
-            ) from e
-        except (ValueError, TypeError) as e:
-            raise ValueError(f"数据处理失败: {e}") from e
-
-    def get_area_obj_list(self):
-        """
-        获取B站直播分区信息
-
-        返回数据结构:
-            {
-                "code": int,         # 0表示成功，非0表示错误\n
-                "msg": str,          # 错误信息（通常与message相同）\n
-                "message": str,      # 错误信息\n
-                "data": [            # 父分区列表\n
-                    {
-                        "id": int,   # 父分区ID\n
-                        "name": str, # 父分区名称\n
-                        "list": [    # 子分区列表\n
-                            {
-                                # 子分区核心字段\n
-                                "id": str,         # 子分区ID\n
-                                "parent_id": str,   # 父分区ID\n
-                                "old_area_id": str, # 旧分区ID\n
-                                "name": str,       # 子分区名称\n
-                                "hot_status": int,  # 是否热门分区(0:否, 1:是)\n
-                                "pic": str,        # 分区图标URL\n
-
-                                # 其他可选字段\n
-                                "act_id": str,      # 活动ID（作用不明）\n
-                                "pk_status": str,   # PK状态（作用不明）\n
-                                "lock_status": str, # 锁定状态（作用不明）\n
-                                "parent_name": str, # 父分区名称（冗余）\n
-                                "area_type": int    # 分区类型\n
-                            },
-                            ...  # 更多子分区\n
-                        ]
-                    },
-                    ...  # 更多父分区\n
-                ]
+            return {
+                "success": True,
+                "message": "获取房间信息成功",
+                "data": room_info,
+                "status_code": response.status_code,
+                "api_code": api_code
             }
 
-        Raises:
-            requests.RequestException: 网络请求失败
-            ValueError: 返回数据结构异常或API返回错误
-        """
-        api_url = "https://api.live.bilibili.com/room/v1/Area/getList"
-
-        try:
-            # 发送API请求
-            response = requests.get(verify=self.sslVerification, url=api_url, headers=self.headers, timeout=10)
-            response.raise_for_status()  # 检查HTTP错误状态
-
-            # 解析JSON响应
-            data = response.json()
-
-            # 基本验证响应结构
-            if not isinstance(data, dict) or "code" not in data:
-                raise ValueError("返回数据结构异常")
-
-            # 检查API错误码
-            if data.get("code") != 0:
-                error_msg = data.get("message") or data.get("msg") or "未知错误"
-                raise ValueError(f"API返回错误: {error_msg}")
-
-            # 检查核心数据结构
-            if "data" not in data or not isinstance(data["data"], list):
-                raise ValueError("返回数据缺少分区列表")
-
-            return data
-
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取房间信息失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取房间信息失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None
+            }
         except requests.exceptions.RequestException as e:
-            raise requests.exceptions.RequestException(f"网络请求失败: {e}") from e
-        except ValueError as e:
-            raise ValueError(f"数据处理失败: {e}") from e
-
-    def live_user_v1_master_info(self, uid: int):
-        """
-        <h2 id="获取主播信息" tabindex="-1"><a class="header-anchor" href="#获取主播信息" aria-hidden="true">#</a> 获取主播信息</h2>
-        <blockquote><p>https://api.live.bilibili.com/live_user/v1/Master/info</p></blockquote>
-        <p><em>请求方式：GET</em></p>
-        <p><strong>url参数：</strong></p>
-        <table><thead><tr><th>参数名</th><th>类型</th><th>内容</th><th>必要性</th><th>备注</th></tr></thead><tbody><tr><td>uid</td><td>num</td><td>目标用户mid</td><td>必要</td><td></td></tr></tbody></table>
-        <p><strong>json回复：</strong></p>
-        <p>根对象：</p>
-        <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>code</td><td>num</td><td>返回值</td><td>0：成功<br>1：参数错误</td></tr><tr><td>msg</td><td>str</td><td>错误信息</td><td>默认为空</td></tr><tr><td>message</td><td>str</td><td>错误信息</td><td>默认为空</td></tr><tr><td>data</td><td>obj</td><td>信息本体</td><td></td></tr></tbody></table>
-        <p><code>data</code>对象：</p>
-        <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>info</td><td>obj</td><td>主播信息</td><td></td></tr><tr><td>exp</td><td>obj</td><td>经验等级</td><td></td></tr><tr><td>follower_num</td><td>num</td><td>主播粉丝数</td><td></td></tr><tr><td>room_id</td><td>num</td><td>直播间id（短号）</td><td></td></tr><tr><td>medal_name</td><td>str</td><td>粉丝勋章名</td><td></td></tr><tr><td>glory_count</td><td>num</td><td>主播荣誉数</td><td></td></tr><tr><td>pendant</td><td>str</td><td>直播间头像框url</td><td></td></tr><tr><td>link_group_num</td><td>num</td><td>0</td><td><strong>作用尚不明确</strong></td></tr><tr><td>room_news</td><td>obj</td><td>主播公告</td><td></td></tr></tbody></table>
-        <p><code>info</code>对象：</p>
-        <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>uid</td><td>num</td><td>主播mid</td><td></td></tr><tr><td>uname</td><td>str</td><td>主播用户名</td><td></td></tr><tr><td>face</td><td>str</td><td>主播头像url</td><td></td></tr><tr><td>official_verify</td><td>obj</td><td>认证信息</td><td></td></tr><tr><td>gender</td><td>num</td><td>主播性别</td><td>-1：保密<br>0：女<br>1：男</td></tr></tbody></table>
-        <p><code>info</code>中的<code>official_verify</code>对象：</p>
-        <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>type</td><td>num</td><td>主播认证类型</td><td>-1：无<br>0：个人认证<br>1：机构认证</td></tr><tr><td>desc</td><td>str</td><td>主播认证信息</td><td></td></tr></tbody></table>
-        <p><code>exp</code>对象：</p>
-        <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>master_level</td><td>obj</td><td>主播等级</td><td></td></tr></tbody></table>
-        <p><code>exp</code>中的<code>master_level</code>对象：</p>
-        <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>level</td><td>num</td><td>当前等级</td><td></td></tr><tr><td>color</td><td>num</td><td>等级框颜色</td><td></td></tr><tr><td>current</td><td>array</td><td>当前等级信息</td><td></td></tr><tr><td>next</td><td>array</td><td>下一等级信息</td><td></td></tr></tbody></table>
-        <p><code>master_level</code>中的<code>current</code>数组：</p>
-        <table><thead><tr><th>项</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>0</td><td>num</td><td>升级积分</td><td></td></tr><tr><td>1</td><td>num</td><td>总积分</td><td></td></tr></tbody></table>
-        <p><code>master_level</code>中的<code>next</code>数组：</p>
-        <table><thead><tr><th>项</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>0</td><td>num</td><td>升级积分</td><td></td></tr><tr><td>1</td><td>num</td><td>总积分</td><td></td></tr></tbody></table>
-        <p><code>room_news</code>对象：</p>
-        <table><thead><tr><th>字段</th><th>类型</th><th>内容</th><th>备注</th></tr></thead><tbody><tr><td>content</td><td>str</td><td>公告内容</td><td></td></tr><tr><td>ctime</td><td>str</td><td>公告时间</td><td></td></tr><tr><td>ctime_text</td><td>str</td><td>公告日期</td><td></td></tr></tbody></table>
-        @param uid:目标用户mid
-        @return:
-        """
-        api = "https://api.live.bilibili.com/live_user/v1/Master/info"
-        live_user_v1_master_info_data = {
-            "uid": uid
-        }
-        live_user_v1_master_info = requests.get(verify=self.sslVerification, url=api, headers=self.headers,
-                                                params=live_user_v1_master_info_data).json()
-        return live_user_v1_master_info
+            return {
+                "success": False,
+                "message": "获取房间信息失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取房间信息过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
+            }
 
     def get_room_info_old(self, mid: int) -> Dict[str, Any]:
         """
         通过B站UID查询直播间基础信息
+
         Args:
             mid: B站用户UID
+
         Returns:
-            直播间信息字典，包含以下字段：
-
-                - roomStatus: 直播间状态 (0:无房间, 1:有房间)
-                - roundStatus: 轮播状态 (0:未轮播, 1:轮播)
-                - liveStatus: 直播状态 (0:未开播, 1:直播中)
-                - url: 直播间网页URL
-                - title: 直播间标题
-                - cover: 直播间封面URL
-                - online: 直播间人气值
-                - roomid: 直播间ID（短号）
-                - broadcast_type: 广播类型
-                - online_hidden: 是否隐藏在线人数
-        Raises:
-            ValueError: 输入参数无效时抛出
-            ConnectionError: 网络请求失败时抛出
-            RuntimeError: API返回错误状态时抛出
+            包含操作结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（直播间信息）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的状态码
         """
-        # 参数验证
-        if not isinstance(mid, int) or mid <= 0:
-            raise ValueError("mid 必须是正整数")
-
-        api = "https://api.live.bilibili.com/room/v1/Room/getRoomInfoOld"
-        params = {"mid": mid}
-
         try:
-            # 设置合理的超时时间
-            response = requests.get(verify=self.sslVerification, url=api, headers=self.headers, params=params,
-                                    timeout=5.0)
-            response.raise_for_status()  # 检查HTTP状态码
+            # 参数验证
+            if not isinstance(mid, int) or mid <= 0:
+                return {
+                    "success": False,
+                    "message": "获取房间信息失败",
+                    "error": "mid 必须是正整数",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            api = "https://api.live.bilibili.com/room/v1/Room/getRoomInfoOld"
+            params = {"mid": mid}
+
+            # 发送请求
+            response = requests.get(
+                url=api,
+                headers=self.headers,
+                params=params,
+                timeout=5.0,
+                verify=self.verify_ssl
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取房间信息失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
+
+            # 解析JSON响应
+            try:
+                data = response.json()
+            except ValueError as e:
+                return {
+                    "success": False,
+                    "message": "获取房间信息失败",
+                    "error": f"解析API响应失败: {str(e)}",
+                    "status_code": response.status_code,
+                    "api_code": None
+                }
+
+            # 检查API返回状态码
+            api_code = data.get("code", -1)
+            if api_code != 0:
+                error_msg = data.get("message") or data.get("msg") or "未知错误"
+                return {
+                    "success": False,
+                    "message": "获取房间信息失败",
+                    "error": f"API错误: {error_msg}",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": data
+                }
+
+            # 检查数据是否存在
+            result = data.get("data")
+            if not result:
+                return {
+                    "success": False,
+                    "message": "获取房间信息失败",
+                    "error": "API返回数据为空",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": data
+                }
+
+            # 确保返回完整字段结构
+            room_info = {
+                "roomStatus": result.get("roomStatus"),
+                "roundStatus": result.get("roundStatus"),
+                "liveStatus": result.get("liveStatus"),
+                "url": result.get("url"),
+                "title": result.get("title"),
+                "cover": result.get("cover"),
+                "online": result.get("online"),
+                "roomid": result.get("roomid"),
+                "broadcast_type": result.get("broadcast_type"),
+                "online_hidden": result.get("online_hidden"),
+                "link": result.get("link")  # 添加link字段
+            }
+
+            return {
+                "success": True,
+                "message": "获取房间信息成功",
+                "data": room_info,
+                "status_code": response.status_code,
+                "api_code": api_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取房间信息失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取房间信息失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None
+            }
         except requests.exceptions.RequestException as e:
-            raise ConnectionError(f"请求直播间信息失败: {e}") from e
-
-        # 解析JSON响应
-        try:
-            data = response.json()
-        except ValueError as e:
-            raise RuntimeError(f"解析API响应失败: {e}") from e
-
-        # 检查API返回状态码
-        if data.get("code") != 0:
-            error_msg = data.get("message")
-            raise RuntimeError(f"API返回错误: {error_msg} (code: {data['code']})")
-
-        # 检查数据是否存在
-        result = data.get("data")
-        if not result:
-            raise RuntimeError("API返回数据为空")
-
-        # 确保返回完整字段结构
-        return {
-            "roomStatus": result.get("roomStatus"),
-            "roundStatus": result.get("roundStatus"),
-            "liveStatus": result.get("liveStatus"),
-            "url": result.get("url"),
-            "title": result.get("title"),
-            "cover": result.get("cover"),
-            "online": result.get("online"),
-            "roomid": result.get("roomid"),
-            "broadcast_type": result.get("broadcast_type"),
-            "online_hidden": result.get("online_hidden"),
-        }
-
-    # 登陆用函数
-    def generate(self) -> Dict:
-        """
-        申请登录二维码
-        @return: {'url': 二维码文本, 'qrcode_key': 扫描秘钥}
-        """
-        api = 'https://passport.bilibili.com/x/passport-login/web/qrcode/generate'
-        url8qrcode_key = requests.get(verify=self.sslVerification, url=api, headers=self.headers).json()
-        # print(url8qrcode_key)
-        generate_data = url8qrcode_key['data']
-        url = generate_data['url']
-        qrcode_key = generate_data['qrcode_key']
-        return {'url': url, 'qrcode_key': qrcode_key}
-
-    def poll(self, qrcode_key: str) -> Dict[str, Union[Dict[str, str], int]]:
-        """
-        获取扫码登陆状态，登陆成功获取 基础的 cookies
-        @param qrcode_key: 扫描秘钥
-        @return: {'code', 'cookies'}
-        @rtype: Dict
-        """
-        api = f'https://passport.bilibili.com/x/passport-login/web/qrcode/poll?qrcode_key={qrcode_key}'
-        poll_return = requests.get(verify=self.sslVerification, url=api, data=qrcode_key, headers=self.headers).json()
-        data = poll_return['data']
-        cookies: Dict[str, str] = {}
-        """
-        - DedeUserID:           用户id
-        - DedeUserID__ckMd5:    携带时间戳加密的用户id
-        - SESSDATA:             账户密钥
-        - bili_jct:             csrf鉴权
-        """
-        code: int = data['code']
-        """
-        - 0：    扫码登录成功 
-        - 86038：二维码已失效 
-        - 86090：二维码已扫码未确认 
-        - 86101：未扫码
-        """
-        if code == 0:  # code = 0 代表登陆成功
-            data_dict = Tools.url2dict(data['url'])
-            cookies["DedeUserID"] = data_dict['DedeUserID']
-            cookies["DedeUserID__ckMd5"] = data_dict['DedeUserID__ckMd5']
-            cookies["SESSDATA"] = data_dict['SESSDATA']
-            cookies["bili_jct"] = data_dict['bili_jct']
-            # 补充 cookie
-            buvid3 = requests.get(verify=self.sslVerification, url=f'https://www.bilibili.com/video/',
-                                  headers=self.headers)
-            cookies.update(buvid3.cookies.get_dict())
-        return {'code': code, 'cookies': cookies}
+            return {
+                "success": False,
+                "message": "获取房间信息失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取房间信息过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
+            }
 
 
 class BilibiliApiMaster:
@@ -2431,9 +3552,38 @@ def get_b_u_l_c():
 
 
 @lru_cache(maxsize=None)
-def get_b_a_g():
+def get_b_l_i_r():
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                      '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+    }
+
     # 初始化API对象
-    b_a_g = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification)
+    b_l_i_r = BilibiliLogInRegister(headers, GlobalVariableOfData.sslVerification)
+    return b_l_i_r
+
+
+@lru_cache(maxsize=None)
+def get_i_c():
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                      '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+    }
+
+    # 初始化API对象
+    i_c = ImproveCookies(headers, GlobalVariableOfData.sslVerification)
+    return i_c
+
+
+@lru_cache(maxsize=None)
+def get_b_a_g():
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                      '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+    }
+
+    # 初始化API对象
+    b_a_g = BilibiliApiGeneric(headers, GlobalVariableOfData.sslVerification)
     return b_a_g
 
 
@@ -2463,9 +3613,9 @@ def get_uid_nickname_dict():
             uid_cookie = Tools.dict2cookie(get_b_u_l_c().get_cookies(int(uid)))
             is_login = BilibiliApiMaster(uid_cookie, GlobalVariableOfData.sslVerification).get_nav_info()
             if is_login["isLogin"]:
-                uid_nickname_dict[uid] = get_b_a_g().get_bilibili_user_card(uid)['basic_info']['name']
+                uid_nickname_dict[uid] = get_b_a_g().get_bilibili_user_card(uid)['data']['data']['card']['name']
             else:
-                log_save(obs.LOG_INFO, f"❌{get_b_a_g().get_bilibili_user_card(uid)['basic_info']['name']}过期")
+                log_save(obs.LOG_INFO, f"❌{get_b_a_g().get_bilibili_user_card(uid)['data']['data']['card']['name']}过期")
                 get_b_u_l_c().delete_user(int(uid))
         else:
             uid_nickname_dict['-1'] = '添加或选择一个账号登录'
@@ -2505,7 +3655,7 @@ def get_room_info_old():
 def get_room_status():
     # 获取 '登录用户' 的 直播间状态
     if bool(get_b_u_l_c().get_cookies()):
-        room_status = get_room_info_old()["roomStatus"]
+        room_status = get_room_info_old()["data"]["roomStatus"]
         """登录用户的直播间存在状态"""
         if room_status:
             log_save(obs.LOG_INFO, f"║║登录账户 的 直播间状态：🈶直播间")
@@ -2523,7 +3673,7 @@ def get_room_id():
     # 获取 '登录用户' 的 直播间id
     if bool(get_b_u_l_c().get_cookies()):
         if get_room_status():
-            room_id = get_room_info_old()["roomid"]
+            room_id = get_room_info_old()["data"]["roomid"]
             """登录用户的直播间id"""
             log_save(obs.LOG_INFO, f"║║登录账户 的 直播间id：{room_id}")
         else:
@@ -2542,7 +3692,7 @@ def get_room_base_info():
     # 获取 '登录用户' 直播间基本信息
     if bool(get_b_u_l_c().get_cookies()):
         if get_room_status():
-            room_base_info = get_b_a_g().get_room_base_info(get_room_id())
+            room_base_info = get_b_a_g().get_room_base_info(get_room_id())["data"]
             """直播间基本信息"""
             log_save(obs.LOG_INFO, f"║║登录账户 的 直播间基本信息：{room_base_info}")
         else:
@@ -2743,7 +3893,7 @@ def get_live_status():
     # 获取 '登录用户' 的 直播状态
     if bool(get_b_u_l_c().get_cookies()):
         if get_room_status():
-            live_status = get_room_info_old()["liveStatus"]
+            live_status = get_room_info_old()["data"]["liveStatus"]
             """登录用户的直播状态】0：未开播 1：直播中"""
             if live_status:
                 log_save(obs.LOG_INFO, f"║║登录账户 的 直播状态：直播中👌")
@@ -2807,6 +3957,8 @@ def clear_cache():
     # 清除函数缓存
     get_b_u_l_c.cache_clear()
     get_b_a_g.cache_clear()
+    get_b_l_i_r.cache_clear()
+    get_i_c.cache_clear()
     get_b_a_m.cache_clear()
     get_c_t_m.cache_clear()
     get_uid_nickname_dict.cache_clear()
@@ -4529,7 +5681,7 @@ class ButtonFunction:
             return ButtonFunction.button_function_show_qr_picture()
 
         # 申请登录二维码
-        url8qrkey = get_b_a_g().generate()
+        url8qrkey = get_b_l_i_r().generate()["data"]
         # 获取二维码url
         url = url8qrkey['url']
         log_save(obs.LOG_INFO, f"获取登录二维码链接{url}")
@@ -4544,12 +5696,12 @@ class ButtonFunction:
         log_save(obs.LOG_INFO, f"\n\n{qr['str']}")
         log_save(obs.LOG_INFO, f"字符串二维码已输出，如果乱码或者扫描不上，建议再次点击 按钮【二维码添加账号】获取图片")
         # 获取二维码扫描登陆状态
-        GlobalVariableOfData.loginQrCodeReturn = get_b_a_g().poll(GlobalVariableOfData.loginQrCode_key)
+        GlobalVariableOfData.loginQrCodeReturn = get_b_l_i_r().poll(GlobalVariableOfData.loginQrCode_key)
         log_save(obs.LOG_INFO, f"开始轮询登录状态")
         # 轮询登录状态
         log_save(
             obs.LOG_WARNING,
-            str(ExplanatoryDictionary.information4login_qr_return_code[GlobalVariableOfData.loginQrCodeReturn['code']])
+            str(ExplanatoryDictionary.information4login_qr_return_code[int(GlobalVariableOfData.loginQrCodeReturn["data"]["scan_code"])])
         )
 
         def check_poll():
@@ -4559,24 +5711,29 @@ class ButtonFunction:
             """
             # 获取uid对应的cookies
             user_list_dict = get_b_u_l_c().get_users()
-            code_old = GlobalVariableOfData.loginQrCodeReturn['code']
-            GlobalVariableOfData.loginQrCodeReturn = get_b_a_g().poll(GlobalVariableOfData.loginQrCode_key)
+            code_old = GlobalVariableOfData.loginQrCodeReturn["data"]["scan_code"]
+            GlobalVariableOfData.loginQrCodeReturn = get_b_l_i_r().poll(GlobalVariableOfData.loginQrCode_key)
             # 二维码扫描登陆状态改变时，输出改变后状态
-            if code_old != GlobalVariableOfData.loginQrCodeReturn['code']:
+            if code_old != GlobalVariableOfData.loginQrCodeReturn["data"]["scan_code"]:
                 log_save(
                     obs.LOG_WARNING,
                     str(
                         ExplanatoryDictionary.information4login_qr_return_code[
-                            GlobalVariableOfData.loginQrCodeReturn['code']
+                            int(GlobalVariableOfData.loginQrCodeReturn["data"]["scan_code"])
                         ]
                     )
                 )
-            if GlobalVariableOfData.loginQrCodeReturn['code'] in [0, 86038]:
+            if GlobalVariableOfData.loginQrCodeReturn["data"]["scan_code"] in [0, 86038]:
                 log_save(obs.LOG_INFO, "轮询结束")
                 GlobalVariableOfData.loginQRCodePillowImg = None
                 # 二维码扫描登陆状态为成功或者超时时获取cookies结束[轮询二维码扫描登陆状态]
-                cookies = GlobalVariableOfData.loginQrCodeReturn['cookies']
+                cookies = GlobalVariableOfData.loginQrCodeReturn['data']
                 if cookies:
+                    buvid_info = get_i_c().get_buvid_info()
+                    cookies["buvid3"] = buvid_info['data']['b_3']
+                    cookies["buvid4"] = buvid_info['data']['b_4']
+                    buvid3_and_bnut = get_i_c().fetch_buvid3_and_bnut()
+                    cookies["b_nut"] = buvid3_and_bnut['data']['b_nut']
                     # 获取登陆账号cookies中携带的uid
                     uid = int(cookies['DedeUserID'])
                     if str(uid) in user_list_dict.values():

@@ -547,6 +547,8 @@ if __name__ == "__main__":
                       '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
         'cookie': dict_to_cookie_string(cookies)
     }
+    b_a_g = BilibiliApiGeneric(Headers)
+
     is_enter_room_display = False
     """是否显示进房消息"""
     face_picture_size = (40, 40)
@@ -571,7 +573,6 @@ if __name__ == "__main__":
     """是否标记管理员，is_admin不受影响"""
     is_timestamp_display = False
 
-    b_a_g = BilibiliApiGeneric(Headers)
     get_room_base = b_a_g.get_room_base_info(DataInput.room_id)
 
     def get_guard_dict(api, roomid, ruid, **kwargs):

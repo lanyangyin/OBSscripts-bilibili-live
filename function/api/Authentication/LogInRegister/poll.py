@@ -218,7 +218,7 @@ if __name__ == "__main__":
     login_register = BilibiliLogInRegister(headers, verify_ssl=True)
 
     # 查询扫码状态（替换为实际的qrcode_key）
-    result = login_register.poll(qrcode_key='a60221be32dc24d986208970ba129a19')
+    result = login_register.poll(qrcode_key='4935fc2f7fb429f5daa20435d1f8af1a')
 
     if result["success"]:
         print(f"查询成功: {result['message']}")
