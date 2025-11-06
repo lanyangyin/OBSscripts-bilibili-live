@@ -166,7 +166,7 @@ class BilibiliUserConfigManager:
             config["users"][uid] = user_data
 
             # 如果是第一个用户，自动设置为默认用户
-            if not config["default_user"] and config["users"]:
+            if (not config["default_user"]) and (not config["users"]):
                 config["default_user"] = uid
 
             write_result = self._write_config(config)
@@ -425,7 +425,8 @@ if __name__ == "__main__":
 
     # 创建临时目录进行测试
     with tempfile.TemporaryDirectory() as temp_dir:
-        config_file = pathlib.Path(temp_dir) / "bilibili_config.json"
+        # config_file = pathlib.Path(temp_dir) / "bilibili_config.json"
+        config_file = r"C:\Users\18898\PycharmProjects\OBSscripts-bilibili-live\cookies\config.json"
         print(f"使用临时配置文件: {config_file}")
 
         # 初始化配置管理器

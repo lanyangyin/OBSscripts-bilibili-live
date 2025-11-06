@@ -182,23 +182,21 @@ class CommonDataManager:
         default_data_type: 默认数据类型（用于向后兼容）
     """
 
-    def __init__(self, directory: Union[str, Path], default_data_type: str = "title", maximum_quantity_of_elements: int = 5):
+    def __init__(self, filepath: Union[str, Path], default_data_type: str = "title"):
         """
         初始化CommonDataManager
 
         Args:
-            directory: 文件存放目录
+            filepath: 文件路径
             default_data_type: 默认数据类型（用于处理旧格式数据）
             maximum_quantity_of_elements: 保留的最大元素数
         """
-        self.directory = Path(directory)
-        self.filepath = self.directory / "commonData.json"
+        self.filepath = Path(filepath)
         self.default_data_type = default_data_type
-        self.maximum_quantity_of_elements = maximum_quantity_of_elements
         self.data: Dict[str, Dict[str, List[str]]] = {}
 
         # 确保目录存在
-        self.directory.mkdir(parents=True, exist_ok=True)
+        self.filepath.parent.mkdir(parents=True, exist_ok=True)
 
         # 如果文件不存在则创建
         if not self.filepath.exists():
@@ -251,7 +249,7 @@ class CommonDataManager:
 
         return self.data[user_id].get(data_type, [])
 
-    def add_data(self, user_id: str, data_type: str, item: str) -> None:
+    def add_data(self, user_id: str, data_type: str, item: str, maximum: int = 5) -> None:
         """
         为用户添加新数据项
 
@@ -262,6 +260,7 @@ class CommonDataManager:
         - 如果数据类型不存在，则创建新类型
 
         Args:
+            maximum: 保留的最大元素数
             user_id: 用户ID
             data_type: 数据类型
             item: 要添加的数据项
@@ -284,8 +283,8 @@ class CommonDataManager:
         items.insert(0, item)
 
         # 确保不超过5个元素
-        if len(items) > self.maximum_quantity_of_elements:
-            items = items[:self.maximum_quantity_of_elements]
+        if len(items) > maximum:
+            items = items[:maximum]
 
         # 更新数据并保存
         self.data[user_id][data_type] = items
@@ -412,11 +411,11 @@ class CommonDataManager:
 
 if __name__ == "__main__":
     # 创建管理器实例
-    manager = CommonDataManager(directory="TestOutput/CommonDataManager", maximum_quantity_of_elements=5)
+    manager = CommonDataManager("TestOutput/CommonDataManager/commonData.json")
 
     # 添加标题数据
     manager.add_data("143474500", "title", "常用标题1")
-    manager.add_data("143474500", "title", "常用标题2")
+    manager.add_data("143474500", "title", "常用标题2", 1)
 
     # 添加其他类型数据
     manager.add_data("143474500", "category", "科技")

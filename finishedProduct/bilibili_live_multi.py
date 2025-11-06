@@ -36,7 +36,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
-from typing import Optional, Dict, Literal, Union, List, Any, Callable, Iterator
+from typing import Optional, Dict, Literal, Union, List, Any, Callable, Iterator, TypedDict
 from urllib.error import URLError
 # import zlib
 from urllib.parse import quote, unquote, parse_qs, urlparse
@@ -898,200 +898,407 @@ class Tools:
         return image_bytes
 
 
-class BilibiliUserLogsIn2ConfigFile:
+class OperationResult(TypedDict, total=False):
+    """操作结果类型定义"""
+    success: bool
+    message: str
+    user_id: Optional[str]
+    data: Optional[Dict]
+
+
+class UserInfo(TypedDict, total=False):
+    """用户信息类型定义"""
+    user_id: str
+    is_default: bool
+    last_updated: Optional[str]
+
+
+class BilibiliUserConfigManager:
     """
-    管理B站用户登录配置文件的增删改查操作
-    配置文件结构示例：
+    B站用户配置管理器，负责用户登录信息的增删改查操作。
+
+    配置文件采用JSON格式，结构示例：
     {
-        "DefaultUser": "12345",
-        "12345": {
-            "DedeUserID": "12345",
-            "SESSDATA": "xxxxx",
-            "bili_jct": "xxxxx",
-            ...
+        "default_user": "12345",
+        "users": {
+            "12345": {
+                "DedeUserID": "12345",
+                "DedeUserID__ckMd5": "xxxxxxxx",
+                "SESSDATA": "xxxxxxxx",
+                "bili_jct": "xxxxxxxx",
+                "buvid3": "xxxxxxxx",
+                "b_nut": "xxxxxxxx",
+                "last_updated": "2023-01-01T00:00:00"
+            }
         }
     }
     """
 
-    def __init__(self, config_path: pathlib.Path):
+    # 必需的cookie字段
+    REQUIRED_COOKIE_KEYS = {
+        "DedeUserID", "DedeUserID__ckMd5", "SESSDATA",
+        "bili_jct", "buvid3", "b_nut"
+    }
+
+    # 最小必需的cookie字段（用于更新操作）
+    MIN_REQUIRED_KEYS = {"DedeUserID", "SESSDATA", "bili_jct"}
+
+    def __init__(self, config_path: Union[str, pathlib.Path]):
         """
         初始化配置文件管理器
+
         Args:
-            config_path: 配置文件路径对象
-        Raises:
-            IOError: 文件读写失败时抛出
-            json.JSONDecodeError: 配置文件内容格式错误时抛出
+            config_path: 配置文件路径
         """
-        self.configPath = config_path
+        self.config_path = pathlib.Path(config_path)
         self._ensure_config_file()
 
-    def _ensure_config_file(self):
+    def _ensure_config_file(self) -> OperationResult:
         """确保配置文件存在且结构有效"""
-        if not self.configPath.exists():
-            log_save(obs.LOG_DEBUG, f'脚本数据文件【{self.configPath}】不存在，尝试创建')
-            self.configPath.parent.mkdir(parents=True, exist_ok=True)
-            self._write_config({"DefaultUser": None})
-            log_save(obs.LOG_DEBUG, f'success：脚本数据文件 创建成功')
+        try:
+            if not self.config_path.exists():
+                self.config_path.parent.mkdir(parents=True, exist_ok=True)
+                initial_config = {
+                    "default_user": None,
+                    "users": {}
+                }
+                return self._write_config(initial_config)
 
-        config = self._read_config()
-        if "DefaultUser" not in config:
-            log_save(obs.LOG_DEBUG, f'脚本数据文件中不存在"DefaultUser"字段，尝试创建')
-            config["DefaultUser"] = None
-            self._write_config(config)
-            log_save(obs.LOG_DEBUG, f'success："DefaultUser"字段 创建成功')
+            config = self._read_config()
+            if not isinstance(config, dict):
+                return self._create_error_result("配置文件格式错误")
+
+            # 修复旧格式配置文件
+            if "users" not in config:
+                users = {}
+                for key, value in config.items():
+                    if key != "DefaultUser" and isinstance(value, dict):
+                        users[key] = value
+
+                default_user = config.get("DefaultUser")
+                new_config = {
+                    "default_user": default_user,
+                    "users": users
+                }
+                return self._write_config(new_config)
+
+            return self._create_success_result("配置文件检查完成")
+
+        except Exception as e:
+            return self._create_error_result(f"配置文件初始化失败: {str(e)}")
 
     def _read_config(self) -> Dict:
         """读取配置文件内容"""
         try:
-            with open(self.configPath, 'r', encoding='utf-8') as f:
+            with open(self.config_path, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except (FileNotFoundError, json.JSONDecodeError) as e:
-            raise RuntimeError(f"配置文件损坏或格式错误: {str(e)}") from e
+            raise RuntimeError(f"配置文件损坏或格式错误: {str(e)}")
 
-    def _write_config(self, config: Dict):
+    def _write_config(self, config: Dict) -> OperationResult:
         """写入配置文件"""
         try:
-            with open(self.configPath, 'w', encoding='utf-8') as f:
+            with open(self.config_path, 'w', encoding='utf-8') as f:
                 json.dump(config, f, ensure_ascii=False, indent=4)
-        except IOError as e:
-            raise RuntimeError(f"配置文件写入失败: {str(e)}") from e
+            return self._create_success_result("配置文件写入成功")
+        except Exception as e:
+            return self._create_error_result(f"配置文件写入失败: {str(e)}")
 
-    def add_user(self, cookies: Dict) -> None:
+    def _validate_cookies(self, cookies: Dict[str, str], required_keys: set) -> OperationResult:
+        """验证cookie字段完整性"""
+        if not isinstance(cookies, dict):
+            return self._create_error_result("cookies参数必须是字典类型")
+
+        missing_keys = required_keys - cookies.keys()
+        if missing_keys:
+            return self._create_error_result(f"缺少必要字段: {', '.join(missing_keys)}")
+
+        return self._create_success_result("cookie验证通过")
+
+    def _create_success_result(self, message: str = "操作成功",
+                               user_id: Optional[str] = None,
+                               data: Optional[Dict] = None) -> OperationResult:
+        """创建成功结果"""
+        result: OperationResult = {"success": True, "message": message}
+        if user_id is not None:
+            result["user_id"] = user_id
+        if data is not None:
+            result["data"] = data
+        return result
+
+    def _create_error_result(self, message: str) -> OperationResult:
+        """创建错误结果"""
+        return {"success": False, "message": message}
+
+    def add_user(self, cookies: Dict[str, str]) -> OperationResult:
         """
         添加新用户配置
+
         Args:
-            cookies: 包含完整cookie信息的字典，必须包含以下字段：
-                     DedeUserID, DedeUserID__ckMd5, SESSDATA,
-                     bili_jct, buvid3, b_nut
-        Raises:
-            ValueError: 缺少必要字段或用户已存在时抛出
+            cookies: 包含完整cookie信息的字典
+
+        Returns:
+            操作结果字典
         """
-        required_keys = {
-            "DedeUserID", "DedeUserID__ckMd5", "SESSDATA",
-            "bili_jct", "buvid3", "b_nut"
-        }
-        if not required_keys.issubset(cookies.keys()):
-            missing = required_keys - cookies.keys()
-            raise ValueError(f"缺少必要字段: {', '.join(missing)}")
+        try:
+            # 验证cookie完整性
+            validation_result = self._validate_cookies(cookies, self.REQUIRED_COOKIE_KEYS)
+            if not validation_result["success"]:
+                return validation_result
 
-        uid = str(cookies["DedeUserID"])
-        config = self._read_config()
+            uid = str(cookies["DedeUserID"])
+            config = self._read_config()
 
-        if uid in config:
-            raise ValueError(f"用户 {uid} 已存在")
+            # 检查用户是否已存在
+            if uid in config["users"]:
+                return self._create_error_result(f"用户 {uid} 已存在，请使用update_user进行更新")
 
-        config[uid] = cookies
-        self._write_config(config)
+            # 添加时间戳
+            user_data = cookies.copy()
+            user_data["last_updated"] = datetime.now().isoformat()
 
-    def delete_user(self, uid: int) -> None:
+            config["users"][uid] = user_data
+
+            # 如果是第一个用户，自动设置为默认用户
+            if (not config["default_user"]) and (not config["users"]):
+                config["default_user"] = uid
+
+            write_result = self._write_config(config)
+            if not write_result["success"]:
+                return write_result
+
+            return self._create_success_result("用户添加成功", user_id=uid)
+
+        except Exception as e:
+            return self._create_error_result(f"添加用户失败: {str(e)}")
+
+    def delete_user(self, user_id: Union[int, str]) -> OperationResult:
         """
         删除用户配置
+
         Args:
-            uid: 要删除的用户ID
-        Raises:
-            ValueError: 用户不存在时抛出
+            user_id: 要删除的用户ID
+
+        Returns:
+            操作结果字典
         """
-        config = self._read_config()
-        uid_str = str(uid)
+        try:
+            config = self._read_config()
+            user_id_str = str(user_id)
 
-        if uid_str not in config:
-            raise ValueError(f"用户 {uid} 不存在")
+            if user_id_str not in config["users"]:
+                return self._create_error_result(f"用户 {user_id_str} 不存在")
 
-        # 处理默认用户
-        if config["DefaultUser"] == uid_str:
-            config["DefaultUser"] = None
+            # 检查是否为默认用户
+            if config["default_user"] == user_id_str:
+                return self._create_error_result("不能删除默认用户，请先更改默认用户设置")
 
-        del config[uid_str]
-        self._write_config(config)
+            del config["users"][user_id_str]
 
-    def update_user(self, cookies: Optional[dict], set_default_user_is: bool = True) -> None:
+            # 如果删除的是默认用户，清空默认用户设置
+            if config["default_user"] == user_id_str:
+                config["default_user"] = None
+
+            write_result = self._write_config(config)
+            if not write_result["success"]:
+                return write_result
+
+            return self._create_success_result("用户删除成功", user_id=user_id_str)
+
+        except Exception as e:
+            return self._create_error_result(f"删除用户失败: {str(e)}")
+
+    def update_user(self, cookies: Dict[str, str], set_as_default: bool = False) -> OperationResult:
         """
-        更新用户配置或清空默认用户
+        更新用户配置
+
         Args:
-            cookies: 包含完整cookie信息的字典，传 None 表示清空默认用户
-                - 示例: {"DedeUserID": "123", "SESSDATA": "xxx"...}
-                - 传 None 时需配合 set_default_user=True 使用
-            set_default_user_is: 是否设为默认用户
-                - 当 cookies=None 时必须为 True
-        Raises:
-            ValueError: 以下情况时抛出
-                - cookies 不完整或用户不存在
-                - cookies=None 但 set_default_user=False
+            cookies: 包含cookie信息的字典
+            set_as_default: 是否设为默认用户
+
+        Returns:
+            操作结果字典
         """
-        config = self._read_config()
+        try:
+            # 验证最小必需字段
+            validation_result = self._validate_cookies(cookies, self.MIN_REQUIRED_KEYS)
+            if not validation_result["success"]:
+                return validation_result
 
-        # 处理清空默认用户场景
-        if cookies is None:
-            if not set_default_user_is:
-                raise ValueError("传入cookies=None 时必须设置 set_default_user=True")
-            config["DefaultUser"] = None
-            self._write_config(config)
-            return
+            uid = str(cookies["DedeUserID"])
+            config = self._read_config()
 
-        # 原始验证逻辑
-        required_keys = {"DedeUserID", "SESSDATA", "bili_jct"}
-        if not required_keys.issubset(cookies.keys()):
-            missing = required_keys - cookies.keys()
-            raise ValueError(f"缺少必要字段: {', '.join(missing)}")
+            if uid not in config["users"]:
+                return self._create_error_result(f"用户 {uid} 不存在")
 
-        uid = str(cookies["DedeUserID"])
-        if uid not in config:
-            raise ValueError(f"用户 {uid} 不存在")
+            # 更新用户数据
+            config["users"][uid].update(cookies)
+            config["users"][uid]["last_updated"] = datetime.now().isoformat()
 
-        # 更新用户数据
-        config[uid].update(cookies)
+            # 设置默认用户
+            if set_as_default:
+                config["default_user"] = uid
 
-        # 设置默认用户
-        if set_default_user_is:
-            config["DefaultUser"] = uid
+            write_result = self._write_config(config)
+            if not write_result["success"]:
+                return write_result
 
-        self._write_config(config)
+            message = "用户更新成功" + ("并设置为默认用户" if set_as_default else "")
+            return self._create_success_result(message, user_id=uid)
 
-    def get_cookies(self, uid: Optional[int] = None) -> Optional[dict]:
+        except Exception as e:
+            return self._create_error_result(f"更新用户失败: {str(e)}")
+
+    def set_default_user(self, user_id: Union[int, str]) -> OperationResult:
+        """
+        设置默认用户
+
+        Args:
+            user_id: 要设置为默认用户的用户ID
+
+        Returns:
+            操作结果字典
+        """
+        try:
+            config = self._read_config()
+            user_id_str = str(user_id)
+
+            if user_id_str not in config["users"]:
+                return self._create_error_result(f"用户 {user_id_str} 不存在")
+
+            config["default_user"] = user_id_str
+            write_result = self._write_config(config)
+            if not write_result["success"]:
+                return write_result
+
+            return self._create_success_result("默认用户设置成功", user_id=user_id_str)
+
+        except Exception as e:
+            return self._create_error_result(f"设置默认用户失败: {str(e)}")
+
+    def clear_default_user(self) -> OperationResult:
+        """
+        清空默认用户设置
+
+        Returns:
+            操作结果字典
+        """
+        try:
+            config = self._read_config()
+            config["default_user"] = None
+            write_result = self._write_config(config)
+            if not write_result["success"]:
+                return write_result
+
+            return self._create_success_result("默认用户已清除")
+
+        except Exception as e:
+            return self._create_error_result(f"清除默认用户失败: {str(e)}")
+
+    def get_user_cookies(self, user_id: Optional[Union[int, str]] = None) -> OperationResult:
         """
         获取指定用户的cookie信息
+
         Args:
-            uid: 用户ID，None表示获取默认用户
+            user_id: 用户ID，None表示获取默认用户
+
         Returns:
-            用户cookie字典，未找到返回None
+            操作结果字典，包含cookie数据
         """
-        config = self._read_config()
-        # 如果uid是None表示获取默认用户
-        if uid is None:
-            uid = config.get("DefaultUser")
-        # 如果默认用户是None输出None
-        if uid is None:
+        try:
+            config = self._read_config()
+
+            # 获取目标用户ID
+            if user_id is None:
+                target_user_id = config.get("default_user")
+                if target_user_id is None:
+                    return self._create_error_result("未设置默认用户")
+            else:
+                target_user_id = str(user_id)
+
+            # 检查用户是否存在
+            if target_user_id not in config["users"]:
+                return self._create_error_result(f"用户 {target_user_id} 不存在")
+
+            user_data = config["users"][target_user_id].copy()
+            return self._create_success_result(
+                "获取用户cookie成功",
+                user_id=target_user_id,
+                data=user_data
+            )
+
+        except Exception as e:
+            return self._create_error_result(f"获取用户cookie失败: {str(e)}")
+
+    def get_all_users(self) -> OperationResult:
+        """
+        获取所有用户信息列表
+
+        Returns:
+            操作结果字典，包含用户列表
+        """
+        try:
+            config = self._read_config()
+            default_user = config.get("default_user")
+
+            users: List[UserInfo] = []
+            for uid, user_data in config["users"].items():
+                user_info: UserInfo = {
+                    "user_id": uid,
+                    "is_default": uid == default_user,
+                    "last_updated": user_data.get("last_updated")
+                }
+                users.append(user_info)
+
+            return self._create_success_result(
+                "获取用户列表成功",
+                data={"users": users, "total": len(users)}
+            )
+
+        except Exception as e:
+            return self._create_error_result(f"获取用户列表失败: {str(e)}")
+
+    def user_exists(self, user_id: Union[int, str]) -> bool:
+        """
+        检查用户是否存在
+
+        Args:
+            user_id: 要检查的用户ID
+
+        Returns:
+            True表示用户存在，False表示不存在
+        """
+        try:
+            config = self._read_config()
+            return str(user_id) in config["users"]
+        except Exception:
+            return False
+
+    def get_default_user_id(self) -> Optional[str]:
+        """
+        获取默认用户ID
+
+        Returns:
+            默认用户ID，如果没有设置默认用户则返回None
+        """
+        try:
+            config = self._read_config()
+            return config.get("default_user")
+        except Exception:
             return None
 
-        uid_str = str(uid)
-        return config.get(uid_str)
+    def get_user_count(self) -> int:
+        """
+        获取用户数量
 
-    def get_users(self) -> Dict[int, Optional[str]]:
-        """
-        获取所有用户列表（包含默认用户占位）
         Returns:
-            Dict[int, Optional[str]]
-            - 键 0: 默认用户ID（若未设置则为 None）
-            - 键 1~N: 其他用户ID（按插入顺序编号）
+            用户数量
         """
-        config = self._read_config()
-        # 获取所有用户ID（排除系统字段）
-        user_ids = [
-            uid for uid in config.keys()
-            if uid not in {"DefaultUser", "0"}  # 过滤系统保留字段
-               and uid.isdigit()  # 确保是数字型用户ID
-        ]
-        # 构建字典（强制包含 0: None）
-        users = {
-            0: config.get("DefaultUser")  # 允许 None
-        }
-        # 添加其他用户（过滤掉默认用户避免重复）
-        default_uid = config.get("DefaultUser")
-        if default_uid and default_uid in user_ids:
-            user_ids.remove(default_uid)  # 避免重复
-        for idx, uid in enumerate(user_ids, start=1):
-            users[idx] = uid
-        return users
+        try:
+            config = self._read_config()
+            return len(config["users"])
+        except Exception:
+            return 0
 
 
 class CommonTitlesManager:
@@ -3546,9 +3753,9 @@ class BilibiliApiMaster:
 
 
 @lru_cache(maxsize=None)
-def get_b_u_l_c():
-    b_u_l_c = BilibiliUserLogsIn2ConfigFile(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
-    return b_u_l_c
+def get_b_u_c_m():
+    b_u_c_m = BilibiliUserConfigManager(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
+    return b_u_c_m
 
 
 @lru_cache(maxsize=None)
@@ -3589,8 +3796,8 @@ def get_b_a_g():
 
 @lru_cache(maxsize=None)
 def get_b_a_m():
-    if bool(get_b_u_l_c().get_cookies()):
-        b_a_m = BilibiliApiMaster(Tools.dict2cookie(get_b_u_l_c().get_cookies()), GlobalVariableOfData.sslVerification)
+    if get_b_u_c_m().get_default_user_id():
+        b_a_m = BilibiliApiMaster(Tools.dict2cookie(get_b_u_c_m().get_user_cookies()["data"]), GlobalVariableOfData.sslVerification)
     else:
         b_a_m = None
     return b_a_m
@@ -3608,17 +3815,19 @@ def get_uid_nickname_dict():
     # 获取 用户数据文件中保存的用户，并在用户过期后删除用户
     uid_nickname_dict = {}
     """账号字典"""
-    for uid in get_b_u_l_c().get_users().values():
-        if uid:
-            uid_cookie = Tools.dict2cookie(get_b_u_l_c().get_cookies(int(uid)))
-            is_login = BilibiliApiMaster(uid_cookie, GlobalVariableOfData.sslVerification).get_nav_info()
-            if is_login["isLogin"]:
-                uid_nickname_dict[uid] = get_b_a_g().get_bilibili_user_card(uid)['data']['data']['card']['name']
-            else:
-                log_save(obs.LOG_INFO, f"❌{get_b_a_g().get_bilibili_user_card(uid)['data']['data']['card']['name']}过期")
-                get_b_u_l_c().delete_user(int(uid))
+    for uid_dict in get_b_u_c_m().get_all_users()["data"]["users"]:
+        uid = uid_dict["user_id"]
+        uid_cookie = Tools.dict2cookie(get_b_u_c_m().get_user_cookies(int(uid))["data"])
+        is_login = BilibiliApiMaster(uid_cookie, GlobalVariableOfData.sslVerification).get_nav_info()
+        if is_login["isLogin"]:
+            uid_nickname_dict[uid] = get_b_a_g().get_bilibili_user_card(uid)['data']['data']['card']['name']
         else:
-            uid_nickname_dict['-1'] = '添加或选择一个账号登录'
+            log_save(obs.LOG_INFO, f"❌{get_b_a_g().get_bilibili_user_card(uid)['data']['data']['card']['name']}过期")
+            if get_b_u_c_m().get_default_user_id() == uid:
+                get_b_u_c_m().clear_default_user()
+            get_b_u_c_m().delete_user(int(uid))
+    if not get_b_u_c_m().get_user_cookies()["success"]:
+        uid_nickname_dict['-1'] = '添加或选择一个账号登录'
     log_save(obs.LOG_INFO, f"║║载入账号字典：{uid_nickname_dict}")
     return uid_nickname_dict
 
@@ -3626,8 +3835,8 @@ def get_uid_nickname_dict():
 @lru_cache(maxsize=None)
 def get_default_user_nickname():
     # 获取 '登录用户' 的昵称
-    if bool(get_b_u_l_c().get_cookies()):
-        default_user_nickname: Optional[str] = get_uid_nickname_dict()[get_b_u_l_c().get_users()[0]]
+    if get_b_u_c_m().get_default_user_id():
+        default_user_nickname: Optional[str] = get_uid_nickname_dict()[get_b_u_c_m().get_default_user_id()]
         """登录用户的昵称，没有登录则为None"""
         log_save(obs.LOG_INFO, f"║║用户：{default_user_nickname} 已登录")
     else:
@@ -3640,8 +3849,8 @@ def get_default_user_nickname():
 @lru_cache(maxsize=None)
 def get_room_info_old():
     # 获取 '登录用户' 对应的直播间基础信息
-    if bool(get_b_u_l_c().get_cookies()):
-        room_info_old = get_b_a_g().get_room_info_old(int(get_b_u_l_c().get_users()[0]))
+    if get_b_u_c_m().get_default_user_id():
+        room_info_old = get_b_a_g().get_room_info_old(int(get_b_u_c_m().get_default_user_id()))
         """直播间基础信息"""
         log_save(obs.LOG_INFO, f"║║登录账户 的 直播间基础信息：{room_info_old}")
     else:
@@ -3654,7 +3863,7 @@ def get_room_info_old():
 @lru_cache(maxsize=None)
 def get_room_status():
     # 获取 '登录用户' 的 直播间状态
-    if bool(get_b_u_l_c().get_cookies()):
+    if get_b_u_c_m().get_default_user_id():
         room_status = get_room_info_old()["data"]["roomStatus"]
         """登录用户的直播间存在状态"""
         if room_status:
@@ -3671,7 +3880,7 @@ def get_room_status():
 @lru_cache(maxsize=None)
 def get_room_id():
     # 获取 '登录用户' 的 直播间id
-    if bool(get_b_u_l_c().get_cookies()):
+    if get_b_u_c_m().get_default_user_id():
         if get_room_status():
             room_id = get_room_info_old()["data"]["roomid"]
             """登录用户的直播间id"""
@@ -3690,7 +3899,7 @@ def get_room_id():
 @lru_cache(maxsize=None)
 def get_room_base_info():
     # 获取 '登录用户' 直播间基本信息
-    if bool(get_b_u_l_c().get_cookies()):
+    if get_b_u_c_m().get_default_user_id():
         if get_room_status():
             room_base_info = get_b_a_g().get_room_base_info(get_room_id())["data"]
             """直播间基本信息"""
@@ -3709,7 +3918,7 @@ def get_room_base_info():
 @lru_cache(maxsize=None)
 def get_room_title():
     # 获取 '登录用户' 直播间标题
-    if bool(get_b_u_l_c().get_cookies()):
+    if get_b_u_c_m().get_default_user_id():
         if get_room_status():
             room_title = get_room_base_info()["title"]
             """登录用户直播间标题"""
@@ -3730,10 +3939,10 @@ def get_common_title4number():
     # 添加当前直播间标题 到 常用直播间标 题配置文件
     common_title4number = {}
     """常用直播间标题】{'0': 't1', '1': 't2', '2': 't3',}"""
-    if bool(get_b_u_l_c().get_cookies()):
+    if get_b_u_c_m().get_default_user_id():
         if get_room_status():
-            get_c_t_m().add_title(get_b_u_l_c().get_users()[0], get_room_title())
-            for number, commonTitle in enumerate(get_c_t_m().get_titles(get_b_u_l_c().get_users()[0])):
+            get_c_t_m().add_title(get_b_u_c_m().get_default_user_id(), get_room_title())
+            for number, commonTitle in enumerate(get_c_t_m().get_titles(get_b_u_c_m().get_default_user_id())):
                 common_title4number[str(number)] = commonTitle
             log_save(obs.LOG_INFO, f"║║登录账户 的 常用直播间标题：{common_title4number}")
         else:
@@ -3746,7 +3955,7 @@ def get_common_title4number():
 @lru_cache(maxsize=None)
 def get_room_news():
     # 获取 直播间公告
-    if bool(get_b_u_l_c().get_cookies()):
+    if get_b_u_c_m().get_default_user_id():
         if get_room_status():
             room_news = get_b_a_m().get_room_news()
             """直播间公告"""
@@ -3765,7 +3974,7 @@ def get_room_news():
 @lru_cache(maxsize=None)
 def get_area():
     # 获取 '登录用户' 直播间的分区
-    if bool(get_b_u_l_c().get_cookies()):
+    if get_b_u_c_m().get_default_user_id():
         if get_room_status():
             area = {
                 "parent_area_id": get_room_base_info()["parent_area_id"],
@@ -3789,7 +3998,7 @@ def get_area():
 @lru_cache(maxsize=None)
 def get_common_areas():
     # 获取 '登录用户' 直播间 常用分区信息
-    if bool(get_b_u_l_c().get_cookies()):
+    if get_b_u_c_m().get_default_user_id():
         if get_room_status():
             common_areas = get_b_a_g().get_anchor_common_areas(get_room_id())["data"]
             """获取 '登录用户' 直播间 常用分区信息】[{"id": "255", "name": "明日方舟", "parent_id": "3", "parent_name": "手游",}, ]"""
@@ -3810,7 +4019,7 @@ def get_common_area_id_dict_str4common_area_name_dict_str():
     # 获取 '登录用户' 常用直播间分区字典
     common_area_id_dict_str4common_area_name_dict_str = {}
     """登录用户的常用直播间分区字典】{'{parent_id: id}': '{parent_name: name}', }"""
-    if bool(get_b_u_l_c().get_cookies()):
+    if get_b_u_c_m().get_default_user_id():
         if get_room_status():
             if get_common_areas():
                 for common_area in get_common_areas():
@@ -3833,7 +4042,7 @@ def get_common_area_id_dict_str4common_area_name_dict_str():
 @lru_cache(maxsize=None)
 def get_area_obj_data_list():
     # 获取 B站直播分区信息
-    if bool(get_b_u_l_c().get_cookies()):
+    if get_b_u_c_m().get_default_user_id():
         area_obj_data_list = get_b_a_g().get_area_obj_list()
         """B站直播分区信息"""
         log_save(obs.LOG_INFO, f"║║获取B站直播分区信息：{area_obj_data_list}")
@@ -3849,7 +4058,7 @@ def get_parent_live_area_name4parent_live_area_id():
     # 获取 直播间父分区数据
     parent_live_area_name4parent_live_area_id = {}
     """直播间父分区数据"""
-    if bool(get_b_u_l_c().get_cookies()):
+    if get_b_u_c_m().get_default_user_id():
         if get_room_status():
             for AreaObjData in get_area_obj_data_list()['data']:
                 parent_live_area_name4parent_live_area_id[str(AreaObjData["id"])] = AreaObjData["name"]
@@ -3870,7 +4079,7 @@ def get_sub_live_area_name4sub_live_area_id():
     # 获取 登录账户 的 直播间父分区 对应的 直播间子分区数据
     sub_live_area_name4sub_live_area_id = {}
     """登录账户 的 直播间父分区 对应的 直播间子分区数据"""
-    if bool(get_b_u_l_c().get_cookies()):
+    if get_b_u_c_m().get_default_user_id():
         if get_room_status():
             if get_area():
                 for AreaObjData in get_area_obj_data_list()["data"]:
@@ -3891,7 +4100,7 @@ def get_sub_live_area_name4sub_live_area_id():
 @lru_cache(maxsize=None)
 def get_live_status():
     # 获取 '登录用户' 的 直播状态
-    if bool(get_b_u_l_c().get_cookies()):
+    if get_b_u_c_m().get_default_user_id():
         if get_room_status():
             live_status = get_room_info_old()["data"]["liveStatus"]
             """登录用户的直播状态】0：未开播 1：直播中"""
@@ -3913,7 +4122,7 @@ def get_live_status():
 @lru_cache(maxsize=None)
 def get_reserve_list():
     # 登录用户的直播预约列表信息
-    if bool(get_b_u_l_c().get_cookies()):
+    if get_b_u_c_m().get_default_user_id():
         if get_room_status():
             reserve_list = get_b_a_m().get_reserve_list()
             """获取 '登录用户' 的 直播预约列表信息"""
@@ -3934,7 +4143,7 @@ def get_reserve_name4reserve_sid():
     # 登录用户的直播预约字典
     reserve_name4reserve_sid = {}
     """获取 '登录用户' 的 直播预约字典"""
-    if bool(get_b_u_l_c().get_cookies()):
+    if get_b_u_c_m().get_default_user_id():
         if get_room_status():
             if get_reserve_list():
                 for reserve in get_reserve_list():
@@ -3955,7 +4164,7 @@ def get_reserve_name4reserve_sid():
 
 def clear_cache():
     # 清除函数缓存
-    get_b_u_l_c.cache_clear()
+    get_b_u_c_m.cache_clear()
     get_b_a_g.cache_clear()
     get_b_l_i_r.cache_clear()
     get_i_c.cache_clear()
@@ -4028,7 +4237,7 @@ class GlobalVariableOfData:
     # 用户类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     loginQrCode_key: str = None  # ##登陆二维码密钥
     """登陆二维码密钥"""
-    loginQrCodeReturn: Optional[dict[str, Union[dict[str, str], int]]] = None  # ##登陆二维码返回数据
+    loginQrCodeReturn: Optional[dict[str, Union[dict[str, str], int]]] = {}  # ##登陆二维码返回数据
     """登陆二维码返回数据"""
     loginQRCodePillowImg = None  # ##登录二维码的pillow_img实例
     """登录二维码的pillow_img实例"""
@@ -5019,11 +5228,11 @@ def script_defaults(settings):  # 设置其默认值
     if widget.TextBox.loginStatus.Name in update_widget_for_props_name:
         widget.TextBox.loginStatus.Visible = True
         widget.TextBox.loginStatus.Enabled = True
-        if bool(get_b_u_l_c().get_cookies()):
+        if get_b_u_c_m().get_default_user_id():
             widget.TextBox.loginStatus.Text = f'{get_default_user_nickname()} 已登录'
         else:
             widget.TextBox.loginStatus.Text = '未登录，请登录后点击【更新账号列表】'
-        if bool(get_b_u_l_c().get_cookies()):
+        if get_b_u_c_m().get_default_user_id():
             widget.TextBox.loginStatus.InfoType = obs.OBS_TEXT_INFO_NORMAL
         else:
             widget.TextBox.loginStatus.InfoType = obs.OBS_TEXT_INFO_WARNING
@@ -5031,12 +5240,12 @@ def script_defaults(settings):  # 设置其默认值
     if widget.ComboBox.uid.Name in update_widget_for_props_name:
         widget.ComboBox.uid.Visible = True
         widget.ComboBox.uid.Enabled = True
-        if bool(get_b_u_l_c().get_cookies()):
+        if get_b_u_c_m().get_default_user_id():
             widget.ComboBox.uid.Text = get_default_user_nickname()
         else:
             widget.ComboBox.uid.Text = '添加或选择一个账号登录'
-        if bool(get_b_u_l_c().get_cookies()):
-            widget.ComboBox.uid.Value = get_b_u_l_c().get_users()[0]
+        if get_b_u_c_m().get_default_user_id():
+            widget.ComboBox.uid.Value = get_b_u_c_m().get_default_user_id()
         else:
             widget.ComboBox.uid.Value = '-1'
         widget.ComboBox.uid.Dictionary = get_uid_nickname_dict()
@@ -5070,15 +5279,15 @@ def script_defaults(settings):  # 设置其默认值
         widget.Button.accountRestore.Enabled = False
 
     if widget.Button.logout.Name in update_widget_for_props_name:
-        widget.Button.logout.Visible = True if get_b_u_l_c().get_cookies() else False
-        widget.Button.logout.Enabled = True if get_b_u_l_c().get_cookies() else False
+        widget.Button.logout.Visible = True if get_b_u_c_m().get_default_user_id() else False
+        widget.Button.logout.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
     # 分组框【直播间】
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     if widget.TextBox.roomStatus.Name in update_widget_for_props_name:
         widget.TextBox.roomStatus.Visible = True
         widget.TextBox.roomStatus.Enabled = True
-        if bool(get_b_u_l_c().get_cookies()):
+        if get_b_u_c_m().get_default_user_id():
             if get_room_status():
                 if get_live_status():
                     widget.TextBox.roomStatus.Text = f"{str(get_room_id())}直播中"
@@ -5088,7 +5297,7 @@ def script_defaults(settings):  # 设置其默认值
                 widget.TextBox.roomStatus.Text = "无直播间"
         else:
             widget.TextBox.roomStatus.Text = "未登录"
-        if bool(get_b_u_l_c().get_cookies()):
+        if get_b_u_c_m().get_default_user_id():
             if get_room_status():
                 if get_live_status():
                     widget.TextBox.roomStatus.InfoType = obs.OBS_TEXT_INFO_NORMAL
@@ -5100,8 +5309,8 @@ def script_defaults(settings):  # 设置其默认值
             widget.TextBox.roomStatus.InfoType = obs.OBS_TEXT_INFO_ERROR
 
     if widget.Button.roomOpened.Name in update_widget_for_props_name:
-        widget.Button.roomOpened.Visible = (not bool(get_room_status())) if get_b_u_l_c().get_cookies() else False
-        widget.Button.roomOpened.Enabled = (not bool(get_room_status())) if get_b_u_l_c().get_cookies() else False
+        widget.Button.roomOpened.Visible = (not bool(get_room_status())) if get_b_u_c_m().get_default_user_id() else False
+        widget.Button.roomOpened.Enabled = (not bool(get_room_status())) if get_b_u_c_m().get_default_user_id() else False
 
     if widget.Button.realNameAuthentication.Name in update_widget_for_props_name:
         widget.Button.realNameAuthentication.Visible = False
@@ -5191,8 +5400,8 @@ def script_defaults(settings):  # 设置其默认值
         widget.Button.roomSubAreaTrue.Enabled = bool(get_room_status())
 
     if widget.Button.bliveWebJump.Name in update_widget_for_props_name:
-        widget.Button.bliveWebJump.Visible = True if get_b_u_l_c().get_cookies() else False
-        widget.Button.bliveWebJump.Enabled = True if get_b_u_l_c().get_cookies() else False
+        widget.Button.bliveWebJump.Visible = True if get_b_u_c_m().get_default_user_id() else False
+        widget.Button.bliveWebJump.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
     # 分组框【直播】
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -5285,7 +5494,7 @@ def script_defaults(settings):  # 设置其默认值
         widget.ComboBox.liveBookings.Visible = bool(get_room_status())
         widget.ComboBox.liveBookings.Enabled = bool(get_room_status())
         widget.ComboBox.liveBookings.Text = "无直播预约"
-        if bool(get_b_u_l_c().get_cookies()):
+        if get_b_u_c_m().get_default_user_id():
             if get_room_status():
                 if get_reserve_list():
                     for reserve in get_reserve_list():
@@ -5298,7 +5507,7 @@ def script_defaults(settings):  # 设置其默认值
                 widget.ComboBox.liveBookings.Text = '⚠️无直播间'
         else:
             widget.ComboBox.liveBookings.Text = "⚠️未登录账号"
-        if bool(get_b_u_l_c().get_cookies()):
+        if get_b_u_c_m().get_default_user_id():
             if get_room_status():
                 if get_reserve_list():
                     for reserve in get_reserve_list():
@@ -5620,7 +5829,7 @@ class ButtonFunction:
         try:
             uid = str(uid)
             log_save(obs.LOG_INFO, f"尝试登录用户: {uid}")
-            get_b_u_l_c().update_user(get_b_u_l_c().get_cookies(int(uid)))
+            get_b_u_c_m().set_default_user(uid)
             log_save(obs.LOG_INFO, f"用户 {uid} 登录成功")
         except ValueError as e:
             log_save(obs.LOG_ERROR, f"参数错误: {str(e)}")
@@ -5710,7 +5919,6 @@ class ButtonFunction:
             @return: cookies，超时为{}
             """
             # 获取uid对应的cookies
-            user_list_dict = get_b_u_l_c().get_users()
             code_old = GlobalVariableOfData.loginQrCodeReturn["data"]["scan_code"]
             GlobalVariableOfData.loginQrCodeReturn = get_b_l_i_r().poll(GlobalVariableOfData.loginQrCode_key)
             # 二维码扫描登陆状态改变时，输出改变后状态
@@ -5736,14 +5944,17 @@ class ButtonFunction:
                     cookies["b_nut"] = buvid3_and_bnut['data']['b_nut']
                     # 获取登陆账号cookies中携带的uid
                     uid = int(cookies['DedeUserID'])
-                    if str(uid) in user_list_dict.values():
+                    all_users_id_list = []
+                    for user_dict in get_b_u_c_m().get_all_users()["data"]["users"]:
+                        all_users_id_list.append(user_dict["user_id"])
+                    if str(uid) in all_users_id_list:
                         log_save(obs.LOG_DEBUG, "已有该用户，正在更新用户登录信息")
-                        get_b_u_l_c().update_user(cookies, False)
+                        get_b_u_c_m().update_user(cookies, False)
                     else:
-                        get_b_u_l_c().add_user(cookies)
+                        get_b_u_c_m().add_user(cookies)
                         log_save(obs.LOG_INFO, f"添加用户成功")
                         if widget.ComboBox.uid.Dictionary == {'-1': '添加或选择一个账号登录'}:
-                            get_b_u_l_c().update_user(cookies)
+                            get_b_u_c_m().update_user(cookies, True)
                         log_save(obs.LOG_INFO, "请点击按钮【更新账号列表】，更新用户列表")
                 else:
                     log_save(obs.LOG_INFO, f"添加用户失败: {GlobalVariableOfData.loginQrCodeReturn}")
@@ -5792,12 +6003,14 @@ class ButtonFunction:
         # ＝     删除      ＝
         # ＝＝＝＝＝＝＝＝＝＝＝
         log_save(obs.LOG_INFO, f"即将删除的账号：{uid}")
-        get_b_u_l_c().delete_user(uid)
+        if get_b_u_c_m().get_default_user_id() == uid:
+            get_b_u_c_m().clear_default_user()
+        get_b_u_c_m().delete_user(uid)
 
         clear_cache()
 
         # 更新脚本控制台中的控件
-        if get_b_u_l_c().get_users()[0] == uid:
+        if get_b_u_c_m().get_default_user_id() == uid:
             GlobalVariableOfData.update_widget_for_props_dict = widget.props_Collection
         else:
             GlobalVariableOfData.update_widget_for_props_dict = {
@@ -5854,8 +6067,8 @@ class ButtonFunction:
         # ＝＝＝＝＝＝＝＝＝＝＝＝
         # 移除默认账户
         log_save(obs.LOG_INFO, f"即将登出的账号：{uid}")
-        get_b_u_l_c().update_user(None)
-
+        clear_default_user_result = get_b_u_c_m().clear_default_user()
+        log_save(obs.LOG_INFO, f"{clear_default_user_result['message']}")
         clear_cache()
 
         # 更新脚本控制台中的控件
@@ -5910,7 +6123,7 @@ class ButtonFunction:
         if len(args) == 3:
             settings = args[2]
         # 获取登录用户的uid
-        uid = get_b_u_l_c().get_users()[0]
+        uid = get_b_u_c_m().get_default_user_id()
         log_save(obs.LOG_INFO, f"获取登录用户的uid：{uid}")
         # 获取人脸认证的链接
         qr_url = f"https://account.bilibili.com/h5/account-h5/middle-redirect?mid={uid}"
@@ -6024,7 +6237,7 @@ class ButtonFunction:
         if len(args) == 3:
             settings = args[2]
         # 获取登录用户的uid
-        uid = get_b_u_l_c().get_users()[0]
+        uid = get_b_u_c_m().get_default_user_id()
         log_save(obs.LOG_INFO, f"获取登录用户的uid：{uid}")
         # 获取人脸认证的链接
         qr_url = f"https://www.bilibili.com/blackboard/live/face-auth-middle.html?source_event=400&mid={uid}"
@@ -6082,7 +6295,7 @@ class ButtonFunction:
         else:
             log_save(obs.LOG_INFO, f"直播间标题更改失败{turn_title_return['message']}")
             return False
-        get_c_t_m().add_title(get_b_u_l_c().get_users()[0], title_textbox_t)
+        get_c_t_m().add_title(get_b_u_c_m().get_default_user_id(), title_textbox_t)
 
         widget.ComboBox.roomCommonTitles.Text = title_textbox_t
         widget.ComboBox.roomCommonTitles.Value = "0"
