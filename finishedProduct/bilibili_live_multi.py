@@ -388,41 +388,39 @@ class Tools:
             print(f"处理图像时出错: {e}")
 
     @staticmethod
-    def dict2cookie(jsondict: Dict[str, Union[str, int, float, bool]], safe: str = "/:") -> str:
+    def dict_to_cookie_string(data_dict: Dict[str, Any], encode_values: bool = True) -> str:
         """
-        将字典转换为符合HTTP标准的Cookie字符串格式
+        将字典转换为 HTTP Cookie 字符串格式
+
+        此函数将键值对字典转换为符合 HTTP Cookie 标准的字符串格式，
+        支持对值进行 URL 编码以防止特殊字符问题。
+
         Args:
-            jsondict: 包含Cookie键值对的字典
-                - 示例: {"name": "value", "age": 20, "secure": True}
-            safe: URL编码中保留的安全字符（默认保留/和:）
+            data_dict: 要转换的字典，键值对将被转换为 cookie 格式
+            encode_values: 是否对值进行 URL 编码（默认 True）
+
         Returns:
-            str: 符合Cookie规范的字符串
-                - 示例: "name=value; age=20; secure"
-        Raises:
-            TypeError: 当输入不是字典时抛出
+            符合 HTTP Cookie 标准的字符串
+
         """
-        if not isinstance(jsondict, dict):
+        if not isinstance(data_dict, dict):
             raise TypeError("输入必须是字典类型")
 
         cookie_parts = []
 
-        for key, value in jsondict.items():
-            # 处理键
-            encoded_key = quote(str(key), safe=safe, encoding='utf-8')
+        for key, value in data_dict.items():
+            # 确保键和值是字符串
+            key_str = str(key)
+            value_str = str(value)
 
-            # 处理不同类型的值
-            if value is True:
-                # 布尔值True表示为标志属性
-                cookie_parts.append(encoded_key)
-            elif value is False or value is None:
-                # 跳过False和None值
-                continue
-            else:
-                # 其他类型转换为字符串并编码
-                str_value = str(value)
-                encoded_value = quote(str_value, safe=safe, encoding='utf-8')
-                cookie_parts.append(f"{encoded_key}={encoded_value}")
+            # 对值进行 URL 编码（如果启用）
+            if encode_values:
+                value_str = quote(value_str)
 
+            # 添加到结果列表
+            cookie_parts.append(f"{key_str}={value_str}")
+
+        # 使用分号和空格连接所有部分
         return "; ".join(cookie_parts)
 
     @staticmethod
@@ -921,231 +919,6 @@ class Tools:
         return image_bytes
 
 
-class DanmuProtoDecoder:
-    def __init__(self):
-        self.online_rank_v3_pb2 = """
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import descriptor_pool as _descriptor_pool
-from google.protobuf import runtime_version as _runtime_version
-from google.protobuf import symbol_database as _symbol_database
-from google.protobuf.internal import builder as _builder
-_runtime_version.ValidateProtobufRuntimeVersion(
-    _runtime_version.Domain.PUBLIC,
-    6,
-    32,
-    1,
-    '',
-    'bilibili/live/decode_online_rank_v3/v1.proto'
-)
-# @@protoc_insertion_point(imports)
-
-_sym_db = _symbol_database.Default()
-
-
-
-
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\\n,bilibili/live/decode_online_rank_v3/v1.proto\\x12\\x17\\x62ilibili.live.rankdb.v1\\")\\n\\x0b\\x41\\x63\\x63ountInfo\\x12\\x0c\\n\\x04name\\x18\\x01 \\x01(\\t\\x12\\x0c\\n\\x04\\x66\\x61\\x63\\x65\\x18\\x02 \\x01(\\t\\"\\x9a\\x02\\n\\x04\\x42\\x61se\\x12\\x0c\\n\\x04name\\x18\\x01 \\x01(\\t\\x12\\x0c\\n\\x04\\x66\\x61\\x63\\x65\\x18\\x02 \\x01(\\t\\x12\\x12\\n\\nname_color\\x18\\x03 \\x01(\\x05\\x12\\x12\\n\\nis_mystery\\x18\\x04 \\x01(\\x08\\x12=\\n\\x0erisk_ctrl_info\\x18\\x05 \\x01(\\x0b\\x32%.bilibili.live.rankdb.v1.RiskCtrlInfo\\x12\\x39\\n\\x0borigin_info\\x18\\x06 \\x01(\\x0b\\x32$.bilibili.live.rankdb.v1.AccountInfo\\x12<\\n\\rofficial_info\\x18\\x07 \\x01(\\x0b\\x32%.bilibili.live.rankdb.v1.OfficialInfo\\x12\\x16\\n\\x0ename_color_str\\x18\\x08 \\x01(\\t\\"\\xb2\\x01\\n\\nBaseOption\\x12\\x14\\n\\x0cneed_mystery\\x18\\x01 \\x01(\\x08\\x12\\x34\\n\\trisk_ctrl\\x18\\x02 \\x01(\\x0b\\x32!.bilibili.live.rankdb.v1.RiskCtrl\\x12=\\n\\x0eroom_anon_ctrl\\x18\\x03 \\x01(\\x0b\\x32%.bilibili.live.rankdb.v1.RoomAnonCtrl\\x12\\x19\\n\\x11risk_ctrl_handles\\x18\\x04 \\x03(\\x05\\"+\\n\\x05Guard\\x12\\r\\n\\x05level\\x18\\x01 \\x01(\\x03\\x12\\x13\\n\\x0b\\x65xpired_str\\x18\\x02 \\x01(\\t\\"&\\n\\x0bGuardLeader\\x12\\x17\\n\\x0fis_guard_leader\\x18\\x01 \\x01(\\x08\\"2\\n\\x11GuardLeaderOption\\x12\\x0c\\n\\x04ruid\\x18\\x01 \\x01(\\x03\\x12\\x0f\\n\\x07room_id\\x18\\x02 \\x01(\\x03\\"K\\n\\x0bGuardOption\\x12\\x0c\\n\\x04ruid\\x18\\x01 \\x01(\\x03\\x12\\x17\\n\\x0fuse_local_cache\\x18\\x02 \\x01(\\x08\\x12\\x15\\n\\rstrong_depend\\x18\\x03 \\x01(\\x08\\"\\xce\\x03\\n\\x05Medal\\x12\\x0c\\n\\x04name\\x18\\x01 \\x01(\\t\\x12\\r\\n\\x05level\\x18\\x02 \\x01(\\x03\\x12\\x13\\n\\x0b\\x63olor_start\\x18\\x03 \\x01(\\x03\\x12\\x11\\n\\tcolor_end\\x18\\x04 \\x01(\\x03\\x12\\x14\\n\\x0c\\x63olor_border\\x18\\x05 \\x01(\\x03\\x12\\r\\n\\x05\\x63olor\\x18\\x06 \\x01(\\x03\\x12\\n\\n\\x02id\\x18\\x07 \\x01(\\x03\\x12\\x33\\n\\x03typ\\x18\\x08 \\x01(\\x0e\\x32&.bilibili.live.rankdb.v1.HaveMedalType\\x12\\x10\\n\\x08is_light\\x18\\t \\x01(\\x03\\x12\\x0c\\n\\x04ruid\\x18\\n \\x01(\\x03\\x12\\x13\\n\\x0bguard_level\\x18\\x0b \\x01(\\x03\\x12\\r\\n\\x05score\\x18\\x0c \\x01(\\x03\\x12\\x12\\n\\nguard_icon\\x18\\r \\x01(\\t\\x12\\x12\\n\\nhonor_icon\\x18\\x0e \\x01(\\t\\x12\\x1c\\n\\x14v2_medal_color_start\\x18\\x0f \\x01(\\t\\x12\\x1a\\n\\x12v2_medal_color_end\\x18\\x10 \\x01(\\t\\x12\\x1d\\n\\x15v2_medal_color_border\\x18\\x11 \\x01(\\t\\x12\\x1b\\n\\x13v2_medal_color_text\\x18\\x12 \\x01(\\t\\x12\\x1c\\n\\x14v2_medal_color_level\\x18\\x13 \\x01(\\t\\x12\\x1a\\n\\x12user_receive_count\\x18\\x14 \\x01(\\x03\\"\\x8b\\x01\\n\\x0bMedalOption\\x12/\\n\\x03typ\\x18\\x01 \\x01(\\x0e\\x32\\".bilibili.live.rankdb.v1.MedalType\\x12\\x0c\\n\\x04ruid\\x18\\x02 \\x01(\\x03\\x12\\x12\\n\\nneed_guard\\x18\\x03 \\x01(\\x08\\x12\\x15\\n\\rstrong_depend\\x18\\x04 \\x01(\\x08\\x12\\x12\\n\\nneed_group\\x18\\x05 \\x01(\\x08\\"G\\n\\x0cOfficialInfo\\x12\\x0c\\n\\x04role\\x18\\x01 \\x01(\\x03\\x12\\r\\n\\x05title\\x18\\x02 \\x01(\\t\\x12\\x0c\\n\\x04\\x64\\x65sc\\x18\\x03 \\x01(\\t\\x12\\x0c\\n\\x04type\\x18\\x04 \\x01(\\x03\\"T\\n\\x08RiskCtrl\\x12\\x0f\\n\\x07room_id\\x18\\x01 \\x01(\\x03\\x12\\x37\\n\\x06policy\\x18\\x02 \\x01(\\x0e\\x32\\'.bilibili.live.rankdb.v1.RiskPolicyEnum\\"*\\n\\x0cRiskCtrlInfo\\x12\\x0c\\n\\x04name\\x18\\x01 \\x01(\\t\\x12\\x0c\\n\\x04\\x66\\x61\\x63\\x65\\x18\\x02 \\x01(\\t\\"G\\n\\x0cRoomAnonCtrl\\x12\\x37\\n\\x04type\\x18\\x01 \\x01(\\x0e\\x32).bilibili.live.rankdb.v1.RoomAnonTypeEnum\\"7\\n\\x05Title\\x12\\x18\\n\\x10old_title_css_id\\x18\\x01 \\x01(\\t\\x12\\x14\\n\\x0ctitle_css_id\\x18\\x02 \\x01(\\t\\"5\\n\\x0bTitleOption\\x12\\x0f\\n\\x07room_id\\x18\\x01 \\x01(\\x03\\x12\\x15\\n\\rstrong_depend\\x18\\x02 \\x01(\\x08\\".\\n\\rUserHeadFrame\\x12\\n\\n\\x02id\\x18\\x01 \\x01(\\x03\\x12\\x11\\n\\tframe_img\\x18\\x02 \\x01(\\t\\"\\xfb\\x02\\n\\x08UserInfo\\x12\\x0b\\n\\x03uid\\x18\\x01 \\x01(\\x03\\x12+\\n\\x04\\x62\\x61se\\x18\\x02 \\x01(\\x0b\\x32\\x1d.bilibili.live.rankdb.v1.Base\\x12-\\n\\x05medal\\x18\\x03 \\x01(\\x0b\\x32\\x1e.bilibili.live.rankdb.v1.Medal\\x12/\\n\\x06wealth\\x18\\x04 \\x01(\\x0b\\x32\\x1f.bilibili.live.rankdb.v1.Wealth\\x12-\\n\\x05title\\x18\\x05 \\x01(\\x0b\\x32\\x1e.bilibili.live.rankdb.v1.Title\\x12-\\n\\x05guard\\x18\\x06 \\x01(\\x0b\\x32\\x1e.bilibili.live.rankdb.v1.Guard\\x12;\\n\\x0buhead_frame\\x18\\x07 \\x01(\\x0b\\x32&.bilibili.live.rankdb.v1.UserHeadFrame\\x12:\\n\\x0cguard_leader\\x18\\x08 \\x01(\\x0b\\x32$.bilibili.live.rankdb.v1.GuardLeader\\",\\n\\x06Wealth\\x12\\r\\n\\x05level\\x18\\x01 \\x01(\\x03\\x12\\x13\\n\\x0b\\x64m_icon_key\\x18\\x02 \\x01(\\t\\"U\\n\\x0cWealthOption\\x12\\x0e\\n\\x06roomid\\x18\\x01 \\x01(\\x03\\x12\\x10\\n\\x08view_uid\\x18\\x02 \\x01(\\x03\\x12\\x0c\\n\\x04ruid\\x18\\x03 \\x01(\\x03\\x12\\x15\\n\\rstrong_depend\\x18\\x04 \\x01(\\x08\\"\\x86\\x03\\n\\x11GoldRankBroadcast\\x12\\x11\\n\\trank_type\\x18\\x01 \\x01(\\t\\x12M\\n\\x04list\\x18\\x02 \\x03(\\x0b\\x32?.bilibili.live.rankdb.v1.GoldRankBroadcast.GoldRankBrodcastItem\\x12T\\n\\x0bonline_list\\x18\\x03 \\x03(\\x0b\\x32?.bilibili.live.rankdb.v1.GoldRankBroadcast.GoldRankBrodcastItem\\x1a\\xb8\\x01\\n\\x14GoldRankBrodcastItem\\x12\\x0b\\n\\x03uid\\x18\\x01 \\x01(\\x03\\x12\\x0c\\n\\x04\\x66\\x61\\x63\\x65\\x18\\x02 \\x01(\\t\\x12\\r\\n\\x05score\\x18\\x03 \\x01(\\t\\x12\\r\\n\\x05uname\\x18\\x04 \\x01(\\t\\x12\\x0c\\n\\x04rank\\x18\\x05 \\x01(\\x03\\x12\\x13\\n\\x0bguard_level\\x18\\x06 \\x01(\\x03\\x12\\x12\\n\\nis_mystery\\x18\\x07 \\x01(\\x08\\x12\\x30\\n\\x05uinfo\\x18\\x08 \\x01(\\x0b\\x32!.bilibili.live.rankdb.v1.UserInfo*2\\n\\rHaveMedalType\\x12\\x10\\n\\x0cMedal_Common\\x10\\x00\\x12\\x0f\\n\\x0bMedal_Group\\x10\\x01*+\\n\\tMedalType\\x12\\x0e\\n\\nMedal_Wear\\x10\\x00\\x12\\x0e\\n\\nMedal_Spec\\x10\\x01*X\\n\\x0eRiskPolicyEnum\\x12\\r\\n\\tRP_NORMAL\\x10\\x00\\x12\\r\\n\\tRP_POLICY\\x10\\x01\\x12\\x0e\\n\\nRP_SILENCE\\x10\\x02\\x12\\n\\n\\x06RP_CNY\\x10\\x03\\x12\\x0c\\n\\x08RP_BIGEV\\x10\\x04*3\\n\\x10RoomAnonTypeEnum\\x12\\n\\n\\x06RA_ALL\\x10\\x00\\x12\\x13\\n\\x0fRA_With_Subject\\x10\\x01\\x62\\x06proto3')
-
-_globals = globals()
-_builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
-_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'bilibili.live.decode_online_rank_v3.v1_pb2', _globals)
-if not _descriptor._USE_C_DESCRIPTORS:
-  DESCRIPTOR._loaded_options = None
-  _globals['_HAVEMEDALTYPE']._serialized_start=2747
-  _globals['_HAVEMEDALTYPE']._serialized_end=2797
-  _globals['_MEDALTYPE']._serialized_start=2799
-  _globals['_MEDALTYPE']._serialized_end=2842
-  _globals['_RISKPOLICYENUM']._serialized_start=2844
-  _globals['_RISKPOLICYENUM']._serialized_end=2932
-  _globals['_ROOMANONTYPEENUM']._serialized_start=2934
-  _globals['_ROOMANONTYPEENUM']._serialized_end=2985
-  _globals['_ACCOUNTINFO']._serialized_start=73
-  _globals['_ACCOUNTINFO']._serialized_end=114
-  _globals['_BASE']._serialized_start=117
-  _globals['_BASE']._serialized_end=399
-  _globals['_BASEOPTION']._serialized_start=402
-  _globals['_BASEOPTION']._serialized_end=580
-  _globals['_GUARD']._serialized_start=582
-  _globals['_GUARD']._serialized_end=625
-  _globals['_GUARDLEADER']._serialized_start=627
-  _globals['_GUARDLEADER']._serialized_end=665
-  _globals['_GUARDLEADEROPTION']._serialized_start=667
-  _globals['_GUARDLEADEROPTION']._serialized_end=717
-  _globals['_GUARDOPTION']._serialized_start=719
-  _globals['_GUARDOPTION']._serialized_end=794
-  _globals['_MEDAL']._serialized_start=797
-  _globals['_MEDAL']._serialized_end=1259
-  _globals['_MEDALOPTION']._serialized_start=1262
-  _globals['_MEDALOPTION']._serialized_end=1401
-  _globals['_OFFICIALINFO']._serialized_start=1403
-  _globals['_OFFICIALINFO']._serialized_end=1474
-  _globals['_RISKCTRL']._serialized_start=1476
-  _globals['_RISKCTRL']._serialized_end=1560
-  _globals['_RISKCTRLINFO']._serialized_start=1562
-  _globals['_RISKCTRLINFO']._serialized_end=1604
-  _globals['_ROOMANONCTRL']._serialized_start=1606
-  _globals['_ROOMANONCTRL']._serialized_end=1677
-  _globals['_TITLE']._serialized_start=1679
-  _globals['_TITLE']._serialized_end=1734
-  _globals['_TITLEOPTION']._serialized_start=1736
-  _globals['_TITLEOPTION']._serialized_end=1789
-  _globals['_USERHEADFRAME']._serialized_start=1791
-  _globals['_USERHEADFRAME']._serialized_end=1837
-  _globals['_USERINFO']._serialized_start=1840
-  _globals['_USERINFO']._serialized_end=2219
-  _globals['_WEALTH']._serialized_start=2221
-  _globals['_WEALTH']._serialized_end=2265
-  _globals['_WEALTHOPTION']._serialized_start=2267
-  _globals['_WEALTHOPTION']._serialized_end=2352
-  _globals['_GOLDRANKBROADCAST']._serialized_start=2355
-  _globals['_GOLDRANKBROADCAST']._serialized_end=2745
-  _globals['_GOLDRANKBROADCAST_GOLDRANKBRODCASTITEM']._serialized_start=2561
-  _globals['_GOLDRANKBROADCAST_GOLDRANKBRODCASTITEM']._serialized_end=2745
-# @@protoc_insertion_point(module_scope)
-"""
-        self.interact_word_v2_pb2 = """
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import descriptor_pool as _descriptor_pool
-from google.protobuf import runtime_version as _runtime_version
-from google.protobuf import symbol_database as _symbol_database
-from google.protobuf.internal import builder as _builder
-_runtime_version.ValidateProtobufRuntimeVersion(
-    _runtime_version.Domain.PUBLIC,
-    6,
-    32,
-    1,
-    '',
-    'bilibili/live/decode_interact_word_v2/v1.proto'
-)
-# @@protoc_insertion_point(imports)
-
-_sym_db = _symbol_database.Default()
-
-
-
-
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\\n.bilibili/live/decode_interact_word_v2/v1.proto\\x12(bilibili.live.decode_interact_word_v2.v1\\"E\\n\\x0fGroupMedalBrief\\x12\\x10\\n\\x08medal_id\\x18\\x01 \\x01(\\x03\\x12\\x0c\\n\\x04name\\x18\\x02 \\x01(\\t\\x12\\x12\\n\\nis_lighted\\x18\\x03 \\x01(\\x03\\")\\n\\x0b\\x41\\x63\\x63ountInfo\\x12\\x0c\\n\\x04name\\x18\\x01 \\x01(\\t\\x12\\x0c\\n\\x04\\x66\\x61\\x63\\x65\\x18\\x02 \\x01(\\t\\"\\xcd\\x02\\n\\x04\\x42\\x61se\\x12\\x0c\\n\\x04name\\x18\\x01 \\x01(\\t\\x12\\x0c\\n\\x04\\x66\\x61\\x63\\x65\\x18\\x02 \\x01(\\t\\x12\\x12\\n\\nname_color\\x18\\x03 \\x01(\\x05\\x12\\x12\\n\\nis_mystery\\x18\\x04 \\x01(\\x08\\x12N\\n\\x0erisk_ctrl_info\\x18\\x05 \\x01(\\x0b\\x32\\x36.bilibili.live.decode_interact_word_v2.v1.RiskCtrlInfo\\x12J\\n\\x0borigin_info\\x18\\x06 \\x01(\\x0b\\x32\\x35.bilibili.live.decode_interact_word_v2.v1.AccountInfo\\x12M\\n\\rofficial_info\\x18\\x07 \\x01(\\x0b\\x32\\x36.bilibili.live.decode_interact_word_v2.v1.OfficialInfo\\x12\\x16\\n\\x0ename_color_str\\x18\\x08 \\x01(\\t\\"\\xd4\\x01\\n\\nBaseOption\\x12\\x14\\n\\x0cneed_mystery\\x18\\x01 \\x01(\\x08\\x12\\x45\\n\\trisk_ctrl\\x18\\x02 \\x01(\\x0b\\x32\\x32.bilibili.live.decode_interact_word_v2.v1.RiskCtrl\\x12N\\n\\x0eroom_anon_ctrl\\x18\\x03 \\x01(\\x0b\\x32\\x36.bilibili.live.decode_interact_word_v2.v1.RoomAnonCtrl\\x12\\x19\\n\\x11risk_ctrl_handles\\x18\\x04 \\x03(\\x05\\"+\\n\\x05Guard\\x12\\r\\n\\x05level\\x18\\x01 \\x01(\\x03\\x12\\x13\\n\\x0b\\x65xpired_str\\x18\\x02 \\x01(\\t\\"&\\n\\x0bGuardLeader\\x12\\x17\\n\\x0fis_guard_leader\\x18\\x01 \\x01(\\x08\\"2\\n\\x11GuardLeaderOption\\x12\\x0c\\n\\x04ruid\\x18\\x01 \\x01(\\x03\\x12\\x0f\\n\\x07room_id\\x18\\x02 \\x01(\\x03\\"K\\n\\x0bGuardOption\\x12\\x0c\\n\\x04ruid\\x18\\x01 \\x01(\\x03\\x12\\x17\\n\\x0fuse_local_cache\\x18\\x02 \\x01(\\x08\\x12\\x15\\n\\rstrong_depend\\x18\\x03 \\x01(\\x08\\"\\xdf\\x03\\n\\x05Medal\\x12\\x0c\\n\\x04name\\x18\\x01 \\x01(\\t\\x12\\r\\n\\x05level\\x18\\x02 \\x01(\\x03\\x12\\x13\\n\\x0b\\x63olor_start\\x18\\x03 \\x01(\\x03\\x12\\x11\\n\\tcolor_end\\x18\\x04 \\x01(\\x03\\x12\\x14\\n\\x0c\\x63olor_border\\x18\\x05 \\x01(\\x03\\x12\\r\\n\\x05\\x63olor\\x18\\x06 \\x01(\\x03\\x12\\n\\n\\x02id\\x18\\x07 \\x01(\\x03\\x12\\x44\\n\\x03typ\\x18\\x08 \\x01(\\x0e\\x32\\x37.bilibili.live.decode_interact_word_v2.v1.HaveMedalType\\x12\\x10\\n\\x08is_light\\x18\\t \\x01(\\x03\\x12\\x0c\\n\\x04ruid\\x18\\n \\x01(\\x03\\x12\\x13\\n\\x0bguard_level\\x18\\x0b \\x01(\\x03\\x12\\r\\n\\x05score\\x18\\x0c \\x01(\\x03\\x12\\x12\\n\\nguard_icon\\x18\\r \\x01(\\t\\x12\\x12\\n\\nhonor_icon\\x18\\x0e \\x01(\\t\\x12\\x1c\\n\\x14v2_medal_color_start\\x18\\x0f \\x01(\\t\\x12\\x1a\\n\\x12v2_medal_color_end\\x18\\x10 \\x01(\\t\\x12\\x1d\\n\\x15v2_medal_color_border\\x18\\x11 \\x01(\\t\\x12\\x1b\\n\\x13v2_medal_color_text\\x18\\x12 \\x01(\\t\\x12\\x1c\\n\\x14v2_medal_color_level\\x18\\x13 \\x01(\\t\\x12\\x1a\\n\\x12user_receive_count\\x18\\x14 \\x01(\\x03\\"\\x9c\\x01\\n\\x0bMedalOption\\x12@\\n\\x03typ\\x18\\x01 \\x01(\\x0e\\x32\\x33.bilibili.live.decode_interact_word_v2.v1.MedalType\\x12\\x0c\\n\\x04ruid\\x18\\x02 \\x01(\\x03\\x12\\x12\\n\\nneed_guard\\x18\\x03 \\x01(\\x08\\x12\\x15\\n\\rstrong_depend\\x18\\x04 \\x01(\\x08\\x12\\x12\\n\\nneed_group\\x18\\x05 \\x01(\\x08\\"G\\n\\x0cOfficialInfo\\x12\\x0c\\n\\x04role\\x18\\x01 \\x01(\\x03\\x12\\r\\n\\x05title\\x18\\x02 \\x01(\\t\\x12\\x0c\\n\\x04\\x64\\x65sc\\x18\\x03 \\x01(\\t\\x12\\x0c\\n\\x04type\\x18\\x04 \\x01(\\x03\\"e\\n\\x08RiskCtrl\\x12\\x0f\\n\\x07room_id\\x18\\x01 \\x01(\\x03\\x12H\\n\\x06policy\\x18\\x02 \\x01(\\x0e\\x32\\x38.bilibili.live.decode_interact_word_v2.v1.RiskPolicyEnum\\"*\\n\\x0cRiskCtrlInfo\\x12\\x0c\\n\\x04name\\x18\\x01 \\x01(\\t\\x12\\x0c\\n\\x04\\x66\\x61\\x63\\x65\\x18\\x02 \\x01(\\t\\"X\\n\\x0cRoomAnonCtrl\\x12H\\n\\x04type\\x18\\x01 \\x01(\\x0e\\x32:.bilibili.live.decode_interact_word_v2.v1.RoomAnonTypeEnum\\"7\\n\\x05Title\\x12\\x18\\n\\x10old_title_css_id\\x18\\x01 \\x01(\\t\\x12\\x14\\n\\x0ctitle_css_id\\x18\\x02 \\x01(\\t\\"5\\n\\x0bTitleOption\\x12\\x0f\\n\\x07room_id\\x18\\x01 \\x01(\\x03\\x12\\x15\\n\\rstrong_depend\\x18\\x02 \\x01(\\x08\\".\\n\\rUserHeadFrame\\x12\\n\\n\\x02id\\x18\\x01 \\x01(\\x03\\x12\\x11\\n\\tframe_img\\x18\\x02 \\x01(\\t\\"\\xf2\\x03\\n\\x08UserInfo\\x12\\x0b\\n\\x03uid\\x18\\x01 \\x01(\\x03\\x12<\\n\\x04\\x62\\x61se\\x18\\x02 \\x01(\\x0b\\x32..bilibili.live.decode_interact_word_v2.v1.Base\\x12>\\n\\x05medal\\x18\\x03 \\x01(\\x0b\\x32/.bilibili.live.decode_interact_word_v2.v1.Medal\\x12@\\n\\x06wealth\\x18\\x04 \\x01(\\x0b\\x32\\x30.bilibili.live.decode_interact_word_v2.v1.Wealth\\x12>\\n\\x05title\\x18\\x05 \\x01(\\x0b\\x32/.bilibili.live.decode_interact_word_v2.v1.Title\\x12>\\n\\x05guard\\x18\\x06 \\x01(\\x0b\\x32/.bilibili.live.decode_interact_word_v2.v1.Guard\\x12L\\n\\x0buhead_frame\\x18\\x07 \\x01(\\x0b\\x32\\x37.bilibili.live.decode_interact_word_v2.v1.UserHeadFrame\\x12K\\n\\x0cguard_leader\\x18\\x08 \\x01(\\x0b\\x32\\x35.bilibili.live.decode_interact_word_v2.v1.GuardLeader\\",\\n\\x06Wealth\\x12\\r\\n\\x05level\\x18\\x01 \\x01(\\x03\\x12\\x13\\n\\x0b\\x64m_icon_key\\x18\\x02 \\x01(\\t\\"U\\n\\x0cWealthOption\\x12\\x0e\\n\\x06roomid\\x18\\x01 \\x01(\\x03\\x12\\x10\\n\\x08view_uid\\x18\\x02 \\x01(\\x03\\x12\\x0c\\n\\x04ruid\\x18\\x03 \\x01(\\x03\\x12\\x15\\n\\rstrong_depend\\x18\\x04 \\x01(\\x08\\"\\xc8\\n\\n\\x0cInteractWord\\x12\\x0b\\n\\x03uid\\x18\\x01 \\x01(\\x03\\x12\\r\\n\\x05uname\\x18\\x02 \\x01(\\t\\x12\\x13\\n\\x0buname_color\\x18\\x03 \\x01(\\t\\x12\\x12\\n\\nidentities\\x18\\x04 \\x03(\\x03\\x12\\x10\\n\\x08msg_type\\x18\\x05 \\x01(\\x03\\x12\\x0e\\n\\x06roomid\\x18\\x06 \\x01(\\x03\\x12\\x11\\n\\ttimestamp\\x18\\x07 \\x01(\\x03\\x12\\r\\n\\x05score\\x18\\x08 \\x01(\\x03\\x12X\\n\\nfans_medal\\x18\\t \\x01(\\x0b\\x32\\x44.bilibili.live.decode_interact_word_v2.v1.InteractWord.FansMedalInfo\\x12\\x11\\n\\tis_spread\\x18\\n \\x01(\\x03\\x12\\x13\\n\\x0bspread_info\\x18\\x0b \\x01(\\t\\x12]\\n\\x0c\\x63ontribution\\x18\\x0c \\x01(\\x0b\\x32G.bilibili.live.decode_interact_word_v2.v1.InteractWord.ContributionInfo\\x12\\x13\\n\\x0bspread_desc\\x18\\r \\x01(\\t\\x12\\x11\\n\\ttail_icon\\x18\\x0e \\x01(\\x03\\x12\\x14\\n\\x0ctrigger_time\\x18\\x0f \\x01(\\x03\\x12\\x16\\n\\x0eprivilege_type\\x18\\x10 \\x01(\\x03\\x12\\x16\\n\\x0e\\x63ore_user_type\\x18\\x11 \\x01(\\x03\\x12\\x11\\n\\ttail_text\\x18\\x12 \\x01(\\t\\x12\\x62\\n\\x0f\\x63ontribution_v2\\x18\\x13 \\x01(\\x0b\\x32I.bilibili.live.decode_interact_word_v2.v1.InteractWord.ContributionInfoV2\\x12N\\n\\x0bgroup_medal\\x18\\x14 \\x01(\\x0b\\x32\\x39.bilibili.live.decode_interact_word_v2.v1.GroupMedalBrief\\x12\\x12\\n\\nis_mystery\\x18\\x15 \\x01(\\x08\\x12\\x41\\n\\x05uinfo\\x18\\x16 \\x01(\\x0b\\x32\\x32.bilibili.live.decode_interact_word_v2.v1.UserInfo\\x12`\\n\\rrelation_tail\\x18\\x17 \\x01(\\x0b\\x32I.bilibili.live.decode_interact_word_v2.v1.InteractWord.UserAnchorRelation\\x1a!\\n\\x10\\x43ontributionInfo\\x12\\r\\n\\x05grade\\x18\\x01 \\x01(\\x03\\x1a\\x44\\n\\x12\\x43ontributionInfoV2\\x12\\r\\n\\x05grade\\x18\\x01 \\x01(\\x03\\x12\\x11\\n\\trank_type\\x18\\x02 \\x01(\\t\\x12\\x0c\\n\\x04text\\x18\\x03 \\x01(\\t\\x1a\\xa1\\x02\\n\\rFansMedalInfo\\x12\\x11\\n\\ttarget_id\\x18\\x01 \\x01(\\x03\\x12\\x13\\n\\x0bmedal_level\\x18\\x02 \\x01(\\x03\\x12\\x12\\n\\nmedal_name\\x18\\x03 \\x01(\\t\\x12\\x13\\n\\x0bmedal_color\\x18\\x04 \\x01(\\x03\\x12\\x19\\n\\x11medal_color_start\\x18\\x05 \\x01(\\x03\\x12\\x17\\n\\x0fmedal_color_end\\x18\\x06 \\x01(\\x03\\x12\\x1a\\n\\x12medal_color_border\\x18\\x07 \\x01(\\x03\\x12\\x12\\n\\nis_lighted\\x18\\x08 \\x01(\\x03\\x12\\x13\\n\\x0bguard_level\\x18\\t \\x01(\\x03\\x12\\x0f\\n\\x07special\\x18\\n \\x01(\\t\\x12\\x0f\\n\\x07icon_id\\x18\\x0b \\x01(\\x03\\x12\\x15\\n\\ranchor_roomid\\x18\\x0c \\x01(\\x03\\x12\\r\\n\\x05score\\x18\\r \\x01(\\x03\\x1aS\\n\\x12UserAnchorRelation\\x12\\x11\\n\\ttail_icon\\x18\\x01 \\x01(\\t\\x12\\x17\\n\\x0ftail_guide_text\\x18\\x02 \\x01(\\t\\x12\\x11\\n\\ttail_type\\x18\\x03 \\x01(\\x03*2\\n\\rHaveMedalType\\x12\\x10\\n\\x0cMedal_Common\\x10\\x00\\x12\\x0f\\n\\x0bMedal_Group\\x10\\x01*+\\n\\tMedalType\\x12\\x0e\\n\\nMedal_Wear\\x10\\x00\\x12\\x0e\\n\\nMedal_Spec\\x10\\x01*X\\n\\x0eRiskPolicyEnum\\x12\\r\\n\\tRP_NORMAL\\x10\\x00\\x12\\r\\n\\tRP_POLICY\\x10\\x01\\x12\\x0e\\n\\nRP_SILENCE\\x10\\x02\\x12\\n\\n\\x06RP_CNY\\x10\\x03\\x12\\x0c\\n\\x08RP_BIGEV\\x10\\x04*3\\n\\x10RoomAnonTypeEnum\\x12\\n\\n\\x06RA_ALL\\x10\\x00\\x12\\x13\\n\\x0fRA_With_Subject\\x10\\x01\\x62\\x06proto3')
-
-_globals = globals()
-_builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
-_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'bilibili.live.decode_interact_word_v2.v1_pb2', _globals)
-if not _descriptor._USE_C_DESCRIPTORS:
-  DESCRIPTOR._loaded_options = None
-  _globals['_HAVEMEDALTYPE']._serialized_start=4071
-  _globals['_HAVEMEDALTYPE']._serialized_end=4121
-  _globals['_MEDALTYPE']._serialized_start=4123
-  _globals['_MEDALTYPE']._serialized_end=4166
-  _globals['_RISKPOLICYENUM']._serialized_start=4168
-  _globals['_RISKPOLICYENUM']._serialized_end=4256
-  _globals['_ROOMANONTYPEENUM']._serialized_start=4258
-  _globals['_ROOMANONTYPEENUM']._serialized_end=4309
-  _globals['_GROUPMEDALBRIEF']._serialized_start=92
-  _globals['_GROUPMEDALBRIEF']._serialized_end=161
-  _globals['_ACCOUNTINFO']._serialized_start=163
-  _globals['_ACCOUNTINFO']._serialized_end=204
-  _globals['_BASE']._serialized_start=207
-  _globals['_BASE']._serialized_end=540
-  _globals['_BASEOPTION']._serialized_start=543
-  _globals['_BASEOPTION']._serialized_end=755
-  _globals['_GUARD']._serialized_start=757
-  _globals['_GUARD']._serialized_end=800
-  _globals['_GUARDLEADER']._serialized_start=802
-  _globals['_GUARDLEADER']._serialized_end=840
-  _globals['_GUARDLEADEROPTION']._serialized_start=842
-  _globals['_GUARDLEADEROPTION']._serialized_end=892
-  _globals['_GUARDOPTION']._serialized_start=894
-  _globals['_GUARDOPTION']._serialized_end=969
-  _globals['_MEDAL']._serialized_start=972
-  _globals['_MEDAL']._serialized_end=1451
-  _globals['_MEDALOPTION']._serialized_start=1454
-  _globals['_MEDALOPTION']._serialized_end=1610
-  _globals['_OFFICIALINFO']._serialized_start=1612
-  _globals['_OFFICIALINFO']._serialized_end=1683
-  _globals['_RISKCTRL']._serialized_start=1685
-  _globals['_RISKCTRL']._serialized_end=1786
-  _globals['_RISKCTRLINFO']._serialized_start=1788
-  _globals['_RISKCTRLINFO']._serialized_end=1830
-  _globals['_ROOMANONCTRL']._serialized_start=1832
-  _globals['_ROOMANONCTRL']._serialized_end=1920
-  _globals['_TITLE']._serialized_start=1922
-  _globals['_TITLE']._serialized_end=1977
-  _globals['_TITLEOPTION']._serialized_start=1979
-  _globals['_TITLEOPTION']._serialized_end=2032
-  _globals['_USERHEADFRAME']._serialized_start=2034
-  _globals['_USERHEADFRAME']._serialized_end=2080
-  _globals['_USERINFO']._serialized_start=2083
-  _globals['_USERINFO']._serialized_end=2581
-  _globals['_WEALTH']._serialized_start=2583
-  _globals['_WEALTH']._serialized_end=2627
-  _globals['_WEALTHOPTION']._serialized_start=2629
-  _globals['_WEALTHOPTION']._serialized_end=2714
-  _globals['_INTERACTWORD']._serialized_start=2717
-  _globals['_INTERACTWORD']._serialized_end=4069
-  _globals['_INTERACTWORD_CONTRIBUTIONINFO']._serialized_start=3589
-  _globals['_INTERACTWORD_CONTRIBUTIONINFO']._serialized_end=3622
-  _globals['_INTERACTWORD_CONTRIBUTIONINFOV2']._serialized_start=3624
-  _globals['_INTERACTWORD_CONTRIBUTIONINFOV2']._serialized_end=3692
-  _globals['_INTERACTWORD_FANSMEDALINFO']._serialized_start=3695
-  _globals['_INTERACTWORD_FANSMEDALINFO']._serialized_end=3984
-  _globals['_INTERACTWORD_USERANCHORRELATION']._serialized_start=3986
-  _globals['_INTERACTWORD_USERANCHORRELATION']._serialized_end=4069
-# @@protoc_insertion_point(module_scope)
-"""
-
-    # 更完整的解决方案：使用protobuf库编译proto文件
-    def decode_online_rank_v3_protobuf(self, base64_string):
-        """
-        使用protobuf库完整解码（需要先编译proto文件）
-        """
-        # 导入编译后的模块
-        online_rank_v3_pb2 = Tools.str_to_module("online_rank_v3_pb2", self.online_rank_v3_pb2)
-        # 解码
-        pb_data = base64.b64decode(base64_string)
-        message = online_rank_v3_pb2.GoldRankBroadcast()
-        message.ParseFromString(pb_data)
-
-        # 转换为字典
-        return self.protobuf_to_dict(message)
-
-    def decode_interact_word_v2_protobuf(self, base64_string):
-        """
-        使用protobuf库完整解码（需要先编译proto文件）
-        """
-        # 导入编译后的模块
-        interact_word_v2_pb2 = Tools.str_to_module("interact_word_v2_pb2", self.interact_word_v2_pb2)
-        # 解码
-        pb_data = base64.b64decode(base64_string)
-        message = interact_word_v2_pb2.InteractWord()
-        message.ParseFromString(pb_data)
-
-        # 转换为字典
-        return self.protobuf_to_dict(message)
-
-    def protobuf_to_dict(self, obj):
-        """将protobuf对象转换为字典"""
-        result = {}
-
-        for field in obj.DESCRIPTOR.fields:
-            field_name = field.name
-            value = getattr(obj, field_name)
-
-            if field.label == field.LABEL_REPEATED:
-                # 重复字段
-                result[field_name] = [self.protobuf_to_dict(item) if hasattr(item, 'DESCRIPTOR') else item
-                                      for item in value]
-            elif field.type == field.TYPE_MESSAGE:
-                # 消息类型字段
-                if hasattr(value, 'DESCRIPTOR'):
-                    result[field_name] = self.protobuf_to_dict(value)
-                else:
-                    result[field_name] = value
-            else:
-                # 基本类型字段
-                result[field_name] = value
-
-        return result
-
-
 class OperationResult(TypedDict, total=False):
     """操作结果类型定义"""
     success: bool
@@ -1159,2283 +932,6 @@ class UserInfo(TypedDict, total=False):
     user_id: str
     is_default: bool
     last_updated: Optional[str]
-
-
-class BilibiliCSRFAuthenticator:
-    """
-    B站CSRF认证管理器，用于处理需要CSRF令牌的API请求。
-
-    该类专门用于B站直播相关的CSRF认证操作，特别是直播公告的更新。
-    自动从Cookie中提取必要的认证信息，并提供简化的API调用接口。
-
-    特性：
-    - 自动从Cookie中解析CSRF令牌（bili_jct）
-    - 自动提取用户ID（DedeUserID）
-    - 支持SSL验证配置
-    - 提供直播公告更新功能
-    - 统一的错误处理和响应格式
-    """
-
-    def __init__(self, headers: Dict[str, str], verify_ssl: bool = True):
-        """
-        初始化CSRF认证管理器
-
-        Args:
-            headers: 包含Cookie等认证信息的请求头字典
-            verify_ssl: 是否验证SSL证书（默认True，生产环境建议开启）
-
-        Returns:
-            包含操作结果的字典，包含以下键：
-            - success: 操作是否成功
-            - message: 结果描述信息
-            - data: 成功时的数据（如认证器实例）
-            - error: 失败时的错误信息
-        """
-        self.headers = headers.copy()  # 避免修改原始headers
-        self.verify_ssl = verify_ssl
-        self.initialization_result = self._initialize_authenticator()
-
-    def _initialize_authenticator(self) -> Dict[str, Any]:
-        """
-        初始化认证器的内部实现
-
-        Returns:
-            包含初始化结果的字典
-        """
-        try:
-            # 解析Cookie
-            if "cookie" not in self.headers:
-                return {
-                    "success": False,
-                    "message": "初始化失败",
-                    "error": "请求头中缺少cookie字段"
-                }
-
-            self.cookie = self.headers["cookie"]
-            self.cookies = Tools.parse_cookie(self.cookie)
-
-            # 提取必要字段
-            required_fields = ["bili_jct", "DedeUserID"]
-            missing_fields = [field for field in required_fields if field not in self.cookies]
-            if missing_fields:
-                return {
-                    "success": False,
-                    "message": "初始化失败",
-                    "error": f"Cookie中缺少必要字段: {', '.join(missing_fields)}"
-                }
-
-            self.user_id = self.cookies["DedeUserID"]
-            self.csrf = self.cookies["bili_jct"]
-
-            return {
-                "success": True,
-                "message": "认证器初始化成功",
-                "data": {
-                    "user_id": self.user_id,
-                    "csrf_token": self.csrf
-                }
-            }
-
-        except Exception as e:
-            return {
-                "success": False,
-                "message": "初始化过程中发生异常",
-                "error": str(e)
-            }
-
-    def validate_csrf_token(self) -> Dict[str, Any]:
-        """
-        验证CSRF令牌是否有效
-
-        Returns:
-            包含验证结果的字典：
-            - success: 验证是否成功
-            - valid: CSRF令牌是否有效
-            - message: 结果描述信息
-        """
-        if not self.initialization_result["success"]:
-            return {
-                "success": False,
-                "valid": False,
-                "message": "认证器未正确初始化"
-            }
-
-        is_valid = bool(self.csrf and len(self.csrf) == 32)
-
-        return {
-            "success": True,
-            "valid": is_valid,
-            "message": "CSRF令牌有效" if is_valid else "CSRF令牌无效"
-        }
-
-    def get_user_info(self) -> Dict[str, Any]:
-        """
-        获取用户基本信息
-
-        Returns:
-            包含用户信息的字典：
-            - success: 操作是否成功
-            - data: 用户信息字典（包含user_id, csrf_token, has_valid_csrf）
-            - message: 结果描述信息
-        """
-        if not self.initialization_result["success"]:
-            return {
-                "success": False,
-                "message": "无法获取用户信息，认证器未正确初始化",
-                "error": self.initialization_result.get("error", "未知错误")
-            }
-
-        validation_result = self.validate_csrf_token()
-
-        return {
-            "success": True,
-            "data": {
-                "user_id": self.user_id,
-                "csrf_token": self.csrf,
-                "has_valid_csrf": validation_result["valid"]
-            },
-            "message": "用户信息获取成功"
-        }
-
-    def cancel_reserve(self, sid: int, from_value: int = 13) -> Dict[str, Any]:
-        """
-        取消直播预约
-
-        Args:
-            sid: 预约活动ID
-            from_value: 来源标识（默认13）
-
-        Returns:
-            包含操作结果的字典：
-            - success: 操作是否成功（基于API返回的code）
-            - message: 结果描述信息
-            - data: API返回的完整数据
-            - error: 失败时的错误信息
-            - status_code: HTTP状态码
-            - api_code: API返回的code
-        """
-        # 检查认证器是否正常初始化
-        if not self.initialization_result["success"]:
-            return {
-                "success": False,
-                "message": "取消预约失败",
-                "error": "认证器未正确初始化",
-                "status_code": None,
-                "api_code": None,
-                "data": None
-            }
-
-        # 检查CSRF token
-        if not self.csrf:
-            return {
-                "success": False,
-                "message": "取消预约失败",
-                "error": "缺少bili_jct值，无法进行身份验证",
-                "status_code": None,
-                "api_code": None,
-                "data": None
-            }
-
-        # 检查sid参数
-        if not sid or sid <= 0:
-            return {
-                "success": False,
-                "message": "取消预约失败",
-                "error": "无效的预约活动ID",
-                "status_code": None,
-                "api_code": None,
-                "data": None
-            }
-
-        try:
-            # 生成随机visit_id (12位字母数字)
-            visit_id = ''.join(random.choices(string.ascii_lowercase + string.digits, k=12))
-
-            # 构造请求参数
-            payload = {
-                "sid": sid,
-                "from": from_value,
-                "csrf_token": self.csrf,
-                "csrf": self.csrf,
-                "visit_id": visit_id
-            }
-
-            # 发送POST请求
-            response = requests.post(
-                url="https://api.live.bilibili.com/xlive/app-ucenter/v2/schedule/CancelReserve",
-                headers=self.headers,
-                data=payload,
-                timeout=10,
-                verify=self.verify_ssl
-            )
-
-            # 检查HTTP状态码
-            if response.status_code != 200:
-                return {
-                    "success": False,
-                    "message": "取消预约失败",
-                    "error": f"HTTP错误: {response.status_code}",
-                    "status_code": response.status_code,
-                    "api_code": None,
-                    "response_text": response.text
-                }
-
-            # 解析JSON响应
-            result = response.json()
-
-            # 根据API返回的code判断操作是否成功
-            api_code = result.get("code", -1)
-            is_success = (api_code == 0)
-
-            return {
-                "success": is_success,
-                "message": result.get("message", "操作完成"),
-                "data": result,
-                "error": None if is_success else result.get("message", "未知错误"),
-                "status_code": response.status_code,
-                "api_code": api_code
-            }
-
-        except requests.exceptions.Timeout:
-            return {
-                "success": False,
-                "message": "取消预约失败",
-                "error": "请求超时",
-                "status_code": None,
-                "api_code": None,
-                "data": None
-            }
-        except requests.exceptions.ConnectionError:
-            return {
-                "success": False,
-                "message": "取消预约失败",
-                "error": "网络连接错误",
-                "status_code": None,
-                "api_code": None,
-                "data": None
-            }
-        except requests.exceptions.RequestException as e:
-            return {
-                "success": False,
-                "message": "取消预约失败",
-                "error": f"网络请求异常: {str(e)}",
-                "status_code": None,
-                "api_code": None,
-                "data": None
-            }
-        except json.JSONDecodeError as e:
-            return {
-                "success": False,
-                "message": "取消预约失败",
-                "error": f"解析响应失败: {str(e)}",
-                "status_code": None,
-                "api_code": None,
-                "data": None
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "message": "取消预约过程中发生未知错误",
-                "error": str(e),
-                "status_code": None,
-                "api_code": None,
-                "data": None
-            }
-
-    def change_room_area(self, room_id: int, area_id: int) -> Dict[str, Any]:
-        """
-        更改直播分区
-
-        Args:
-            room_id: 直播间ID
-            area_id: 二级分区ID
-
-        Returns:
-            包含操作结果的字典：
-            - success: 操作是否成功
-            - message: 结果描述信息
-            - data: 成功时的数据（如sub_session_key）
-            - error: 失败时的错误信息
-            - status_code: HTTP状态码
-            - api_code: B站API返回的code
-        """
-        try:
-            # 检查认证器是否正常初始化
-            if not self.initialization_result["success"]:
-                return {
-                    "success": False,
-                    "message": "更改分区失败",
-                    "error": "认证器未正确初始化",
-                    "status_code": None,
-                    "api_code": None
-                }
-
-            # 构建API请求
-            api = "https://api.live.bilibili.com/xlive/app-blink/v2/room/AnchorChangeRoomArea"
-            headers = self.headers.copy()
-            csrf = self.csrf
-
-            params = {
-                "platform": "pc",
-                "room_id": room_id,
-                "area_id": area_id,
-                "csrf": csrf,
-                "csrf_token": csrf,
-            }
-
-            # 发送请求
-            response = requests.post(
-                url=api,
-                headers=headers,
-                params=params,
-                verify=self.verify_ssl,
-                timeout=30
-            )
-
-            # 检查HTTP状态码
-            if response.status_code != 200:
-                return {
-                    "success": False,
-                    "message": "更改分区失败",
-                    "error": f"HTTP错误: {response.status_code}",
-                    "status_code": response.status_code,
-                    "api_code": None,
-                    "response_text": response.text
-                }
-
-            # 解析响应
-            result = response.json()
-            api_code = result.get("code", -1)
-
-            # 根据API返回的code判断操作结果
-            if api_code == 0:
-                return {
-                    "success": True,
-                    "message": "分区更改成功",
-                    "data": result.get("data", {}),
-                    "status_code": response.status_code,
-                    "api_code": api_code
-                }
-            else:
-                error_message = result.get("message", "未知错误")
-                return {
-                    "success": False,
-                    "message": f"分区更改失败: {error_message}",
-                    "error": error_message,
-                    "status_code": response.status_code,
-                    "api_code": api_code,
-                    "response_data": result
-                }
-
-        except requests.exceptions.Timeout:
-            return {
-                "success": False,
-                "message": "更改分区失败",
-                "error": "请求超时",
-                "status_code": None,
-                "api_code": None
-            }
-        except requests.exceptions.ConnectionError:
-            return {
-                "success": False,
-                "message": "更改分区失败",
-                "error": "网络连接错误",
-                "status_code": None,
-                "api_code": None
-            }
-        except requests.exceptions.RequestException as e:
-            return {
-                "success": False,
-                "message": "更改分区失败",
-                "error": f"网络请求异常: {str(e)}",
-                "status_code": None,
-                "api_code": None
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "message": "更改分区过程中发生未知错误",
-                "error": str(e),
-                "status_code": None,
-                "api_code": None
-            }
-
-    def change_room_news(self, room_id: int, content: str) -> Dict[str, Any]:
-        """
-        更新直播公告
-
-        Args:
-            room_id: 直播间ID
-            content: 公告内容
-
-        Returns:
-            包含操作结果的字典：
-            - success: 操作是否成功
-            - message: 结果描述信息
-            - data: 成功时的数据（API返回的data字段）
-            - error: 失败时的错误信息
-            - status_code: HTTP状态码（如果有）
-        """
-        try:
-            # 检查认证器是否正常初始化
-            if not self.initialization_result["success"]:
-                return {
-                    "success": False,
-                    "message": "更新直播公告失败",
-                    "error": "认证器未正确初始化",
-                    "status_code": None
-                }
-
-            # 验证输入参数
-            if not room_id or room_id <= 0:
-                return {
-                    "success": False,
-                    "message": "更新直播公告失败",
-                    "error": "直播间ID无效",
-                    "status_code": None
-                }
-
-            if not content or len(content.strip()) == 0:
-                return {
-                    "success": False,
-                    "message": "更新直播公告失败",
-                    "error": "公告内容不能为空",
-                    "status_code": None
-                }
-
-            headers = self.headers.copy()
-            csrf = self.csrf
-
-            api = "https://api.live.bilibili.com/xlive/app-blink/v1/index/updateRoomNews"
-            updateRoomNews_data = {
-                'room_id': room_id,
-                'uid': self.cookies["DedeUserID"],
-                'content': content,
-                'csrf_token': csrf,
-                'csrf': csrf
-            }
-
-            # 发送请求
-            response = requests.post(
-                verify=self.verify_ssl,
-                url=api,
-                headers=headers,
-                data=updateRoomNews_data,
-                timeout=30
-            )
-
-            # 检查HTTP状态码
-            if response.status_code != 200:
-                return {
-                    "success": False,
-                    "message": "更新直播公告失败",
-                    "error": f"HTTP错误: {response.status_code}",
-                    "status_code": response.status_code,
-                    "response_text": response.text
-                }
-
-            # 解析响应
-            result = response.json()
-
-            # 检查B站API返回状态
-            if result.get("code") != 0:
-                return {
-                    "success": False,
-                    "message": "B站API返回错误",
-                    "error": result.get("message", "未知错误"),
-                    "status_code": response.status_code,
-                    "api_code": result.get("code")
-                }
-
-            # 成功返回
-            return {
-                "success": True,
-                "message": "直播公告更新成功",
-                "data": result.get("data", {}),
-                "status_code": response.status_code,
-                "api_response": result  # 包含完整的API响应
-            }
-
-        except requests.exceptions.Timeout:
-            return {
-                "success": False,
-                "message": "更新直播公告失败",
-                "error": "请求超时",
-                "status_code": None
-            }
-        except requests.exceptions.ConnectionError:
-            return {
-                "success": False,
-                "message": "更新直播公告失败",
-                "error": "网络连接错误",
-                "status_code": None
-            }
-        except requests.exceptions.RequestException as e:
-            return {
-                "success": False,
-                "message": "更新直播公告失败",
-                "error": f"网络请求异常: {str(e)}",
-                "status_code": None
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "message": "更新直播公告过程中发生未知错误",
-                "error": str(e),
-                "status_code": None
-            }
-
-    def change_room_title(self, room_id: int, title: str) -> Dict[str, Any]:
-        """
-        更新直播标题
-
-        Args:
-            room_id: 直播间ID
-            title: 新的直播标题
-
-        Returns:
-            包含操作结果的字典：
-            - success: 操作是否成功
-            - message: 结果描述信息
-            - data: 成功时的数据
-            - error: 失败时的错误信息
-            - status_code: HTTP状态码
-            - api_code: B站API返回的状态码
-        """
-        try:
-            # 检查认证器是否正常初始化
-            if not self.initialization_result["success"]:
-                return {
-                    "success": False,
-                    "message": "更改标题失败",
-                    "error": "认证器未正确初始化",
-                    "status_code": None,
-                    "api_code": None
-                }
-
-            # 验证输入参数
-            if not room_id or room_id <= 0:
-                return {
-                    "success": False,
-                    "message": "更改标题失败",
-                    "error": "房间ID无效",
-                    "status_code": None,
-                    "api_code": None
-                }
-
-            if not title or len(title.strip()) == 0:
-                return {
-                    "success": False,
-                    "message": "更改标题失败",
-                    "error": "标题不能为空",
-                    "status_code": None,
-                    "api_code": None
-                }
-
-            # 准备请求参数
-            headers = self.headers.copy()
-            csrf = self.csrf
-            api_url = "https://api.live.bilibili.com/room/v1/Room/update"
-            data = {
-                'room_id': room_id,
-                'title': title,
-                'csrf_token': csrf,
-                'csrf': csrf
-            }
-
-            # 发送请求
-            response = requests.post(
-                url=api_url,
-                headers=headers,
-                data=data,
-                verify=self.verify_ssl,
-                timeout=30
-            )
-
-            # 检查HTTP状态码
-            if response.status_code != 200:
-                return {
-                    "success": False,
-                    "message": "更改标题失败",
-                    "error": f"HTTP错误: {response.status_code}",
-                    "status_code": response.status_code,
-                    "api_code": None,
-                    "response_text": response.text
-                }
-
-            # 解析响应
-            result = response.json()
-
-            # 根据B站API返回的状态码判断成功与否
-            api_code = result.get("code", -1)
-            if api_code == 0:
-                return {
-                    "success": True,
-                    "message": "标题更改成功",
-                    "data": result.get("data", {}),
-                    "status_code": response.status_code,
-                    "api_code": api_code
-                }
-            else:
-                # 提取错误信息
-                error_msg = result.get("msg") or result.get("message", "未知错误")
-                return {
-                    "success": False,
-                    "message": "标题更改失败",
-                    "error": error_msg,
-                    "status_code": response.status_code,
-                    "api_code": api_code,
-                    "response_data": result
-                }
-
-        except requests.exceptions.Timeout:
-            return {
-                "success": False,
-                "message": "更改标题失败",
-                "error": "请求超时",
-                "status_code": None,
-                "api_code": None
-            }
-        except requests.exceptions.ConnectionError:
-            return {
-                "success": False,
-                "message": "更改标题失败",
-                "error": "网络连接错误",
-                "status_code": None,
-                "api_code": None
-            }
-        except requests.exceptions.RequestException as e:
-            return {
-                "success": False,
-                "message": "更改标题失败",
-                "error": f"网络请求异常: {str(e)}",
-                "status_code": None,
-                "api_code": None
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "message": "更改标题过程中发生未知错误",
-                "error": str(e),
-                "status_code": None,
-                "api_code": None
-            }
-
-    def create_live_room(self) -> Dict[str, Any]:
-        """
-        开通直播间（创建直播间房间）
-
-        Returns:
-            包含开通结果的字典：
-            - success: 操作是否成功
-            - message: 结果描述信息
-            - data: 成功时的数据（包含room_id等）
-            - error: 失败时的错误信息
-            - status_code: HTTP状态码（如果有）
-            - api_code: B站API返回的错误码（如果有）
-        """
-        try:
-            # 检查认证器是否正常初始化
-            if not self.initialization_result["success"]:
-                return {
-                    "success": False,
-                    "message": "开通直播间失败",
-                    "error": "认证器未正确初始化",
-                    "status_code": None,
-                    "api_code": None
-                }
-
-            # 检查必要的CSRF token
-            if not self.csrf:
-                return {
-                    "success": False,
-                    "message": "开通直播间失败",
-                    "error": "缺少bili_jct值，无法进行CSRF验证",
-                    "status_code": None,
-                    "api_code": None
-                }
-
-            api_url = "https://api.live.bilibili.com/xlive/app-blink/v1/preLive/CreateRoom"
-
-            # 准备请求数据
-            data = {
-                "platform": "web",
-                "visit_id": "",
-                "csrf": self.csrf,
-                "csrf_token": self.csrf,
-            }
-
-            # 发送POST请求
-            response = requests.post(
-                url=api_url,
-                data=data,
-                headers=self.headers,
-                verify=self.verify_ssl,
-                timeout=30
-            )
-
-            # 检查HTTP状态码
-            if response.status_code != 200:
-                return {
-                    "success": False,
-                    "message": "开通直播间失败",
-                    "error": f"HTTP错误: {response.status_code}",
-                    "status_code": response.status_code,
-                    "api_code": None,
-                    "response_text": response.text
-                }
-
-            # 解析JSON响应
-            result = response.json()
-
-            # 处理已知的成功和失败情况
-            api_code = result.get("code", 0)
-
-            # 成功情况
-            if api_code == 0:
-                return {
-                    "success": True,
-                    "message": "直播间开通成功",
-                    "data": result.get("data", {}),
-                    "status_code": response.status_code,
-                    "api_code": api_code
-                }
-
-            # 已知的失败情况
-            elif api_code == 1531193016:  # 已经创建过直播间
-                return {
-                    "success": True,  # 虽然API返回错误码，但从业务角度看是成功的（已存在）
-                    "message": "直播间已存在",
-                    "data": result.get("data", {}),
-                    "status_code": response.status_code,
-                    "api_code": api_code
-                }
-
-            # 其他失败情况
-            else:
-                return {
-                    "success": False,
-                    "message": "开通直播间失败",
-                    "error": result.get("message", "未知错误"),
-                    "status_code": response.status_code,
-                    "api_code": api_code,
-                    "response_data": result
-                }
-
-        except requests.exceptions.Timeout:
-            return {
-                "success": False,
-                "message": "开通直播间失败",
-                "error": "请求超时",
-                "status_code": None,
-                "api_code": None
-            }
-        except requests.exceptions.ConnectionError:
-            return {
-                "success": False,
-                "message": "开通直播间失败",
-                "error": "网络连接错误",
-                "status_code": None,
-                "api_code": None
-            }
-        except requests.exceptions.RequestException as e:
-            return {
-                "success": False,
-                "message": "开通直播间失败",
-                "error": f"网络请求异常: {str(e)}",
-                "status_code": None,
-                "api_code": None
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "message": "开通直播间过程中发生未知错误",
-                "error": str(e),
-                "status_code": None,
-                "api_code": None
-            }
-
-    def create_reserve(self, title: str, live_plan_start_time: int, create_dynamic: bool = False,
-                       business_type: int = 10) -> Dict[str, Any]:
-        """
-        创建直播预约
-
-        Args:
-            title: 预约标题
-            live_plan_start_time: 直播计划开始时间(Unix时间戳)
-            create_dynamic: 是否同步发布动态(默认False)
-            business_type: 业务类型(默认10)
-
-        Returns:
-            包含预约结果的字典：
-            - success: 操作是否成功
-            - message: 结果描述信息
-            - data: 成功时的数据（包含sid等）
-            - error: 失败时的错误信息
-            - status_code: HTTP状态码
-            - api_code: B站API返回的code
-        """
-        try:
-            # 检查认证器是否正常初始化
-            if not self.initialization_result["success"]:
-                return {
-                    "success": False,
-                    "message": "创建预约失败",
-                    "error": "认证器未正确初始化",
-                    "status_code": None,
-                    "api_code": None
-                }
-
-            # 验证必要参数
-            if not self.csrf:
-                return {
-                    "success": False,
-                    "message": "创建预约失败",
-                    "error": "缺少bili_jct参数，无法获取csrf token",
-                    "status_code": None,
-                    "api_code": None
-                }
-
-            if not title or not live_plan_start_time:
-                return {
-                    "success": False,
-                    "message": "创建预约失败",
-                    "error": "标题和开始时间为必填参数",
-                    "status_code": None,
-                    "api_code": None
-                }
-
-            # 生成随机visit_id (16位字母数字组合)
-            visit_id = ''.join(random.choices(string.ascii_lowercase + string.digits, k=16))
-
-            # 构建请求负载
-            payload = {
-                "title": title,
-                "type": "2",  # 固定值
-                "from": "23",  # 固定值
-                "create_dynamic": "1" if create_dynamic else "0",
-                "live_plan_start_time": str(live_plan_start_time),
-                "business_type": str(business_type),
-                "csrf_token": self.csrf,
-                "csrf": self.csrf,
-                "visit_id": visit_id
-            }
-
-            api_url = "https://api.live.bilibili.com/xlive/app-ucenter/v2/schedule/CreateReserve"
-
-            response = requests.post(
-                verify=self.verify_ssl,
-                url=api_url,
-                headers=self.headers,
-                data=payload,
-                timeout=10
-            )
-
-            # 检查HTTP状态码
-            if response.status_code != 200:
-                return {
-                    "success": False,
-                    "message": "创建预约失败",
-                    "error": f"HTTP错误: {response.status_code}",
-                    "status_code": response.status_code,
-                    "api_code": None,
-                    "response_text": response.text
-                }
-
-            # 解析响应
-            result = response.json()
-
-            # 根据B站API返回的code判断是否成功
-            api_code = result.get("code", -1)
-            if api_code == 0:
-                # 成功创建预约
-                return {
-                    "success": True,
-                    "message": "预约创建成功",
-                    "data": {
-                        "sid": result.get("data", {}).get("sid"),
-                        "api_response": result
-                    },
-                    "status_code": response.status_code,
-                    "api_code": api_code
-                }
-            else:
-                # 预约创建失败
-                error_message = result.get("message", "未知错误")
-                common_errors = {
-                    75876: "已超出预约发起上限",
-                    75882: "发起直播预约开播时间不可早于当前时间后5分钟",
-                    10016: "创建预约失败"
-                }
-
-                # 使用预定义的错误消息或API返回的消息
-                if api_code in common_errors:
-                    error_message = common_errors[api_code]
-
-                return {
-                    "success": False,
-                    "message": "B站API返回错误",
-                    "error": error_message,
-                    "status_code": response.status_code,
-                    "api_code": api_code,
-                    "api_response": result
-                }
-
-        except requests.exceptions.Timeout:
-            return {
-                "success": False,
-                "message": "创建预约失败",
-                "error": "请求超时",
-                "status_code": None,
-                "api_code": None
-            }
-        except requests.exceptions.ConnectionError:
-            return {
-                "success": False,
-                "message": "创建预约失败",
-                "error": "网络连接错误",
-                "status_code": None,
-                "api_code": None
-            }
-        except requests.exceptions.RequestException as e:
-            return {
-                "success": False,
-                "message": "创建预约失败",
-                "error": f"网络请求异常: {str(e)}",
-                "status_code": None,
-                "api_code": None
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "message": "创建预约过程中发生未知错误",
-                "error": str(e),
-                "status_code": None,
-                "api_code": None
-            }
-
-    def get_dynamic(self, host_mid: int, all: bool = False) -> Dict[str, Any]:
-        """
-        获取用户动态列表
-
-        Args:
-            host_mid: 用户ID
-            all: 是否获取全部动态（分页获取）
-
-        Returns:
-            包含动态列表的字典：
-            - success: 操作是否成功
-            - message: 结果描述信息
-            - data: 成功时的动态数据
-            - error: 失败时的错误信息
-            - status_code: HTTP状态码（如果有）
-        """
-        try:
-            # 检查管理器是否正常初始化
-            if not self.initialization_result["success"]:
-                return {
-                    "success": False,
-                    "message": "获取动态列表失败",
-                    "error": "认证器未正确初始化",
-                    "status_code": None
-                }
-
-            # 检查用户ID是否有效
-            if not host_mid or host_mid <= 0:
-                return {
-                    "success": False,
-                    "message": "获取动态列表失败",
-                    "error": "用户ID无效",
-                    "status_code": None
-                }
-
-            # 构建API请求
-            api_url = "https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space"
-            params = {
-                "offset": "",
-                "host_mid": host_mid
-            }
-
-            # 发送请求
-            response = requests.get(
-                url=api_url,
-                headers=self.headers,
-                params=params,
-                verify=self.verify_ssl,
-                timeout=30
-            )
-
-            # 检查HTTP状态码
-            if response.status_code != 200:
-                return {
-                    "success": False,
-                    "message": "获取动态列表失败",
-                    "error": f"HTTP错误: {response.status_code}",
-                    "status_code": response.status_code,
-                    "response_text": response.text
-                }
-
-            # 解析响应
-            result = response.json()
-
-            # 检查B站API返回状态
-            if result.get("code") != 0:
-                return {
-                    "success": False,
-                    "message": "B站API返回错误",
-                    "error": result.get("message", "未知错误"),
-                    "status_code": response.status_code,
-                    "api_code": result.get("code")
-                }
-
-            # 检查数据是否存在
-            if "data" not in result or "items" not in result["data"]:
-                return {
-                    "success": False,
-                    "message": "API响应格式异常",
-                    "error": "响应中缺少必要的数据字段",
-                    "status_code": response.status_code,
-                    "response_data": result
-                }
-
-            # 获取动态数据
-            dynamics = result["data"]["items"]
-
-            # 如果需要获取全部动态，则继续分页请求
-            if all and result["data"].get("has_more", False):
-                while result["data"].get("has_more", False):
-                    params["offset"] = result["data"].get("offset", "")
-
-                    # 发送分页请求
-                    response = requests.get(
-                        url=api_url,
-                        headers=self.headers,
-                        params=params,
-                        verify=self.verify_ssl,
-                        timeout=30
-                    )
-
-                    # 检查HTTP状态码
-                    if response.status_code != 200:
-                        break
-
-                    # 解析响应
-                    result = response.json()
-
-                    # 检查B站API返回状态
-                    if result.get("code") != 0:
-                        break
-
-                    # 检查数据是否存在
-                    if "data" not in result or "items" not in result["data"]:
-                        break
-
-                    # 添加新获取的动态
-                    for item in result["data"]["items"]:
-                        if item not in dynamics:
-                            dynamics.append(item)
-
-            # 成功返回
-            return {
-                "success": True,
-                "message": "动态列表获取成功",
-                "data": dynamics,
-                "status_code": response.status_code
-            }
-
-        except requests.exceptions.Timeout:
-            return {
-                "success": False,
-                "message": "获取动态列表失败",
-                "error": "请求超时",
-                "status_code": None
-            }
-        except requests.exceptions.ConnectionError:
-            return {
-                "success": False,
-                "message": "获取动态列表失败",
-                "error": "网络连接错误",
-                "status_code": None
-            }
-        except requests.exceptions.RequestException as e:
-            return {
-                "success": False,
-                "message": "获取动态列表失败",
-                "error": f"网络请求异常: {str(e)}",
-                "status_code": None
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "message": "获取动态列表过程中发生未知错误",
-                "error": str(e),
-                "status_code": None
-            }
-
-    def get_emoticons(self, room_id: int) -> Dict[str, Any]:
-        """
-        获取直播间表情列表
-
-        Args:
-            room_id: 直播间ID
-
-        Returns:
-            包含表情列表的字典：
-            - success: 操作是否成功
-            - message: 结果描述信息
-            - data: 成功时的数据（表情列表）
-            - error: 失败时的错误信息
-            - status_code: HTTP状态码（如果有）
-        """
-        try:
-            # 检查认证器是否正常初始化
-            if not self.initialization_result["success"]:
-                return {
-                    "success": False,
-                    "message": "获取表情列表失败",
-                    "error": "认证器未正确初始化",
-                    "status_code": None
-                }
-
-            # 检查房间ID是否有效
-            if not room_id or room_id <= 0:
-                return {
-                    "success": False,
-                    "message": "获取表情列表失败",
-                    "error": "房间ID无效",
-                    "status_code": None
-                }
-
-            # 构建API请求
-            api_url = "https://api.live.bilibili.com/xlive/web-ucenter/v2/emoticon/GetEmoticons"
-            params = {
-                "platform": "pc",
-                "room_id": room_id
-            }
-
-            # 发送请求
-            response = requests.get(
-                url=api_url,
-                headers=self.headers,
-                params=params,
-                verify=self.verify_ssl,
-                timeout=30
-            )
-
-            # 检查HTTP状态码
-            if response.status_code != 200:
-                return {
-                    "success": False,
-                    "message": "获取表情列表失败",
-                    "error": f"HTTP错误: {response.status_code}",
-                    "status_code": response.status_code,
-                    "response_text": response.text
-                }
-
-            # 解析响应
-            result = response.json()
-
-            # 检查B站API返回状态
-            if result.get("code") != 0:
-                return {
-                    "success": False,
-                    "message": "B站API返回错误",
-                    "error": result.get("message", "未知错误"),
-                    "status_code": response.status_code,
-                    "api_code": result.get("code")
-                }
-
-            # 检查数据是否存在
-            if "data" not in result or "data" not in result["data"]:
-                return {
-                    "success": False,
-                    "message": "API响应格式异常",
-                    "error": "响应中缺少必要的数据字段",
-                    "status_code": response.status_code,
-                    "response_data": result
-                }
-
-            # 成功返回
-            return {
-                "success": True,
-                "message": "表情列表获取成功",
-                "data": result["data"]["data"],
-                "status_code": response.status_code
-            }
-
-        except requests.exceptions.Timeout:
-            return {
-                "success": False,
-                "message": "获取表情列表失败",
-                "error": "请求超时",
-                "status_code": None
-            }
-        except requests.exceptions.ConnectionError:
-            return {
-                "success": False,
-                "message": "获取表情列表失败",
-                "error": "网络连接错误",
-                "status_code": None
-            }
-        except requests.exceptions.RequestException as e:
-            return {
-                "success": False,
-                "message": "获取表情列表失败",
-                "error": f"网络请求异常: {str(e)}",
-                "status_code": None
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "message": "获取表情列表过程中发生未知错误",
-                "error": str(e),
-                "status_code": None
-            }
-
-    def get_fans_members_rank(self, uid: int) -> Dict[str, Any]:
-        """
-        获取指定用户的粉丝团成员列表
-
-        Args:
-            uid: 要查询的B站用户UID
-
-        Returns:
-            包含查询结果的字典：
-            - success: 操作是否成功
-            - message: 结果描述信息
-            - data: 成功时的粉丝团成员列表数据
-            - error: 失败时的错误信息
-            - status_code: HTTP状态码（如果有）
-            - total_count: 总成员数量（成功时）
-        """
-        try:
-            # 检查认证器是否正常初始化
-            if not self.initialization_result["success"]:
-                return {
-                    "success": False,
-                    "message": "获取粉丝团成员列表失败",
-                    "error": "认证器未正确初始化",
-                    "status_code": None
-                }
-
-            # 验证UID参数
-            if not uid or uid <= 0:
-                return {
-                    "success": False,
-                    "message": "获取粉丝团成员列表失败",
-                    "error": "无效的用户UID",
-                    "status_code": None
-                }
-
-            api_url = "https://api.live.bilibili.com/xlive/general-interface/v1/rank/getFansMembersRank"
-            headers = self.headers
-            page = 1
-            fans_members = []
-            has_more_data = True
-            max_retries = 3
-
-            while has_more_data:
-                params = {
-                    "ruid": uid,
-                    "page": page,
-                    "page_size": 30,
-                }
-
-                # 添加重试机制
-                for attempt in range(max_retries):
-                    try:
-                        response = requests.get(
-                            api_url,
-                            headers=headers,
-                            params=params,
-                            verify=self.verify_ssl,
-                            timeout=30
-                        )
-
-                        # 检查HTTP状态码
-                        if response.status_code != 200:
-                            if attempt < max_retries - 1:
-                                time.sleep(2)  # 等待后重试
-                                continue
-                            else:
-                                return {
-                                    "success": False,
-                                    "message": "获取粉丝团成员列表失败",
-                                    "error": f"HTTP错误: {response.status_code}",
-                                    "status_code": response.status_code
-                                }
-
-                        result = response.json()
-
-                        # 检查API返回状态
-                        if result.get("code") != 0:
-                            return {
-                                "success": False,
-                                "message": "B站API返回错误",
-                                "error": result.get("message", "未知错误"),
-                                "status_code": response.status_code,
-                                "api_code": result.get("code")
-                            }
-
-                        # 处理数据
-                        current_page_items = result["data"].get("item", [])
-                        if current_page_items:
-                            fans_members.extend(current_page_items)
-                            page += 1
-                        else:
-                            has_more_data = False
-
-                        break  # 成功获取数据，跳出重试循环
-
-                    except requests.exceptions.Timeout:
-                        if attempt < max_retries - 1:
-                            time.sleep(5)  # 超时后等待5秒重试
-                            continue
-                        else:
-                            return {
-                                "success": False,
-                                "message": "获取粉丝团成员列表失败",
-                                "error": "请求超时",
-                                "status_code": None
-                            }
-                    except requests.exceptions.RequestException as e:
-                        if attempt < max_retries - 1:
-                            time.sleep(5)  # 网络错误后等待5秒重试
-                            continue
-                        else:
-                            return {
-                                "success": False,
-                                "message": "获取粉丝团成员列表失败",
-                                "error": f"网络请求异常: {str(e)}",
-                                "status_code": None
-                            }
-
-            # 成功返回
-            return {
-                "success": True,
-                "message": "粉丝团成员列表获取成功",
-                "data": fans_members,
-                "total_count": len(fans_members),
-                "status_code": 200
-            }
-
-        except Exception as e:
-            return {
-                "success": False,
-                "message": "获取粉丝团成员列表过程中发生未知错误",
-                "error": str(e),
-                "status_code": None
-            }
-
-    def get_navigation_info(self) -> Dict[str, Any]:
-        """
-        获取登录后导航栏用户信息
-
-        Returns:
-            包含导航信息的字典：
-            - success: 操作是否成功
-            - message: 结果描述信息
-            - data: 成功时的数据（包含用户详细信息）
-            - error: 失败时的错误信息
-            - status_code: HTTP状态码（如果有）
-        """
-        try:
-            # 检查管理器是否正常初始化
-            if not self.initialization_result["success"]:
-                return {
-                    "success": False,
-                    "message": "获取导航信息失败",
-                    "error": "认证器未正确初始化",
-                    "status_code": None
-                }
-
-            # 构建API请求
-            api_url = "https://api.bilibili.com/x/web-interface/nav"
-
-            # 发送请求
-            response = requests.get(
-                url=api_url,
-                headers=self.headers,
-                verify=self.verify_ssl,
-                timeout=30
-            )
-
-            # 检查HTTP状态码
-            if response.status_code != 200:
-                return {
-                    "success": False,
-                    "message": "获取导航信息失败",
-                    "error": f"HTTP错误: {response.status_code}",
-                    "status_code": response.status_code,
-                    "response_text": response.text
-                }
-
-            # 解析响应
-            result = response.json()
-
-            # 检查B站API返回状态
-            if result.get("code") != 0:
-                return {
-                    "success": False,
-                    "message": "B站API返回错误",
-                    "error": result.get("message", "未知错误"),
-                    "status_code": response.status_code,
-                    "api_code": result.get("code")
-                }
-
-            # 检查数据是否存在
-            if "data" not in result:
-                return {
-                    "success": False,
-                    "message": "API响应格式异常",
-                    "error": "响应中缺少必要的数据字段",
-                    "status_code": response.status_code,
-                    "response_data": result
-                }
-
-            # 成功返回
-            return {
-                "success": True,
-                "message": "导航信息获取成功",
-                "data": result["data"],
-                "status_code": response.status_code
-            }
-
-        except requests.exceptions.Timeout:
-            return {
-                "success": False,
-                "message": "获取导航信息失败",
-                "error": "请求超时",
-                "status_code": None
-            }
-        except requests.exceptions.ConnectionError:
-            return {
-                "success": False,
-                "message": "获取导航信息失败",
-                "error": "网络连接错误",
-                "status_code": None
-            }
-        except requests.exceptions.RequestException as e:
-            return {
-                "success": False,
-                "message": "获取导航信息失败",
-                "error": f"网络请求异常: {str(e)}",
-                "status_code": None
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "message": "获取导航信息过程中发生未知错误",
-                "error": str(e),
-                "status_code": None
-            }
-
-    def get_user_live_info(self) -> Dict[str, Any]:
-        """
-        获取用户直播相关信息
-
-        Returns:
-            包含用户直播信息的字典：
-            - success: 操作是否成功
-            - message: 结果描述信息
-            - data: 成功时的数据（包含用户直播信息）
-            - error: 失败时的错误信息
-            - status_code: HTTP状态码（如果有）
-        """
-        try:
-            # 检查认证器是否正常初始化
-            if not self.initialization_result["success"]:
-                return {
-                    "success": False,
-                    "message": "获取用户直播信息失败",
-                    "error": "认证器未正确初始化",
-                    "status_code": None
-                }
-
-            # 构建API请求
-            api_url = "https://api.live.bilibili.com/xlive/web-ucenter/user/get_user_info"
-
-            # 发送请求
-            response = requests.get(
-                url=api_url,
-                headers=self.headers,
-                verify=self.verify_ssl,
-                timeout=30
-            )
-
-            # 检查HTTP状态码
-            if response.status_code != 200:
-                return {
-                    "success": False,
-                    "message": "获取用户直播信息失败",
-                    "error": f"HTTP错误: {response.status_code}",
-                    "status_code": response.status_code,
-                    "response_text": response.text
-                }
-
-            # 解析响应
-            result = response.json()
-
-            # 检查B站API返回状态
-            if result.get("code") != 0:
-                return {
-                    "success": False,
-                    "message": "B站API返回错误",
-                    "error": result.get("message", "未知错误"),
-                    "status_code": response.status_code,
-                    "api_code": result.get("code")
-                }
-
-            # 检查数据是否存在
-            if "data" not in result:
-                return {
-                    "success": False,
-                    "message": "API响应格式异常",
-                    "error": "响应中缺少必要的数据字段",
-                    "status_code": response.status_code,
-                    "response_data": result
-                }
-
-            # 成功返回
-            return {
-                "success": True,
-                "message": "用户直播信息获取成功",
-                "data": result["data"],
-                "status_code": response.status_code
-            }
-
-        except requests.exceptions.Timeout:
-            return {
-                "success": False,
-                "message": "获取用户直播信息失败",
-                "error": "请求超时",
-                "status_code": None
-            }
-        except requests.exceptions.ConnectionError:
-            return {
-                "success": False,
-                "message": "获取用户直播信息失败",
-                "error": "网络连接错误",
-                "status_code": None
-            }
-        except requests.exceptions.RequestException as e:
-            return {
-                "success": False,
-                "message": "获取用户直播信息失败",
-                "error": f"网络请求异常: {str(e)}",
-                "status_code": None
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "message": "获取用户直播信息过程中发生未知错误",
-                "error": str(e),
-                "status_code": None
-            }
-
-    def rename_fans_medal(self, medal_name: str) -> Dict[str, Any]:
-        """
-        修改粉丝勋章名称
-
-        Args:
-            medal_name: 新的粉丝勋章名称
-
-        Returns:
-            包含操作结果的字典，固定键名：
-            - success: 操作是否成功（布尔值）
-            - message: 操作结果消息
-            - data: 附加数据（字典）
-            - error: 错误信息（失败时存在）
-            - status_code: HTTP状态码
-            - api_code: B站API返回的代码
-        """
-        # 检查认证器是否正常初始化
-        if not self.initialization_result["success"]:
-            return {
-                "success": False,
-                "message": "操作失败",
-                "error": "认证器未正确初始化",
-                "status_code": None,
-                "api_code": None
-            }
-
-        api_url = "https://api.live.bilibili.com/fans_medal/v1/medal/rename"
-
-        try:
-            # 准备请求参数
-            params = {
-                "uid": self.cookies.get("DedeUserID", ""),
-                "source": "1",
-                "medal_name": medal_name,
-                "platform": "pc",
-                "csrf_token": self.csrf,
-                "csrf": self.csrf
-            }
-
-            # 准备请求头
-            headers = {
-                **self.headers,
-                "origin": "https://link.bilibili.com",
-                "referer": "https://link.bilibili.com/p/center/index",
-                "content-type": "application/x-www-form-urlencoded",
-                "priority": "u=1, i"
-            }
-
-            # 发送POST请求
-            response = requests.post(
-                api_url,
-                headers=headers,
-                data=params,
-                timeout=10,
-                verify=self.verify_ssl
-            )
-
-            # 检查HTTP状态码
-            if response.status_code != 200:
-                return {
-                    "success": False,
-                    "message": "请求失败",
-                    "error": f"HTTP错误: {response.status_code}",
-                    "status_code": response.status_code,
-                    "api_code": None,
-                    "response_text": response.text
-                }
-
-            # 尝试解析JSON响应
-            try:
-                result = response.json()
-            except ValueError:
-                return {
-                    "success": False,
-                    "message": "响应解析失败",
-                    "error": "无法解析JSON响应",
-                    "status_code": response.status_code,
-                    "api_code": None,
-                    "response_text": response.text
-                }
-
-            # 根据B站API返回的code判断操作结果
-            api_code = result.get("code", -1)
-            api_message = result.get("message", result.get("msg", "未知错误"))
-
-            if api_code == 0:
-                return {
-                    "success": True,
-                    "message": "粉丝勋章名称修改成功",
-                    "data": result.get("data", {}),
-                    "status_code": response.status_code,
-                    "api_code": api_code
-                }
-            else:
-                return {
-                    "success": False,
-                    "message": f"B站API返回错误: {api_message}",
-                    "error": api_message,
-                    "status_code": response.status_code,
-                    "api_code": api_code,
-                    "response_data": result
-                }
-
-        except requests.exceptions.Timeout:
-            return {
-                "success": False,
-                "message": "请求超时",
-                "error": "网络请求超时",
-                "status_code": None,
-                "api_code": None
-            }
-        except requests.exceptions.ConnectionError:
-            return {
-                "success": False,
-                "message": "网络连接错误",
-                "error": "无法连接到服务器",
-                "status_code": None,
-                "api_code": None
-            }
-        except requests.exceptions.RequestException as e:
-            return {
-                "success": False,
-                "message": "网络请求异常",
-                "error": f"请求失败: {str(e)}",
-                "status_code": None,
-                "api_code": None
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "message": "操作过程中发生未知错误",
-                "error": str(e),
-                "status_code": None,
-                "api_code": None
-            }
-
-    def start_live(self, room_id: int, area_id: int, platform: Literal["pc_link", "web_link", "android_link"]) -> Dict:
-        """
-        开始直播
-
-        Args:
-            room_id: 直播间ID
-            area_id: 二级分区id
-            platform: 直播平台
-
-        Returns:
-            包含开播结果的字典：
-            - success: 操作是否成功
-            - message: 结果描述信息
-            - data: 成功时的数据（包含直播流信息等）
-            - error: 失败时的错误信息
-            - status_code: HTTP状态码
-            - api_code: B站API返回的code
-        """
-        try:
-            # 检查认证器是否正常初始化
-            if not self.initialization_result["success"]:
-                return {
-                    "success": False,
-                    "message": "开播失败",
-                    "error": "认证器未正确初始化",
-                    "status_code": None,
-                    "api_code": None
-                }
-
-            # 参数验证
-            if not room_id or room_id <= 0:
-                return {
-                    "success": False,
-                    "message": "开播失败",
-                    "error": "房间ID无效",
-                    "status_code": None,
-                    "api_code": None
-                }
-
-            if not area_id or area_id <= 0:
-                return {
-                    "success": False,
-                    "message": "开播失败",
-                    "error": "分区ID无效",
-                    "status_code": None,
-                    "api_code": None
-                }
-
-            if platform not in ["pc_link", "web_link", "android_link"]:
-                return {
-                    "success": False,
-                    "message": "开播失败",
-                    "error": "平台参数无效",
-                    "status_code": None,
-                    "api_code": None
-                }
-
-            api = "https://api.live.bilibili.com/room/v1/Room/startLive"
-            headers = self.headers
-            csrf = self.csrf
-
-            # 构建请求参数
-            startLivedata = {
-                "access_key": "",  # 留空
-                "appkey": "aae92bc66f3edfab",  # 固定应用密钥
-                "platform": platform,
-                "room_id": room_id,
-                "area_v2": area_id,
-                "build": "9343",  # 客户端版本号
-                "backup_stream": 0,
-                "csrf": csrf,
-                "csrf_token": csrf,
-                "ts": str(int(time.time()))  # 当前UNIX时间戳
-            }
-
-            # 对参数按字典序排序
-            sorted_params = sorted(startLivedata.items(), key=lambda x: x[0])
-
-            # 生成签名字符串 (参数串 + 固定盐值)
-            query_string = "&".join(f"{k}={v}" for k, v in sorted_params)
-            sign_string = query_string + "af125a0d5279fd576c1b4418a3e8276d"
-
-            # 计算MD5签名
-            md5_sign = hashlib.md5(sign_string.encode('utf-8')).hexdigest()
-
-            # 添加签名到参数
-            startLivedata["sign"] = md5_sign
-
-            # 发送请求
-            response = requests.post(
-                url=api,
-                headers=headers,
-                params=startLivedata,
-                verify=self.verify_ssl,
-                timeout=30
-            )
-
-            # 检查HTTP状态码
-            if response.status_code != 200:
-                return {
-                    "success": False,
-                    "message": "开播失败",
-                    "error": f"HTTP错误: {response.status_code}",
-                    "status_code": response.status_code,
-                    "api_code": None,
-                    "response_text": response.text
-                }
-
-            # 解析响应
-            result = response.json()
-            api_code = result.get("code")
-
-            # 判断开播结果
-            if api_code == 0:
-                # 开播成功或重复开播
-                change_status = result.get("data", {}).get("change", 0)
-                if change_status == 1:
-                    message = "开播成功"
-                else:
-                    message = result.get("message", "重复开播")
-
-                return {
-                    "success": True,
-                    "message": message,
-                    "data": result.get("data", {}),
-                    "status_code": response.status_code,
-                    "api_code": api_code
-                }
-            else:
-                # 开播失败
-                error_msg = result.get("message", "未知错误")
-                return {
-                    "success": False,
-                    "message": "开播失败",
-                    "error": error_msg,
-                    "status_code": response.status_code,
-                    "api_code": api_code,
-                    "response_data": result
-                }
-
-        except requests.exceptions.Timeout:
-            return {
-                "success": False,
-                "message": "开播失败",
-                "error": "请求超时",
-                "status_code": None,
-                "api_code": None
-            }
-        except requests.exceptions.ConnectionError:
-            return {
-                "success": False,
-                "message": "开播失败",
-                "error": "网络连接错误",
-                "status_code": None,
-                "api_code": None
-            }
-        except requests.exceptions.RequestException as e:
-            return {
-                "success": False,
-                "message": "开播失败",
-                "error": f"网络请求异常: {str(e)}",
-                "status_code": None,
-                "api_code": None
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "message": "开播过程中发生未知错误",
-                "error": str(e),
-                "status_code": None,
-                "api_code": None
-            }
-
-    def stop_live(self, room_id: int, platform: Literal["pc_link", "web_link", "android_link"]) -> Dict[str, Any]:
-        """
-        结束直播
-
-        Args:
-            room_id: 直播间ID
-            platform: 平台类型
-
-        Returns:
-            包含操作结果的字典：
-            - success: 操作是否成功
-            - message: 结果描述信息
-            - data: 成功时的数据
-            - error: 失败时的错误信息
-            - status_code: HTTP状态码
-            - api_code: B站API返回的代码
-        """
-        try:
-            # 检查认证器是否正常初始化
-            if not self.initialization_result["success"]:
-                return {
-                    "success": False,
-                    "message": "结束直播失败",
-                    "error": "认证器未正确初始化",
-                    "status_code": None,
-                    "api_code": None
-                }
-
-            # 构建API请求
-            api_url = "https://api.live.bilibili.com/room/v1/Room/stopLive"
-            headers = self.headers.copy()
-            csrf = self.csrf
-
-            data = {
-                "platform": platform,
-                "room_id": room_id,
-                "csrf": csrf,
-                "csrf_token": csrf,
-            }
-
-            # 发送请求
-            response = requests.post(
-                url=api_url,
-                headers=headers,
-                data=data,
-                verify=self.verify_ssl,
-                timeout=30
-            )
-
-            # 检查HTTP状态码
-            if response.status_code != 200:
-                return {
-                    "success": False,
-                    "message": "结束直播失败",
-                    "error": f"HTTP错误: {response.status_code}",
-                    "status_code": response.status_code,
-                    "api_code": None,
-                    "response_text": response.text
-                }
-
-            # 解析响应
-            result = response.json()
-            api_code = result.get("code")
-
-            # 判断操作是否成功
-            if api_code == 0:
-                # 成功结束直播（包括重复关播的情况）
-                return {
-                    "success": True,
-                    "message": result.get("message", "结束直播成功"),
-                    "data": {
-                        "change": result.get("data", {}).get("change", 0),
-                        "status": result.get("data", {}).get("status", ""),
-                        "raw_response": result
-                    },
-                    "status_code": response.status_code,
-                    "api_code": api_code
-                }
-            else:
-                # API返回错误
-                return {
-                    "success": False,
-                    "message": "结束直播失败",
-                    "error": result.get("message", "未知错误"),
-                    "status_code": response.status_code,
-                    "api_code": api_code,
-                    "response_data": result
-                }
-
-        except requests.exceptions.Timeout:
-            return {
-                "success": False,
-                "message": "结束直播失败",
-                "error": "请求超时",
-                "status_code": None,
-                "api_code": None
-            }
-        except requests.exceptions.ConnectionError:
-            return {
-                "success": False,
-                "message": "结束直播失败",
-                "error": "网络连接错误",
-                "status_code": None,
-                "api_code": None
-            }
-        except requests.exceptions.RequestException as e:
-            return {
-                "success": False,
-                "message": "结束直播失败",
-                "error": f"网络请求异常: {str(e)}",
-                "status_code": None,
-                "api_code": None
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "message": "结束直播过程中发生未知错误",
-                "error": str(e),
-                "status_code": None,
-                "api_code": None
-            }
-
-    def update_cover(self, cover_url: str) -> Dict[str, Any]:
-        """
-        更新直播间封面
-
-        Args:
-            cover_url: 通过上传接口获取的封面图片URL
-
-        Returns:
-            包含更新结果的字典：
-            - success: 操作是否成功
-            - message: 结果描述信息
-            - data: 成功时的数据
-            - error: 失败时的错误信息
-            - status_code: HTTP状态码（如果有）
-        """
-        try:
-            # 检查认证器是否正常初始化
-            if not self.initialization_result["success"]:
-                return {
-                    "success": False,
-                    "message": "更新封面失败",
-                    "error": "认证器未正确初始化",
-                    "status_code": None
-                }
-
-            # 检查封面URL是否有效
-            if not cover_url or not cover_url.startswith(('http://', 'https://')):
-                return {
-                    "success": False,
-                    "message": "更新封面失败",
-                    "error": "封面URL无效",
-                    "status_code": None
-                }
-
-            # 构建请求参数
-            api_url = "https://api.live.bilibili.com/xlive/app-blink/v1/preLive/UpdatePreLiveInfo"
-            update_cover_data = {
-                "platform": "web",
-                "mobi_app": "web",
-                "build": 1,
-                "cover": cover_url,
-                "coverVertical": "",
-                "liveDirectionType": 1,
-                "csrf_token": self.cookies["bili_jct"],
-                "csrf": self.cookies["bili_jct"],
-            }
-
-            # 发送请求
-            response = requests.post(
-                api_url,
-                headers=self.headers,
-                data=update_cover_data,
-                verify=self.verify_ssl,
-                timeout=30
-            )
-
-            # 检查HTTP状态码
-            if response.status_code != 200:
-                return {
-                    "success": False,
-                    "message": "更新封面失败",
-                    "error": f"HTTP错误: {response.status_code}",
-                    "status_code": response.status_code,
-                    "response_text": response.text
-                }
-
-            # 解析响应
-            result = response.json()
-
-            # 检查B站API返回状态
-            if result.get("code") != 0:
-                return {
-                    "success": False,
-                    "message": "B站API返回错误",
-                    "error": result.get("message", "未知错误"),
-                    "status_code": response.status_code,
-                    "api_code": result.get("code")
-                }
-
-            # 成功返回
-            return {
-                "success": True,
-                "message": "直播间封面更新成功",
-                "data": result.get("data", {}),
-                "status_code": response.status_code
-            }
-
-        except requests.exceptions.Timeout:
-            return {
-                "success": False,
-                "message": "更新封面失败",
-                "error": "请求超时",
-                "status_code": None
-            }
-        except requests.exceptions.ConnectionError:
-            return {
-                "success": False,
-                "message": "更新封面失败",
-                "error": "网络连接错误",
-                "status_code": None
-            }
-        except requests.exceptions.RequestException as e:
-            return {
-                "success": False,
-                "message": "更新封面失败",
-                "error": f"网络请求异常: {str(e)}",
-                "status_code": None
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "message": "更新封面过程中发生未知错误",
-                "error": str(e),
-                "status_code": None
-            }
-
-    def upload_cover(self, image_binary: bytes) -> Dict[str, Any]:
-        """
-        上传直播间封面到B站(符合官方请求格式)
-
-        Args:
-            image_binary: png/jpeg图像的二进制格式数据
-
-        Returns:
-            包含上传结果的字典：
-            - success: 操作是否成功
-            - message: 结果描述信息
-            - data: 成功时的数据（如图片URL）
-            - error: 失败时的错误信息
-            - status_code: HTTP状态码（如果有）
-        """
-        try:
-            # 检查认证器是否正常初始化
-            if not self.initialization_result["success"]:
-                return {
-                    "success": False,
-                    "message": "上传失败",
-                    "error": "认证器未正确初始化",
-                    "status_code": None
-                }
-
-            # 检查图片数据是否有效
-            if not image_binary or len(image_binary) == 0:
-                return {
-                    "success": False,
-                    "message": "上传失败",
-                    "error": "图片数据为空或无效",
-                    "status_code": None
-                }
-
-            # 构建请求参数
-            api_url = "https://api.bilibili.com/x/upload/web/image"
-
-            # 准备multipart/form-data数据
-            boundary = '----WebKitFormBoundary' + ''.join(random.choices(string.ascii_letters + string.digits, k=16))
-            headers = self.headers.copy()  # 复制headers避免修改原始数据
-            headers["Content-Type"] = f"multipart/form-data; boundary={boundary}"
-
-            # 构建multipart body
-            data_parts = []
-
-            # 添加普通字段
-            fields = {
-                "bucket": "live",
-                "dir": "new_room_cover",
-                "csrf": self.cookies["bili_jct"]
-            }
-
-            for name, value in fields.items():
-                data_parts.append(
-                    f'--{boundary}\r\n'
-                    f'Content-Disposition: form-data; name="{name}"\r\n\r\n'
-                    f'{value}\r\n'
-                )
-
-            data_parts.append(
-                f'--{boundary}\r\n'
-                f'Content-Disposition: form-data; name="file"; filename="blob"\r\n'
-                f'Content-Type: image/jpeg\r\n\r\n'
-            )
-            data_parts.append(image_binary)
-            data_parts.append(f'\r\n--{boundary}--\r\n')
-
-            # 构建最终body
-            body = b''
-            for part in data_parts:
-                if isinstance(part, str):
-                    body += part.encode('utf-8')
-                else:
-                    body += part
-
-            # 发送请求
-            response = requests.post(
-                url=api_url,
-                headers=headers,
-                data=body,
-                verify=self.verify_ssl,
-                timeout=30  # 添加超时设置
-            )
-
-            # 检查HTTP状态码
-            if response.status_code != 200:
-                return {
-                    "success": False,
-                    "message": "上传失败",
-                    "error": f"HTTP错误: {response.status_code}",
-                    "status_code": response.status_code,
-                    "response_text": response.text
-                }
-
-            # 解析响应
-            result = response.json()
-
-            # 检查B站API返回状态
-            if result.get("code") != 0:
-                return {
-                    "success": False,
-                    "message": "B站API返回错误",
-                    "error": result.get("message", "未知错误"),
-                    "status_code": response.status_code,
-                    "api_code": result.get("code")
-                }
-
-            # 成功返回 - 修正为使用location字段
-            if 'data' in result and 'location' in result['data']:
-                return {
-                    "success": True,
-                    "message": "封面上传成功",
-                    "data": {
-                        "location": result['data']['location'],
-                        "etag": result['data'].get('etag', ''),
-                        "image_url": result['data']['location']  # 使用location作为图片URL
-                    },
-                    "status_code": response.status_code
-                }
-            else:
-                return {
-                    "success": False,
-                    "message": "上传响应格式异常",
-                    "error": "响应中缺少必要的数据字段",
-                    "status_code": response.status_code,
-                    "response_data": result
-                }
-
-        except requests.exceptions.Timeout:
-            return {
-                "success": False,
-                "message": "上传失败",
-                "error": "请求超时",
-                "status_code": None
-            }
-        except requests.exceptions.ConnectionError:
-            return {
-                "success": False,
-                "message": "上传失败",
-                "error": "网络连接错误",
-                "status_code": None
-            }
-        except requests.exceptions.RequestException as e:
-            return {
-                "success": False,
-                "message": "上传失败",
-                "error": f"网络请求异常: {str(e)}",
-                "status_code": None
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "message": "上传过程中发生未知错误",
-                "error": str(e),
-                "status_code": None
-            }
 
 
 class BilibiliUserConfigManager:
@@ -6074,522 +3570,1419 @@ class BilibiliApiGeneric:
             }
 
 
-class BilibiliApiMaster:
-    """登陆后才能用的函数"""
+class BilibiliRoomInfoManager:
+    """
+    B站直播间信息管理器，用于获取直播间相关状态信息。
 
-    def __init__(self, cookie: str, ssl_verification: bool = True):
+    该类专门用于获取B站直播间的各种状态信息，如房间ID、高亮状态等。
+    自动从Cookie中提取必要的认证信息，并提供简化的API调用接口。
+
+    特性：
+    - 自动从Cookie中解析必要认证信息
+    - 支持SSL验证配置
+    - 提供直播间状态信息获取功能
+    - 统一的错误处理和响应格式
+    """
+
+    def __init__(self, headers: Dict[str, str], verify_ssl: bool = True):
         """
-        完善 浏览器headers
+        初始化直播间信息管理器
+
         Args:
-            cookie: B站cookie
-            ssl_verification: 是否SSL验证
+            headers: 包含Cookie等认证信息的请求头字典
+            verify_ssl: 是否验证SSL证书（默认True，生产环境建议开启）
         """
-        user_agent = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
-                      "Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0")
-        self.headers = {
-            "User-Agent": user_agent,
-            "cookie": cookie,
-        }
-        self.cookies = Tools.parse_cookie(cookie)
-        self.cookie = cookie
-        self.csrf = self.cookies.get("bili_jct", "")
-        self.sslVerification = ssl_verification
+        self.headers = headers.copy()  # 避免修改原始headers
+        self.verify_ssl = verify_ssl
+        self.initialization_result = self._initialize_manager()
+
+    def _initialize_manager(self) -> Dict[str, Any]:
+        """
+        初始化管理器的内部实现
+
+        Returns:
+            包含初始化结果的字典
+        """
+        try:
+            # 解析Cookie
+            if "cookie" not in self.headers:
+                return {
+                    "success": False,
+                    "message": "初始化失败",
+                    "error": "请求头中缺少cookie字段"
+                }
+
+            self.cookie = self.headers["cookie"]
+            self.cookies = Tools.parse_cookie(self.cookie)
+
+            # 提取必要字段
+            required_fields = ["DedeUserID"]
+            missing_fields = [field for field in required_fields if field not in self.cookies]
+            if missing_fields:
+                return {
+                    "success": False,
+                    "message": "初始化失败",
+                    "error": f"Cookie中缺少必要字段: {', '.join(missing_fields)}"
+                }
+
+            self.user_id = self.cookies["DedeUserID"]
+
+            return {
+                "success": True,
+                "message": "直播间信息管理器初始化成功",
+                "data": {
+                    "user_id": self.user_id
+                }
+            }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "初始化过程中发生异常",
+                "error": str(e)
+            }
+
+    def get_live_stream_info(self, room_id: int) -> Dict[str, Any]:
+        """
+        获取直播间推流信息
+
+        Args:
+            room_id: 直播间房间ID,必须和 cookie 对应
+
+        Returns:
+            包含推流信息的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（包含推流地址等信息）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码（如果有）
+        """
+        try:
+            # 检查管理器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "获取推流信息失败",
+                    "error": "管理器未正确初始化",
+                    "status_code": None
+                }
+
+            # 检查房间ID是否有效
+            if not room_id or room_id <= 0:
+                return {
+                    "success": False,
+                    "message": "获取推流信息失败",
+                    "error": "房间ID无效",
+                    "status_code": None
+                }
+
+            # 构建API请求
+            api_url = "https://api.live.bilibili.com/live_stream/v1/StreamList/get_stream_by_roomId"
+            params = {"room_id": room_id}
+
+            # 发送请求
+            response = requests.get(
+                url=api_url,
+                headers=self.headers,
+                params=params,
+                verify=self.verify_ssl,
+                timeout=30
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取推流信息失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            result = response.json()
+
+            # 检查B站API返回状态
+            if result.get("code") != 0:
+                return {
+                    "success": False,
+                    "message": "B站API返回错误",
+                    "error": result.get("message", "未知错误"),
+                    "status_code": response.status_code,
+                    "api_code": result.get("code")
+                }
+
+            # 检查数据是否存在
+            if "data" not in result:
+                return {
+                    "success": False,
+                    "message": "API响应格式异常",
+                    "error": "响应中缺少必要的数据字段",
+                    "status_code": response.status_code,
+                    "response_data": result
+                }
+
+            # 成功返回
+            return {
+                "success": True,
+                "message": "推流信息获取成功",
+                "data": result["data"],
+                "status_code": response.status_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取推流信息失败",
+                "error": "请求超时",
+                "status_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取推流信息失败",
+                "error": "网络连接错误",
+                "status_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取推流信息失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取推流信息过程中发生未知错误",
+                "error": str(e),
+                "status_code": None
+            }
 
     def get_nav_info(self) -> Dict[str, Any]:
         """
         获取导航栏用户信息（需要登录）
 
         Returns:
-            包含用户信息的字典，主要字段:
-            {
-                "isLogin": bool,       # 是否已登录
-                "mid": int,            # 用户mid
-                "uname": str,          # 用户昵称
-                "face": str,           # 用户头像URL
-                "level_info": {        # 等级信息
-                    "current_level": int,  # 当前等级
-                    "current_exp": int,    # 当前经验
-                    "next_exp": int/str    # 升级所需经验(Lv6时为"--")
-                },
-                "vipStatus": int,     # 会员开通状态(0:无,1:有)
-                "vipType": int,        # 会员类型(0:无,1:月度,2:年度及以上)
-                "vip_label": {         # 会员标签
-                    "text": str,       # 会员名称
-                    "label_theme": str # 会员标签主题
-                },
-                "official": {          # 认证信息
-                    "type": int,       # 是否认证(-1:无,0:认证)
-                    "title": str       # 认证信息
-                },
-                # 其他字段: money, moral, pendant, wallet等
-            }
-
-        Raises:
-            RequestException: 网络请求失败
-            PermissionError: 账号未登录或认证失败
+            包含用户信息的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（包含用户信息）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码（如果有）
         """
-        api_url = "https://api.bilibili.com/x/web-interface/nav"
-
         try:
-            # 发送API请求
-            response = requests.get(verify=self.sslVerification, url=api_url, headers=self.headers, timeout=10)
-            response.raise_for_status()  # 检查HTTP错误
-
-            # 解析JSON响应
-            data = response.json()
-
-            # 返回用户信息
-            return data.get("data")
-
-        except requests.exceptions.RequestException as e:
-            raise requests.exceptions.RequestException(f"网络请求失败: {e}") from e
-        except PermissionError as e:
-            raise PermissionError(f"认证失败: {e}") from e
-
-    def get_room_highlight_state(self):
-        """
-        获取直播间号
-        @return:
-        """
-        api = "https://api.live.bilibili.com/xlive/app-blink/v1/highlight/getRoomHighlightState"
-        headers = self.headers
-        room_id = requests.get(verify=self.sslVerification, url=api, headers=headers).json()["data"]["room_id"]
-        return room_id
-
-    def get_room_news(self) -> str:
-        # 获取直播公告
-        headers = self.headers
-        api = "https://api.live.bilibili.com/xlive/app-blink/v1/index/getRoomNews"
-        params = {
-            'room_id': self.get_room_highlight_state(),
-            'uid': Tools.parse_cookie(self.headers["cookie"])["DedeUserID"]
-        }
-        room_news = requests.get(verify=self.sslVerification, url=api, headers=headers, params=params).json()
-        return room_news["data"]["content"]
-
-    def get_reserve_list(self) -> List[Dict[str, Any]]:
-        """
-        获取用户直播预约列表
-
-        Returns:
-            预约列表，每个预约项包含:
-            {
-                "reserve_info": {
-                    "sid": int,          # 预约ID
-                    "name": str,         # 预约名称
-                    "total": int,        # 预约人数
-                    "is_follow": int,    # 是否已关注(0/1)
-                    "live_plan_start_time": int,  # 计划开播时间(Unix时间戳)
-                    "lottery": {         # 抽奖信息
-                        "lottery_id": int,
-                        "lottery_text": str
-                    },
-                    "button_color": int, # 按钮颜色
-                    "card_style": int,   # 卡片样式
-                    "type": int,         # 预约类型
-                    "close_page_group": bool  # 是否关闭页面组
-                },
-                "products": Any,        # 相关商品(通常为null)
-                "stat": int              # 状态码
-            }
-
-        Raises:
-            RequestException: 网络请求失败
-            ValueError: API返回错误或数据结构异常
-        """
-        api_url = "https://api.live.bilibili.com/xlive/app-ucenter/v2/schedule/GetReserveList"
-
-        try:
-            # 发送API请求
-            response = requests.get(verify=self.sslVerification, url=api_url, headers=self.headers, timeout=10)
-            response.raise_for_status()  # 检查HTTP错误
-
-            # 解析JSON响应
-            data = response.json()
-
-            # 验证API响应
-            if data.get("code") != 0:
-                error_msg = data.get("message")
-                raise ValueError(f"API错误: {error_msg}")
-
-            # 提取预约列表
-            reserve_list = data.get("data").get("list") if data.get("data").get("list") else []
-            if not isinstance(reserve_list, list):
-                raise ValueError("返回数据格式异常，缺少预约列表")
-
-            return reserve_list
-
-        except requests.exceptions.RequestException as e:
-            raise requests.exceptions.RequestException(f"获取预约列表失败: {e}") from e
-        except (ValueError, KeyError, TypeError) as e:
-            raise ValueError(f"数据处理失败: {e}") from e
-
-    def get_live_stream_info(self) -> Dict[str, Any]:
-        """
-        获取直播间推流信息
-
-        Returns:
-            包含推流信息的字典，结构:
-            {
-                "code": int,        # API状态码(0:成功)
-                "message": str,      # API消息
-                "data": {
-                    "rtmp": {
-                        "addr": str,     # RTMP服务器地址
-                        "code": str      # 推流代码(包含streamkey)
-                    },
-                    "stream_line": [    # 可用线路列表
-                        {
-                            "cdn_name": str,  # CDN名称
-                            "checked": int,   # 是否选中(0/1)
-                            "name": str,      # 线路名称
-                            "src": int        # 线路标识
-                        }
-                    ]
+            # 检查管理器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "获取用户信息失败",
+                    "error": "管理器未正确初始化",
+                    "status_code": None
                 }
-            }
 
-            如果请求失败，返回:
-            {
-                "code": -1,
-                "error": "错误信息"
-            }
-        """
-        api_url = "https://api.live.bilibili.com/live_stream/v1/StreamList/get_stream_by_roomId"
-        params = {"room_id": self.get_room_highlight_state()}
+            # 构建API请求
+            api_url = "https://api.bilibili.com/x/web-interface/nav"
 
-        try:
-            # 发送API请求
-            response = requests.get(verify=self.sslVerification, url=api_url, headers=self.headers, params=params,
-                                    timeout=10)
+            # 发送请求
+            response = requests.get(
+                url=api_url,
+                headers=self.headers,
+                verify=self.verify_ssl,
+                timeout=30
+            )
 
             # 检查HTTP状态码
             if response.status_code != 200:
                 return {
-                    "code": -1,
-                    "error": f"HTTP错误: {response.status_code}"
+                    "success": False,
+                    "message": "获取用户信息失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            result = response.json()
+
+            # 检查B站API返回状态
+            if result.get("code") != 0:
+                return {
+                    "success": False,
+                    "message": "B站API返回错误",
+                    "error": result.get("message", "未知错误"),
+                    "status_code": response.status_code,
+                    "api_code": result.get("code")
+                }
+
+            # 检查用户是否已登录
+            if not result.get("data", {}).get("isLogin", False):
+                return {
+                    "success": False,
+                    "message": "获取用户信息失败",
+                    "error": "用户未登录",
+                    "status_code": response.status_code,
+                    "response_data": result
+                }
+
+            # 成功返回
+            return {
+                "success": True,
+                "message": "用户信息获取成功",
+                "data": result.get("data", {}),
+                "status_code": response.status_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取用户信息失败",
+                "error": "请求超时",
+                "status_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取用户信息失败",
+                "error": "网络连接错误",
+                "status_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取用户信息失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取用户信息过程中发生未知错误",
+                "error": str(e),
+                "status_code": None
+            }
+
+    def get_reserve_list(self) -> Dict[str, Any]:
+        """
+        获取用户直播预约列表
+
+        Returns:
+            包含预约列表结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（包含预约列表）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码（如果有）
+        """
+        try:
+            # 检查管理器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "获取预约列表失败",
+                    "error": "管理器未正确初始化",
+                    "status_code": None
+                }
+
+            # 构建API请求
+            api_url = "https://api.live.bilibili.com/xlive/app-ucenter/v2/schedule/GetReserveList"
+
+            # 发送请求
+            response = requests.get(
+                url=api_url,
+                headers=self.headers,
+                verify=self.verify_ssl,
+                timeout=30
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取预约列表失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            result = response.json()
+
+            # 检查B站API返回状态
+            if result.get("code") != 0:
+                return {
+                    "success": False,
+                    "message": "B站API返回错误",
+                    "error": result.get("message", "未知错误"),
+                    "status_code": response.status_code,
+                    "api_code": result.get("code")
+                }
+
+            # 成功返回 - 处理list为None的情况
+            list_data = result.get("data", {}).get("list")
+            if list_data is None:
+                # 当list为None时，转换为空列表
+                list_data = []
+
+            return {
+                "success": True,
+                "message": "预约列表获取成功",
+                "data": {
+                    "list": list_data,
+                    "full_response": result  # 包含完整的API响应
+                },
+                "status_code": response.status_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取预约列表失败",
+                "error": "请求超时",
+                "status_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取预约列表失败",
+                "error": "网络连接错误",
+                "status_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取预约列表失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取预约列表过程中发生未知错误",
+                "error": str(e),
+                "status_code": None
+            }
+
+    def get_room_highlight_info(self) -> Dict[str, Any]:
+        """
+        获取直播间高亮状态信息，包括房间ID
+
+        Returns:
+            包含房间信息的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（包含room_id等）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码（如果有）
+        """
+        try:
+            # 检查管理器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "获取房间信息失败",
+                    "error": "管理器未正确初始化",
+                    "status_code": None
+                }
+
+            # 构建API请求
+            api_url = "https://api.live.bilibili.com/xlive/app-blink/v1/highlight/getRoomHighlightState"
+
+            # 发送请求
+            response = requests.get(
+                url=api_url,
+                headers=self.headers,
+                verify=self.verify_ssl,
+                timeout=30
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取房间信息失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            result = response.json()
+
+            # 检查B站API返回状态
+            if result.get("code") != 0:
+                return {
+                    "success": False,
+                    "message": "B站API返回错误",
+                    "error": result.get("message", "未知错误"),
+                    "status_code": response.status_code,
+                    "api_code": result.get("code")
+                }
+
+            # 检查数据是否存在
+            if "data" not in result or "room_id" not in result["data"]:
+                return {
+                    "success": False,
+                    "message": "API响应格式异常",
+                    "error": "响应中缺少必要的房间信息字段",
+                    "status_code": response.status_code,
+                    "response_data": result
+                }
+
+            # 成功返回
+            return {
+                "success": True,
+                "message": "房间信息获取成功",
+                "data": {
+                    "room_id": result["data"]["room_id"],
+                    "highlight_info": result["data"]  # 包含所有高亮状态信息
+                },
+                "status_code": response.status_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取房间信息失败",
+                "error": "请求超时",
+                "status_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取房间信息失败",
+                "error": "网络连接错误",
+                "status_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取房间信息失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取房间信息过程中发生未知错误",
+                "error": str(e),
+                "status_code": None
+            }
+
+    def get_room_news(self, uid: int, room_id: int) -> Dict[str, Any]:
+        """
+        获取直播间公告信息
+
+        Args:
+            uid: 用户id
+            room_id: 直播间ID
+
+        Returns:
+            包含公告信息的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（包含公告内容等）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码（如果有）
+        """
+        try:
+            # 检查管理器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "获取直播间公告失败",
+                    "error": "管理器未正确初始化",
+                    "status_code": None
+                }
+
+            # 检查房间ID是否有效
+            if not room_id or room_id <= 0:
+                return {
+                    "success": False,
+                    "message": "获取直播间公告失败",
+                    "error": "房间ID无效",
+                    "status_code": None
+                }
+
+            # 构建API请求
+            api_url = "https://api.live.bilibili.com/xlive/app-blink/v1/index/getRoomNews"
+            params = {
+                'room_id': room_id,
+                'uid': uid
+            }
+
+            # 发送请求
+            response = requests.get(
+                url=api_url,
+                headers=self.headers,
+                params=params,
+                verify=self.verify_ssl,
+                timeout=30
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取直播间公告失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            result = response.json()
+
+            # 检查B站API返回状态
+            if result.get("code") != 0:
+                return {
+                    "success": False,
+                    "message": "B站API返回错误",
+                    "error": result.get("message", "未知错误"),
+                    "status_code": response.status_code,
+                    "api_code": result.get("code")
+                }
+
+            # 检查数据是否存在
+            if "data" not in result:
+                return {
+                    "success": False,
+                    "message": "API响应格式异常",
+                    "error": "响应中缺少必要的数据字段",
+                    "status_code": response.status_code,
+                    "response_data": result
+                }
+
+            # 成功返回
+            return {
+                "success": True,
+                "message": "直播间公告获取成功",
+                "data": result["data"],
+                "status_code": response.status_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取直播间公告失败",
+                "error": "请求超时",
+                "status_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取直播间公告失败",
+                "error": "网络连接错误",
+                "status_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取直播间公告失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取直播间公告过程中发生未知错误",
+                "error": str(e),
+                "status_code": None
+            }
+
+
+class BilibiliCSRFAuthenticator:
+    """
+    B站CSRF认证管理器，用于处理需要CSRF令牌的API请求。
+
+    该类专门用于B站直播相关的CSRF认证操作，特别是直播公告的更新。
+    自动从Cookie中提取必要的认证信息，并提供简化的API调用接口。
+
+    特性：
+    - 自动从Cookie中解析CSRF令牌（bili_jct）
+    - 自动提取用户ID（DedeUserID）
+    - 支持SSL验证配置
+    - 提供直播公告更新功能
+    - 统一的错误处理和响应格式
+    """
+
+    def __init__(self, headers: Dict[str, str], verify_ssl: bool = True):
+        """
+        初始化CSRF认证管理器
+
+        Args:
+            headers: 包含Cookie等认证信息的请求头字典
+            verify_ssl: 是否验证SSL证书（默认True，生产环境建议开启）
+
+        Returns:
+            包含操作结果的字典，包含以下键：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（如认证器实例）
+            - error: 失败时的错误信息
+        """
+        self.headers = headers.copy()  # 避免修改原始headers
+        self.verify_ssl = verify_ssl
+        self.initialization_result = self._initialize_authenticator()
+
+    def _initialize_authenticator(self) -> Dict[str, Any]:
+        """
+        初始化认证器的内部实现
+
+        Returns:
+            包含初始化结果的字典
+        """
+        try:
+            # 解析Cookie
+            if "cookie" not in self.headers:
+                return {
+                    "success": False,
+                    "message": "初始化失败",
+                    "error": "请求头中缺少cookie字段"
+                }
+
+            self.cookie = self.headers["cookie"]
+            self.cookies = Tools.parse_cookie(self.cookie)
+
+            # 提取必要字段
+            required_fields = ["bili_jct", "DedeUserID"]
+            missing_fields = [field for field in required_fields if field not in self.cookies]
+            if missing_fields:
+                return {
+                    "success": False,
+                    "message": "初始化失败",
+                    "error": f"Cookie中缺少必要字段: {', '.join(missing_fields)}"
+                }
+
+            self.user_id = self.cookies["DedeUserID"]
+            self.csrf = self.cookies["bili_jct"]
+
+            return {
+                "success": True,
+                "message": "认证器初始化成功",
+                "data": {
+                    "user_id": self.user_id,
+                    "csrf_token": self.csrf
+                }
+            }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "初始化过程中发生异常",
+                "error": str(e)
+            }
+
+    def validate_csrf_token(self) -> Dict[str, Any]:
+        """
+        验证CSRF令牌是否有效
+
+        Returns:
+            包含验证结果的字典：
+            - success: 验证是否成功
+            - valid: CSRF令牌是否有效
+            - message: 结果描述信息
+        """
+        if not self.initialization_result["success"]:
+            return {
+                "success": False,
+                "valid": False,
+                "message": "认证器未正确初始化"
+            }
+
+        is_valid = bool(self.csrf and len(self.csrf) == 32)
+
+        return {
+            "success": True,
+            "valid": is_valid,
+            "message": "CSRF令牌有效" if is_valid else "CSRF令牌无效"
+        }
+
+    def get_user_info(self) -> Dict[str, Any]:
+        """
+        获取用户基本信息
+
+        Returns:
+            包含用户信息的字典：
+            - success: 操作是否成功
+            - data: 用户信息字典（包含user_id, csrf_token, has_valid_csrf）
+            - message: 结果描述信息
+        """
+        if not self.initialization_result["success"]:
+            return {
+                "success": False,
+                "message": "无法获取用户信息，认证器未正确初始化",
+                "error": self.initialization_result.get("error", "未知错误")
+            }
+
+        validation_result = self.validate_csrf_token()
+
+        return {
+            "success": True,
+            "data": {
+                "user_id": self.user_id,
+                "csrf_token": self.csrf,
+                "has_valid_csrf": validation_result["valid"]
+            },
+            "message": "用户信息获取成功"
+        }
+
+    def cancel_reserve(self, sid: int, from_value: int = 13) -> Dict[str, Any]:
+        """
+        取消直播预约
+
+        Args:
+            sid: 预约活动ID
+            from_value: 来源标识（默认13）
+
+        Returns:
+            包含操作结果的字典：
+            - success: 操作是否成功（基于API返回的code）
+            - message: 结果描述信息
+            - data: API返回的完整数据
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: API返回的code
+        """
+        # 检查认证器是否正常初始化
+        if not self.initialization_result["success"]:
+            return {
+                "success": False,
+                "message": "取消预约失败",
+                "error": "认证器未正确初始化",
+                "status_code": None,
+                "api_code": None,
+                "data": None
+            }
+
+        # 检查CSRF token
+        if not self.csrf:
+            return {
+                "success": False,
+                "message": "取消预约失败",
+                "error": "缺少bili_jct值，无法进行身份验证",
+                "status_code": None,
+                "api_code": None,
+                "data": None
+            }
+
+        # 检查sid参数
+        if not sid or sid <= 0:
+            return {
+                "success": False,
+                "message": "取消预约失败",
+                "error": "无效的预约活动ID",
+                "status_code": None,
+                "api_code": None,
+                "data": None
+            }
+
+        try:
+            # 生成随机visit_id (12位字母数字)
+            visit_id = ''.join(random.choices(string.ascii_lowercase + string.digits, k=12))
+
+            # 构造请求参数
+            payload = {
+                "sid": sid,
+                "from": from_value,
+                "csrf_token": self.csrf,
+                "csrf": self.csrf,
+                "visit_id": visit_id
+            }
+
+            # 发送POST请求
+            response = requests.post(
+                url="https://api.live.bilibili.com/xlive/app-ucenter/v2/schedule/CancelReserve",
+                headers=self.headers,
+                data=payload,
+                timeout=10,
+                verify=self.verify_ssl
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "取消预约失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
                 }
 
             # 解析JSON响应
-            data = response.json()
-            return data
+            result = response.json()
 
+            # 根据API返回的code判断操作是否成功
+            api_code = result.get("code", -1)
+            is_success = (api_code == 0)
+
+            return {
+                "success": is_success,
+                "message": result.get("message", "操作完成"),
+                "data": result,
+                "error": None if is_success else result.get("message", "未知错误"),
+                "status_code": response.status_code,
+                "api_code": api_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "取消预约失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None,
+                "data": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "取消预约失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None,
+                "data": None
+            }
         except requests.exceptions.RequestException as e:
             return {
-                "code": -1,
-                "error": f"网络请求失败: {str(e)}"
+                "success": False,
+                "message": "取消预约失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None,
+                "data": None
             }
-        except ValueError as e:
+        except json.JSONDecodeError as e:
             return {
-                "code": -1,
-                "error": f"JSON解析失败: {str(e)}"
+                "success": False,
+                "message": "取消预约失败",
+                "error": f"解析响应失败: {str(e)}",
+                "status_code": None,
+                "api_code": None,
+                "data": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "取消预约过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None,
+                "data": None
             }
 
-    # """需要Csrf鉴权的"""
-    def change_room_news(self, content: str):
+    def change_room_area(self, room_id: int, area_id: int) -> Dict[str, Any]:
+        """
+        更改直播分区
+
+        Args:
+            room_id: 直播间ID
+            area_id: 二级分区ID
+
+        Returns:
+            包含操作结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（如sub_session_key）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的code
+        """
+        try:
+            # 检查认证器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "更改分区失败",
+                    "error": "认证器未正确初始化",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            # 构建API请求
+            api = "https://api.live.bilibili.com/xlive/app-blink/v2/room/AnchorChangeRoomArea"
+            headers = self.headers.copy()
+            csrf = self.csrf
+
+            params = {
+                "platform": "pc",
+                "room_id": room_id,
+                "area_id": area_id,
+                "csrf": csrf,
+                "csrf_token": csrf,
+            }
+
+            # 发送请求
+            response = requests.post(
+                url=api,
+                headers=headers,
+                params=params,
+                verify=self.verify_ssl,
+                timeout=30
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "更改分区失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            result = response.json()
+            api_code = result.get("code", -1)
+
+            # 根据API返回的code判断操作结果
+            if api_code == 0:
+                return {
+                    "success": True,
+                    "message": "分区更改成功",
+                    "data": result.get("data", {}),
+                    "status_code": response.status_code,
+                    "api_code": api_code
+                }
+            else:
+                error_message = result.get("message", "未知错误")
+                return {
+                    "success": False,
+                    "message": f"分区更改失败: {error_message}",
+                    "error": error_message,
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "更改分区失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "更改分区失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "更改分区失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "更改分区过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
+            }
+
+    def change_room_news(self, room_id: int, content: str) -> Dict[str, Any]:
         """
         更新直播公告
-        @return:
-        """
-        headers = self.headers
-        csrf = self.csrf
-        api = "https://api.live.bilibili.com/xlive/app-blink/v1/index/updateRoomNews"
-        updateRoomNews_data = {
-            'room_id': self.get_room_highlight_state(),
-            'uid': self.cookies["DedeUserID"],
-            'content': content,
-            'csrf_token': csrf,
-            'csrf': csrf
-        }
-        updateRoomNews_ReturnValue = requests.post(verify=self.sslVerification, url=api, headers=headers,
-                                                   data=updateRoomNews_data).json()
-        return updateRoomNews_ReturnValue
 
-    def upload_cover(self, image_binary: bytes):
+        Args:
+            room_id: 直播间ID
+            content: 公告内容
+
+        Returns:
+            包含操作结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（API返回的data字段）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码（如果有）
         """
-        上传直播间封面到B站(符合官方请求格式)
-        :param image_binary: png/jpeg图像的二进制格式数据
-        """
-        UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/"
-              "537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
-        # 构建请求参数
-        api_url = "https://api.bilibili.com/x/upload/web/image"
-        # 准备multipart/form-data数据
-        boundary = '----WebKitFormBoundary' + ''.join(random.choices(string.ascii_letters + string.digits, k=16))
-        headers = {
-            "User-Agent": UA,
-            "Cookie": self.cookie,
-            "Content-Type": f"multipart/form-data; boundary={boundary}"
-        }
-        # 构建multipart body
-        data_parts = []
-        # 添加普通字段
-        fields = {
-            "bucket": "live",
-            "dir": "new_room_cover",
-            "csrf": self.cookies["bili_jct"]
-        }
-        for name, value in fields.items():
-            data_parts.append(
-                f'--{boundary}\r\n'
-                f'Content-Disposition: form-data; name="{name}"\r\n\r\n'
-                f'{value}\r\n'
+        try:
+            # 检查认证器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "更新直播公告失败",
+                    "error": "认证器未正确初始化",
+                    "status_code": None
+                }
+
+            # 验证输入参数
+            if not room_id or room_id <= 0:
+                return {
+                    "success": False,
+                    "message": "更新直播公告失败",
+                    "error": "直播间ID无效",
+                    "status_code": None
+                }
+
+            if not content or len(content.strip()) == 0:
+                return {
+                    "success": False,
+                    "message": "更新直播公告失败",
+                    "error": "公告内容不能为空",
+                    "status_code": None
+                }
+
+            headers = self.headers.copy()
+            csrf = self.csrf
+
+            api = "https://api.live.bilibili.com/xlive/app-blink/v1/index/updateRoomNews"
+            updateRoomNews_data = {
+                'room_id': room_id,
+                'uid': self.cookies["DedeUserID"],
+                'content': content,
+                'csrf_token': csrf,
+                'csrf': csrf
+            }
+
+            # 发送请求
+            response = requests.post(
+                verify=self.verify_ssl,
+                url=api,
+                headers=headers,
+                data=updateRoomNews_data,
+                timeout=30
             )
-        data_parts.append(
-            f'--{boundary}\r\n'
-            f'Content-Disposition: form-data; name="file"; filename="blob"\r\n'
-            f'Content-Type: image/jpeg\r\n\r\n'
-        )
-        data_parts.append(image_binary)
-        data_parts.append(f'\r\n--{boundary}--\r\n')
-        # 构建最终body
-        body = b''
-        for part in data_parts:
-            if isinstance(part, str):
-                body += part.encode('utf-8')
-            else:
-                body += part
-        # 发送请求
-        response = requests.post(verify=self.sslVerification, url=api_url, headers=headers, data=body).json()
-        # 处理响应
-        result = response
-        return result
 
-    def update_cover(self, cover_url: str):
-        ua = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/"
-              "537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
-        headers = {
-            "User-Agent": ua,
-            "cookie": self.cookie,
-        }
-        # 构建请求参数
-        api_url = "https://api.live.bilibili.com/xlive/app-blink/v1/preLive/UpdatePreLiveInfo"
-        update_cover_data = {
-            "platform": "web",
-            "mobi_app": "web",
-            "build": 1,
-            "cover": cover_url,
-            "coverVertical": "",
-            "liveDirectionType": 1,
-            "csrf_token": self.cookies["bili_jct"],
-            "csrf": self.cookies["bili_jct"],
-        }
-        return requests.post(verify=self.sslVerification, url=api_url, headers=headers, params=update_cover_data).json()
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "更新直播公告失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            result = response.json()
+
+            # 检查B站API返回状态
+            if result.get("code") != 0:
+                return {
+                    "success": False,
+                    "message": "B站API返回错误",
+                    "error": result.get("message", "未知错误"),
+                    "status_code": response.status_code,
+                    "api_code": result.get("code")
+                }
+
+            # 成功返回
+            return {
+                "success": True,
+                "message": "直播公告更新成功",
+                "data": result.get("data", {}),
+                "status_code": response.status_code,
+                "api_response": result  # 包含完整的API响应
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "更新直播公告失败",
+                "error": "请求超时",
+                "status_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "更新直播公告失败",
+                "error": "网络连接错误",
+                "status_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "更新直播公告失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "更新直播公告过程中发生未知错误",
+                "error": str(e),
+                "status_code": None
+            }
+
+    def change_room_title(self, room_id: int, title: str) -> Dict[str, Any]:
+        """
+        更新直播标题
+
+        Args:
+            room_id: 直播间ID
+            title: 新的直播标题
+
+        Returns:
+            包含操作结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的状态码
+        """
+        try:
+            # 检查认证器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "更改标题失败",
+                    "error": "认证器未正确初始化",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            # 验证输入参数
+            if not room_id or room_id <= 0:
+                return {
+                    "success": False,
+                    "message": "更改标题失败",
+                    "error": "房间ID无效",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            if not title or len(title.strip()) == 0:
+                return {
+                    "success": False,
+                    "message": "更改标题失败",
+                    "error": "标题不能为空",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            # 准备请求参数
+            headers = self.headers.copy()
+            csrf = self.csrf
+            api_url = "https://api.live.bilibili.com/room/v1/Room/update"
+            data = {
+                'room_id': room_id,
+                'title': title,
+                'csrf_token': csrf,
+                'csrf': csrf
+            }
+
+            # 发送请求
+            response = requests.post(
+                url=api_url,
+                headers=headers,
+                data=data,
+                verify=self.verify_ssl,
+                timeout=30
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "更改标题失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            result = response.json()
+
+            # 根据B站API返回的状态码判断成功与否
+            api_code = result.get("code", -1)
+            if api_code == 0:
+                return {
+                    "success": True,
+                    "message": "标题更改成功",
+                    "data": result.get("data", {}),
+                    "status_code": response.status_code,
+                    "api_code": api_code
+                }
+            else:
+                # 提取错误信息
+                error_msg = result.get("msg") or result.get("message", "未知错误")
+                return {
+                    "success": False,
+                    "message": "标题更改失败",
+                    "error": error_msg,
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "更改标题失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "更改标题失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "更改标题失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "更改标题过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
+            }
 
     def create_live_room(self) -> Dict[str, Any]:
         """
         开通直播间（创建直播间房间）
 
         Returns:
-            开通成功的直播间返回值
-
-        Raises:
-            RuntimeError: 开通失败时抛出，包含错误信息
-            ValueError: 缺少必要参数时抛出
-
-        错误代码:
-            - 0: 成功
-            - 1531193016: 已经创建过直播间
-            - -400: 请求错误
+            包含开通结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（包含room_id等）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码（如果有）
+            - api_code: B站API返回的错误码（如果有）
         """
-        # 检查必要的CSRF token
-        if not self.csrf:
-            raise ValueError("缺少bili_jct值，无法进行CSRF验证")
-
-        api_url = "https://api.live.bilibili.com/xlive/app-blink/v1/preLive/CreateRoom"
-
-        # 准备请求数据
-        data = {
-            "platform": "web",
-            "visit_id": "",
-            "csrf": self.csrf,
-            "csrf_token": self.csrf,
-        }
-
         try:
+            # 检查认证器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "开通直播间失败",
+                    "error": "认证器未正确初始化",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            # 检查必要的CSRF token
+            if not self.csrf:
+                return {
+                    "success": False,
+                    "message": "开通直播间失败",
+                    "error": "缺少bili_jct值，无法进行CSRF验证",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            api_url = "https://api.live.bilibili.com/xlive/app-blink/v1/preLive/CreateRoom"
+
+            # 准备请求数据
+            data = {
+                "platform": "web",
+                "visit_id": "",
+                "csrf": self.csrf,
+                "csrf_token": self.csrf,
+            }
+
             # 发送POST请求
-            response = requests.post(verify=self.sslVerification, url=api_url,
-                                     data=data,
-                                     headers=self.headers,
-                                     timeout=10
-                                     )
-            response.raise_for_status()  # 检查HTTP错误
+            response = requests.post(
+                url=api_url,
+                data=data,
+                headers=self.headers,
+                verify=self.verify_ssl,
+                timeout=30
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "开通直播间失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
 
             # 解析JSON响应
             result = response.json()
-            return result
 
-        except requests.exceptions.RequestException as e:
-            raise RuntimeError(f"网络请求失败: {e}") from e
-        except (ValueError, KeyError) as e:
-            raise RuntimeError(f"解析响应失败: {e}") from e
+            # 处理已知的成功和失败情况
+            api_code = result.get("code", 0)
 
-    def change_room_title(self, title: str):
-        """
-        更新直播标题
-        @return:
-        """
-        headers = self.headers
-        csrf = self.csrf
-        api = "https://api.live.bilibili.com/room/v1/Room/update"
-        room_v1_Room_update_data = {
-            'room_id': self.get_room_highlight_state(),
-            'title': title,
-            'csrf_token': csrf,
-            'csrf': csrf
-        }
-        room_v1_Room_update_ReturnValue = requests.post(verify=self.sslVerification, url=api, headers=headers,
-                                                        data=room_v1_Room_update_data).json()
-        return room_v1_Room_update_ReturnValue
-
-    def change_room_area(self, area_id: int):
-        """
-        更改直播分区
-        @param area_id:二级分区id
-        @return:
-        """
-        api = "https://api.live.bilibili.com/xlive/app-blink/v2/room/AnchorChangeRoomArea"
-        headers = self.headers
-        csrf = self.csrf
-        AnchorChangeRoomArea_data = {
-            "platform": "pc",
-            "room_id": self.get_room_highlight_state(),
-            "area_id": area_id,
-            "csrf": csrf,
-            "csrf_token": csrf,
-        }
-        ChangeRoomArea_ReturnValue = requests.post(verify=self.sslVerification, url=api, headers=headers,
-                                                   params=AnchorChangeRoomArea_data).json()
-        return ChangeRoomArea_ReturnValue
-
-    def start_live(self, area_id: int, platform: Literal["pc_link", "web_link", "android_link"]):
-        """
-        开始直播
-        Args:
-            area_id: 二级分区id
-            platform: 直播平台
-        Returns:
-        """
-        api = "https://api.live.bilibili.com/room/v1/Room/startLive"
-        headers = self.headers
-        csrf = self.csrf
-        startLivedata = {
-            "access_key": "",  # 留空
-            "appkey": "aae92bc66f3edfab",  # 固定应用密钥
-            "platform": platform,  # 直播姬（pc）：pc_link、web在线直播：web_link、bililink：android_link
-            "room_id": self.get_room_highlight_state(),
-            "area_v2": area_id,
-            "build": "9343",  # 客户端版本号
-            "backup_stream": 0,
-            "csrf": csrf,
-            "csrf_token": csrf,
-            "ts": str(int(time.time()))  # 当前UNIX时间戳
-        }
-
-        # 对参数按字典序排序
-        sorted_params = sorted(startLivedata.items(), key=lambda x: x[0])
-
-        # 生成签名字符串 (参数串 + 固定盐值)
-        query_string = "&".join(f"{k}={v}" for k, v in sorted_params)
-        sign_string = query_string + "af125a0d5279fd576c1b4418a3e8276d"
-
-        # 计算MD5签名
-        md5_sign = hashlib.md5(sign_string.encode('utf-8')).hexdigest()
-
-        # 添加签名到参数
-        startLivedata["sign"] = md5_sign
-        startLive_ReturnValue = requests.post(verify=self.sslVerification, url=api, headers=headers,
-                                              params=startLivedata).json()
-        return startLive_ReturnValue
-
-    def stop_live(self, platform: Literal["pc_link", "web_link", "android_link"]):
-        """
-        结束直播
-        @return:
-        """
-        api = "https://api.live.bilibili.com/room/v1/Room/stopLive"
-        headers = self.headers
-        csrf = self.csrf
-        stopLive_data = {
-            "platform": platform,
-            "room_id": self.get_room_highlight_state(),
-            "csrf": csrf,
-            "csrf_token": csrf,
-        }
-        stopLive_ReturnValue = requests.post(verify=self.sslVerification, url=api, headers=headers,
-                                             params=stopLive_data).json()
-        return stopLive_ReturnValue
-
-    def rename_fans_medal(self, medal_name: str) -> dict:
-        """
-        修改粉丝勋章名称
-
-        Args:
-            medal_name: 新的粉丝勋章名称
-
-        Returns:
-            包含操作结果的字典，结构:
-            {
-                "code": int,      # 返回代码 (0表示成功)
-                "message": str,    # 操作结果消息
-                "msg": str,        # 操作结果消息(同message)
-                "data": dict       # 附加数据
-            }
-
-            常见错误代码:
-            - 5200012: 勋章名称不可含有特殊字符
-            - 其他错误代码参考B站API文档
-        """
-        api_url = "https://api.live.bilibili.com/fans_medal/v1/medal/rename"
-
-        # 准备请求参数
-        params = {
-            "uid": self.cookies.get("DedeUserID", ""),
-            "source": "1",
-            "medal_name": medal_name,
-            "platform": "pc",
-            "csrf_token": self.csrf,
-            "csrf": self.csrf
-        }
-
-        # 准备请求头
-        headers = {
-            **self.headers,
-            "origin": "https://link.bilibili.com",
-            "referer": "https://link.bilibili.com/p/center/index",
-            "content-type": "application/x-www-form-urlencoded",
-            "priority": "u=1, i"
-        }
-
-        try:
-            # 发送POST请求
-            response = requests.post(
-                api_url,
-                headers=headers,
-                data=params,
-                timeout=10
-            )
-
-            # 尝试解析JSON响应
-            try:
-                result = response.json()
-                return result
-            except ValueError:
-                # JSON解析失败时返回原始文本
+            # 成功情况
+            if api_code == 0:
                 return {
-                    "code": -1,
-                    "message": f"响应解析失败: {response.text[:100]}...",
-                    "msg": f"响应解析失败: {response.text[:100]}...",
-                    "data": {}
+                    "success": True,
+                    "message": "直播间开通成功",
+                    "data": result.get("data", {}),
+                    "status_code": response.status_code,
+                    "api_code": api_code
                 }
 
-        except requests.exceptions.RequestException as e:
-            # 网络请求异常
+            # 已知的失败情况
+            elif api_code == 1531193016:  # 已经创建过直播间
+                return {
+                    "success": True,  # 虽然API返回错误码，但从业务角度看是成功的（已存在）
+                    "message": "直播间已存在",
+                    "data": result.get("data", {}),
+                    "status_code": response.status_code,
+                    "api_code": api_code
+                }
+
+            # 其他失败情况
+            else:
+                return {
+                    "success": False,
+                    "message": "开通直播间失败",
+                    "error": result.get("message", "未知错误"),
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
+
+        except requests.exceptions.Timeout:
             return {
-                "code": -1,
-                "message": f"网络请求失败: {str(e)}",
-                "msg": f"网络请求失败: {str(e)}",
-                "data": {}
+                "success": False,
+                "message": "开通直播间失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "开通直播间失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "开通直播间失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "开通直播间过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
             }
 
     def create_reserve(self, title: str, live_plan_start_time: int, create_dynamic: bool = False,
@@ -6604,663 +4997,1475 @@ class BilibiliApiMaster:
             business_type: 业务类型(默认10)
 
         Returns:
-            包含预约结果的字典，结构:
-            {
-                "code": int,    # 0表示成功
-                "message": str, # 错误信息
-                "ttl": int,     # 1
-                "data": {
-                    "sid": int  # 预约ID
+            包含预约结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（包含sid等）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的code
+        """
+        try:
+            # 检查认证器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "创建预约失败",
+                    "error": "认证器未正确初始化",
+                    "status_code": None,
+                    "api_code": None
                 }
+
+            # 验证必要参数
+            if not self.csrf:
+                return {
+                    "success": False,
+                    "message": "创建预约失败",
+                    "error": "缺少bili_jct参数，无法获取csrf token",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            if not title or not live_plan_start_time:
+                return {
+                    "success": False,
+                    "message": "创建预约失败",
+                    "error": "标题和开始时间为必填参数",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            # 生成随机visit_id (16位字母数字组合)
+            visit_id = ''.join(random.choices(string.ascii_lowercase + string.digits, k=16))
+
+            # 构建请求负载
+            payload = {
+                "title": title,
+                "type": "2",  # 固定值
+                "from": "23",  # 固定值
+                "create_dynamic": "1" if create_dynamic else "0",
+                "live_plan_start_time": str(live_plan_start_time),
+                "business_type": str(business_type),
+                "csrf_token": self.csrf,
+                "csrf": self.csrf,
+                "visit_id": visit_id
             }
 
-        Raises:
-            ValueError: 缺少必要参数或请求失败
-        """
-        # 验证必要参数
-        if not self.csrf:
-            raise ValueError("缺少bili_jct参数，无法获取csrf token")
+            api_url = "https://api.live.bilibili.com/xlive/app-ucenter/v2/schedule/CreateReserve"
 
-        # 生成随机visit_id (16位字母数字组合)
-        visit_id = ''.join(random.choices(string.ascii_lowercase + string.digits, k=16))
+            response = requests.post(
+                verify=self.verify_ssl,
+                url=api_url,
+                headers=self.headers,
+                data=payload,
+                timeout=10
+            )
 
-        # 构建请求负载
-        payload = {
-            "title": title,
-            "type": "2",  # 固定值
-            "from": "23",  # 固定值
-            "create_dynamic": "1" if create_dynamic else "0",
-            "live_plan_start_time": str(live_plan_start_time),
-            "business_type": str(business_type),
-            "csrf_token": self.csrf,
-            "csrf": self.csrf,
-            "visit_id": visit_id
-        }
-
-        api_url = "https://api.live.bilibili.com/xlive/app-ucenter/v2/schedule/CreateReserve"
-
-        try:
-            response = requests.post(verify=self.sslVerification, url=api_url,
-                                     headers=self.headers,
-                                     data=payload,
-                                     timeout=10
-                                     )
-            response.raise_for_status()
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "创建预约失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
 
             # 解析响应
             result = response.json()
 
-            return result
+            # 根据B站API返回的code判断是否成功
+            api_code = result.get("code", -1)
+            if api_code == 0:
+                # 成功创建预约
+                return {
+                    "success": True,
+                    "message": "预约创建成功",
+                    "data": {
+                        "sid": result.get("data", {}).get("sid"),
+                        "api_response": result
+                    },
+                    "status_code": response.status_code,
+                    "api_code": api_code
+                }
+            else:
+                # 预约创建失败
+                error_message = result.get("message", "未知错误")
+                common_errors = {
+                    75876: "已超出预约发起上限",
+                    75882: "发起直播预约开播时间不可早于当前时间后5分钟",
+                    10016: "创建预约失败"
+                }
 
+                # 使用预定义的错误消息或API返回的消息
+                if api_code in common_errors:
+                    error_message = common_errors[api_code]
+
+                return {
+                    "success": False,
+                    "message": "B站API返回错误",
+                    "error": error_message,
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "api_response": result
+                }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "创建预约失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "创建预约失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None
+            }
         except requests.exceptions.RequestException as e:
-            raise ValueError(f"网络请求失败: {e}") from e
-        except json.JSONDecodeError as e:
-            raise ValueError(f"响应解析失败: {e}") from e
+            return {
+                "success": False,
+                "message": "创建预约失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "创建预约过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
+            }
 
-    def cancel_reserve(self, sid: int, from_value: int = 13) -> Dict[str, Any]:
+    def get_dynamic(self, host_mid: int, all: bool = False) -> Dict[str, Any]:
         """
-        取消直播预约
+        获取用户动态列表
 
         Args:
-            sid: 预约活动ID
-            from_value: 来源标识（默认13）
+            host_mid: 用户ID
+            all: 是否获取全部动态（分页获取）
 
         Returns:
-            包含操作结果的字典，结构:
-            {
-                "code": int,     # 0表示成功
-                "message": str,   # 错误信息
-                "ttl": int,       # 1
-                "data": dict      # 空字典
-            }
-
-        Raises:
-            ValueError: 缺少必要的CSRF token
-            RequestException: 网络请求失败
+            包含动态列表的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的动态数据
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码（如果有）
         """
-        # 检查CSRF token
-        if not self.csrf:
-            raise ValueError("缺少bili_jct值，无法进行身份验证")
-
-        # 生成随机visit_id (12位字母数字)
-        visit_id = ''.join(random.choices(string.ascii_lowercase + string.digits, k=12))
-
-        # 构造请求参数
-        payload = {
-            "sid": sid,
-            "from": from_value,
-            "csrf_token": self.csrf,
-            "csrf": self.csrf,
-            "visit_id": visit_id
-        }
-
         try:
-            # 发送POST请求
-            response = requests.post(verify=self.sslVerification,
-                                     url="https://api.live.bilibili.com/xlive/app-ucenter/v2/schedule/CancelReserve",
-                                     headers=self.headers,
-                                     data=payload,
-                                     timeout=10
-                                     )
-            response.raise_for_status()  # 检查HTTP错误
+            # 检查管理器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "获取动态列表失败",
+                    "error": "认证器未正确初始化",
+                    "status_code": None
+                }
 
-            # 解析并返回JSON响应
-            return response.json()
+            # 检查用户ID是否有效
+            if not host_mid or host_mid <= 0:
+                return {
+                    "success": False,
+                    "message": "获取动态列表失败",
+                    "error": "用户ID无效",
+                    "status_code": None
+                }
 
-        except requests.exceptions.RequestException as e:
-            raise requests.exceptions.RequestException(f"取消预约请求失败: {e}") from e
-        except json.JSONDecodeError as e:
-            raise ValueError(f"解析响应失败: {e}") from e
-
-    def fetch_stream_addr(self, platform: Literal["pc_link", "web_link", "android_link"], reset_key: bool = False):
-        """
-        推流码信息
-        @param reset_key: 布尔值，是否更新推流码
-        @return:
-        """
-        api = "https://api.live.bilibili.com/xlive/app-blink/v1/live/FetchWebUpStreamAddr"
-        headers = self.headers
-        csrf = self.csrf
-        FetchWebUpStreamAddr_data = {
-            "platform": platform,
-            "backup_stream": 0,
-            "reset_key": reset_key,
-            "csrf": csrf,
-            "csrf_token": csrf,
-        }
-        FetchWebUpStreamAddre_ReturnValue = requests.post(verify=self.sslVerification, url=api, headers=headers,
-                                                          params=FetchWebUpStreamAddr_data).json()
-        return FetchWebUpStreamAddre_ReturnValue
-
-
-class OptimizedMessageDeduplication:
-    """优化的消息去重类"""
-
-    def __init__(self, max_size: int = 1000, ttl_seconds: int = 5):
-        """
-        Args:
-            max_size: 最大存储数量
-            ttl_seconds: 消息存活时间（秒），None表示不过期
-        """
-        self.max_size = max_size
-        self.ttl_seconds = ttl_seconds
-        # 使用OrderedDict同时维护顺序和快速查找
-        self.message_store = OrderedDict()  # {hash: timestamp}
-
-    def add(self, message: str) -> bool:
-        """添加消息，返回True如果是新消息"""
-        message_hash = self._get_hash(message)
-        current_time = time.time()
-
-        # 清理过期消息
-        if self.ttl_seconds:
-            self._cleanup_expired(current_time)
-
-        # 检查是否重复
-        if message_hash in self.message_store:
-            # 更新访问时间
-            self.message_store.move_to_end(message_hash)
-            return False
-
-        # 添加新消息
-        self.message_store[message_hash] = current_time
-
-        # 限制大小
-        if len(self.message_store) > self.max_size:
-            self.message_store.popitem(last=False)
-
-        return True
-
-    def contains(self, message: str) -> bool:
-        """检查消息是否重复"""
-        message_hash = self._get_hash(message)
-
-        if self.ttl_seconds:
-            self._cleanup_expired(time.time())
-
-        return message_hash in self.message_store
-
-    def _get_hash(self, message: str) -> str:
-        """获取消息哈希（使用更快的哈希算法）"""
-        return hashlib.md5(message.encode()).hexdigest()
-        # 或者使用更快的：return hashlib.sha1(message.encode()).hexdigest()
-
-    def _cleanup_expired(self, current_time: float):
-        """清理过期消息"""
-        expired_hashes = []
-
-        for msg_hash, timestamp in self.message_store.items():
-            if current_time - timestamp > self.ttl_seconds:
-                expired_hashes.append(msg_hash)
-            else:
-                break  # 由于是有序的，后面的都不会过期
-
-        for msg_hash in expired_hashes:
-            del self.message_store[msg_hash]
-
-    def size(self) -> int:
-        """返回当前消息数量"""
-        if self.ttl_seconds:
-            self._cleanup_expired(time.time())
-        return len(self.message_store)
-
-    def clear(self):
-        """清空所有消息"""
-        self.message_store.clear()
-
-    def get_memory_usage(self) -> int:
-        """估算内存使用（字节）"""
-        # 每个条目大约：哈希(32字节) + 时间戳(8字节) + 字典开销
-        return len(self.message_store) * 50  # 近似值
-
-
-class DanmuWebSocketServer:
-    def __init__(self, host='localhost', port=8765):
-        self.host = host
-        self.port = port
-        self.connected_clients: Set = set()
-        self.server: Optional[websockets.WebSocketServer] = None
-        self.danmu_processor = None
-        self.running = False
-        self._server_task: Optional[asyncio.Task] = None
-
-    async def register(self, websocket):
-        """注册新的客户端连接"""
-        self.connected_clients.add(websocket)
-        print(f"新的网页客户端连接，当前连接数: {len(self.connected_clients)}")
-
-        # 发送欢迎消息
-        welcome_msg = {
-            "type": "system",
-            "messageData": "弹幕服务器连接成功",
-            "timestamp": time.time(),
-            "clients_count": len(self.connected_clients)
-        }
-        await websocket.send(json.dumps(welcome_msg))
-
-    async def unregister(self, websocket):
-        """移除断开连接的客户端"""
-        if websocket in self.connected_clients:
-            self.connected_clients.remove(websocket)
-            print(f"网页客户端断开，当前连接数: {len(self.connected_clients)}")
-
-    async def broadcast_message(self, message: Dict[str, Any]):
-        """向所有连接的客户端广播消息"""
-        if not self.connected_clients:
-            return
-
-        message_json = json.dumps(message, ensure_ascii=False)
-
-        # 收集断开连接的客户端
-        disconnected_clients = []
-
-        # 使用 asyncio.gather 并行发送消息
-        tasks = []
-        for client in self.connected_clients:
-            try:
-                task = asyncio.create_task(client.send(message_json))
-                tasks.append(task)
-            except Exception:
-                disconnected_clients.append(client)
-
-        # 等待所有发送任务完成
-        if tasks:
-            await asyncio.gather(*tasks, return_exceptions=True)
-
-        # 移除断开连接的客户端
-        for client in disconnected_clients:
-            await self.unregister(client)
-
-    async def handle_client(self, websocket):
-        """处理客户端连接"""
-        await self.register(websocket)
-        try:
-            # 保持连接，等待客户端消息
-            async for message in websocket:
-                try:
-                    data = json.loads(message)
-                    await self.handle_client_message(websocket, data)
-                except json.JSONDecodeError:
-                    error_msg = {
-                        "type": "error",
-                        "messageData": "无效的JSON格式",
-                        "timestamp": time.time()
-                    }
-                    await websocket.send(json.dumps(error_msg))
-        except websockets.exceptions.ConnectionClosed:
-            pass
-        finally:
-            await self.unregister(websocket)
-
-    async def handle_client_message(self, websocket, data: Dict[str, Any]):
-        """处理来自客户端的消息"""
-        message_type = data.get("type")
-
-        if message_type == "ping":
-            # 响应 ping 消息
-            pong_msg = {
-                "type": "pong",
-                "timestamp": time.time()
+            # 构建API请求
+            api_url = "https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space"
+            params = {
+                "offset": "",
+                "host_mid": host_mid
             }
-            await websocket.send(json.dumps(pong_msg))
-        elif message_type == "get_stats":
-            # 返回服务器统计信息
-            stats_msg = {
-                "type": "stats",
-                "clients_count": len(self.connected_clients),
-                "timestamp": time.time()
-            }
-            await websocket.send(json.dumps(stats_msg))
 
-    async def send_danmu_message(self, danmu_data: Dict[str, Any]):
-        """发送弹幕消息（异步版本）"""
-        await self.broadcast_message(danmu_data)
-
-    def send_danmu_message_sync(self, danmu_data: Dict[str, Any]):
-        """同步方式发送弹幕消息（用于从其他线程调用）"""
-        if self.running:
-            # 如果从其他线程调用，使用 run_coroutine_threadsafe
-            asyncio.run_coroutine_threadsafe(
-                self.send_danmu_message(danmu_data),
-                asyncio.get_event_loop()
+            # 发送请求
+            response = requests.get(
+                url=api_url,
+                headers=self.headers,
+                params=params,
+                verify=self.verify_ssl,
+                timeout=30
             )
 
-    async def start_server_async(self):
-        """异步启动 WebSocket 服务器"""
-        self.running = True
-        self.server = await websockets.serve(
-            self.handle_client,
-            self.host,
-            self.port
-        )
-        print(f"弹幕转发服务器启动在 ws://{self.host}:{self.port}")
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取动态列表失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "response_text": response.text
+                }
 
-        # 保持服务器运行
-        await self.server.wait_closed()
+            # 解析响应
+            result = response.json()
 
-    async def start_server(self):
-        """启动服务器（包装方法）"""
-        try:
-            await self.start_server_async()
-        except asyncio.CancelledError:
-            print("WebSocket 服务器被取消")
-        except Exception as e:
-            print(f"WebSocket 服务器错误: {e}")
-        finally:
-            await self.stop_server_async()
+            # 检查B站API返回状态
+            if result.get("code") != 0:
+                return {
+                    "success": False,
+                    "message": "B站API返回错误",
+                    "error": result.get("message", "未知错误"),
+                    "status_code": response.status_code,
+                    "api_code": result.get("code")
+                }
 
-    async def stop_server_async(self):
-        """异步停止服务器"""
-        self.running = False
+            # 检查数据是否存在
+            if "data" not in result or "items" not in result["data"]:
+                return {
+                    "success": False,
+                    "message": "API响应格式异常",
+                    "error": "响应中缺少必要的数据字段",
+                    "status_code": response.status_code,
+                    "response_data": result
+                }
 
-        # 关闭所有客户端连接
-        if self.connected_clients:
-            close_tasks = []
-            for client in list(self.connected_clients):
-                close_tasks.append(asyncio.create_task(client.close()))
-            if close_tasks:
-                await asyncio.gather(*close_tasks, return_exceptions=True)
-            self.connected_clients.clear()
+            # 获取动态数据
+            dynamics = result["data"]["items"]
 
-        # 停止服务器
-        if self.server:
-            self.server.close()
-            await self.server.wait_closed()
+            # 如果需要获取全部动态，则继续分页请求
+            if all and result["data"].get("has_more", False):
+                while result["data"].get("has_more", False):
+                    params["offset"] = result["data"].get("offset", "")
 
-        # 取消服务器任务
-        if self._server_task and not self._server_task.done():
-            self._server_task.cancel()
+                    # 发送分页请求
+                    response = requests.get(
+                        url=api_url,
+                        headers=self.headers,
+                        params=params,
+                        verify=self.verify_ssl,
+                        timeout=30
+                    )
 
-        print("WebSocket 服务器已停止")
-
-    def stop_server(self):
-        """同步停止服务器"""
-        if self._server_task and not self._server_task.done():
-            self._server_task.cancel()
-
-    async def run_forever(self):
-        """运行服务器直到停止"""
-        self._server_task = asyncio.create_task(self.start_server())
-        try:
-            await self._server_task
-        except asyncio.CancelledError:
-            print("服务器任务被取消")
-
-
-class Danmu:
-
-    def __init__(self, headers: dict):
-        self.headers = headers
-        self.cookie = headers['cookie']
-
-    def _get_websocket_client(self, roomid: int):
-        danmu_info = WbiSigna(self.headers).get_danmu_info(roomid)
-        token = danmu_info['data']['token']
-        host = danmu_info['data']['host_list'][-1]
-        wss_url = f"wss://{host['host']}:{host['wss_port']}/sub"
-
-        user_info = BilibiliCSRFAuthenticator(self.headers).get_user_live_info()['data']
-        cookies = Tools.parse_cookie(self.cookie)
-        auth_body = {
-            "uid": user_info["uid"],
-            "roomid": roomid,
-            "protover": 2,
-            "buvid": cookies['buvid3'],
-            "platform": "web",
-            "type": 3,
-            "key": token
-        }
-        return wss_url, auth_body
-
-    def connect_room(self, roomid: int):
-        wss_url, auth_body = self._get_websocket_client(roomid)
-        return self._WebSocketClient(wss_url, auth_body)
-
-    class _WebSocketClient:
-        HEARTBEAT_INTERVAL = 30
-        """心跳间隔"""
-
-        def __init__(self, url: str, auth_body: dict[str, Union[str, int]]):
-            self.url = url
-            self.auth_body = auth_body
-            self.Callable_opt_code8: Callable[[str], None] = lambda a: None
-            """接收认证包回复的回调函数"""
-            self.Callable_opt_code5: Callable[[Dict[str, Any]], None] = lambda a: None
-            """接收普通包 (命令)的回调函数"""
-            self.wssCertificationAndHeartbeat: Callable[[bytes], None] = lambda a: None
-            """发送认证包接收时的回调函数"""
-            self.num_r = 20
-            """同时连接多个弹幕减少丢包"""
-            self.connection_interval = 0.3
-            """同时连接多个弹幕的间隔秒"""
-            self.o_m_d = OptimizedMessageDeduplication()
-
-            self.connection_tasks = []  # 异步任务列表
-            self.running = False
-            self._stop_event = asyncio.Event()  # 用于等待停止信号
-            self._loop = None  # 存储事件循环引用
-
-        async def connect(self):
-            base_delay = 3
-            retry_count = 0
-            max_retries = 5
-
-            while self.running and retry_count < max_retries:
-                try:
-                    async with websockets.connect(
-                            self.url,
-                            ping_interval=20,
-                            ping_timeout=10,
-                            close_timeout=10
-                    ) as ws:
-                        await self.on_open(ws)
-                        retry_count = 0  # 成功连接后重置重试计数
-
-                        while self.running:
-                            try:
-                                message = await asyncio.wait_for(ws.recv(), timeout=10.0)
-                                await self.on_message(message)
-                            except asyncio.TimeoutError:
-                                if not self.running:
-                                    break
-                                try:
-                                    await ws.send(self.pack(None, 2))
-                                except Exception:
-                                    break
-                            except websockets.exceptions.ConnectionClosed:
-                                break
-
-                except Exception as e:
-                    if not self.running:
+                    # 检查HTTP状态码
+                    if response.status_code != 200:
                         break
-                    retry_count += 1
-                    delay = base_delay * (2 ** retry_count)
-                    print(f"连接失败，{delay}秒后重试... (重试次数: {retry_count})")
-                    await asyncio.sleep(delay)
 
-        async def on_open(self, ws):
-            """
-            wss 认证和心跳
-            Args:
-                ws: wss 对象
-            """
+                    # 解析响应
+                    result = response.json()
+
+                    # 检查B站API返回状态
+                    if result.get("code") != 0:
+                        break
+
+                    # 检查数据是否存在
+                    if "data" not in result or "items" not in result["data"]:
+                        break
+
+                    # 添加新获取的动态
+                    for item in result["data"]["items"]:
+                        if item not in dynamics:
+                            dynamics.append(item)
+
+            # 成功返回
+            return {
+                "success": True,
+                "message": "动态列表获取成功",
+                "data": dynamics,
+                "status_code": response.status_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取动态列表失败",
+                "error": "请求超时",
+                "status_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取动态列表失败",
+                "error": "网络连接错误",
+                "status_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取动态列表失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取动态列表过程中发生未知错误",
+                "error": str(e),
+                "status_code": None
+            }
+
+    def get_emoticons(self, room_id: int) -> Dict[str, Any]:
+        """
+        获取直播间表情列表
+
+        Args:
+            room_id: 直播间ID
+
+        Returns:
+            包含表情列表的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（表情列表）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码（如果有）
+        """
+        try:
+            # 检查认证器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "获取表情列表失败",
+                    "error": "认证器未正确初始化",
+                    "status_code": None
+                }
+
+            # 检查房间ID是否有效
+            if not room_id or room_id <= 0:
+                return {
+                    "success": False,
+                    "message": "获取表情列表失败",
+                    "error": "房间ID无效",
+                    "status_code": None
+                }
+
+            # 构建API请求
+            api_url = "https://api.live.bilibili.com/xlive/web-ucenter/v2/emoticon/GetEmoticons"
+            params = {
+                "platform": "pc",
+                "room_id": room_id
+            }
+
+            # 发送请求
+            response = requests.get(
+                url=api_url,
+                headers=self.headers,
+                params=params,
+                verify=self.verify_ssl,
+                timeout=30
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取表情列表失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            result = response.json()
+
+            # 检查B站API返回状态
+            if result.get("code") != 0:
+                return {
+                    "success": False,
+                    "message": "B站API返回错误",
+                    "error": result.get("message", "未知错误"),
+                    "status_code": response.status_code,
+                    "api_code": result.get("code")
+                }
+
+            # 检查数据是否存在
+            if "data" not in result or "data" not in result["data"]:
+                return {
+                    "success": False,
+                    "message": "API响应格式异常",
+                    "error": "响应中缺少必要的数据字段",
+                    "status_code": response.status_code,
+                    "response_data": result
+                }
+
+            # 成功返回
+            return {
+                "success": True,
+                "message": "表情列表获取成功",
+                "data": result["data"]["data"],
+                "status_code": response.status_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取表情列表失败",
+                "error": "请求超时",
+                "status_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取表情列表失败",
+                "error": "网络连接错误",
+                "status_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取表情列表失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取表情列表过程中发生未知错误",
+                "error": str(e),
+                "status_code": None
+            }
+
+    def get_fans_members_rank(self, uid: int) -> Dict[str, Any]:
+        """
+        获取指定用户的粉丝团成员列表
+
+        Args:
+            uid: 要查询的B站用户UID
+
+        Returns:
+            包含查询结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的粉丝团成员列表数据
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码（如果有）
+            - total_count: 总成员数量（成功时）
+        """
+        try:
+            # 检查认证器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "获取粉丝团成员列表失败",
+                    "error": "认证器未正确初始化",
+                    "status_code": None
+                }
+
+            # 验证UID参数
+            if not uid or uid <= 0:
+                return {
+                    "success": False,
+                    "message": "获取粉丝团成员列表失败",
+                    "error": "无效的用户UID",
+                    "status_code": None
+                }
+
+            api_url = "https://api.live.bilibili.com/xlive/general-interface/v1/rank/getFansMembersRank"
+            headers = self.headers
+            page = 1
+            fans_members = []
+            has_more_data = True
+            max_retries = 3
+
+            while has_more_data:
+                params = {
+                    "ruid": uid,
+                    "page": page,
+                    "page_size": 30,
+                }
+
+                # 添加重试机制
+                for attempt in range(max_retries):
+                    try:
+                        response = requests.get(
+                            api_url,
+                            headers=headers,
+                            params=params,
+                            verify=self.verify_ssl,
+                            timeout=30
+                        )
+
+                        # 检查HTTP状态码
+                        if response.status_code != 200:
+                            if attempt < max_retries - 1:
+                                time.sleep(2)  # 等待后重试
+                                continue
+                            else:
+                                return {
+                                    "success": False,
+                                    "message": "获取粉丝团成员列表失败",
+                                    "error": f"HTTP错误: {response.status_code}",
+                                    "status_code": response.status_code
+                                }
+
+                        result = response.json()
+
+                        # 检查API返回状态
+                        if result.get("code") != 0:
+                            return {
+                                "success": False,
+                                "message": "B站API返回错误",
+                                "error": result.get("message", "未知错误"),
+                                "status_code": response.status_code,
+                                "api_code": result.get("code")
+                            }
+
+                        # 处理数据
+                        current_page_items = result["data"].get("item", [])
+                        if current_page_items:
+                            fans_members.extend(current_page_items)
+                            page += 1
+                        else:
+                            has_more_data = False
+
+                        break  # 成功获取数据，跳出重试循环
+
+                    except requests.exceptions.Timeout:
+                        if attempt < max_retries - 1:
+                            time.sleep(5)  # 超时后等待5秒重试
+                            continue
+                        else:
+                            return {
+                                "success": False,
+                                "message": "获取粉丝团成员列表失败",
+                                "error": "请求超时",
+                                "status_code": None
+                            }
+                    except requests.exceptions.RequestException as e:
+                        if attempt < max_retries - 1:
+                            time.sleep(5)  # 网络错误后等待5秒重试
+                            continue
+                        else:
+                            return {
+                                "success": False,
+                                "message": "获取粉丝团成员列表失败",
+                                "error": f"网络请求异常: {str(e)}",
+                                "status_code": None
+                            }
+
+            # 成功返回
+            return {
+                "success": True,
+                "message": "粉丝团成员列表获取成功",
+                "data": fans_members,
+                "total_count": len(fans_members),
+                "status_code": 200
+            }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取粉丝团成员列表过程中发生未知错误",
+                "error": str(e),
+                "status_code": None
+            }
+
+    def get_navigation_info(self) -> Dict[str, Any]:
+        """
+        获取登录后导航栏用户信息
+
+        Returns:
+            包含导航信息的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（包含用户详细信息）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码（如果有）
+        """
+        try:
+            # 检查管理器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "获取导航信息失败",
+                    "error": "认证器未正确初始化",
+                    "status_code": None
+                }
+
+            # 构建API请求
+            api_url = "https://api.bilibili.com/x/web-interface/nav"
+
+            # 发送请求
+            response = requests.get(
+                url=api_url,
+                headers=self.headers,
+                verify=self.verify_ssl,
+                timeout=30
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取导航信息失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            result = response.json()
+
+            # 检查B站API返回状态
+            if result.get("code") != 0:
+                return {
+                    "success": False,
+                    "message": "B站API返回错误",
+                    "error": result.get("message", "未知错误"),
+                    "status_code": response.status_code,
+                    "api_code": result.get("code")
+                }
+
+            # 检查数据是否存在
+            if "data" not in result:
+                return {
+                    "success": False,
+                    "message": "API响应格式异常",
+                    "error": "响应中缺少必要的数据字段",
+                    "status_code": response.status_code,
+                    "response_data": result
+                }
+
+            # 成功返回
+            return {
+                "success": True,
+                "message": "导航信息获取成功",
+                "data": result["data"],
+                "status_code": response.status_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取导航信息失败",
+                "error": "请求超时",
+                "status_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取导航信息失败",
+                "error": "网络连接错误",
+                "status_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取导航信息失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取导航信息过程中发生未知错误",
+                "error": str(e),
+                "status_code": None
+            }
+
+    def get_user_live_info(self) -> Dict[str, Any]:
+        """
+        获取用户直播相关信息
+
+        Returns:
+            包含用户直播信息的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（包含用户直播信息）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码（如果有）
+        """
+        try:
+            # 检查认证器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "获取用户直播信息失败",
+                    "error": "认证器未正确初始化",
+                    "status_code": None
+                }
+
+            # 构建API请求
+            api_url = "https://api.live.bilibili.com/xlive/web-ucenter/user/get_user_info"
+
+            # 发送请求
+            response = requests.get(
+                url=api_url,
+                headers=self.headers,
+                verify=self.verify_ssl,
+                timeout=30
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取用户直播信息失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            result = response.json()
+
+            # 检查B站API返回状态
+            if result.get("code") != 0:
+                return {
+                    "success": False,
+                    "message": "B站API返回错误",
+                    "error": result.get("message", "未知错误"),
+                    "status_code": response.status_code,
+                    "api_code": result.get("code")
+                }
+
+            # 检查数据是否存在
+            if "data" not in result:
+                return {
+                    "success": False,
+                    "message": "API响应格式异常",
+                    "error": "响应中缺少必要的数据字段",
+                    "status_code": response.status_code,
+                    "response_data": result
+                }
+
+            # 成功返回
+            return {
+                "success": True,
+                "message": "用户直播信息获取成功",
+                "data": result["data"],
+                "status_code": response.status_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取用户直播信息失败",
+                "error": "请求超时",
+                "status_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取用户直播信息失败",
+                "error": "网络连接错误",
+                "status_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取用户直播信息失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取用户直播信息过程中发生未知错误",
+                "error": str(e),
+                "status_code": None
+            }
+
+    def rename_fans_medal(self, medal_name: str) -> Dict[str, Any]:
+        """
+        修改粉丝勋章名称
+
+        Args:
+            medal_name: 新的粉丝勋章名称
+
+        Returns:
+            包含操作结果的字典，固定键名：
+            - success: 操作是否成功（布尔值）
+            - message: 操作结果消息
+            - data: 附加数据（字典）
+            - error: 错误信息（失败时存在）
+            - status_code: HTTP状态码
+            - api_code: B站API返回的代码
+        """
+        # 检查认证器是否正常初始化
+        if not self.initialization_result["success"]:
+            return {
+                "success": False,
+                "message": "操作失败",
+                "error": "认证器未正确初始化",
+                "status_code": None,
+                "api_code": None
+            }
+
+        api_url = "https://api.live.bilibili.com/fans_medal/v1/medal/rename"
+
+        try:
+            # 准备请求参数
+            params = {
+                "uid": self.cookies.get("DedeUserID", ""),
+                "source": "1",
+                "medal_name": medal_name,
+                "platform": "pc",
+                "csrf_token": self.csrf,
+                "csrf": self.csrf
+            }
+
+            # 准备请求头
+            headers = {
+                **self.headers,
+                "origin": "https://link.bilibili.com",
+                "referer": "https://link.bilibili.com/p/center/index",
+                "content-type": "application/x-www-form-urlencoded",
+                "priority": "u=1, i"
+            }
+
+            # 发送POST请求
+            response = requests.post(
+                api_url,
+                headers=headers,
+                data=params,
+                timeout=10,
+                verify=self.verify_ssl
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "请求失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
+
+            # 尝试解析JSON响应
             try:
-                # 先发送认证包
-                await ws.send(self.pack(self.auth_body, 7))
+                result = response.json()
+            except ValueError:
+                return {
+                    "success": False,
+                    "message": "响应解析失败",
+                    "error": "无法解析JSON响应",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
 
-                # 等待认证响应
-                try:
-                    auth_response: bytes = await asyncio.wait_for(ws.recv(), timeout=10)
-                    # 异步处理认证响应
-                    asyncio.create_task(self._handle_certification_response(auth_response))
-                    # 启动心跳任务
-                    asyncio.create_task(self.send_heartbeat(ws))
-                except asyncio.TimeoutError:
-                    print("认证响应超时")
-                    raise
+            # 根据B站API返回的code判断操作结果
+            api_code = result.get("code", -1)
+            api_message = result.get("message", result.get("msg", "未知错误"))
 
-            except Exception as e:
-                print(f"认证失败: {e}")
-                raise
+            if api_code == 0:
+                return {
+                    "success": True,
+                    "message": "粉丝勋章名称修改成功",
+                    "data": result.get("data", {}),
+                    "status_code": response.status_code,
+                    "api_code": api_code
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": f"B站API返回错误: {api_message}",
+                    "error": api_message,
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
 
-        async def _handle_certification_response(self, auth_response: bytes):
-            """异步处理认证响应"""
-            self.wssCertificationAndHeartbeat(auth_response)
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "请求超时",
+                "error": "网络请求超时",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "网络连接错误",
+                "error": "无法连接到服务器",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "网络请求异常",
+                "error": f"请求失败: {str(e)}",
+                "status_code": None,
+                "api_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "操作过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
+            }
 
-        async def send_heartbeat(self, ws):
-            """发送心跳"""
-            while self.running:
-                try:
-                    await ws.send(self.pack(None, 2))
-                    await asyncio.sleep(self.HEARTBEAT_INTERVAL)
-                except websockets.exceptions.ConnectionClosed:
-                    break
-                except Exception as e:
-                    print(f"心跳发送失败: {e}")
-                    break
+    def start_live(self, room_id: int, area_id: int, platform: Literal["pc_link", "web_link", "android_link"]) -> Dict:
+        """
+        开始直播
 
-        async def on_message(self, message):
-            if isinstance(message, bytes):
-                await self.unpack(message)
+        Args:
+            room_id: 直播间ID
+            area_id: 二级分区id
+            platform: 直播平台
 
-        def pack(self, content: Optional[dict], code: int) -> bytes:
-            """
-            wss 消息打包
-            Args:
-                content: 消息内容
-                code:
-                    操作码 (封包类型)
+        Returns:
+            包含开播结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（包含直播流信息等）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的code
+        """
+        try:
+            # 检查认证器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "开播失败",
+                    "error": "认证器未正确初始化",
+                    "status_code": None,
+                    "api_code": None
+                }
 
-                        - 2	心跳包
-                        - 3	心跳包回复 (人气值)
-                        - 5	普通包 (命令)
-                        - 7	认证包
-                        - 8	认证包回复
+            # 参数验证
+            if not room_id or room_id <= 0:
+                return {
+                    "success": False,
+                    "message": "开播失败",
+                    "error": "房间ID无效",
+                    "status_code": None,
+                    "api_code": None
+                }
 
-            Returns:打包后待发送的 wss 消息
-            """
-            content_bytes = json.dumps(content).encode('utf-8') if content else b''
-            header = (len(content_bytes) + 16).to_bytes(4, 'big') + \
-                     (16).to_bytes(2, 'big') + \
-                     (0).to_bytes(2, 'big') + \
-                     code.to_bytes(4, 'big') + \
-                     (1).to_bytes(4, 'big')
-            return header + content_bytes
+            if not area_id or area_id <= 0:
+                return {
+                    "success": False,
+                    "message": "开播失败",
+                    "error": "分区ID无效",
+                    "status_code": None,
+                    "api_code": None
+                }
 
-        async def unpack(self, byte_buffer: bytes):
-            package_len = int.from_bytes(byte_buffer[0:4], 'big')
-            head_length = int.from_bytes(byte_buffer[4:6], 'big')
-            prot_ver = int.from_bytes(byte_buffer[6:8], 'big')
-            opt_code = int.from_bytes(byte_buffer[8:12], 'big')
-            sequence = int.from_bytes(byte_buffer[12:16], 'big')
+            if platform not in ["pc_link", "web_link", "android_link"]:
+                return {
+                    "success": False,
+                    "message": "开播失败",
+                    "error": "平台参数无效",
+                    "status_code": None,
+                    "api_code": None
+                }
 
-            content_bytes = byte_buffer[16:package_len]
+            api = "https://api.live.bilibili.com/room/v1/Room/startLive"
+            headers = self.headers
+            csrf = self.csrf
 
-            if prot_ver == 0:
-                pass
-            elif prot_ver == 2:
-                content_bytes = zlib.decompress(content_bytes)
-                await self.unpack(content_bytes)
-                return
-            elif prot_ver == 3:
-                pass
+            # 构建请求参数
+            startLivedata = {
+                "access_key": "",  # 留空
+                "appkey": "aae92bc66f3edfab",  # 固定应用密钥
+                "platform": platform,
+                "room_id": room_id,
+                "area_v2": area_id,
+                "build": "9343",  # 客户端版本号
+                "backup_stream": 0,
+                "csrf": csrf,
+                "csrf_token": csrf,
+                "ts": str(int(time.time()))  # 当前UNIX时间戳
+            }
 
-            content = content_bytes.decode('utf-8')
-            if not self.o_m_d.add(content):
-                return
+            # 对参数按字典序排序
+            sorted_params = sorted(startLivedata.items(), key=lambda x: x[0])
 
-            if opt_code == 5:  # SEND_SMS_REPLY
-                content_dict: dict = json.loads(content)
-                if content_dict['cmd'] == "INTERACT_WORD_V2":
-                    content_dict['data'] = DanmuProtoDecoder().decode_interact_word_v2_protobuf(
-                        content_dict['data']['pb'])
-                elif content_dict['cmd'] == "ONLINE_RANK_V3":
-                    content_dict['data'] = DanmuProtoDecoder().decode_online_rank_v3_protobuf(
-                        content_dict['data']['pb'])
+            # 生成签名字符串 (参数串 + 固定盐值)
+            query_string = "&".join(f"{k}={v}" for k, v in sorted_params)
+            sign_string = query_string + "af125a0d5279fd576c1b4418a3e8276d"
 
-                # 异步处理回调
-                asyncio.create_task(self._handle_opt_code5(content_dict))
-            elif opt_code == 8:  # AUTH_REPLY
-                asyncio.create_task(self._handle_opt_code8(content))
+            # 计算MD5签名
+            md5_sign = hashlib.md5(sign_string.encode('utf-8')).hexdigest()
 
-            if len(byte_buffer) > package_len:
-                await self.unpack(byte_buffer[package_len:])
+            # 添加签名到参数
+            startLivedata["sign"] = md5_sign
 
-        async def _handle_opt_code5(self, content_dict: dict):
-            """异步处理 opt_code 5 回调"""
-            self.Callable_opt_code5(content_dict)
+            # 发送请求
+            response = requests.post(
+                url=api,
+                headers=headers,
+                params=startLivedata,
+                verify=self.verify_ssl,
+                timeout=30
+            )
 
-        async def _handle_opt_code8(self, content: str):
-            """异步处理 opt_code 8 回调"""
-            self.Callable_opt_code8(content)
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "开播失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
 
-        async def start_async(self):
-            """异步启动方法 - 会一直运行直到收到停止信号"""
-            self.running = True
-            self._stop_event.clear()
-            self.connection_tasks.clear()
-            self._loop = asyncio.get_running_loop()  # 获取当前运行的事件循环
+            # 解析响应
+            result = response.json()
+            api_code = result.get("code")
 
-            print(f"启动 {self.num_r} 个弹幕连接...")
+            # 判断开播结果
+            if api_code == 0:
+                # 开播成功或重复开播
+                change_status = result.get("data", {}).get("change", 0)
+                if change_status == 1:
+                    message = "开播成功"
+                else:
+                    message = result.get("message", "重复开播")
 
-            # 创建多个连接任务
-            for i in range(self.num_r):
-                task = asyncio.create_task(self.connect(), name=f"DanmuConn-{i}")
-                self.connection_tasks.append(task)
-                if i < self.num_r - 1:  # 最后一个连接不需要等待
-                    await asyncio.sleep(self.connection_interval)  # 间隔连接
+                return {
+                    "success": True,
+                    "message": message,
+                    "data": result.get("data", {}),
+                    "status_code": response.status_code,
+                    "api_code": api_code
+                }
+            else:
+                # 开播失败
+                error_msg = result.get("message", "未知错误")
+                return {
+                    "success": False,
+                    "message": "开播失败",
+                    "error": error_msg,
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
 
-            print("所有弹幕连接已启动，等待停止信号...")
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "开播失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "开播失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "开播失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "开播过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
+            }
 
-            # 等待停止信号
-            await self._stop_event.wait()
+    def stop_live(self, room_id: int, platform: Literal["pc_link", "web_link", "android_link"]) -> Dict[str, Any]:
+        """
+        结束直播
 
-            print("收到停止信号，正在关闭连接...")
+        Args:
+            room_id: 直播间ID
+            platform: 平台类型
 
-        def start(self):
-            """同步启动方法（包装异步方法）"""
-            self.running = True
-            try:
-                # 运行异步启动方法
-                asyncio.run(self.start_async())
-            except KeyboardInterrupt:
-                print("收到中断信号")
-                self.stop()
-            except Exception as e:
-                print(f"启动异常: {e}")
-                self.stop()
+        Returns:
+            包含操作结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的代码
+        """
+        try:
+            # 检查认证器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "结束直播失败",
+                    "error": "认证器未正确初始化",
+                    "status_code": None,
+                    "api_code": None
+                }
 
-        async def stop_async(self):
-            """异步停止方法"""
-            if not self.running:
-                return
+            # 构建API请求
+            api_url = "https://api.live.bilibili.com/room/v1/Room/stopLive"
+            headers = self.headers.copy()
+            csrf = self.csrf
 
-            self.running = False
-            self._stop_event.set()  # 触发停止信号
+            data = {
+                "platform": platform,
+                "room_id": room_id,
+                "csrf": csrf,
+                "csrf_token": csrf,
+            }
 
-            print("正在停止弹幕连接...")
+            # 发送请求
+            response = requests.post(
+                url=api_url,
+                headers=headers,
+                data=data,
+                verify=self.verify_ssl,
+                timeout=30
+            )
 
-            # 取消所有连接任务
-            for task in self.connection_tasks:
-                if not task.done():
-                    task.cancel()
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "结束直播失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
 
-            # 等待所有任务完成
-            if self.connection_tasks:
-                await asyncio.gather(*self.connection_tasks, return_exceptions=True)
+            # 解析响应
+            result = response.json()
+            api_code = result.get("code")
 
-            print("弹幕连接已停止")
+            # 判断操作是否成功
+            if api_code == 0:
+                # 成功结束直播（包括重复关播的情况）
+                return {
+                    "success": True,
+                    "message": result.get("message", "结束直播成功"),
+                    "data": {
+                        "change": result.get("data", {}).get("change", 0),
+                        "status": result.get("data", {}).get("status", ""),
+                        "raw_response": result
+                    },
+                    "status_code": response.status_code,
+                    "api_code": api_code
+                }
+            else:
+                # API返回错误
+                return {
+                    "success": False,
+                    "message": "结束直播失败",
+                    "error": result.get("message", "未知错误"),
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
 
-        def stop(self):
-            """同步停止方法"""
-            # 如果已经有运行的事件循环，使用它
-            try:
-                loop = asyncio.get_running_loop()
-                # 如果已经有运行的事件循环，创建任务来执行停止
-                asyncio.create_task(self.stop_async())
-            except RuntimeError:
-                # 如果没有运行的事件循环，创建一个
-                asyncio.run(self.stop_async())
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "结束直播失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "结束直播失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "结束直播失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "结束直播过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
+            }
+
+    def update_cover(self, cover_url: str) -> Dict[str, Any]:
+        """
+        更新直播间封面
+
+        Args:
+            cover_url: 通过上传接口获取的封面图片URL
+
+        Returns:
+            包含更新结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码（如果有）
+        """
+        try:
+            # 检查认证器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "更新封面失败",
+                    "error": "认证器未正确初始化",
+                    "status_code": None
+                }
+
+            # 检查封面URL是否有效
+            if not cover_url or not cover_url.startswith(('http://', 'https://')):
+                return {
+                    "success": False,
+                    "message": "更新封面失败",
+                    "error": "封面URL无效",
+                    "status_code": None
+                }
+
+            # 构建请求参数
+            api_url = "https://api.live.bilibili.com/xlive/app-blink/v1/preLive/UpdatePreLiveInfo"
+            update_cover_data = {
+                "platform": "web",
+                "mobi_app": "web",
+                "build": 1,
+                "cover": cover_url,
+                "coverVertical": "",
+                "liveDirectionType": 1,
+                "csrf_token": self.cookies["bili_jct"],
+                "csrf": self.cookies["bili_jct"],
+            }
+
+            # 发送请求
+            response = requests.post(
+                api_url,
+                headers=self.headers,
+                data=update_cover_data,
+                verify=self.verify_ssl,
+                timeout=30
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "更新封面失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            result = response.json()
+
+            # 检查B站API返回状态
+            if result.get("code") != 0:
+                return {
+                    "success": False,
+                    "message": "B站API返回错误",
+                    "error": result.get("message", "未知错误"),
+                    "status_code": response.status_code,
+                    "api_code": result.get("code")
+                }
+
+            # 成功返回
+            return {
+                "success": True,
+                "message": "直播间封面更新成功",
+                "data": result.get("data", {}),
+                "status_code": response.status_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "更新封面失败",
+                "error": "请求超时",
+                "status_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "更新封面失败",
+                "error": "网络连接错误",
+                "status_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "更新封面失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "更新封面过程中发生未知错误",
+                "error": str(e),
+                "status_code": None
+            }
+
+    def upload_cover(self, image_binary: bytes) -> Dict[str, Any]:
+        """
+        上传直播间封面到B站(符合官方请求格式)
+
+        Args:
+            image_binary: png/jpeg图像的二进制格式数据
+
+        Returns:
+            包含上传结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（如图片URL）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码（如果有）
+        """
+        try:
+            # 检查认证器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "上传失败",
+                    "error": "认证器未正确初始化",
+                    "status_code": None
+                }
+
+            # 检查图片数据是否有效
+            if not image_binary or len(image_binary) == 0:
+                return {
+                    "success": False,
+                    "message": "上传失败",
+                    "error": "图片数据为空或无效",
+                    "status_code": None
+                }
+
+            # 构建请求参数
+            api_url = "https://api.bilibili.com/x/upload/web/image"
+
+            # 准备multipart/form-data数据
+            boundary = '----WebKitFormBoundary' + ''.join(random.choices(string.ascii_letters + string.digits, k=16))
+            headers = self.headers.copy()  # 复制headers避免修改原始数据
+            headers["Content-Type"] = f"multipart/form-data; boundary={boundary}"
+
+            # 构建multipart body
+            data_parts = []
+
+            # 添加普通字段
+            fields = {
+                "bucket": "live",
+                "dir": "new_room_cover",
+                "csrf": self.cookies["bili_jct"]
+            }
+
+            for name, value in fields.items():
+                data_parts.append(
+                    f'--{boundary}\r\n'
+                    f'Content-Disposition: form-data; name="{name}"\r\n\r\n'
+                    f'{value}\r\n'
+                )
+
+            data_parts.append(
+                f'--{boundary}\r\n'
+                f'Content-Disposition: form-data; name="file"; filename="blob"\r\n'
+                f'Content-Type: image/jpeg\r\n\r\n'
+            )
+            data_parts.append(image_binary)
+            data_parts.append(f'\r\n--{boundary}--\r\n')
+
+            # 构建最终body
+            body = b''
+            for part in data_parts:
+                if isinstance(part, str):
+                    body += part.encode('utf-8')
+                else:
+                    body += part
+
+            # 发送请求
+            response = requests.post(
+                url=api_url,
+                headers=headers,
+                data=body,
+                verify=self.verify_ssl,
+                timeout=30  # 添加超时设置
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "上传失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            result = response.json()
+
+            # 检查B站API返回状态
+            if result.get("code") != 0:
+                return {
+                    "success": False,
+                    "message": "B站API返回错误",
+                    "error": result.get("message", "未知错误"),
+                    "status_code": response.status_code,
+                    "api_code": result.get("code")
+                }
+
+            # 成功返回 - 修正为使用location字段
+            if 'data' in result and 'location' in result['data']:
+                return {
+                    "success": True,
+                    "message": "封面上传成功",
+                    "data": {
+                        "location": result['data']['location'],
+                        "etag": result['data'].get('etag', ''),
+                        "image_url": result['data']['location']  # 使用location作为图片URL
+                    },
+                    "status_code": response.status_code
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": "上传响应格式异常",
+                    "error": "响应中缺少必要的数据字段",
+                    "status_code": response.status_code,
+                    "response_data": result
+                }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "上传失败",
+                "error": "请求超时",
+                "status_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "上传失败",
+                "error": "网络连接错误",
+                "status_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "上传失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "上传过程中发生未知错误",
+                "error": str(e),
+                "status_code": None
+            }
 
 
 
@@ -7307,12 +6512,33 @@ def get_b_a_g():
 
 
 @lru_cache(maxsize=None)
-def get_b_a_m():
+def get_b_r_m():
     if get_b_u_c_m().get_default_user_id():
-        b_a_m = BilibiliApiMaster(Tools.dict2cookie(get_b_u_c_m().get_user_cookies()["data"]), GlobalVariableOfData.sslVerification)
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                          '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+            'cookie': Tools.dict_to_cookie_string(get_b_u_c_m().get_user_cookies()['data'])
+        }
+
+        b_r_m = BilibiliRoomInfoManager(headers, GlobalVariableOfData.sslVerification)
     else:
-        b_a_m = None
-    return b_a_m
+        b_r_m = None
+    return b_r_m
+
+
+@lru_cache(maxsize=None)
+def get_b_csrf_a():
+    if get_b_u_c_m().get_default_user_id():
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                          '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+            'cookie': Tools.dict_to_cookie_string(get_b_u_c_m().get_user_cookies()['data'])
+        }
+
+        b_csrf_a = BilibiliCSRFAuthenticator(headers, GlobalVariableOfData.sslVerification)
+    else:
+        b_csrf_a = None
+    return b_csrf_a
 
 
 @lru_cache(maxsize=None)
@@ -7329,8 +6555,12 @@ def get_uid_nickname_dict():
     """账号字典"""
     for uid_dict in get_b_u_c_m().get_all_users()["data"]["users"]:
         uid = uid_dict["user_id"]
-        uid_cookie = Tools.dict2cookie(get_b_u_c_m().get_user_cookies(int(uid))["data"])
-        is_login = BilibiliApiMaster(uid_cookie, GlobalVariableOfData.sslVerification).get_nav_info()
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                          '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+            'cookie': Tools.dict_to_cookie_string(get_b_u_c_m().get_user_cookies(int(uid))["data"])
+        }
+        is_login = BilibiliRoomInfoManager(headers, GlobalVariableOfData.sslVerification).get_nav_info()["data"]
         if is_login["isLogin"]:
             uid_nickname_dict[uid] = get_b_a_g().get_bilibili_user_card(uid)['data']['data']['card']['name']
         else:
@@ -7469,7 +6699,7 @@ def get_room_news():
     # 获取 直播间公告
     if get_b_u_c_m().get_default_user_id():
         if get_room_status():
-            room_news = get_b_a_m().get_room_news()
+            room_news = get_b_r_m().get_room_news(int(get_b_u_c_m().get_default_user_id()), get_b_r_m().get_room_highlight_info()["data"]["room_id"])["data"]["content"]
             """直播间公告"""
             log_save(obs.LOG_INFO, f"║║登录账户 的 直播间公告：{room_news}")
         else:
@@ -7636,7 +6866,7 @@ def get_reserve_list():
     # 登录用户的直播预约列表信息
     if get_b_u_c_m().get_default_user_id():
         if get_room_status():
-            reserve_list = get_b_a_m().get_reserve_list()
+            reserve_list = get_b_r_m().get_reserve_list()["data"]["list"]
             """获取 '登录用户' 的 直播预约列表信息"""
             log_save(obs.LOG_INFO, f"║║登录账户 的 直播预约列表信息：{reserve_list}")
         else:
@@ -7674,13 +6904,14 @@ def get_reserve_name4reserve_sid():
         log_save(obs.LOG_INFO, f"║║登录账户 的 直播预约：⚠️未登录账号")
     return reserve_name4reserve_sid
 
+
 def clear_cache():
     # 清除函数缓存
     get_b_u_c_m.cache_clear()
     get_b_a_g.cache_clear()
     get_b_l_i_r.cache_clear()
     get_i_c.cache_clear()
-    get_b_a_m.cache_clear()
+    get_b_r_m.cache_clear()
     get_c_t_m.cache_clear()
     get_uid_nickname_dict.cache_clear()
     get_default_user_nickname.cache_clear()
@@ -8944,10 +8175,6 @@ def script_defaults(settings):  # 设置其默认值
         widget.Button.liveRtmpCodeCopy.Visible = True if (get_live_status() and get_room_status()) else False
         widget.Button.liveRtmpCodeCopy.Enabled = True if (get_live_status() and get_room_status()) else False
 
-    if widget.Button.liveRtmpCodeUpdate.Name in update_widget_for_props_name:
-        widget.Button.liveRtmpCodeUpdate.Visible = True if (get_live_status() and get_room_status()) else False
-        widget.Button.liveRtmpCodeUpdate.Enabled = True if (get_live_status() and get_room_status()) else False
-
     if widget.Button.liveStop.Name in update_widget_for_props_name:
         widget.Button.liveStop.Visible = True if (get_live_status() and get_room_status()) else False
         widget.Button.liveStop.Enabled = True if (get_live_status() and get_room_status()) else False
@@ -9602,10 +8829,10 @@ class ButtonFunction:
         if len(args) == 3:
             settings = args[2]
         # 开通直播间
-        create_live_room_return = get_b_a_m().create_live_room()
+        create_live_room_return = get_b_csrf_a().create_live_room()
         log_save(obs.LOG_INFO, f"开通直播间返回值: {create_live_room_return}")
         # 处理API响应
-        code = create_live_room_return.get("code", -1)
+        code = create_live_room_return.get("api_code", -1)
         message = create_live_room_return.get("message", "未知错误")
         if code == 0:
             # 成功开通，返回房间号
@@ -9712,9 +8939,9 @@ class ButtonFunction:
                                                                            img_format="JPEG",
                                                                            compress_level=0)
             # 上传封面图片返回
-            upload_cover_return = get_b_a_m().upload_cover(pil_image1609zooming_width1020_binary)
+            upload_cover_return = get_b_csrf_a().upload_cover(pil_image1609zooming_width1020_binary)
             log_save(obs.LOG_INFO, f"上传封面返回：{upload_cover_return}")
-            if upload_cover_return["code"] == 0:
+            if upload_cover_return["success"]:
                 # log_save(obs.LOG_INFO, f"展示4:3图片")
                 # pil_image0403.show()
                 log_save(obs.LOG_INFO, f"展示16:9图片")
@@ -9723,9 +8950,9 @@ class ButtonFunction:
                 # 获得封面图片链接
                 cover_url = upload_cover_return['data']['location']
                 log_save(obs.LOG_INFO, f"获得封面链接：{cover_url}")
-                update_cover_return = get_b_a_m().update_cover(cover_url)
+                update_cover_return = get_b_csrf_a().update_cover(cover_url)
                 log_save(obs.LOG_INFO, f"更改封面返回：{upload_cover_return}")
-                if update_cover_return["code"] == 0:
+                if update_cover_return["success"]:
                     log_save(obs.LOG_INFO, f"更改封面成功")
                 else:
                     log_save(obs.LOG_ERROR, f"更改封面失败：{update_cover_return['message']}")
@@ -9799,10 +9026,10 @@ class ButtonFunction:
         title_textbox_t = obs.obs_data_get_string(GlobalVariableOfData.script_settings, widget.TextBox.roomTitle.Name)
         """标题文本框中的文本"""
 
-        turn_title_return = get_b_a_m().change_room_title(title_textbox_t)
+        turn_title_return = get_b_csrf_a().change_room_title(get_b_r_m().get_room_highlight_info()["data"]["room_id"], title_textbox_t)
         """更改标题的返回值"""
         log_save(obs.LOG_INFO, f"更改直播间标题返回消息：{turn_title_return}")
-        if turn_title_return['code'] == 0:
+        if turn_title_return['success']:
             log_save(obs.LOG_INFO, f"直播间标题更改成功: {title_textbox_t}")
         else:
             log_save(obs.LOG_INFO, f"直播间标题更改失败{turn_title_return['message']}")
@@ -9843,7 +9070,7 @@ class ButtonFunction:
         room_news_textbox_t = obs.obs_data_get_string(GlobalVariableOfData.script_settings,widget.TextBox.roomNews.Name)
         """公告文本框中的文本"""
 
-        turn_news_return = get_b_a_m().change_room_news(room_news_textbox_t)
+        turn_news_return = get_b_csrf_a().change_room_news(get_b_r_m().get_room_highlight_info()["data"]["room_id"], room_news_textbox_t)["api_response"]
         """更改公告的返回值"""
         if turn_news_return['code'] == 0:
             log_save(obs.LOG_INFO, f"直播间公告更改成功: {room_news_textbox_t}")
@@ -9962,12 +9189,12 @@ class ButtonFunction:
             GlobalVariableOfData.script_settings,widget.ComboBox.roomSubArea.Name
         )
 
-        change_room_area_return = get_b_a_m().change_room_area(int(sub_live_area_combobox_value))
+        change_room_area_return = get_b_csrf_a().change_room_area(get_b_r_m().get_room_highlight_info()["data"]["room_id"], int(sub_live_area_combobox_value))
         log_save(obs.LOG_INFO, f"更新直播间分区返回：{change_room_area_return}")
-        if change_room_area_return["code"] == 0:
+        if change_room_area_return["success"]:
             log_save(obs.LOG_INFO, f"直播间分区更改成功: {sub_live_area_combobox_value}")
         else:
-            if change_room_area_return["code"] == 60024:
+            if change_room_area_return["api_code"] == 60024:
                 ButtonFunction.button_function_face_auth()
             log_save(obs.LOG_WARNING, f"直播间分区更改失败：{change_room_area_return['message']}")
             return False
@@ -10032,12 +9259,12 @@ class ButtonFunction:
         )
         log_save(obs.LOG_INFO, f"使用【{live_streaming_platform}】平台 在【{sub_live_area_combobox_value}】分区 开播")
 
-        start_live = get_b_a_m().start_live(int(sub_live_area_combobox_value), live_streaming_platform)
+        start_live = get_b_csrf_a().start_live(get_b_r_m().get_room_highlight_info()["data"]["room_id"], int(sub_live_area_combobox_value), live_streaming_platform)
         log_save(obs.LOG_INFO, f"开播返回：{start_live}")
-        if start_live["code"] == 0:
+        if start_live["success"]:
             log_save(obs.LOG_INFO, f"开播成功。")
         else:
-            if start_live["code"] == 60024:
+            if start_live["api_code"] == 60024:
                 ButtonFunction.button_function_face_auth()
             log_save(obs.LOG_ERROR, f"开播失败：【{start_live['message']}】。")
             return True
@@ -10136,9 +9363,9 @@ class ButtonFunction:
             prop = args[1]
         if len(args) == 3:
             settings = args[2]
-        stream_addr = get_b_a_m().get_live_stream_info()
+        stream_addr = get_b_r_m().get_live_stream_info(get_b_r_m().get_room_highlight_info()["data"]["room_id"])
         log_save(obs.LOG_INFO, f"获取直播服务器返回：{stream_addr}")
-        if stream_addr["code"] == 0:
+        if stream_addr["success"]:
             log_save(obs.LOG_INFO, f"获取直播服务器成功")
             log_save(obs.LOG_INFO, f"直播服务器：【{stream_addr['data']['rtmp']['addr']}】")
             cb.copy(stream_addr['data']['rtmp']['addr'])
@@ -10159,9 +9386,9 @@ class ButtonFunction:
             prop = args[1]
         if len(args) == 3:
             settings = args[2]
-        stream_addr = get_b_a_m().get_live_stream_info()
+        stream_addr = get_b_r_m().get_live_stream_info(get_b_r_m().get_room_highlight_info()["data"]["room_id"])
         log_save(obs.LOG_INFO, f"获取直播推流码返回：{stream_addr}")
-        if stream_addr["code"] == 0:
+        if stream_addr["success"]:
             log_save(obs.LOG_INFO, f"获取直播推流码成功")
             log_save(obs.LOG_INFO, f"直播推流码：【{stream_addr['data']['rtmp']['code']}】")
             cb.copy(stream_addr['data']['rtmp']['code'])
@@ -10169,37 +9396,6 @@ class ButtonFunction:
         else:
             log_save(obs.LOG_ERROR, f"获取直播推流码失败：{stream_addr['message']}")
             return False
-
-        clear_cache()
-        return True
-
-    @staticmethod
-    def button_function_rtmp_stream_code_update(*args):
-        """
-        更新推流码并复制
-        """
-        if len(args) == 2:
-            props = args[0]
-            prop = args[1]
-        if len(args) == 3:
-            settings = args[2]
-        # 获取开播平台
-        live_streaming_platform = obs.obs_data_get_string(
-            GlobalVariableOfData.script_settings,widget.ComboBox.liveStreamingPlatform.Name
-        )
-        log_save(obs.LOG_INFO, f"使用【{live_streaming_platform}】平台 开播")
-        stream_addr = get_b_a_m().fetch_stream_addr(live_streaming_platform, True)
-        log_save(obs.LOG_INFO, f"更新直播推流码返回：{stream_addr}")
-        if stream_addr["code"] == 0:
-            log_save(obs.LOG_INFO, f"更新直播推流码成功")
-            log_save(obs.LOG_INFO, f"直播推流码：【{stream_addr['data']['addr']['code']}】")
-            cb.copy(stream_addr['data']['addr']['code'])
-            log_save(obs.LOG_INFO, f"已将 直播推流码 复制到剪贴板")
-        else:
-            log_save(obs.LOG_ERROR, f"更新直播推流码失败：{stream_addr['message']}")
-            return False
-        # 重新开播
-        ButtonFunction.button_function_stop_live()
 
         clear_cache()
         return True
@@ -10225,9 +9421,9 @@ class ButtonFunction:
                                                           'live_streaming_platform_comboBox')
         log_save(obs.LOG_INFO, f"在【{live_streaming_platform}】平台 结束直播")
 
-        stop_live = get_b_a_m().stop_live(live_streaming_platform)
+        stop_live = get_b_csrf_a().stop_live(get_b_r_m().get_room_highlight_info()["data"]["room_id"], live_streaming_platform)
         log_save(obs.LOG_INFO, f"停播返回：{stop_live}")
-        if stop_live["code"] == 0:
+        if stop_live["success"]:
             log_save(obs.LOG_INFO, f"停播成功。")
         else:
             log_save(obs.LOG_ERROR, f"停播失败：【{stop_live['message']}】。")
@@ -10361,7 +9557,7 @@ class ButtonFunction:
         log_save(obs.LOG_INFO, f"直播预约是否发动态: {live_bookings_dynamic_is}")
 
         # 创建直播预约
-        create_reserve_return = get_b_a_m().create_reserve(
+        create_reserve_return = get_b_csrf_a().create_reserve(
             title=live_bookings_title,
             live_plan_start_time=Tools.get_future_timestamp(
                 live_bookings_day,
@@ -10371,11 +9567,11 @@ class ButtonFunction:
             create_dynamic=live_bookings_dynamic_is
         )
         log_save(obs.LOG_INFO, f"创建直播预约返回: {create_reserve_return}")
-        if create_reserve_return['code'] == 0:
+        if create_reserve_return['success']:
             log_save(obs.LOG_INFO, f"创建直播预约成功")
         else:
-            log_save(obs.LOG_ERROR, f"创建直播预约失败: {create_reserve_return['message']}")
-            if create_reserve_return['code'] == -400:
+            log_save(obs.LOG_ERROR, f"创建直播预约失败: {create_reserve_return['error']}")
+            if create_reserve_return['api_code'] == -400:
                 log_save(obs.LOG_ERROR, f"直播预约标题错误: 【{live_bookings_title}】")
             return False
 
@@ -10409,12 +9605,12 @@ class ButtonFunction:
         if live_bookings_sid in ["-1"]:
             log_save(obs.LOG_ERROR, f"无直播预约")
             return False
-        cancel_reserve_return = get_b_a_m().cancel_reserve(live_bookings_sid)
+        cancel_reserve_return = get_b_csrf_a().cancel_reserve(live_bookings_sid)
         log_save(obs.LOG_INFO, f"取消直播预约返回: {cancel_reserve_return}")
-        if cancel_reserve_return['code'] == 0:
+        if cancel_reserve_return['success']:
             log_save(obs.LOG_INFO, f"取消直播预约成功")
         else:
-            log_save(obs.LOG_ERROR, f"取消直播预约失败: {cancel_reserve_return['message']}")
+            log_save(obs.LOG_ERROR, f"取消直播预约失败: {cancel_reserve_return['error']}")
             return False
 
         clear_cache()
@@ -10791,13 +9987,6 @@ widget.widget_Button_dict = {
             "Callback": ButtonFunction.button_function_rtmp_stream_code_copy,
             "ModifiedIs": False
         },
-        "liveRtmpCodeUpdate": {
-            "Name": "live_rtmp_code_update_button",
-            "Description": "更新推流码并复制",
-            "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": ButtonFunction.button_function_rtmp_stream_code_update,
-            "ModifiedIs": False
-        },
         "liveStop": {
             "Name": "live_stop_button",
             "Description": "结束直播",
@@ -10883,7 +10072,6 @@ widget.widget_list = [
     "live_start_button",
     "live_rtmp_address_copy_button",
     "live_rtmp_code_copy_button",
-    "live_rtmp_code_update_button",
     "live_stop_button",
     "live_bookings_day_digitalSlider",
     "live_bookings_day_true_button",

@@ -10,13 +10,12 @@ class PaidMessageTicker {
     constructor(options = {}) {
         this.config = {
             // 基础配置
-            width: '106px',
-            text: 'CN¥39.00',
-            avatarSrc: './blivechat_files/noface.gif',
+            tickerMessage: 'CN¥39.00',
+            facePicture: './blivechat_files/noface.gif',
 
             // 颜色配置
-            primaryColor: 'rgb(29, 233, 182)',
-            secondaryColor: 'rgb(0, 191, 165)',
+            messagePrimaryColor: 'rgb(29, 233, 182)',
+            messageSecondaryColor: 'rgb(0, 191, 165)',
 
             // 倒计时配置
             initialPercentage: 100,
@@ -47,25 +46,24 @@ class PaidMessageTicker {
         this.element = document.createElement('yt-live-chat-ticker-paid-message-item-renderer');
         this.element.className = 'style-scope yt-live-chat-ticker-renderer';
         this.element.style.overflow = 'hidden';
-        this.element.style.width = this.config.width;
+        this.element.style.width = "fit-content";
         this.element.tabIndex = 0;
 
         this.updateElement();
     }
 
     updateElement() {
-        const gradientStyle = `linear-gradient(90deg, ${this.config.primaryColor}, ${this.config.primaryColor} ${this.currentPercentage}%, ${this.config.secondaryColor} ${this.currentPercentage}%, ${this.config.secondaryColor})`;
+        const gradientStyle = `linear-gradient(90deg, ${this.config.messagePrimaryColor}, ${this.config.messagePrimaryColor} ${this.currentPercentage}%, ${this.config.messageSecondaryColor} ${this.currentPercentage}%, ${this.config.messageSecondaryColor})`;
 
         this.element.innerHTML = `
             <div class="style-scope yt-live-chat-ticker-paid-message-item-renderer" dir="ltr" id="container"
                  style="background: ${gradientStyle};">
-                <div class="style-scope yt-live-chat-ticker-paid-message-item-renderer" id="content"
-                     style="color: ${this.getTextColor()};">
+                <div class="style-scope yt-live-chat-ticker-paid-message-item-renderer" id="content" style="color: ${this.getTextColor()}; border: 3px solid ${this.config.messageSecondaryColor}; background: ${this.config.messagePrimaryColor} !important; border-radius: 50px !important; width: fit-content; padding: 0 0 0 5px;">
                     <yt-img-shadow class="no-transition style-scope yt-live-chat-ticker-paid-message-item-renderer" height="24" id="author-photo" loaded="" style="background-color: transparent;" width="24">
-                        <img alt="" class="style-scope yt-img-shadow" height="24" id="img" src="${this.config.avatarSrc}" width="24">
+                        <img alt="" class="style-scope yt-img-shadow" height="24" id="img" src="${this.config.facePicture}" width="24">
                     </yt-img-shadow>
                     <span class="style-scope yt-live-chat-ticker-paid-message-item-renderer" dir="ltr"
-                          id="text">${this.config.text}</span>
+                          id="text">${this.config.tickerMessage}</span>
                 </div>
             </div>
         `;
@@ -73,7 +71,7 @@ class PaidMessageTicker {
 
     getTextColor() {
         // 根据背景颜色亮度自动选择合适的文字颜色
-        const primaryColor = this.config.primaryColor;
+        const primaryColor = this.config.messagePrimaryColor;
         const rgbMatch = primaryColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
 
         if (rgbMatch) {
@@ -184,11 +182,10 @@ const manager = new PaidMessageTickerManager();
 
 // 创建不同类型的付费消息
 const smallAmount = manager.createTicker({
-    width: '106px',
-    primaryColor: 'rgb(29, 233, 182)',
-    secondaryColor: 'rgb(0, 191, 165)',
-    text: 'CN¥39.00',
-    avatarSrc: './blivechat_files/noface.gif',
+    messagePrimaryColor: 'rgb(29, 233, 182)',
+    messageSecondaryColor: 'rgb(0, 191, 165)',
+    tickerMessage: 'CN¥39.00',
+    facePicture: './blivechat_files/noface.gif',
     countdownDuration: 8000, // 8秒
 //    onUpdate: (percentage, ticker) => {
 //        console.log(`当前百分比: ${percentage}%`);
@@ -200,18 +197,11 @@ const smallAmount = manager.createTicker({
 
 // 创建不同类型的付费消息
 const smallAmount1 = manager.createTicker({
-    width: '106px',
-    primaryColor: 'rgb(29, 233, 182)',
-    secondaryColor: 'rgb(0, 191, 165)',
-    text: 'CN¥39.00',
-    avatarSrc: './blivechat_files/noface.gif',
+    messagePrimaryColor: 'rgb(29, 233, 182)',
+    messageSecondaryColor: 'rgb(0, 191, 165)',
+    tickerMessage: 'CN¥39.00',
+    facePicture: './blivechat_files/noface.gif',
     countdownDuration: 8000, // 8秒
-//    onUpdate: (percentage, ticker) => {
-//        console.log(`当前百分比: ${percentage}%`);
-//    },
-//    onRemove: (ticker) => {
-//        console.log('小金额消息已移除');
-//    }
 });
 
 // 添加到页面
@@ -355,10 +345,6 @@ class YouTubeChatMessageBuilder {
             priceLevel: '0',  // 金额等级
             messagePrimaryColor: 'rgba(29,233,182,1)', // 文字区域颜色
             messageSecondaryColor: 'rgba(0,191,165,1)', // 头像昵称金额区域颜色
-            messageHeaderColor: 'rgba(0,0,0,1)', // 金额文字颜色
-            messageAuthorNameColor: 'rgba(0,0,0,0.541176)', // 昵称文字颜色
-            messageTimestampColor: 'rgba(0,0,0,0.501961)', // 时间文字颜色
-            messageColor: 'rgba(0,0,0,1)', // 文字颜色
             messageData: '', // 文字内容
             showOnlyHeader: false, // 是否不显示文字区域
 
@@ -370,10 +356,6 @@ class YouTubeChatMessageBuilder {
         PaidMessageWebPageElement.setAttribute('price-level', data.priceLevel);
         PaidMessageWebPageElement.style.setProperty('--yt-live-chat-paid-message-primary-color', this.paidMessageData.messagePrimaryColor);
         PaidMessageWebPageElement.style.setProperty('--yt-live-chat-paid-message-secondary-color', this.paidMessageData.messageSecondaryColor);
-        PaidMessageWebPageElement.style.setProperty('--yt-live-chat-paid-message-header-color', this.paidMessageData.messageHeaderColor);
-        PaidMessageWebPageElement.style.setProperty('--yt-live-chat-paid-message-author-name-color', this.paidMessageData.messageAuthorNameColor);
-        PaidMessageWebPageElement.style.setProperty('--yt-live-chat-paid-message-timestamp-color', this.paidMessageData.messageTimestampColor);
-        PaidMessageWebPageElement.style.setProperty('--yt-live-chat-paid-message-color', this.paidMessageData.messageColor);
         if (this.paidMessageData.showOnlyHeader) PaidMessageWebPageElement.setAttribute('show-only-header', true);
 
         const authorPhotoElement = PaidMessageWebPageElement.querySelector('#author-photo');
@@ -490,7 +472,7 @@ class YouTubeChatMessageBuilder {
                     div.className = 'el-image content-img';
                     div.style.width = item.width || '120px';
                     console.log('大表情宽度:', parseInt(div.style.width));
-                    div.style.height = `${parseInt(item.height) * parseInt(div.style.width) / parseInt(item.width)}px`;
+                    div.style.height = "auto"; // `${parseInt(item.height) * parseInt(div.style.width) / parseInt(item.width)}px`;
                     console.log('大表情高度:', div.style.height);
                     const img = document.createElement('img');
                     img.className = 'el-image__inner';
@@ -817,12 +799,8 @@ const paidMessage = chatBuilder.createPaidMessage({
     priceLevel: '30',  // 金额等级
     messagePrimaryColor: 'rgba(29,233,182,1)', // 文字区域颜色
     messageSecondaryColor: 'rgba(0,191,165,1)', // 头像昵称金额区域颜色
-    messageHeaderColor: 'rgba(0,0,0,1)', // 金额文字颜色
-    messageAuthorNameColor: 'rgba(0,0,0,0.541176)', // 昵称文字颜色
-    messageTimestampColor: 'rgba(0,0,0,0.501961)', // 时间文字颜色
-    messageColor: 'rgba(0,0,0,1)', // 文字颜色
     messageData: '这是一条付费消息', // 文字内容
-    showOnlyHeader: true, // 是否不显示文字区域
+    showOnlyHeader: false, // 是否不显示文字区域
 });
 
 // 创建会员消息
@@ -845,8 +823,6 @@ const membershipMessage = chatBuilder.createMembershipMessage({
 itemContainer.appendChild(ordinaryMessage);
 itemContainer.appendChild(paidMessage);
 itemContainer.appendChild(membershipMessage);
-//itemContainer.appendChild(membershipMessage);
-//itemContainer.appendChild(moderatorMessage);
 
 scrollableContainer.scrollTop = scrollableContainer.scrollHeight;
 
@@ -859,11 +835,34 @@ class DanmuWebSocketClient {
         this.maxReconnectAttempts = 10;
         this.reconnectInterval = 3000; // 3秒
         this.reconnectTimer = null;
+        this.maxMessages = 200; // 默认最大保留消息数
 
         // 页面加载后自动连接
         setTimeout(() => {
             this.connect();
         }, 1000);
+    }
+
+    // 添加清理函数
+    cleanupOldMessages(maxCount = null) {
+        if (maxCount !== null) {
+            this.maxMessages = maxCount;
+        }
+
+        const currentMessageCount = itemContainer.children.length;
+
+        if (currentMessageCount > this.maxMessages) {
+            const messagesToRemove = currentMessageCount - this.maxMessages;
+
+            // 移除最旧的消息（前面的消息）
+            for (let i = 0; i < messagesToRemove; i++) {
+                if (itemContainer.firstChild) {
+                    itemContainer.removeChild(itemContainer.firstChild);
+                }
+            }
+
+            console.log(`清理了 ${messagesToRemove} 条旧消息，当前保留 ${this.maxMessages} 条消息`);
+        }
     }
 
     connect() {
@@ -955,30 +954,31 @@ class DanmuWebSocketClient {
     handleMessage(data) {
         // 根据消息类型处理
         switch (data.type) {
-//            case 'combo_gift':
-//            case 'guard_buy':
-//            case 'red_pocket':
-//            case 'red_pocket_v2':
-//            case 'user_toast':
+            case 'cleanup': // 添加清理消息类型
+                this.cleanupOldMessages(data.maxCount);
+                break;
 
             case 'user_toast_v2':
                 this.addMembershipMessage(data);
                 break;
 
             case 'gift':
+            case 'red_pocket_v2':
+            case 'super_chat':
+            case 'super_chat_jpn':
                 this.addGiftMessage(data);
                 break;
 
-//            case 'super_chat':
-//            case 'super_chat_jpn':
-//                this.addSuperChatMessage(data);
-//                break;
-
+            case 'red_pocket_winners':
             case 'live_start':
             case 'interact':
-            case 'system':
             case 'danmu':
+            case 'system':
                 this.addDanmuMessage(data);
+                // 每次添加新消息后检查是否超过限制
+                if (itemContainer.children.length > this.maxMessages * 1.2) {
+                    this.cleanupOldMessages();
+                }
                 break;
 
             default:
@@ -1009,6 +1009,7 @@ class DanmuWebSocketClient {
                 textMessage = chatBuilder.createTextMessage(sysMessageInfo);
                 console.log('系统消息:', sysMessageInfo);
                 break;
+            case 'red_pocket_winners':
             case 'interact':
             case 'danmu':
                 const danmuMessageInfo = {
@@ -1050,9 +1051,11 @@ class DanmuWebSocketClient {
     // 礼物消息
     addGiftMessage(data) {
         const time = new Date(data.timestamp * 1000).toLocaleTimeString();
-        let giftMessage;
 
         switch(data.type) {
+            case 'super_chat':
+            case 'super_chat_jpn':
+            case 'red_pocket_v2':
             case 'gift':
                 const giftMessageInfo = {
                     uName: data.uName, // 昵称
@@ -1065,19 +1068,17 @@ class DanmuWebSocketClient {
                     priceLevel: data.priceLevel,  // 金额等级
                     messagePrimaryColor: data.messagePrimaryColor, // 文字区域颜色
                     messageSecondaryColor: data.messageSecondaryColor, // 头像昵称金额区域颜色
-                    messageHeaderColor: data.messageHeaderColor, // 金额文字颜色
-                    messageAuthorNameColor: data.messageAuthorNameColor, // 昵称文字颜色
-                    messageTimestampColor: data.messageTimestampColor, // 时间文字颜色
-                    messageColor: data.messageColor, // 文字颜色
                     messageData: data.messageData, // 文字内容
+                    tickerMessage: `CN¥${data.price}`,
                     showOnlyHeader: data.showOnlyHeader, // 是否不显示文字区域
+                    countdownDuration: 20000, // 毫秒
                 }
-                // 创建付费消息
-                giftMessage = chatBuilder.createPaidMessage(giftMessageInfo);
                 console.log('礼物消息:', giftMessageInfo);
+                // 创建付费消息
+                itemContainer.appendChild(chatBuilder.createPaidMessage(giftMessageInfo));
+                tickerContainer.appendChild(manager.createTicker(giftMessageInfo).getElement());
                 break;
         }
-        itemContainer.appendChild(giftMessage);
         this.scrollToBottom();
     }
 
@@ -1103,7 +1104,7 @@ class DanmuWebSocketClient {
                     fleetTitle: data.fleetTitle,
                 }
                 // 创建付费消息
-                membershipMessage = chatBuilder.createPaidMessage(membershipMessageInfo);
+                membershipMessage = chatBuilder.createMembershipMessage(membershipMessageInfo);
                 console.log('舰长消息:', membershipMessageInfo);
                 break;
         }

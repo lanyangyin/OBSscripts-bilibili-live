@@ -4,8 +4,6 @@ from typing import Dict, Any
 import requests
 
 from function.tools.EncodingConversion.parse_cookie import parse_cookie
-from function.tools.EncodingConversion.dict_to_cookie_string import dict_to_cookie_string
-from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
 
 
 class BilibiliRoomInfoManager:
@@ -189,6 +187,9 @@ class BilibiliRoomInfoManager:
 
 # 使用示例
 if __name__ == '__main__':
+    from function.tools.EncodingConversion.dict_to_cookie_string import dict_to_cookie_string
+    from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
+
     BULC = BilibiliUserConfigManager(Path('../../../../cookies/config.json'))
     cookies = BULC.get_user_cookies()['data']
     Headers = {

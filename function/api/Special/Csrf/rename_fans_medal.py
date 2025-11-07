@@ -4,8 +4,6 @@ from typing import Dict, Any
 import requests
 
 from function.tools.EncodingConversion.parse_cookie import parse_cookie
-from function.tools.EncodingConversion.dict_to_cookie_string import dict_to_cookie_string
-from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
 
 
 class BilibiliCSRFAuthenticator:
@@ -284,7 +282,10 @@ class BilibiliCSRFAuthenticator:
 
 # 使用示例
 if __name__ == "__main__":
+    from function.tools.EncodingConversion.dict_to_cookie_string import dict_to_cookie_string
+    from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
     from _Input.function.api.Special import Csrf as DataInput
+
     # 示例用法
     BULC = BilibiliUserConfigManager(DataInput.cookie_file_path)
     cookies = BULC.get_user_cookies()['data']

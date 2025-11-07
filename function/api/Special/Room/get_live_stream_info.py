@@ -4,9 +4,6 @@ from typing import Dict, Any
 import requests
 
 from function.tools.EncodingConversion.parse_cookie import parse_cookie
-from function.tools.EncodingConversion.dict_to_cookie_string import dict_to_cookie_string
-from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
-from function.api.Special.Room import BilibiliRoomInfoManager as GetRoomHighlightInfo
 
 
 class BilibiliRoomInfoManager:
@@ -86,7 +83,7 @@ class BilibiliRoomInfoManager:
         获取直播间推流信息
 
         Args:
-            room_id: 直播间房间ID
+            room_id: 直播间房间ID,必须和 cookie 对应
 
         Returns:
             包含推流信息的字典：
@@ -201,6 +198,10 @@ class BilibiliRoomInfoManager:
 
 # 使用示例
 if __name__ == '__main__':
+    from function.tools.EncodingConversion.dict_to_cookie_string import dict_to_cookie_string
+    from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
+    from function.api.Special.Room import BilibiliRoomInfoManager as GetRoomHighlightInfo
+
     BULC = BilibiliUserConfigManager(Path('../../../../cookies/config.json'))
     cookies = BULC.get_user_cookies()['data']
     Headers = {
@@ -216,6 +217,7 @@ if __name__ == '__main__':
     ghi = GetRoomHighlightInfo(Headers)
 
     # 检查管理器是否初始化成功
+    print(room_manager.initialization_result)
     if not room_manager.initialization_result["success"]:
         print(f"管理器初始化失败: {room_manager.initialization_result['error']}")
     elif not ghi.initialization_result["success"]:

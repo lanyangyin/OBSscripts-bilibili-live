@@ -4,9 +4,6 @@ from typing import Dict, Any
 import requests
 
 from function.tools.EncodingConversion.parse_cookie import parse_cookie
-from function.tools.EncodingConversion.dict_to_cookie_string import dict_to_cookie_string
-from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
-from function.api.Special.Room import BilibiliRoomInfoManager as GetRoomHighlightInfo
 
 
 class BilibiliRoomInfoManager:
@@ -81,11 +78,12 @@ class BilibiliRoomInfoManager:
                 "error": str(e)
             }
 
-    def get_room_news(self, room_id: int) -> Dict[str, Any]:
+    def get_room_news(self, uid: int, room_id: int) -> Dict[str, Any]:
         """
         获取直播间公告信息
 
         Args:
+            uid: 用户id
             room_id: 直播间ID
 
         Returns:
@@ -119,7 +117,7 @@ class BilibiliRoomInfoManager:
             api_url = "https://api.live.bilibili.com/xlive/app-blink/v1/index/getRoomNews"
             params = {
                 'room_id': room_id,
-                'uid': self.cookies["DedeUserID"]
+                'uid': uid
             }
 
             # 发送请求
@@ -204,7 +202,10 @@ class BilibiliRoomInfoManager:
 
 # 使用示例
 if __name__ == '__main__':
+    from function.tools.EncodingConversion.dict_to_cookie_string import dict_to_cookie_string
+    from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
     from _Input.function.api.Special import Room as DataInput
+
     BULC = BilibiliUserConfigManager(DataInput.cookie_file_path)
     cookies = BULC.get_user_cookies()['data']
     Headers = {
@@ -216,33 +217,18 @@ if __name__ == '__main__':
     # 创建管理器实例
     room_manager = BilibiliRoomInfoManager(Headers)
 
-    # 创建房间信息管理器实例
-    ghi = GetRoomHighlightInfo(Headers)
+    # 获取房间公告
+    room_news = room_manager.get_room_news(DataInput.cc_user_id, DataInput.cc_room_id)
 
-    # 检查管理器是否初始化成功
-    if not ghi.initialization_result["success"]:
-        print(f"管理器初始化失败: {ghi.initialization_result['error']}")
+    if room_news["success"]:
+        print("直播间公告获取成功")
+        print(f"公告内容: {room_news['data'].get('content', '无公告')}")
+        print(f"创建时间: {room_news['data'].get('ctime', '未知')}")
+        print(f"状态: {room_news['data'].get('status', '未知')}")
     else:
-        # 获取房间高亮信息
-        highlight_info = ghi.get_room_highlight_info()
+        print(f"获取直播间公告失败: {room_news['error']}")
+        if "status_code" in room_news and room_news["status_code"]:
+            print(f"HTTP状态码: {room_news['status_code']}")
+        if "api_code" in room_news:
+            print(f"API错误码: {room_news['api_code']}")
 
-        if highlight_info["success"]:
-            room_id = highlight_info["data"]["room_id"]
-            print(f"房间ID: {room_id}")
-
-            # 获取房间公告
-            room_news = room_manager.get_room_news(room_id)
-
-            if room_news["success"]:
-                print("直播间公告获取成功")
-                print(f"公告内容: {room_news['data'].get('content', '无公告')}")
-                print(f"创建时间: {room_news['data'].get('ctime', '未知')}")
-                print(f"状态: {room_news['data'].get('status', '未知')}")
-            else:
-                print(f"获取直播间公告失败: {room_news['error']}")
-                if "status_code" in room_news and room_news["status_code"]:
-                    print(f"HTTP状态码: {room_news['status_code']}")
-                if "api_code" in room_news:
-                    print(f"API错误码: {room_news['api_code']}")
-        else:
-            print(f"获取房间信息失败: {highlight_info['error']}")

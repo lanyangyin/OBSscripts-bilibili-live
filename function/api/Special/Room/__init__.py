@@ -3,8 +3,6 @@ from typing import Dict, Any
 import requests
 
 from function.tools.EncodingConversion.parse_cookie import parse_cookie
-from function.tools.EncodingConversion.dict_to_cookie_string import dict_to_cookie_string
-from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
 
 
 class BilibiliRoomInfoManager:
@@ -84,7 +82,7 @@ class BilibiliRoomInfoManager:
         获取直播间推流信息
 
         Args:
-            room_id: 直播间房间ID
+            room_id: 直播间房间ID,必须和 cookie 对应
 
         Returns:
             包含推流信息的字典：
@@ -506,11 +504,12 @@ class BilibiliRoomInfoManager:
                 "status_code": None
             }
 
-    def get_room_news(self, room_id: int) -> Dict[str, Any]:
+    def get_room_news(self, uid: int, room_id: int) -> Dict[str, Any]:
         """
         获取直播间公告信息
 
         Args:
+            uid: 用户id
             room_id: 直播间ID
 
         Returns:
@@ -544,7 +543,7 @@ class BilibiliRoomInfoManager:
             api_url = "https://api.live.bilibili.com/xlive/app-blink/v1/index/getRoomNews"
             params = {
                 'room_id': room_id,
-                'uid': self.cookies["DedeUserID"]
+                'uid': uid
             }
 
             # 发送请求
@@ -630,7 +629,10 @@ class BilibiliRoomInfoManager:
 
 # 使用示例
 if __name__ == '__main__':
+    from function.tools.EncodingConversion.dict_to_cookie_string import dict_to_cookie_string
+    from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
     from _Input.function.api.Special import Room as DataInput
+
     BULC = BilibiliUserConfigManager(DataInput.cookie_file_path)
     cookies = BULC.get_user_cookies()['data']
     Headers = {
