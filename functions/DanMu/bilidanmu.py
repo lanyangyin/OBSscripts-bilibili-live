@@ -22,7 +22,7 @@ from function.tools.OptimizedMessageDeduplication import OptimizedMessageDedupli
 from function.tools.WebSocketServer import WebSocketServer
 
 
-class Danmu:
+class BiliDanmu:
 
     def __init__(self, headers: dict):
         self.headers = headers
@@ -352,7 +352,7 @@ if __name__ == '__main__':
 
     get_room_base = b_a_g.get_room_base_info(DataInput.room_id)
 
-    dm = Danmu(Headers)
+    dm = BiliDanmu(Headers)
 
     async def show_danmu():
         # 调用原函数
