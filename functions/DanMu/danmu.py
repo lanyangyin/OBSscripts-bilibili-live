@@ -7,7 +7,6 @@ import re
 import time
 import zlib
 from collections import OrderedDict
-from collections import deque
 from collections.abc import Callable
 from pathlib import Path
 from typing import Set, Optional, Union, Dict, Any
@@ -17,264 +16,11 @@ from PIL import Image
 
 from function.api.Authentication.Wbi.get_danmu_info import WbiSigna
 from function.api.Special.Csrf import BilibiliCSRFAuthenticator
-from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
 from function.tools.EncodingConversion.DanmuProtoDecoder import DanmuProtoDecoder
-from function.tools.EncodingConversion.dict_to_cookie_string import dict_to_cookie_string
 from function.tools.EncodingConversion.parse_cookie import parse_cookie
+from function.tools.OptimizedMessageDeduplication import OptimizedMessageDeduplication
+from function.tools.WebSocketServer import WebSocketServer
 
-
-class OptimizedMessageDeduplication:
-    """优化的消息去重类"""
-
-    def __init__(self, max_size: int = 1000, ttl_seconds: int = 5):
-        """
-        Args:
-            max_size: 最大存储数量
-            ttl_seconds: 消息存活时间（秒），None表示不过期
-        """
-        self.max_size = max_size
-        self.ttl_seconds = ttl_seconds
-        # 使用OrderedDict同时维护顺序和快速查找
-        self.message_store = OrderedDict()  # {hash: timestamp}
-
-    def add(self, message: str) -> bool:
-        """添加消息，返回True如果是新消息"""
-        message_hash = self._get_hash(message)
-        current_time = time.time()
-
-        # 清理过期消息
-        if self.ttl_seconds:
-            self._cleanup_expired(current_time)
-
-        # 检查是否重复
-        if message_hash in self.message_store:
-            # 更新访问时间
-            self.message_store.move_to_end(message_hash)
-            return False
-
-        # 添加新消息
-        self.message_store[message_hash] = current_time
-
-        # 限制大小
-        if len(self.message_store) > self.max_size:
-            self.message_store.popitem(last=False)
-
-        return True
-
-    def contains(self, message: str) -> bool:
-        """检查消息是否重复"""
-        message_hash = self._get_hash(message)
-
-        if self.ttl_seconds:
-            self._cleanup_expired(time.time())
-
-        return message_hash in self.message_store
-
-    def _get_hash(self, message: str) -> str:
-        """获取消息哈希（使用更快的哈希算法）"""
-        return hashlib.md5(message.encode()).hexdigest()
-        # 或者使用更快的：return hashlib.sha1(message.encode()).hexdigest()
-
-    def _cleanup_expired(self, current_time: float):
-        """清理过期消息"""
-        expired_hashes = []
-
-        for msg_hash, timestamp in self.message_store.items():
-            if current_time - timestamp > self.ttl_seconds:
-                expired_hashes.append(msg_hash)
-            else:
-                break  # 由于是有序的，后面的都不会过期
-
-        for msg_hash in expired_hashes:
-            del self.message_store[msg_hash]
-
-    def size(self) -> int:
-        """返回当前消息数量"""
-        if self.ttl_seconds:
-            self._cleanup_expired(time.time())
-        return len(self.message_store)
-
-    def clear(self):
-        """清空所有消息"""
-        self.message_store.clear()
-
-    def get_memory_usage(self) -> int:
-        """估算内存使用（字节）"""
-        # 每个条目大约：哈希(32字节) + 时间戳(8字节) + 字典开销
-        return len(self.message_store) * 50  # 近似值
-
-class DanmuWebSocketServer:
-    def __init__(self, host='localhost', port=8765):
-        self.host = host
-        self.port = port
-        self.connected_clients: Set = set()
-        self.server: Optional[websockets.WebSocketServer] = None
-        self.danmu_processor = None
-        self.running = False
-        self._server_task: Optional[asyncio.Task] = None
-
-
-    async def register(self, websocket):
-        """注册新的客户端连接"""
-        self.connected_clients.add(websocket)
-        print(f"新的网页客户端连接，当前连接数: {len(self.connected_clients)}")
-
-        # 发送欢迎消息
-        welcome_msg = {
-            "type": "system",
-            "messageData": "弹幕服务器连接成功",
-            "timestamp": time.time(),
-            "clients_count": len(self.connected_clients)
-        }
-        await websocket.send(json.dumps(welcome_msg))
-
-    async def unregister(self, websocket):
-        """移除断开连接的客户端"""
-        if websocket in self.connected_clients:
-            self.connected_clients.remove(websocket)
-            print(f"网页客户端断开，当前连接数: {len(self.connected_clients)}")
-
-    async def broadcast_message(self, message: Dict[str, Any]):
-        """向所有连接的客户端广播消息"""
-        if not self.connected_clients:
-            return
-
-        message_json = json.dumps(message, ensure_ascii=False)
-
-        # 收集断开连接的客户端
-        disconnected_clients = []
-
-        # 使用 asyncio.gather 并行发送消息
-        tasks = []
-        for client in self.connected_clients:
-            try:
-                task = asyncio.create_task(client.send(message_json))
-                tasks.append(task)
-            except Exception:
-                disconnected_clients.append(client)
-
-        # 等待所有发送任务完成
-        if tasks:
-            await asyncio.gather(*tasks, return_exceptions=True)
-
-        # 移除断开连接的客户端
-        for client in disconnected_clients:
-            await self.unregister(client)
-
-    async def handle_client(self, websocket):
-        """处理客户端连接"""
-        await self.register(websocket)
-        try:
-            # 保持连接，等待客户端消息
-            async for message in websocket:
-                try:
-                    data = json.loads(message)
-                    await self.handle_client_message(websocket, data)
-                except json.JSONDecodeError:
-                    error_msg = {
-                        "type": "error",
-                        "messageData": "无效的JSON格式",
-                        "timestamp": time.time()
-                    }
-                    await websocket.send(json.dumps(error_msg))
-        except websockets.exceptions.ConnectionClosed:
-            pass
-        finally:
-            await self.unregister(websocket)
-
-    async def handle_client_message(self, websocket, data: Dict[str, Any]):
-        """处理来自客户端的消息"""
-        message_type = data.get("type")
-
-        if message_type == "ping":
-            # 响应 ping 消息
-            pong_msg = {
-                "type": "pong",
-                "timestamp": time.time()
-            }
-            await websocket.send(json.dumps(pong_msg))
-        elif message_type == "get_stats":
-            # 返回服务器统计信息
-            stats_msg = {
-                "type": "stats",
-                "clients_count": len(self.connected_clients),
-                "timestamp": time.time()
-            }
-            await websocket.send(json.dumps(stats_msg))
-
-    async def send_danmu_message(self, danmu_data: Dict[str, Any]):
-        """发送弹幕消息（异步版本）"""
-        await self.broadcast_message(danmu_data)
-
-    def send_danmu_message_sync(self, danmu_data: Dict[str, Any]):
-        """同步方式发送弹幕消息（用于从其他线程调用）"""
-        if self.running:
-            # 如果从其他线程调用，使用 run_coroutine_threadsafe
-            asyncio.run_coroutine_threadsafe(
-                self.send_danmu_message(danmu_data),
-                asyncio.get_event_loop()
-            )
-
-    async def start_server_async(self):
-        """异步启动 WebSocket 服务器"""
-        self.running = True
-        self.server = await websockets.serve(
-            self.handle_client,
-            self.host,
-            self.port
-        )
-        print(f"弹幕转发服务器启动在 ws://{self.host}:{self.port}")
-
-        # 保持服务器运行
-        await self.server.wait_closed()
-
-    async def start_server(self):
-        """启动服务器（包装方法）"""
-        try:
-            await self.start_server_async()
-        except asyncio.CancelledError:
-            print("WebSocket 服务器被取消")
-        except Exception as e:
-            print(f"WebSocket 服务器错误: {e}")
-        finally:
-            await self.stop_server_async()
-
-    async def stop_server_async(self):
-        """异步停止服务器"""
-        self.running = False
-
-        # 关闭所有客户端连接
-        if self.connected_clients:
-            close_tasks = []
-            for client in list(self.connected_clients):
-                close_tasks.append(asyncio.create_task(client.close()))
-            if close_tasks:
-                await asyncio.gather(*close_tasks, return_exceptions=True)
-            self.connected_clients.clear()
-
-        # 停止服务器
-        if self.server:
-            self.server.close()
-            await self.server.wait_closed()
-
-        # 取消服务器任务
-        if self._server_task and not self._server_task.done():
-            self._server_task.cancel()
-
-        print("WebSocket 服务器已停止")
-
-    def stop_server(self):
-        """同步停止服务器"""
-        if self._server_task and not self._server_task.done():
-            self._server_task.cancel()
-
-    async def run_forever(self):
-        """运行服务器直到停止"""
-        self._server_task = asyncio.create_task(self.start_server())
-        try:
-            await self._server_task
-        except asyncio.CancelledError:
-            print("服务器任务被取消")
 
 class Danmu:
 
@@ -306,12 +52,12 @@ class Danmu:
         return self._WebSocketClient(wss_url, auth_body)
 
     class _WebSocketClient:
-        HEARTBEAT_INTERVAL = 30
-        """心跳间隔"""
 
         def __init__(self, url: str, auth_body: dict[str, Union[str, int]]):
             self.url = url
             self.auth_body = auth_body
+            self.HEARTBEAT_INTERVAL = 30
+            """心跳间隔"""
             self.Callable_opt_code8: Callable[[str], None] = lambda a: None
             """接收认证包回复的回调函数"""
             self.Callable_opt_code5: Callable[[Dict[str, Any]], None] = lambda a: None
@@ -323,6 +69,7 @@ class Danmu:
             self.connection_interval = 0.3
             """同时连接多个弹幕的间隔秒"""
             self.o_m_d = OptimizedMessageDeduplication()
+            """用于多弹幕返回去重的实例"""
 
             self.connection_tasks = []  # 异步任务列表
             self.running = False
@@ -554,6 +301,8 @@ class Danmu:
 
 # 运行整合版本
 if __name__ == '__main__':
+    from function.tools.EncodingConversion.dict_to_cookie_string import dict_to_cookie_string
+    from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
     from _Input.functions.DanMu import Danmu as DataInput
     from _Input.functions.DanMu import Danmu as DataInput
     from function.tools.EncodingConversion.url2pillow_image import url2pillow_image
@@ -623,13 +372,20 @@ if __name__ == '__main__':
                 guard_level = guard["uinfo"]["guard"]["level"]
                 guard_dict[uid] = guard_level
 
-        danmu_ws_server = DanmuWebSocketServer()
-
+        ws_server = WebSocketServer()
+        ws_server.registerCallback = lambda clients_count: print(f"新的网页客户端连接，当前连接数: {clients_count}")
+        ws_server.unregisterCallback = lambda clients_count: print(f"网页客户端断开，当前连接数: {clients_count}")
+        ws_server.startServerCallback = lambda host, port: print(f"弹幕转发服务器启动在 ws://{host}:{port}")
+        ws_server.serverCancelledCallback = lambda : print("WebSocket 服务器被取消")
+        ws_server.serverErroCallback = lambda e: print(f"WebSocket 服务器错误: {e}")
+        ws_server.serverStopCallback = lambda : print("WebSocket 服务器已停止")
         cdm = dm.connect_room(DataInput.room_id)
-        cdm.num_r = GlobalVariableOfData.number_of_comments_client
+        cdm.o_m_d.max_size = 100
+        cdm.o_m_d.ttl_seconds = 5
+        cdm.num_r = 25
 
         # 1. 启动 WebSocket 服务器
-        server_task = asyncio.create_task(danmu_ws_server.run_forever())
+        server_task = asyncio.create_task(ws_server.run_forever())
         await asyncio.sleep(1)  # 等待服务器启动
         print("WebSocket 服务器启动完成")
 
@@ -718,7 +474,7 @@ if __name__ == '__main__':
 
                     print(f'🔴直播开始：房间{roomid} 时间{live_time} 平台[{live_platform}]')
                     # 转发到 WebSocket
-                    asyncio.create_task(danmu_ws_server.send_danmu_message({
+                    asyncio.create_task(ws_server.send_danmu_message({
                         "type": "live_start",
                         "messageData": f'🔴直播开始：房间{roomid} 平台[{live_platform}]',
                         "roomid": roomid,
@@ -917,7 +673,7 @@ if __name__ == '__main__':
                 print(
                     f"\t>>>  {'@' if danmu_extra['reply_uname'] else ''}{(danmu_extra['reply_uname'] + '    ') if danmu_extra['reply_uname'] else ''}{content_info[1]}    |\t{timestamp}")
                 # 转发到 WebSocket
-                asyncio.create_task(danmu_ws_server.send_danmu_message({
+                asyncio.create_task(ws_server.send_danmu_message({
                     "type": "danmu",
                     "uName": user_name,
                     "facePicture": user_face_picture,
@@ -953,7 +709,7 @@ if __name__ == '__main__':
                 }))
                 if content['info'][1] == "stoP":
                     print("STOP")
-                    danmu_ws_server.stop_server()
+                    ws_server.stop_server()
                     cdm.stop()
                 elif content['info'][1] == "sc":
                     with open(r"C:\Users\18898\PycharmProjects\OBSscripts-bilibili-live\_Input\functions\DanMu\SUPER_CHAT_MESSAGE.json", 'r', encoding='utf-8') as f:
@@ -1023,7 +779,7 @@ if __name__ == '__main__':
 
                     print(f'💬醒目留言：{mfo}{uname}({uid}) {price}元 {duration}秒 "{message}"')
                     # 转发到 WebSocket
-                    asyncio.create_task(danmu_ws_server.send_danmu_message({
+                    asyncio.create_task(ws_server.send_danmu_message({
                         "type": "super_chat",
                         "uName": u_name,
                         "uId": u_id,
@@ -1138,7 +894,7 @@ if __name__ == '__main__':
                         tfo += f"{contentdata['action']}{contentdata['num']}个《{contentdata['giftName']}》"
                     print(f'🎁礼物：\t{wfo}{mfo}{ufo}\t{tfo}')
                     # 转发到 WebSocket
-                    asyncio.create_task(danmu_ws_server.send_danmu_message({
+                    asyncio.create_task(ws_server.send_danmu_message({
                         "type": "gift",
                         "uName": u_name,
                         "uId": u_id,
@@ -1228,7 +984,7 @@ if __name__ == '__main__':
                     tfo += f"\t{coin}"
                     print(f'🔖红包：\t{wfo}{mfo}{ufo}\t{tfo}')
                     # 转发到 WebSocket
-                    asyncio.create_task(danmu_ws_server.send_danmu_message({
+                    asyncio.create_task(ws_server.send_danmu_message({
                         "type": "red_pocket_v2",
                         "uName": u_name,
                         "uId": u_id,
@@ -1314,7 +1070,7 @@ if __name__ == '__main__':
 
                     print(f'🚢大航海：{username}({uid}) 开通{guard_name} {price}元/{unit}')
                     # 转发到 WebSocket
-                    asyncio.create_task(danmu_ws_server.send_danmu_message({
+                    asyncio.create_task(ws_server.send_danmu_message({
                         "type": "user_toast_v2",
                         "uName": u_name,
                         "uId": u_id,
@@ -1495,7 +1251,7 @@ if __name__ == '__main__':
 
                     print(f'🧧红包中奖：红包{lot_id} 共{total_num}个礼物 {winners_str}')
                     # 转发到 WebSocket
-                    asyncio.create_task(danmu_ws_server.send_danmu_message({
+                    asyncio.create_task(ws_server.send_danmu_message({
                         "type": "red_pocket_winners",
                         "uName": user_name,
                         "facePicture": user_face_picture,
@@ -1537,7 +1293,7 @@ if __name__ == '__main__':
                 print(f"👍🔢点赞数：\t{contentdata['click_count']}")
                 pass
                 # 转发到 WebSocket
-                asyncio.create_task(danmu_ws_server.send_danmu_message({
+                asyncio.create_task(ws_server.send_danmu_message({
                     "type": "like_update",
                     "click_count": contentdata['click_count'],
                     "timestamp": time.time()
@@ -1548,7 +1304,7 @@ if __name__ == '__main__':
                 print(f"🧑🔢高能用户数：\t{contentdata['count']}")
                 pass
                 # 转发到 WebSocket
-                asyncio.create_task(danmu_ws_server.send_danmu_message({
+                asyncio.create_task(ws_server.send_danmu_message({
                     "type": "online_rank_count",
                     "count": contentdata['count'],
                     "timestamp": time.time()
@@ -1558,7 +1314,7 @@ if __name__ == '__main__':
                 contentdata = content['data']
                 print(f"👀🔢直播间看过人数：\t{contentdata['num']}|\t{contentdata['text_large']}")
                 # 转发到 WebSocket
-                asyncio.create_task(danmu_ws_server.send_danmu_message({
+                asyncio.create_task(ws_server.send_danmu_message({
                     "type": "watched_change",
                     "num": contentdata['num'],
                     "text_large": contentdata['text_large'],
@@ -1579,7 +1335,7 @@ if __name__ == '__main__':
 
                 print(f'🏆排名变化：{on_rank_name}{rank_name} {rank_display} 主播{uid}')
                 # 转发到 WebSocket
-                asyncio.create_task(danmu_ws_server.send_danmu_message({
+                asyncio.create_task(ws_server.send_danmu_message({
                     "type": "popular_rank_changed",
                     "rank": rank,
                     "uid": uid,
@@ -1654,7 +1410,7 @@ if __name__ == '__main__':
 
                 print(f'💬醒目留言：{mfo}{uname}({uid}) {price}元 {duration}秒 "{message}"')
                 # 转发到 WebSocket
-                asyncio.create_task(danmu_ws_server.send_danmu_message({
+                asyncio.create_task(ws_server.send_danmu_message({
                     "type": "super_chat",
                     "uName": u_name,
                     "uId": u_id,
@@ -1742,7 +1498,7 @@ if __name__ == '__main__':
 
                 print(f'💬🗾醒目留言：{mfo}{uname}({uid}) {price}元 {duration}秒 "{message}"')
                 # 转发到 WebSocket
-                asyncio.create_task(danmu_ws_server.send_danmu_message({
+                asyncio.create_task(ws_server.send_danmu_message({
                     "type": "super_chat_jpn",
                     "uName": u_name,
                     "uId": u_id,
@@ -1772,7 +1528,7 @@ if __name__ == '__main__':
 
                 print(f'🗑️醒目留言删除：SC[{ids_str}]')
                 # 转发到 WebSocket
-                asyncio.create_task(danmu_ws_server.send_danmu_message({
+                asyncio.create_task(ws_server.send_danmu_message({
                     "type": "super_chat_delete",
                     "ids": ids,
                     "message": f"SC[{ids_str}]",
@@ -1796,7 +1552,7 @@ if __name__ == '__main__':
 
                 print(f'🚢大航海：{username}({uid}) 开通{guard_name} {price}元/{unit}')
                 # 转发到 WebSocket
-                asyncio.create_task(danmu_ws_server.send_danmu_message({
+                asyncio.create_task(ws_server.send_danmu_message({
                     "type": "user_toast",
                     "user": username,
                     "uid": uid,
@@ -1870,7 +1626,7 @@ if __name__ == '__main__':
 
                 print(f'🚢大航海：{username}({uid}) 开通{guard_name} {price}元/{unit}')
                 # 转发到 WebSocket
-                asyncio.create_task(danmu_ws_server.send_danmu_message({
+                asyncio.create_task(ws_server.send_danmu_message({
                     "type": "user_toast_v2",
                     "uName": u_name,
                     "uId": u_id,
@@ -1902,7 +1658,7 @@ if __name__ == '__main__':
                 print(f"{tfo}")
                 pass
                 # 转发到 WebSocket
-                asyncio.create_task(danmu_ws_server.send_danmu_message({
+                asyncio.create_task(ws_server.send_danmu_message({
                     "type": "guard_buy",
                     "user": contentdata['username'],
                     "guard_name": contentdata['gift_name'],
@@ -2073,7 +1829,7 @@ if __name__ == '__main__':
 
                 print(f"{message_data}：\t{wfo}{mfo}{ufo}")
                 # 转发到 WebSocket
-                asyncio.create_task(danmu_ws_server.send_danmu_message({
+                asyncio.create_task(ws_server.send_danmu_message({
                     "type": "interact",
                     "uName": user_name,
                     "facePicture": user_face_picture,
@@ -2125,7 +1881,7 @@ if __name__ == '__main__':
                 print(f"👍点赞：\t{wfo}{mfo}{ufo}\t{tfo}")
                 pass
                 # 转发到 WebSocket
-                asyncio.create_task(danmu_ws_server.send_danmu_message({
+                asyncio.create_task(ws_server.send_danmu_message({
                     "type": "like_click",
                     "user": ufo,
                     "medal": mfo,
@@ -2150,7 +1906,7 @@ if __name__ == '__main__':
                 tfo += f"\t{coin}"
                 print(f'🔖红包：\t{wfo}{mfo}{ufo}\t{tfo}')
                 # 转发到 WebSocket
-                asyncio.create_task(danmu_ws_server.send_danmu_message({
+                asyncio.create_task(ws_server.send_danmu_message({
                     "type": "red_pocket",
                     "user": ufo,
                     "medal": mfo,
@@ -2224,7 +1980,7 @@ if __name__ == '__main__':
                 tfo += f"\t{coin}"
                 print(f'🔖红包：\t{wfo}{mfo}{ufo}\t{tfo}')
                 # 转发到 WebSocket
-                asyncio.create_task(danmu_ws_server.send_danmu_message({
+                asyncio.create_task(ws_server.send_danmu_message({
                     "type": "red_pocket_v2",
                     "uName": u_name,
                     "uId": u_id,
@@ -2397,7 +2153,7 @@ if __name__ == '__main__':
 
                 print(f'🧧红包中奖：红包{lot_id} 共{total_num}个礼物 {winners_str}')
                 # 转发到 WebSocket
-                asyncio.create_task(danmu_ws_server.send_danmu_message({
+                asyncio.create_task(ws_server.send_danmu_message({
                     "type": "red_pocket_winners",
                     "uName": user_name,
                     "facePicture": user_face_picture,
@@ -2458,7 +2214,7 @@ if __name__ == '__main__':
 
                 print(f'🧧红包中奖：红包{lot_id} 共{total_num}个礼物 {winners_str}')
                 # 转发到 WebSocket
-                asyncio.create_task(danmu_ws_server.send_danmu_message({
+                asyncio.create_task(ws_server.send_danmu_message({
                     "type": "red_pocket_winners",
                     "lot_id": lot_id,
                     "total_num": total_num,
@@ -2555,7 +2311,7 @@ if __name__ == '__main__':
                     tfo += f"{contentdata['action']}{contentdata['num']}个《{contentdata['giftName']}》"
                 print(f'🎁礼物：\t{wfo}{mfo}{ufo}\t{tfo}')
                 # 转发到 WebSocket
-                asyncio.create_task(danmu_ws_server.send_danmu_message({
+                asyncio.create_task(ws_server.send_danmu_message({
                     "type": "gift",
                     "uName": u_name,
                     "uId": u_id,
@@ -2595,7 +2351,7 @@ if __name__ == '__main__':
                 tfo += f"{contentdata['batch_combo_num']}个《{contentdata['gift_name']}》\t{coin}"
                 print(f'⛓🎁连续礼物：{wfo}{mfo}{ufo}\t{tfo}')
                 # 转发到 WebSocket
-                asyncio.create_task(danmu_ws_server.send_danmu_message({
+                asyncio.create_task(ws_server.send_danmu_message({
                     "type": "combo_gift",
                     "user": ufo,
                     "medal": mfo,
@@ -2810,7 +2566,7 @@ if __name__ == '__main__':
                 # print(
                 #     f'📺视频信息：房间{room_id} 内容{cid} 协议[{protocol_str}] P2P[{p2p_enabled}] 重载间隔[{scatter_time}ms]')
                 # # 转发到 WebSocket
-                # asyncio.create_task(danmu_ws_server.send_danmu_message({
+                # asyncio.create_task(ws_server.send_danmu_message({
                 #     "type": "playurl_reload",
                 #     "room_id": room_id,
                 #     "cid": cid,
@@ -2898,7 +2654,7 @@ if __name__ == '__main__':
                 contentdata = content
                 print(json.dumps(contentdata))
                 # 转发未处理的消息类型
-                asyncio.create_task(danmu_ws_server.send_danmu_message({
+                asyncio.create_task(ws_server.send_danmu_message({
                     "type": "unknown",
                     "cmd": content['cmd'],
                     "data": content,
@@ -2923,7 +2679,7 @@ if __name__ == '__main__':
             print(f"程序异常: {e}")
         finally:
             # 清理资源
-            await danmu_ws_server.stop_server_async()
+            await ws_server.stop_server_async()
             # 如果有弹幕客户端，也需要停止
             await cdm.stop_async()
 
