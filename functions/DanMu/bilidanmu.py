@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import re
+import struct
 import time
 import zlib
 from collections import OrderedDict
@@ -58,19 +59,40 @@ class BiliDanmu:
             self.auth_body = auth_body
             self.HEARTBEAT_INTERVAL = 30
             """心跳间隔"""
-            self.Callable_opt_code8: Callable[[str], None] = lambda a: None
-            """接收认证包回复的回调函数"""
-            self.Callable_opt_code5: Callable[[Dict[str, Any]], None] = lambda a: None
-            """接收普通包 (命令)的回调函数"""
-            self.wssCertificationAndHeartbeat: Callable[[bytes], None] = lambda a: None
-            """发送认证包接收时的回调函数"""
             self.num_r = 20
             """同时连接多个弹幕减少丢包"""
             self.connection_interval = 0.3
             """同时连接多个弹幕的间隔秒"""
             self.o_m_d = OptimizedMessageDeduplication()
             """用于多弹幕返回去重的实例"""
-
+            self.replyAuthenticationPackageCallable: Callable[[str], None] = lambda a: None
+            """接收认证包回复的回调函数， 参数为接收到的数据"""
+            self.ordinaryBagCallable: Callable[[Dict[str, Any]], None] = lambda a: None
+            """接收普通包 (命令)的回调函数， 参数为接收到的数据"""
+            self.sendAuthenticationPackageReplyCallable: Callable[[bytes], None] = lambda a: None
+            """接收到发送认证包后的回复时的回调函数，参数为接收到的数据"""
+            self.connectionFailureCallback: Callable[[int, int], None] = lambda delay, retry_count: None
+            """连接失败回调，参数为（重试间隔，当前重试次数）"""
+            self.authenticationResponseTimeoutCallback: Callable[[], None] = lambda : None
+            """认证响应超时回调，无参"""
+            self.authenticationFailureCallback: Callable = lambda e: None
+            """认证失败回调，参数为错误"""
+            self.heartRateFailureCallback: Callable = lambda e: None
+            """心率失败回调，参数为错误"""
+            self.multipleMessagesCallback: Callable[[int], None] = lambda num_r: None
+            """启动多个弹幕回调，参数为弹幕连接数量"""
+            self.multipleMessagesSuccessCallback: Callable[[], None] = lambda : None
+            """多个弹幕启动成功回调，无参"""
+            self.messagesStopCallback: Callable[[], None] = lambda : None
+            """收到弹幕停止回调，无参"""
+            self.interruptStartupCallback: Callable[[], None] = lambda : None
+            """启动时中断回调，无参"""
+            self.abnormalStartupCallback: Callable = lambda e: None
+            """启动时异常回调，参数为错误"""
+            self.stopConnectionCallback: Callable[[], None] = lambda : None
+            """停止连接回调，无参"""
+            self.connectionStoppedCallback: Callable[[], None] = lambda : None
+            """连接已停止回调，无参"""
             self.connection_tasks = []  # 异步任务列表
             self.running = False
             self._stop_event = asyncio.Event()  # 用于等待停止信号
@@ -111,7 +133,8 @@ class BiliDanmu:
                         break
                     retry_count += 1
                     delay = base_delay * (2 ** retry_count)
-                    print(f"连接失败，{delay}秒后重试... (重试次数: {retry_count})")
+
+                    self.connectionFailureCallback(delay, retry_count)
                     await asyncio.sleep(delay)
 
         async def on_open(self, ws):
@@ -132,16 +155,16 @@ class BiliDanmu:
                     # 启动心跳任务
                     asyncio.create_task(self.send_heartbeat(ws))
                 except asyncio.TimeoutError:
-                    print("认证响应超时")
+                    self.authenticationResponseTimeoutCallback()
                     raise
 
             except Exception as e:
-                print(f"认证失败: {e}")
+                self.authenticationFailureCallback(e)
                 raise
 
         async def _handle_certification_response(self, auth_response: bytes):
             """异步处理认证响应"""
-            self.wssCertificationAndHeartbeat(auth_response)
+            self.sendAuthenticationPackageReplyCallable(auth_response)
 
         async def send_heartbeat(self, ws):
             """发送心跳"""
@@ -152,7 +175,7 @@ class BiliDanmu:
                 except websockets.exceptions.ConnectionClosed:
                     break
                 except Exception as e:
-                    print(f"心跳发送失败: {e}")
+                    self.heartRateFailureCallback(e)
                     break
 
         async def on_message(self, message):
@@ -224,11 +247,11 @@ class BiliDanmu:
 
         async def _handle_opt_code5(self, content_dict: dict):
             """异步处理 opt_code 5 回调"""
-            self.Callable_opt_code5(content_dict)
+            self.ordinaryBagCallable(content_dict)
 
         async def _handle_opt_code8(self, content: str):
             """异步处理 opt_code 8 回调"""
-            self.Callable_opt_code8(content)
+            self.replyAuthenticationPackageCallable(content)
 
         async def start_async(self):
             """异步启动方法 - 会一直运行直到收到停止信号"""
@@ -237,7 +260,7 @@ class BiliDanmu:
             self.connection_tasks.clear()
             self._loop = asyncio.get_running_loop()  # 获取当前运行的事件循环
 
-            print(f"启动 {self.num_r} 个弹幕连接...")
+            self.multipleMessagesCallback(self.num_r)
 
             # 创建多个连接任务
             for i in range(self.num_r):
@@ -246,12 +269,12 @@ class BiliDanmu:
                 if i < self.num_r - 1:  # 最后一个连接不需要等待
                     await asyncio.sleep(self.connection_interval)  # 间隔连接
 
-            print("所有弹幕连接已启动，等待停止信号...")
+            self.multipleMessagesSuccessCallback()
 
             # 等待停止信号
             await self._stop_event.wait()
 
-            print("收到停止信号，正在关闭连接...")
+            self.messagesStopCallback()
 
         def start(self):
             """同步启动方法（包装异步方法）"""
@@ -260,10 +283,10 @@ class BiliDanmu:
                 # 运行异步启动方法
                 asyncio.run(self.start_async())
             except KeyboardInterrupt:
-                print("收到中断信号")
+                self.interruptStartupCallback()
                 self.stop()
             except Exception as e:
-                print(f"启动异常: {e}")
+                self.abnormalStartupCallback(e)
                 self.stop()
 
         async def stop_async(self):
@@ -274,7 +297,7 @@ class BiliDanmu:
             self.running = False
             self._stop_event.set()  # 触发停止信号
 
-            print("正在停止弹幕连接...")
+            self.stopConnectionCallback()
 
             # 取消所有连接任务
             for task in self.connection_tasks:
@@ -285,7 +308,7 @@ class BiliDanmu:
             if self.connection_tasks:
                 await asyncio.gather(*self.connection_tasks, return_exceptions=True)
 
-            print("弹幕连接已停止")
+            self.connectionStoppedCallback()
 
         def stop(self):
             """同步停止方法"""
@@ -354,40 +377,10 @@ if __name__ == '__main__':
 
     dm = BiliDanmu(Headers)
 
+    ws_server = WebSocketServer()
+
     async def show_danmu():
-        # 调用原函数
-        result = b_a_g.get_guard_list(
-            DataInput.room_id,
-            get_room_base["data"]["uid"],
-            page=1,
-            page_size=20,
-            typ=5,
-            include_total_list=True
-        )
-        guard_dict = {}
-        if result["success"]:
-            total_list = result["data"].get("total_list", [])
-            for guard in total_list:
-                uid = guard["uinfo"]["uid"]
-                guard_level = guard["uinfo"]["guard"]["level"]
-                guard_dict[uid] = guard_level
-
-        ws_server = WebSocketServer()
-        ws_server.registerCallback = lambda clients_count: print(f"新的网页客户端连接，当前连接数: {clients_count}")
-        ws_server.unregisterCallback = lambda clients_count: print(f"网页客户端断开，当前连接数: {clients_count}")
-        ws_server.startServerCallback = lambda host, port: print(f"弹幕转发服务器启动在 ws://{host}:{port}")
-        ws_server.serverCancelledCallback = lambda : print("WebSocket 服务器被取消")
-        ws_server.serverErroCallback = lambda e: print(f"WebSocket 服务器错误: {e}")
-        ws_server.serverStopCallback = lambda : print("WebSocket 服务器已停止")
         cdm = dm.connect_room(DataInput.room_id)
-        cdm.o_m_d.max_size = 100
-        cdm.o_m_d.ttl_seconds = 5
-        cdm.num_r = 25
-
-        # 1. 启动 WebSocket 服务器
-        server_task = asyncio.create_task(ws_server.run_forever())
-        await asyncio.sleep(1)  # 等待服务器启动
-        print("WebSocket 服务器启动完成")
 
         def get_color_by_amount(amount):
             """
@@ -2661,10 +2654,97 @@ if __name__ == '__main__':
                     "timestamp": time.time()
                 }))
 
+        # 调用原函数
+        result = b_a_g.get_guard_list(
+            DataInput.room_id,
+            get_room_base["data"]["uid"],
+            page=1,
+            page_size=20,
+            typ=5,
+            include_total_list=True
+        )
+        guard_dict = {}
+        if result["success"]:
+            total_list = result["data"].get("total_list", [])
+            for guard in total_list:
+                uid = guard["uinfo"]["uid"]
+                guard_level = guard["uinfo"]["guard"]["level"]
+                guard_dict[uid] = guard_level
+
+        ws_server.registerCallback = lambda clients_count: print(f"新的网页客户端连接，当前连接数: {clients_count}")
+        ws_server.unregisterCallback = lambda clients_count: print(f"网页客户端断开，当前连接数: {clients_count}")
+        ws_server.startServerCallback = lambda host, port: print(f"弹幕转发服务器启动在 ws://{host}:{port}")
+        ws_server.serverCancelledCallback = lambda : print("WebSocket 服务器被取消")
+        ws_server.serverErroCallback = lambda e: print(f"WebSocket 服务器错误: {e}")
+        ws_server.serverStopCallback = lambda : print("WebSocket 服务器已停止")
+
+        cdm.o_m_d.max_size = 100
+        cdm.o_m_d.ttl_seconds = 5
+        cdm.num_r = 1
+        cdm.replyAuthenticationPackageCallable = lambda content: print(f"身份验证回复: {content}\n")
+        cdm.ordinaryBagCallable = danmu_processing
+        def reply_with_a_callback_after_verification(auth_response: bytes):
+            """
+
+            Args:
+                auth_response:
+                    16 字节 认证回复
+
+                        [0:4]包总长度
+                            (头部大小 + 正文大小)
+                        [4:6]头部长度
+                            (一般为 0x0010, 即 16 字节)
+                        [6:8]协议版本
+                            - 0: 普通包 (正文不使用压缩)
+                            - 1: 心跳及认证包 (正文不使用压缩)
+                            - 2: 普通包 (正文使用 zlib 压缩)
+                            - 3: 普通包 (使用 brotli 压缩的多个带文件头的普通包)
+                        [8:12]操作码
+                            - 2	心跳包
+                            - 3	心跳包回复 (人气值)
+                            - 5	普通包 (命令)
+                            - 7	认证包
+                            - 8	认证包回复
+                        [12:16]序列号
+
+                        [16:]正文内容
+            Returns:
+
+            """
+            print(f"认证成功，连接已建立")
+            # 解析头部 (16 字节)
+            package_len = struct.unpack('>I', auth_response[0:4])[0]  # 包总长度
+            head_length = struct.unpack('>H', auth_response[4:6])[0]  # 头部长度
+            prot_ver = struct.unpack('>H', auth_response[6:8])[0]  # 协议版本
+            opt_code = struct.unpack('>I', auth_response[8:12])[0]  # 操作码
+            sequence = struct.unpack('>I', auth_response[12:16])[0]  # 序列号
+
+            # 解析正文
+            content_bytes: bytes = auth_response[16:package_len]  # 正文
+            content_str = content_bytes.decode('utf-8')
+
+            print(
+                f"包总长度: {package_len} 字节\t头部长度: {head_length} 字节\t协议版本: {prot_ver}\t操作码: {opt_code} (8 = 认证回复)\t序列号: {sequence}\t正文内容: {content_str}\t")
+        cdm.sendAuthenticationPackageReplyCallable =  reply_with_a_callback_after_verification
+        cdm.connectionFailureCallback = lambda delay, retry_count: print(f"连接失败，{delay}秒后重试... (重试次数: {retry_count})")
+        cdm.authenticationResponseTimeoutCallback = lambda: print("认证响应超时")
+        cdm.authenticationFailureCallback = lambda e: print(f"认证失败: {e}")
+        cdm.heartRateFailureCallback = lambda e: print(f"心跳发送失败: {e}")
+        cdm.multipleMessagesCallback = lambda num_r: print(f"启动 {num_r} 个弹幕连接...")
+        cdm.multipleMessagesSuccessCallback = lambda: print("所有弹幕连接已启动，等待停止信号...")
+        cdm.messagesStopCallback = lambda: print("收到停止信号，正在关闭连接...")
+        cdm.interruptStartupCallback = lambda: print("收到中断信号")
+        cdm.abnormalStartupCallback = lambda e: print(f"启动异常: {e}")
+        cdm.stopConnectionCallback = lambda: print("正在停止弹幕连接...")
+        cdm.connectionStoppedCallback = lambda: print("弹幕连接已停止")
+
+        # 1. 启动 WebSocket 服务器
+        server_task = asyncio.create_task(ws_server.run_forever())
+        await asyncio.sleep(1)  # 等待服务器启动
+        print("WebSocket 服务器启动完成")
+
         # 3. 启动弹幕客户端
         try:
-            cdm.Callable_opt_code5 = danmu_processing
-
             # 启动弹幕客户端
             danmu_task = asyncio.create_task(cdm.start_async())
 
