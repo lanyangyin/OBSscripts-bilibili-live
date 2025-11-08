@@ -1500,6 +1500,249 @@ class CommonTitlesManager:
         return json.dumps(self.data, ensure_ascii=False, indent=2)
 
 
+class CommonDataManager:
+    """
+    管理用户多种类型常用数据的JSON文件
+
+    功能:
+    - 管理 {user_id: {data_type1: [item1, item2, ...], data_type2: [...]}} 格式的JSON文件
+    - 每种数据类型最多包含5个元素
+    - 支持增删改查操作
+    - 自动创建不存在的目录和文件
+    - 自动转换旧格式数据到新格式
+
+    参数:
+        directory: 文件存放目录
+        default_data_type: 默认数据类型（用于向后兼容）
+    """
+
+    def __init__(self, filepath: Union[str, Path], default_data_type: str = "title"):
+        """
+        初始化CommonDataManager
+
+        Args:
+            filepath: 文件路径
+            default_data_type: 默认数据类型（用于处理旧格式数据）
+            maximum_quantity_of_elements: 保留的最大元素数
+        """
+        self.filepath = Path(filepath)
+        self.default_data_type = default_data_type
+        self.data: Dict[str, Dict[str, List[str]]] = {}
+
+        # 确保目录存在
+        self.filepath.parent.mkdir(parents=True, exist_ok=True)
+
+        # 如果文件不存在则创建
+        if not self.filepath.exists():
+            self._save_data()
+        else:
+            self._load_data()
+            self._convert_old_format()
+
+    def _load_data(self) -> None:
+        """从文件加载数据"""
+        try:
+            with open(self.filepath, 'r', encoding='utf-8') as f:
+                self.data = json.load(f)
+        except (json.JSONDecodeError, FileNotFoundError):
+            # 文件为空或格式错误时创建新文件
+            self.data = {}
+            self._save_data()
+
+    def _save_data(self) -> None:
+        """保存数据到文件"""
+        with open(self.filepath, 'w', encoding='utf-8') as f:
+            json.dump(self.data, f, ensure_ascii=False, indent=2)
+
+    def _convert_old_format(self) -> None:
+        """将旧格式数据转换为新格式"""
+        needs_save = False
+
+        for user_id, user_data in list(self.data.items()):
+            # 如果用户数据是列表格式（旧格式），则转换为新格式
+            if isinstance(user_data, list):
+                self.data[user_id] = {self.default_data_type: user_data}
+                needs_save = True
+
+        if needs_save:
+            self._save_data()
+
+    def get_data(self, user_id: str, data_type: str) -> List[str]:
+        """
+        获取指定用户的指定类型数据列表
+
+        Args:
+            user_id: 用户ID
+            data_type: 数据类型
+
+        Returns:
+            该用户的指定类型数据列表（如果没有则为空列表）
+        """
+        if user_id not in self.data:
+            return []
+
+        return self.data[user_id].get(data_type, [])
+
+    def add_data(self, user_id: str, data_type: str, item: str, maximum: int = 5) -> None:
+        """
+        为用户添加新数据项
+
+        特点:
+        - 如果数据项已存在，则移动到列表最前面
+        - 确保列表长度不超过5个
+        - 如果用户不存在，则创建新条目
+        - 如果数据类型不存在，则创建新类型
+
+        Args:
+            maximum: 保留的最大元素数
+            user_id: 用户ID
+            data_type: 数据类型
+            item: 要添加的数据项
+        """
+        # 确保用户数据存在
+        if user_id not in self.data:
+            self.data[user_id] = {}
+
+        # 确保数据类型存在
+        if data_type not in self.data[user_id]:
+            self.data[user_id][data_type] = []
+
+        items = self.data[user_id][data_type]
+
+        # 移除重复项（如果存在）
+        if item in items:
+            items.remove(item)
+
+        # 添加到列表开头
+        items.insert(0, item)
+
+        # 确保不超过5个元素
+        if len(items) > maximum:
+            items = items[:maximum]
+
+        # 更新数据并保存
+        self.data[user_id][data_type] = items
+        self._save_data()
+
+    def remove_data(self, user_id: str, data_type: str, item: str) -> bool:
+        """
+        移除用户的指定数据项
+
+        Args:
+            user_id: 用户ID
+            data_type: 数据类型
+            item: 要移除的数据项
+
+        Returns:
+            True: 成功移除
+            False: 数据项不存在
+        """
+        if user_id not in self.data or data_type not in self.data[user_id]:
+            return False
+
+        items = self.data[user_id][data_type]
+
+        if item in items:
+            items.remove(item)
+            # 如果列表为空，则删除数据类型条目
+            if not items:
+                del self.data[user_id][data_type]
+                # 如果用户数据为空，则删除用户条目
+                if not self.data[user_id]:
+                    del self.data[user_id]
+            self._save_data()
+            return True
+        return False
+
+    def update_data(self, user_id: str, data_type: str, old_item: str, new_item: str) -> bool:
+        """
+        更新用户的数据项
+
+        Args:
+            user_id: 用户ID
+            data_type: 数据类型
+            old_item: 要替换的旧数据项
+            new_item: 新数据项
+
+        Returns:
+            True: 更新成功
+            False: 旧数据项不存在
+        """
+        if user_id not in self.data or data_type not in self.data[user_id]:
+            return False
+
+        items = self.data[user_id][data_type]
+
+        if old_item in items:
+            # 替换数据项并移动到列表前面
+            index = items.index(old_item)
+            items.pop(index)
+            items.insert(0, new_item)
+            self._save_data()
+            return True
+        return False
+
+    def clear_user_data(self, user_id: str, data_type: Optional[str] = None) -> None:
+        """
+        清除指定用户的指定类型数据或所有数据
+
+        Args:
+            user_id: 用户ID
+            data_type: 数据类型（如果为None，则清除所有数据）
+        """
+        if user_id not in self.data:
+            return
+
+        if data_type is None:
+            # 清除所有数据
+            del self.data[user_id]
+        elif data_type in self.data[user_id]:
+            # 清除指定类型数据
+            del self.data[user_id][data_type]
+            # 如果用户数据为空，则删除用户条目
+            if not self.data[user_id]:
+                del self.data[user_id]
+
+        self._save_data()
+
+    def get_all_users(self) -> List[str]:
+        """
+        获取所有有数据的用户ID列表
+
+        Returns:
+            用户ID列表
+        """
+        return list(self.data.keys())
+
+    def get_user_data_types(self, user_id: str) -> List[str]:
+        """
+        获取指定用户的所有数据类型
+
+        Args:
+            user_id: 用户ID
+
+        Returns:
+            数据类型列表
+        """
+        if user_id not in self.data:
+            return []
+
+        return list(self.data[user_id].keys())
+
+    def get_all_data(self) -> Dict[str, Dict[str, List[str]]]:
+        """
+        获取所有数据
+
+        Returns:
+            完整的{user_id: {data_type: items}}字典
+        """
+        return self.data.copy()
+
+    def __str__(self) -> str:
+        """返回数据的字符串表示"""
+        return json.dumps(self.data, ensure_ascii=False, indent=2)
+
+
 class WbiSigna:
     def __init__(self, headers: dict, verify_ssl: bool = True):
         """
@@ -6542,10 +6785,10 @@ def get_b_csrf_a():
 
 
 @lru_cache(maxsize=None)
-def get_c_t_m():
-    # 创建用户常用直播间标题实例
-    c_t_m = CommonTitlesManager(directory=Path(GlobalVariableOfData.scriptsDataDirpath))
-    return c_t_m
+def get_c_d_m():
+    # 创建用户常用数据实例
+    c_d_m = CommonDataManager(Path(GlobalVariableOfData.scriptsDataDirpath) / "commonData.json")
+    return c_d_m
 
 
 @lru_cache(maxsize=None)
@@ -6683,8 +6926,8 @@ def get_common_title4number():
     """常用直播间标题】{'0': 't1', '1': 't2', '2': 't3',}"""
     if get_b_u_c_m().get_default_user_id():
         if get_room_status():
-            get_c_t_m().add_title(get_b_u_c_m().get_default_user_id(), get_room_title())
-            for number, commonTitle in enumerate(get_c_t_m().get_titles(get_b_u_c_m().get_default_user_id())):
+            get_c_d_m().add_data(get_b_u_c_m().get_default_user_id(), "title", get_room_title())
+            for number, commonTitle in enumerate(get_c_d_m().get_data(get_b_u_c_m().get_default_user_id(), "title")):
                 common_title4number[str(number)] = commonTitle
             log_save(obs.LOG_INFO, f"║║登录账户 的 常用直播间标题：{common_title4number}")
         else:
@@ -6912,7 +7155,7 @@ def clear_cache():
     get_b_l_i_r.cache_clear()
     get_i_c.cache_clear()
     get_b_r_m.cache_clear()
-    get_c_t_m.cache_clear()
+    get_c_d_m.cache_clear()
     get_uid_nickname_dict.cache_clear()
     get_default_user_nickname.cache_clear()
     get_room_info_old.cache_clear()
@@ -9034,7 +9277,7 @@ class ButtonFunction:
         else:
             log_save(obs.LOG_INFO, f"直播间标题更改失败{turn_title_return['message']}")
             return False
-        get_c_t_m().add_title(get_b_u_c_m().get_default_user_id(), title_textbox_t)
+        get_c_d_m().add_data(get_b_u_c_m().get_default_user_id(), "title", title_textbox_t)
 
         widget.ComboBox.roomCommonTitles.Text = title_textbox_t
         widget.ComboBox.roomCommonTitles.Value = "0"
