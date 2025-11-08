@@ -17,10 +17,9 @@ from PIL import Image
 
 from function.api.Authentication.Wbi.get_danmu_info import WbiSigna
 from function.api.Special.Csrf import BilibiliCSRFAuthenticator
-from function.tools.EncodingConversion.DanmuProtoDecoder import DanmuProtoDecoder
 from function.tools.EncodingConversion.parse_cookie import parse_cookie
+from function.tools.EncodingConversion.DanmuProtoDecoder import DanmuProtoDecoder
 from function.tools.OptimizedMessageDeduplication import OptimizedMessageDeduplication
-from function.tools.WebSocketServer import WebSocketServer
 
 
 class BiliDanmu:
@@ -324,14 +323,12 @@ class BiliDanmu:
 
 # 运行整合版本
 if __name__ == '__main__':
+    from function.tools.WebSocketServer import WebSocketServer
     from function.tools.EncodingConversion.dict_to_cookie_string import dict_to_cookie_string
     from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
     from _Input.functions.DanMu import Danmu as DataInput
-    from _Input.functions.DanMu import Danmu as DataInput
     from function.tools.EncodingConversion.url2pillow_image import url2pillow_image
     from function.api.Generic import BilibiliApiGeneric
-    import signal
-    import sys
 
     class GlobalVariableOfData:
         # 弹幕显示
@@ -377,10 +374,8 @@ if __name__ == '__main__':
 
     dm = BiliDanmu(Headers)
 
-    ws_server = WebSocketServer()
 
     async def show_danmu():
-        cdm = dm.connect_room(DataInput.room_id)
 
         def get_color_by_amount(amount):
             """
@@ -447,6 +442,48 @@ if __name__ == '__main__':
 
             return coin_color[matching_threshold], matching_threshold
 
+        def reply_with_a_callback_after_verification(auth_response: bytes):
+            """
+
+            Args:
+                auth_response:
+                    16 字节 认证回复
+
+                        [0:4]包总长度
+                            (头部大小 + 正文大小)
+                        [4:6]头部长度
+                            (一般为 0x0010, 即 16 字节)
+                        [6:8]协议版本
+                            - 0: 普通包 (正文不使用压缩)
+                            - 1: 心跳及认证包 (正文不使用压缩)
+                            - 2: 普通包 (正文使用 zlib 压缩)
+                            - 3: 普通包 (使用 brotli 压缩的多个带文件头的普通包)
+                        [8:12]操作码
+                            - 2	心跳包
+                            - 3	心跳包回复 (人气值)
+                            - 5	普通包 (命令)
+                            - 7	认证包
+                            - 8	认证包回复
+                        [12:16]序列号
+
+                        [16:]正文内容
+            Returns:
+
+            """
+            print(f"认证成功，连接已建立")
+            # 解析头部 (16 字节)
+            package_len = struct.unpack('>I', auth_response[0:4])[0]  # 包总长度
+            head_length = struct.unpack('>H', auth_response[4:6])[0]  # 头部长度
+            prot_ver = struct.unpack('>H', auth_response[6:8])[0]  # 协议版本
+            opt_code = struct.unpack('>I', auth_response[8:12])[0]  # 操作码
+            sequence = struct.unpack('>I', auth_response[12:16])[0]  # 序列号
+
+            # 解析正文
+            content_bytes: bytes = auth_response[16:package_len]  # 正文
+            content_str = content_bytes.decode('utf-8')
+
+            print(
+                f"包总长度: {package_len} 字节\t头部长度: {head_length} 字节\t协议版本: {prot_ver}\t操作码: {opt_code} (8 = 认证回复)\t序列号: {sequence}\t正文内容: {content_str}\t")
         # 2. 设置弹幕处理器
         def danmu_processing(content: dict):
             """
@@ -2671,6 +2708,7 @@ if __name__ == '__main__':
                 guard_level = guard["uinfo"]["guard"]["level"]
                 guard_dict[uid] = guard_level
 
+        ws_server = WebSocketServer()
         ws_server.registerCallback = lambda clients_count: print(f"新的网页客户端连接，当前连接数: {clients_count}")
         ws_server.unregisterCallback = lambda clients_count: print(f"网页客户端断开，当前连接数: {clients_count}")
         ws_server.startServerCallback = lambda host, port: print(f"弹幕转发服务器启动在 ws://{host}:{port}")
@@ -2678,53 +2716,12 @@ if __name__ == '__main__':
         ws_server.serverErroCallback = lambda e: print(f"WebSocket 服务器错误: {e}")
         ws_server.serverStopCallback = lambda : print("WebSocket 服务器已停止")
 
+        cdm = dm.connect_room(DataInput.room_id)
         cdm.o_m_d.max_size = 100
         cdm.o_m_d.ttl_seconds = 5
-        cdm.num_r = 1
+        cdm.num_r = 30
         cdm.replyAuthenticationPackageCallable = lambda content: print(f"身份验证回复: {content}\n")
         cdm.ordinaryBagCallable = danmu_processing
-        def reply_with_a_callback_after_verification(auth_response: bytes):
-            """
-
-            Args:
-                auth_response:
-                    16 字节 认证回复
-
-                        [0:4]包总长度
-                            (头部大小 + 正文大小)
-                        [4:6]头部长度
-                            (一般为 0x0010, 即 16 字节)
-                        [6:8]协议版本
-                            - 0: 普通包 (正文不使用压缩)
-                            - 1: 心跳及认证包 (正文不使用压缩)
-                            - 2: 普通包 (正文使用 zlib 压缩)
-                            - 3: 普通包 (使用 brotli 压缩的多个带文件头的普通包)
-                        [8:12]操作码
-                            - 2	心跳包
-                            - 3	心跳包回复 (人气值)
-                            - 5	普通包 (命令)
-                            - 7	认证包
-                            - 8	认证包回复
-                        [12:16]序列号
-
-                        [16:]正文内容
-            Returns:
-
-            """
-            print(f"认证成功，连接已建立")
-            # 解析头部 (16 字节)
-            package_len = struct.unpack('>I', auth_response[0:4])[0]  # 包总长度
-            head_length = struct.unpack('>H', auth_response[4:6])[0]  # 头部长度
-            prot_ver = struct.unpack('>H', auth_response[6:8])[0]  # 协议版本
-            opt_code = struct.unpack('>I', auth_response[8:12])[0]  # 操作码
-            sequence = struct.unpack('>I', auth_response[12:16])[0]  # 序列号
-
-            # 解析正文
-            content_bytes: bytes = auth_response[16:package_len]  # 正文
-            content_str = content_bytes.decode('utf-8')
-
-            print(
-                f"包总长度: {package_len} 字节\t头部长度: {head_length} 字节\t协议版本: {prot_ver}\t操作码: {opt_code} (8 = 认证回复)\t序列号: {sequence}\t正文内容: {content_str}\t")
         cdm.sendAuthenticationPackageReplyCallable =  reply_with_a_callback_after_verification
         cdm.connectionFailureCallback = lambda delay, retry_count: print(f"连接失败，{delay}秒后重试... (重试次数: {retry_count})")
         cdm.authenticationResponseTimeoutCallback = lambda: print("认证响应超时")
