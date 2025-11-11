@@ -11,7 +11,7 @@ class PaidMessageTicker {
         this.config = {
             // 基础配置
             tickerMessage: 'CN¥39.00',
-            facePicture: './blivechat_files/noface.gif',
+            facePicture: 'https://static.hdslb.com/images/member/noface.gif',
 
             // 颜色配置
             messagePrimaryColor: 'rgb(29, 233, 182)',
@@ -185,7 +185,7 @@ const smallAmount = manager.createTicker({
     messagePrimaryColor: 'rgb(29, 233, 182)',
     messageSecondaryColor: 'rgb(0, 191, 165)',
     tickerMessage: 'CN¥39.00',
-    facePicture: './blivechat_files/noface.gif',
+    facePicture: 'https://static.hdslb.com/images/member/noface.gif',
     countdownDuration: 8000, // 8秒
 //    onUpdate: (percentage, ticker) => {
 //        console.log(`当前百分比: ${percentage}%`);
@@ -200,7 +200,7 @@ const smallAmount1 = manager.createTicker({
     messagePrimaryColor: 'rgb(29, 233, 182)',
     messageSecondaryColor: 'rgb(0, 191, 165)',
     tickerMessage: 'CN¥39.00',
-    facePicture: './blivechat_files/noface.gif',
+    facePicture: 'https://static.hdslb.com/images/member/noface.gif',
     countdownDuration: 8000, // 8秒
 });
 
@@ -963,6 +963,7 @@ class DanmuWebSocketClient {
                 break;
 
             case 'gift':
+            case 'red_pocket_v2_start':
             case 'red_pocket_v2':
             case 'super_chat':
             case 'super_chat_jpn':
@@ -1055,8 +1056,10 @@ class DanmuWebSocketClient {
         switch(data.type) {
             case 'super_chat':
             case 'super_chat_jpn':
+            case 'red_pocket_v2_start':
             case 'red_pocket_v2':
             case 'gift':
+                if (!data.countdownDuration) {data.countdownDuration = 12000};
                 const giftMessageInfo = {
                     uName: data.uName, // 昵称
                     uId: data.uId,
@@ -1071,7 +1074,7 @@ class DanmuWebSocketClient {
                     messageData: data.messageData, // 文字内容
                     tickerMessage: `CN¥${data.price}`,
                     showOnlyHeader: data.showOnlyHeader, // 是否不显示文字区域
-                    countdownDuration: 20000, // 毫秒
+                    countdownDuration: data.countdownDuration, // 毫秒
                 }
                 console.log('礼物消息:', giftMessageInfo);
                 // 创建付费消息
