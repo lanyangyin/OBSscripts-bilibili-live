@@ -8179,6 +8179,7 @@ def clear_cache():
     get_live_status.cache_clear()
     get_reserve_list.cache_clear()
     get_reserve_name4reserve_sid.cache_clear()
+    get_common_danmu_setting.cache_clear()
     get_common_danmu_roomid_dict.cache_clear()
     get_common_danmu_web_socket_server_prot.cache_clear()
     get_common_danmu_own_big_expression.cache_clear()
