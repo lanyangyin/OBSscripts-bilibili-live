@@ -53,6 +53,7 @@ from PIL import Image, ImageOps
 from flask import Flask
 from requests.exceptions import SSLError
 from werkzeug.serving import make_server
+import google.protobuf
 
 import obspython as obs
 
