@@ -8109,12 +8109,14 @@ def get_common_danmu_setting():
     """
     弹幕客户端创建数/弹幕客户端创建间隔/是否显示进房消息/是否显示粉丝徽章/是否显示其他的粉丝徽章/是否显示未点亮的粉丝徽章/换行显示/是否标记管理员，is_admin不受影响/是否显示时间/防重复的缓存条数/防重复的缓存时长/头像大小/粉丝勋章文字大小/内容文字大小/时间文字大小
     """
+    danmu_setting_list = []
     if get_b_u_c_m().get_default_user_id():
         danmu_client_creations_number = get_c_d_m().get_data(get_b_u_c_m().get_default_user_id(), "danmuSetting")
         if not danmu_client_creations_number:
             setting = "20/300/1/1/1/1/1/0/0/20/3/16/14/14/14"
             get_c_d_m().add_data(get_b_u_c_m().get_default_user_id(), "danmuSetting", setting, 1)
-    return [int(item) for item in get_c_d_m().get_data(get_b_u_c_m().get_default_user_id(), "danmuSetting")[0].split("/")]
+        danmu_setting_list = [int(item) for item in get_c_d_m().get_data(get_b_u_c_m().get_default_user_id(), "danmuSetting")[0].split("/")]
+    return danmu_setting_list
 
 
 @lru_cache(maxsize=None)
@@ -8192,7 +8194,7 @@ def clear_cache():
 # OBS Script Functions                                      -
 # -----------------------------------------------------------
 
-script_version = bytes.fromhex('6f2e332e37').decode('utf-8')
+script_version = bytes.fromhex('302e332e37').decode('utf-8')
 """脚本版本.encode().hex()"""
 
 
@@ -9240,8 +9242,8 @@ def script_defaults(settings):  # 设置其默认值
         widget.Group.booking.Enabled = bool(get_room_status())
 
     if widget.Group.danmu.Name in update_widget_for_props_name:
-        widget.Group.danmu.Visible = bool(GlobalVariableOfData.networkConnectionStatus)
-        widget.Group.danmu.Enabled = bool(GlobalVariableOfData.networkConnectionStatus)
+        widget.Group.danmu.Visible = True if get_b_u_c_m().get_default_user_id() else False
+        widget.Group.danmu.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
     if widget.Button.bottom.Name in update_widget_for_props_name:
         widget.Button.bottom.Visible = False
@@ -9557,7 +9559,7 @@ def script_defaults(settings):  # 设置其默认值
                 widget.DigitalDisplay.danmuNumCommentsClient.Enabled = False
         else:
             widget.DigitalDisplay.danmuNumCommentsClient.Enabled = False
-        widget.DigitalDisplay.danmuNumCommentsClient.Value = int(get_common_danmu_setting()[0])
+        widget.DigitalDisplay.danmuNumCommentsClient.Value = int(get_common_danmu_setting()[0]) if get_common_danmu_setting() else 1
         widget.DigitalDisplay.danmuNumCommentsClient.Min = 1
         widget.DigitalDisplay.danmuNumCommentsClient.Max = 50
         widget.DigitalDisplay.danmuNumCommentsClient.Step = 1
@@ -9571,7 +9573,7 @@ def script_defaults(settings):  # 设置其默认值
                 widget.DigitalDisplay.danmuIntervalNumCommentsClient.Enabled = False
         else:
             widget.DigitalDisplay.danmuIntervalNumCommentsClient.Enabled = False
-        widget.DigitalDisplay.danmuIntervalNumCommentsClient.Value = int(get_common_danmu_setting()[1])
+        widget.DigitalDisplay.danmuIntervalNumCommentsClient.Value = int(get_common_danmu_setting()[1]) if get_common_danmu_setting() else 0
         widget.DigitalDisplay.danmuIntervalNumCommentsClient.Min = 0
         widget.DigitalDisplay.danmuIntervalNumCommentsClient.Max = 3000
         widget.DigitalDisplay.danmuIntervalNumCommentsClient.Step = 100
@@ -9579,42 +9581,42 @@ def script_defaults(settings):  # 设置其默认值
     if widget.CheckBox.enterRoomDisplay.Name in update_widget_for_props_name:
         widget.CheckBox.enterRoomDisplay.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.CheckBox.enterRoomDisplay.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.CheckBox.enterRoomDisplay.Bool = bool(get_common_danmu_setting()[2])
+        widget.CheckBox.enterRoomDisplay.Bool = bool(get_common_danmu_setting()[2]) if get_common_danmu_setting() else False
 
     if widget.CheckBox.medalDisplay.Name in update_widget_for_props_name:
         widget.CheckBox.medalDisplay.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.CheckBox.medalDisplay.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.CheckBox.medalDisplay.Bool = bool(get_common_danmu_setting()[3])
+        widget.CheckBox.medalDisplay.Bool = bool(get_common_danmu_setting()[3]) if get_common_danmu_setting() else False
 
     if widget.CheckBox.medalOtherDisplay.Name in update_widget_for_props_name:
         widget.CheckBox.medalOtherDisplay.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.CheckBox.medalOtherDisplay.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.CheckBox.medalOtherDisplay.Bool = bool(get_common_danmu_setting()[4])
+        widget.CheckBox.medalOtherDisplay.Bool = bool(get_common_danmu_setting()[4]) if get_common_danmu_setting() else False
 
     if widget.CheckBox.medalUnLightDisplay.Name in update_widget_for_props_name:
         widget.CheckBox.medalUnLightDisplay.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.CheckBox.medalUnLightDisplay.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.CheckBox.medalUnLightDisplay.Bool = bool(get_common_danmu_setting()[5])
+        widget.CheckBox.medalUnLightDisplay.Bool = bool(get_common_danmu_setting()[5]) if get_common_danmu_setting() else False
 
     if widget.CheckBox.lineBreakDisplay.Name in update_widget_for_props_name:
         widget.CheckBox.lineBreakDisplay.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.CheckBox.lineBreakDisplay.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.CheckBox.lineBreakDisplay.Bool = bool(get_common_danmu_setting()[6])
+        widget.CheckBox.lineBreakDisplay.Bool = bool(get_common_danmu_setting()[6]) if get_common_danmu_setting() else False
 
     if widget.CheckBox.tagAdministratorDisplay.Name in update_widget_for_props_name:
         widget.CheckBox.tagAdministratorDisplay.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.CheckBox.tagAdministratorDisplay.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.CheckBox.tagAdministratorDisplay.Bool = bool(get_common_danmu_setting()[7])
+        widget.CheckBox.tagAdministratorDisplay.Bool = bool(get_common_danmu_setting()[7]) if get_common_danmu_setting() else False
 
     if widget.CheckBox.timestampDisplay.Name in update_widget_for_props_name:
         widget.CheckBox.timestampDisplay.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.CheckBox.timestampDisplay.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.CheckBox.timestampDisplay.Bool = bool(get_common_danmu_setting()[8])
+        widget.CheckBox.timestampDisplay.Bool = bool(get_common_danmu_setting()[8]) if get_common_danmu_setting() else False
 
     if widget.DigitalDisplay.danmuNumCacheEntries.Name in update_widget_for_props_name:
         widget.DigitalDisplay.danmuNumCacheEntries.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.DigitalDisplay.danmuNumCacheEntries.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.DigitalDisplay.danmuNumCacheEntries.Value = int(get_common_danmu_setting()[9])
+        widget.DigitalDisplay.danmuNumCacheEntries.Value = int(get_common_danmu_setting()[9]) if get_common_danmu_setting() else 2
         widget.DigitalDisplay.danmuNumCacheEntries.Min = 2
         widget.DigitalDisplay.danmuNumCacheEntries.Max = 30
         widget.DigitalDisplay.danmuNumCacheEntries.Step = 1
@@ -9622,7 +9624,7 @@ def script_defaults(settings):  # 设置其默认值
     if widget.DigitalDisplay.danmuCacheDuration.Name in update_widget_for_props_name:
         widget.DigitalDisplay.danmuCacheDuration.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.DigitalDisplay.danmuCacheDuration.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.DigitalDisplay.danmuCacheDuration.Value = int(get_common_danmu_setting()[10])
+        widget.DigitalDisplay.danmuCacheDuration.Value = int(get_common_danmu_setting()[10]) if get_common_danmu_setting() else 1
         widget.DigitalDisplay.danmuCacheDuration.Min = 1
         widget.DigitalDisplay.danmuCacheDuration.Max = 10
         widget.DigitalDisplay.danmuCacheDuration.Step = 1
@@ -9630,7 +9632,7 @@ def script_defaults(settings):  # 设置其默认值
     if widget.DigitalDisplay.danmuFacePictureSize.Name in update_widget_for_props_name:
         widget.DigitalDisplay.danmuFacePictureSize.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.DigitalDisplay.danmuFacePictureSize.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.DigitalDisplay.danmuFacePictureSize.Value = int(get_common_danmu_setting()[11])
+        widget.DigitalDisplay.danmuFacePictureSize.Value = int(get_common_danmu_setting()[11]) if get_common_danmu_setting() else 1
         widget.DigitalDisplay.danmuFacePictureSize.Min = 1
         widget.DigitalDisplay.danmuFacePictureSize.Max = 100
         widget.DigitalDisplay.danmuFacePictureSize.Step = 1
@@ -9638,7 +9640,7 @@ def script_defaults(settings):  # 设置其默认值
     if widget.DigitalDisplay.danmuFanMedalTextSize.Name in update_widget_for_props_name:
         widget.DigitalDisplay.danmuFanMedalTextSize.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.DigitalDisplay.danmuFanMedalTextSize.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.DigitalDisplay.danmuFanMedalTextSize.Value = int(get_common_danmu_setting()[12])
+        widget.DigitalDisplay.danmuFanMedalTextSize.Value = int(get_common_danmu_setting()[12]) if get_common_danmu_setting() else 1
         widget.DigitalDisplay.danmuFanMedalTextSize.Min = 1
         widget.DigitalDisplay.danmuFanMedalTextSize.Max = 100
         widget.DigitalDisplay.danmuFanMedalTextSize.Step = 1
@@ -9646,7 +9648,7 @@ def script_defaults(settings):  # 设置其默认值
     if widget.DigitalDisplay.danmuMessageTextSize.Name in update_widget_for_props_name:
         widget.DigitalDisplay.danmuMessageTextSize.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.DigitalDisplay.danmuMessageTextSize.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.DigitalDisplay.danmuMessageTextSize.Value = int(get_common_danmu_setting()[13])
+        widget.DigitalDisplay.danmuMessageTextSize.Value = int(get_common_danmu_setting()[13]) if get_common_danmu_setting() else 1
         widget.DigitalDisplay.danmuMessageTextSize.Min = 1
         widget.DigitalDisplay.danmuMessageTextSize.Max = 100
         widget.DigitalDisplay.danmuMessageTextSize.Step = 1
@@ -9654,7 +9656,7 @@ def script_defaults(settings):  # 设置其默认值
     if widget.DigitalDisplay.danmuTimeTextSize.Name in update_widget_for_props_name:
         widget.DigitalDisplay.danmuTimeTextSize.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.DigitalDisplay.danmuTimeTextSize.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.DigitalDisplay.danmuTimeTextSize.Value = int(get_common_danmu_setting()[14])
+        widget.DigitalDisplay.danmuTimeTextSize.Value = int(get_common_danmu_setting()[14]) if get_common_danmu_setting() else 1
         widget.DigitalDisplay.danmuTimeTextSize.Min = 1
         widget.DigitalDisplay.danmuTimeTextSize.Max = 100
         widget.DigitalDisplay.danmuTimeTextSize.Step = 1
