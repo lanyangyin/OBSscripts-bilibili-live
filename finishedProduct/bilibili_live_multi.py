@@ -10110,7 +10110,7 @@ class ButtonFunction:
                 GlobalVariableOfData.loginQRCodePillowImg = None
                 # 二维码扫描登陆状态为成功或者超时时获取cookies结束[轮询二维码扫描登陆状态]
                 cookies = GlobalVariableOfData.loginQrCodeReturn['data']
-                if cookies:
+                if cookies and GlobalVariableOfData.loginQrCodeReturn["data"]["scan_code"] == 0:
                     buvid_info = get_i_c().get_buvid_info()
                     cookies["buvid3"] = buvid_info['data']['b_3']
                     cookies["buvid4"] = buvid_info['data']['b_4']
