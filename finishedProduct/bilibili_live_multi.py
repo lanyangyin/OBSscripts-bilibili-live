@@ -45,7 +45,7 @@ from urllib.error import URLError
 from urllib.parse import quote, unquote, parse_qs, urlparse
 
 import pyperclip as cb
-import qrcode
+import qrcode.main # 必须这样，不能只 import qrcode
 import requests
 import urllib3
 import websockets
