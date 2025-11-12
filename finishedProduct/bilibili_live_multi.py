@@ -11599,11 +11599,10 @@ class ButtonFunction:
                             if get_common_danmu_own_big_expression():
                                 if damu_split in get_common_danmu_own_big_expression():
                                     own_big_expression_path = Path(get_common_danmu_own_big_expression()[damu_split])
-                                    img_c = Image.open(own_big_expression_path)
                                     _own_big_expression_path = str(own_big_expression_path).replace('\\', '/')
                                     img_path_in_web = f"./img/own/{re.split('/', _own_big_expression_path)[-1]}"
                                     Path(GlobalVariableOfData.scriptsDataDirpath / img_path_in_web.replace('./', '')).parent.mkdir(parents=True, exist_ok=True)
-                                    img_c.save(GlobalVariableOfData.scriptsDataDirpath / img_path_in_web.replace('./', ''))
+                                    img_c = Image.open(own_big_expression_path)
                                     width, height = img_c.size
                                     message_data.append({
                                         'type': 'image',
