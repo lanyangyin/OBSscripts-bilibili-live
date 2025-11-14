@@ -14,8 +14,6 @@
 #         You should have received a copy of the GNU General Public License
 #         along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #         2436725966@qq.com
-# import asyncio
-# import base64
 import asyncio
 import base64
 import hashlib
@@ -45,15 +43,13 @@ from urllib.error import URLError
 from urllib.parse import quote, unquote, parse_qs, urlparse
 
 import pyperclip as cb
-import qrcode.main # 必须这样，不能只 import qrcode
+import qrcode.main  # 必须这样，不能只 import qrcode
 import requests
 import urllib3
 import websockets
 from PIL import Image, ImageOps
-from flask import Flask
 from requests.exceptions import SSLError
 from werkzeug.serving import make_server
-import google.protobuf
 
 import obspython as obs
 
@@ -8206,7 +8202,7 @@ def clear_cache():
 # OBS Script Functions                                      -
 # -----------------------------------------------------------
 
-script_version = bytes.fromhex('302e332e37').decode('utf-8')
+script_version = bytes.fromhex('302e332e38').decode('utf-8')
 """脚本版本.encode().hex()"""
 
 
