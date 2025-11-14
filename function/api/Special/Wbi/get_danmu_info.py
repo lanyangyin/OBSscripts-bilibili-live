@@ -202,7 +202,9 @@ class WbiSigna:
 
 
 if __name__ == '__main__':
-    BULC = BilibiliUserConfigManager(Path('../../../../cookies/config.json'))
+    from _Input.function.api.Special import Room as DataInput
+
+    BULC = BilibiliUserConfigManager(DataInput.cookie_file_path)
     cookies = BULC.get_user_cookies()['data']
     Headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '

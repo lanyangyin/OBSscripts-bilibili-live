@@ -232,8 +232,10 @@ class WbiSigna:
 
 # 使用示例
 if __name__ == '__main__':
+    from _Input.function.api.Special import Room as DataInput
+
     # 初始化配置管理器
-    BULC = BilibiliUserConfigManager(Path('../../../../cookies/config.json'))
+    BULC = BilibiliUserConfigManager(DataInput.cookie_file_path)
     cookies = BULC.get_user_cookies()['data']
 
     Headers = {
