@@ -1007,6 +1007,395 @@ class BilibiliApiGeneric:
                 "api_code": None
             }
 
+    def get_fans_members_rank(self, ruid: Union[int, str], page: int = 1,
+                              page_size: int = 20, rank_type: Optional[int] = None,
+                              include_total_list: bool = False) -> Dict[str, Any]:
+        """
+        获取粉丝团成员排名
+
+        Args:
+            ruid: 主播UID
+            page: 页数（默认1）
+            page_size: 每页返回数量（默认20，最大30）
+            rank_type: 排序方式（1=按粉丝牌亮着的成员亲密度，2=按没上过舰的成员亲密度）
+            include_total_list: 是否获取并返回完整的粉丝团成员列表（默认为False）
+
+        Returns:
+            包含操作结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（粉丝团成员信息）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的状态码
+        """
+        try:
+            # 验证输入参数
+            if not ruid:
+                return {
+                    "success": False,
+                    "message": "获取粉丝团成员失败",
+                    "error": "主播UID不能为空",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            if page <= 0:
+                return {
+                    "success": False,
+                    "message": "获取粉丝团成员失败",
+                    "error": "页数必须大于0",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            # 限制page_size在有效范围内
+            if page_size <= 0 or page_size > 30:
+                page_size = 20  # 使用默认值
+
+            # API配置
+            api_url = "https://api.live.bilibili.com/xlive/general-interface/v1/rank/getFansMembersRank"
+
+            # 构建请求参数
+            params = {
+                "ruid": str(ruid),
+                "page": page,
+                "page_size": page_size
+            }
+
+            # 添加排序参数
+            if rank_type in [1, 2]:
+                params["rank_type"] = rank_type
+                # 当rank_type=2时需要ts参数
+                if rank_type == 2:
+                    params["ts"] = int(time.time() * 1000)  # 13位时间戳
+
+            # 发送API请求
+            response = requests.get(
+                api_url,
+                headers=self.headers,
+                params=params,
+                timeout=10,
+                verify=self.verify_ssl
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取粉丝团成员失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
+
+            # 解析JSON响应
+            result = response.json()
+
+            # 验证基本结构
+            if not isinstance(result, dict) or "code" not in result:
+                return {
+                    "success": False,
+                    "message": "获取粉丝团成员失败",
+                    "error": "API返回无效的响应格式",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_data": result
+                }
+
+            # 检查API错误码
+            api_code = result.get("code", -1)
+            if api_code != 0:
+                error_msg = result.get("message") or result.get("msg") or "未知错误"
+                return {
+                    "success": False,
+                    "message": "获取粉丝团成员失败",
+                    "error": f"API错误: {error_msg}",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
+
+            # 验证数据格式
+            if "data" not in result or not isinstance(result["data"], dict):
+                return {
+                    "success": False,
+                    "message": "获取粉丝团成员失败",
+                    "error": "API返回数据格式无效",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
+
+            data = result["data"]
+
+            # 基础返回数据
+            response_data = {
+                "item": data.get("item", []),  # 粉丝团成员列表
+                "num": data.get("num", 0),  # 粉丝团成员总数
+                "medal_status": data.get("medal_status", 0),  # 粉丝牌状态
+                "page_info": {
+                    "current_page": page,
+                    "page_size": page_size,
+                    "total_members": data.get("num", 0)
+                }
+            }
+
+            # 如果需要获取完整列表
+            if include_total_list:
+                total_list = self._get_complete_fans_list(ruid, rank_type)
+                response_data["total_list"] = total_list
+
+            return {
+                "success": True,
+                "message": "获取粉丝团成员成功",
+                "data": response_data,
+                "status_code": response.status_code,
+                "api_code": api_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取粉丝团成员失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取粉丝团成员失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取粉丝团成员失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取粉丝团成员过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
+            }
+
+    def _get_complete_fans_list(self, ruid: Union[int, str],
+                                rank_type: Optional[int] = None) -> List[Dict[str, Any]]:
+        """
+        获取完整的粉丝团成员列表（内部方法）
+
+        Args:
+            ruid: 主播UID
+            rank_type: 排序方式
+
+        Returns:
+            完整的粉丝团成员列表
+        """
+        complete_list = []
+        page = 1
+
+        while True:
+            # 构建请求参数
+            params = {
+                "ruid": str(ruid),
+                "page": page,
+                "page_size": 30  # 使用最大页大小
+            }
+
+            # 添加排序参数
+            if rank_type in [1, 2]:
+                params["rank_type"] = rank_type
+                if rank_type == 2:
+                    params["ts"] = int(time.time() * 1000)
+
+            try:
+                # 发送API请求
+                response = requests.get(
+                    "https://api.live.bilibili.com/xlive/general-interface/v1/rank/getFansMembersRank",
+                    headers=self.headers,
+                    params=params,
+                    timeout=10,
+                    verify=self.verify_ssl
+                )
+
+                if response.status_code != 200:
+                    break
+
+                result = response.json()
+                if result.get("code") != 0:
+                    break
+
+                data = result["data"]
+                current_list = data.get("item", [])
+                complete_list.extend(current_list)
+
+                # 检查是否还有更多页
+                total_members = data.get("num", 0)
+                if not current_list or len(complete_list) >= total_members:
+                    break
+
+                page += 1
+
+            except Exception:
+                break
+
+        return complete_list
+
+    def get_user_relation_stat(self, vmid: Union[int, str]) -> Dict[str, Any]:
+        """
+        获取用户关注数和粉丝数统计
+
+        Args:
+            vmid: 用户MID
+
+        Returns:
+            包含操作结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（关注粉丝统计信息）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的状态码
+        """
+        try:
+            # 验证输入参数
+            if not vmid:
+                return {
+                    "success": False,
+                    "message": "获取用户关系统计失败",
+                    "error": "用户MID不能为空",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            # API配置
+            api_url = "https://api.bilibili.com/x/relation/stat"
+
+            # 构建请求参数
+            params = {
+                "vmid": str(vmid)
+            }
+
+            # 发送API请求
+            response = requests.get(
+                api_url,
+                headers=self.headers,
+                params=params,
+                timeout=10,
+                verify=self.verify_ssl
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取用户关系统计失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
+
+            # 解析JSON响应
+            result = response.json()
+
+            # 验证基本结构
+            if not isinstance(result, dict) or "code" not in result:
+                return {
+                    "success": False,
+                    "message": "获取用户关系统计失败",
+                    "error": "API返回无效的响应格式",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_data": result
+                }
+
+            # 检查API错误码
+            api_code = result.get("code", -1)
+            if api_code != 0:
+                error_msg = result.get("message") or result.get("msg") or "未知错误"
+                return {
+                    "success": False,
+                    "message": "获取用户关系统计失败",
+                    "error": f"API错误: {error_msg}",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
+
+            # 验证数据格式
+            if "data" not in result or not isinstance(result["data"], dict):
+                return {
+                    "success": False,
+                    "message": "获取用户关系统计失败",
+                    "error": "API返回数据格式无效",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
+
+            data = result["data"]
+
+            # 提取关键信息
+            response_data = {
+                "mid": data.get("mid"),  # 用户MID
+                "following": data.get("following", 0),  # 关注数
+                "follower": data.get("follower", 0),  # 粉丝数
+                "black": data.get("black", 0),  # 黑名单数
+                "whisper": data.get("whisper", 0),  # 悄悄关注数
+                "raw_data": data  # 原始数据
+            }
+
+            return {
+                "success": True,
+                "message": "获取用户关系统计成功",
+                "data": response_data,
+                "status_code": response.status_code,
+                "api_code": api_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取用户关系统计失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取用户关系统计失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取用户关系统计失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取用户关系统计过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
+            }
+
 
 
 

@@ -4750,6 +4750,395 @@ class BilibiliApiGeneric:
                 "api_code": None
             }
 
+    def get_fans_members_rank(self, ruid: Union[int, str], page: int = 1,
+                              page_size: int = 20, rank_type: Optional[int] = None,
+                              include_total_list: bool = False) -> Dict[str, Any]:
+        """
+        获取粉丝团成员排名
+
+        Args:
+            ruid: 主播UID
+            page: 页数（默认1）
+            page_size: 每页返回数量（默认20，最大30）
+            rank_type: 排序方式（1=按粉丝牌亮着的成员亲密度，2=按没上过舰的成员亲密度）
+            include_total_list: 是否获取并返回完整的粉丝团成员列表（默认为False）
+
+        Returns:
+            包含操作结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（粉丝团成员信息）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的状态码
+        """
+        try:
+            # 验证输入参数
+            if not ruid:
+                return {
+                    "success": False,
+                    "message": "获取粉丝团成员失败",
+                    "error": "主播UID不能为空",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            if page <= 0:
+                return {
+                    "success": False,
+                    "message": "获取粉丝团成员失败",
+                    "error": "页数必须大于0",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            # 限制page_size在有效范围内
+            if page_size <= 0 or page_size > 30:
+                page_size = 20  # 使用默认值
+
+            # API配置
+            api_url = "https://api.live.bilibili.com/xlive/general-interface/v1/rank/getFansMembersRank"
+
+            # 构建请求参数
+            params = {
+                "ruid": str(ruid),
+                "page": page,
+                "page_size": page_size
+            }
+
+            # 添加排序参数
+            if rank_type in [1, 2]:
+                params["rank_type"] = rank_type
+                # 当rank_type=2时需要ts参数
+                if rank_type == 2:
+                    params["ts"] = int(time.time() * 1000)  # 13位时间戳
+
+            # 发送API请求
+            response = requests.get(
+                api_url,
+                headers=self.headers,
+                params=params,
+                timeout=10,
+                verify=self.verify_ssl
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取粉丝团成员失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
+
+            # 解析JSON响应
+            result = response.json()
+
+            # 验证基本结构
+            if not isinstance(result, dict) or "code" not in result:
+                return {
+                    "success": False,
+                    "message": "获取粉丝团成员失败",
+                    "error": "API返回无效的响应格式",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_data": result
+                }
+
+            # 检查API错误码
+            api_code = result.get("code", -1)
+            if api_code != 0:
+                error_msg = result.get("message") or result.get("msg") or "未知错误"
+                return {
+                    "success": False,
+                    "message": "获取粉丝团成员失败",
+                    "error": f"API错误: {error_msg}",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
+
+            # 验证数据格式
+            if "data" not in result or not isinstance(result["data"], dict):
+                return {
+                    "success": False,
+                    "message": "获取粉丝团成员失败",
+                    "error": "API返回数据格式无效",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
+
+            data = result["data"]
+
+            # 基础返回数据
+            response_data = {
+                "item": data.get("item", []),  # 粉丝团成员列表
+                "num": data.get("num", 0),  # 粉丝团成员总数
+                "medal_status": data.get("medal_status", 0),  # 粉丝牌状态
+                "page_info": {
+                    "current_page": page,
+                    "page_size": page_size,
+                    "total_members": data.get("num", 0)
+                }
+            }
+
+            # 如果需要获取完整列表
+            if include_total_list:
+                total_list = self._get_complete_fans_list(ruid, rank_type)
+                response_data["total_list"] = total_list
+
+            return {
+                "success": True,
+                "message": "获取粉丝团成员成功",
+                "data": response_data,
+                "status_code": response.status_code,
+                "api_code": api_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取粉丝团成员失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取粉丝团成员失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取粉丝团成员失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取粉丝团成员过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
+            }
+
+    def _get_complete_fans_list(self, ruid: Union[int, str],
+                                rank_type: Optional[int] = None) -> List[Dict[str, Any]]:
+        """
+        获取完整的粉丝团成员列表（内部方法）
+
+        Args:
+            ruid: 主播UID
+            rank_type: 排序方式
+
+        Returns:
+            完整的粉丝团成员列表
+        """
+        complete_list = []
+        page = 1
+
+        while True:
+            # 构建请求参数
+            params = {
+                "ruid": str(ruid),
+                "page": page,
+                "page_size": 30  # 使用最大页大小
+            }
+
+            # 添加排序参数
+            if rank_type in [1, 2]:
+                params["rank_type"] = rank_type
+                if rank_type == 2:
+                    params["ts"] = int(time.time() * 1000)
+
+            try:
+                # 发送API请求
+                response = requests.get(
+                    "https://api.live.bilibili.com/xlive/general-interface/v1/rank/getFansMembersRank",
+                    headers=self.headers,
+                    params=params,
+                    timeout=10,
+                    verify=self.verify_ssl
+                )
+
+                if response.status_code != 200:
+                    break
+
+                result = response.json()
+                if result.get("code") != 0:
+                    break
+
+                data = result["data"]
+                current_list = data.get("item", [])
+                complete_list.extend(current_list)
+
+                # 检查是否还有更多页
+                total_members = data.get("num", 0)
+                if not current_list or len(complete_list) >= total_members:
+                    break
+
+                page += 1
+
+            except Exception:
+                break
+
+        return complete_list
+
+    def get_user_relation_stat(self, vmid: Union[int, str]) -> Dict[str, Any]:
+        """
+        获取用户关注数和粉丝数统计
+
+        Args:
+            vmid: 用户MID
+
+        Returns:
+            包含操作结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（关注粉丝统计信息）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的状态码
+        """
+        try:
+            # 验证输入参数
+            if not vmid:
+                return {
+                    "success": False,
+                    "message": "获取用户关系统计失败",
+                    "error": "用户MID不能为空",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            # API配置
+            api_url = "https://api.bilibili.com/x/relation/stat"
+
+            # 构建请求参数
+            params = {
+                "vmid": str(vmid)
+            }
+
+            # 发送API请求
+            response = requests.get(
+                api_url,
+                headers=self.headers,
+                params=params,
+                timeout=10,
+                verify=self.verify_ssl
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取用户关系统计失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
+
+            # 解析JSON响应
+            result = response.json()
+
+            # 验证基本结构
+            if not isinstance(result, dict) or "code" not in result:
+                return {
+                    "success": False,
+                    "message": "获取用户关系统计失败",
+                    "error": "API返回无效的响应格式",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_data": result
+                }
+
+            # 检查API错误码
+            api_code = result.get("code", -1)
+            if api_code != 0:
+                error_msg = result.get("message") or result.get("msg") or "未知错误"
+                return {
+                    "success": False,
+                    "message": "获取用户关系统计失败",
+                    "error": f"API错误: {error_msg}",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
+
+            # 验证数据格式
+            if "data" not in result or not isinstance(result["data"], dict):
+                return {
+                    "success": False,
+                    "message": "获取用户关系统计失败",
+                    "error": "API返回数据格式无效",
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "response_data": result
+                }
+
+            data = result["data"]
+
+            # 提取关键信息
+            response_data = {
+                "mid": data.get("mid"),  # 用户MID
+                "following": data.get("following", 0),  # 关注数
+                "follower": data.get("follower", 0),  # 粉丝数
+                "black": data.get("black", 0),  # 黑名单数
+                "whisper": data.get("whisper", 0),  # 悄悄关注数
+                "raw_data": data  # 原始数据
+            }
+
+            return {
+                "success": True,
+                "message": "获取用户关系统计成功",
+                "data": response_data,
+                "status_code": response.status_code,
+                "api_code": api_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取用户关系统计失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取用户关系统计失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取用户关系统计失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取用户关系统计过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
+            }
+
 
 class BilibiliSpecialApiManager:
     """
@@ -5366,6 +5755,533 @@ class BilibiliSpecialApiManager:
                 "message": "获取直播间公告过程中发生未知错误",
                 "error": str(e),
                 "status_code": None
+            }
+
+    def get_medal_wall(self, target_id: int) -> Dict[str, Any]:
+        """
+        获取指定用户的所有粉丝勋章信息（最多200个）
+
+        Args:
+            target_id: 目标用户ID
+
+        Returns:
+            包含粉丝勋章信息的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（包含勋章列表等）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码（如果有）
+        """
+        try:
+            # 检查管理器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "获取粉丝勋章墙失败",
+                    "error": "管理器未正确初始化",
+                    "status_code": None
+                }
+
+            # 检查目标ID是否有效
+            if not target_id or target_id <= 0:
+                return {
+                    "success": False,
+                    "message": "获取粉丝勋章墙失败",
+                    "error": "目标用户ID无效",
+                    "status_code": None
+                }
+
+            # 构建API请求
+            api_url = "https://api.live.bilibili.com/xlive/web-ucenter/user/MedalWall"
+            params = {
+                'target_id': target_id
+            }
+
+            # 发送请求
+            response = requests.get(
+                url=api_url,
+                headers=self.headers,
+                params=params,
+                verify=self.verify_ssl,
+                timeout=30
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取粉丝勋章墙失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            result = response.json()
+
+            # 检查B站API返回状态
+            if result.get("code") != 0:
+                return {
+                    "success": False,
+                    "message": "B站API返回错误",
+                    "error": result.get("message", "未知错误"),
+                    "status_code": response.status_code,
+                    "api_code": result.get("code")
+                }
+
+            # 检查数据是否存在
+            if "data" not in result:
+                return {
+                    "success": False,
+                    "message": "API响应格式异常",
+                    "error": "响应中缺少必要的数据字段",
+                    "status_code": response.status_code,
+                    "response_data": result
+                }
+
+            # 成功返回
+            return {
+                "success": True,
+                "message": "粉丝勋章墙获取成功",
+                "data": result["data"],
+                "status_code": response.status_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取粉丝勋章墙失败",
+                "error": "请求超时",
+                "status_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取粉丝勋章墙失败",
+                "error": "网络连接错误",
+                "status_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取粉丝勋章墙失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取粉丝勋章墙过程中发生未知错误",
+                "error": str(e),
+                "status_code": None
+            }
+
+    def get_user_medal_info(self, uid: int, up_uid: int) -> Dict[str, Any]:
+        """
+        获取用户与特定主播的粉丝勋章详细信息
+
+        Args:
+            uid: 用户ID
+            up_uid: 主播用户ID
+
+        Returns:
+            包含粉丝勋章详细信息的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（包含勋章详情等）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码（如果有）
+        """
+        try:
+            # 检查管理器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "获取粉丝勋章信息失败",
+                    "error": "管理器未正确初始化",
+                    "status_code": None
+                }
+
+            # 检查参数是否有效
+            if not uid or uid <= 0:
+                return {
+                    "success": False,
+                    "message": "获取粉丝勋章信息失败",
+                    "error": "用户ID无效",
+                    "status_code": None
+                }
+
+            if not up_uid or up_uid <= 0:
+                return {
+                    "success": False,
+                    "message": "获取粉丝勋章信息失败",
+                    "error": "主播用户ID无效",
+                    "status_code": None
+                }
+
+            # 构建API请求
+            api_url = "https://api.live.bilibili.com/xlive/app-ucenter/v1/fansMedal/user_medal_info"
+            params = {
+                'uid': uid,
+                'up_uid': up_uid
+            }
+
+            # 发送请求
+            response = requests.get(
+                url=api_url,
+                headers=self.headers,
+                params=params,
+                verify=self.verify_ssl,
+                timeout=30
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取粉丝勋章信息失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            result = response.json()
+
+            # 检查B站API返回状态
+            if result.get("code") != 0:
+                return {
+                    "success": False,
+                    "message": "B站API返回错误",
+                    "error": result.get("message", "未知错误"),
+                    "status_code": response.status_code,
+                    "api_code": result.get("code")
+                }
+
+            # 检查数据是否存在
+            if "data" not in result:
+                return {
+                    "success": False,
+                    "message": "API响应格式异常",
+                    "error": "响应中缺少必要的数据字段",
+                    "status_code": response.status_code,
+                    "response_data": result
+                }
+
+            # 成功返回
+            return {
+                "success": True,
+                "message": "粉丝勋章信息获取成功",
+                "data": result["data"],
+                "status_code": response.status_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取粉丝勋章信息失败",
+                "error": "请求超时",
+                "status_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取粉丝勋章信息失败",
+                "error": "网络连接错误",
+                "status_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取粉丝勋章信息失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取粉丝勋章信息过程中发生未知错误",
+                "error": str(e),
+                "status_code": None
+            }
+
+    def get_medal_panel(self, page: int = 1, page_size: int = 10, room_id: Optional[int] = None,
+                        target_id: Optional[int] = None, get_all_pages: bool = False) -> Dict[str, Any]:
+        """
+        获取用户粉丝勋章面板信息
+
+        Args:
+            page: 页码（默认1）
+            page_size: 每页数量（默认10）
+            room_id: 房间ID
+            target_id: 房间主播UID
+            get_all_pages: 是否获取全部页数据（默认False）
+
+        Returns:
+            包含粉丝勋章面板信息的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（包含勋章列表等）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码（如果有）
+        """
+        try:
+            # 检查管理器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "获取粉丝勋章面板失败",
+                    "error": "管理器未正确初始化",
+                    "status_code": None
+                }
+
+            # 设置默认目标ID
+            if target_id is None:
+                target_id = int(self.user_id)
+
+            # 检查参数有效性
+            if page <= 0:
+                return {
+                    "success": False,
+                    "message": "获取粉丝勋章面板失败",
+                    "error": "页码必须大于0",
+                    "status_code": None
+                }
+
+            if page_size <= 0 or page_size > 50:
+                return {
+                    "success": False,
+                    "message": "获取粉丝勋章面板失败",
+                    "error": "每页数量必须在1-50之间",
+                    "status_code": None
+                }
+
+            # 构建API请求
+            api_url = "https://api.live.bilibili.com/xlive/app-ucenter/v1/fansMedal/panel"
+            params = {
+                'page': page,
+                'page_size': page_size
+            }
+
+            # 添加可选参数
+            if room_id:
+                params['room_id'] = room_id
+            if target_id:
+                params['target_id'] = target_id
+
+            # 发送请求
+            response = requests.get(
+                url=api_url,
+                headers=self.headers,
+                params=params,
+                verify=self.verify_ssl,
+                timeout=30
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "获取粉丝勋章面板失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            result = response.json()
+
+            # 检查B站API返回状态
+            if result.get("code") != 0:
+                return {
+                    "success": False,
+                    "message": "B站API返回错误",
+                    "error": result.get("message", "未知错误"),
+                    "status_code": response.status_code,
+                    "api_code": result.get("code")
+                }
+
+            # 检查数据是否存在
+            if "data" not in result:
+                return {
+                    "success": False,
+                    "message": "API响应格式异常",
+                    "error": "响应中缺少必要的数据字段",
+                    "status_code": response.status_code,
+                    "response_data": result
+                }
+
+            data = result["data"]
+
+            # 如果需要获取全部页数据
+            if get_all_pages:
+                all_pages_data = self._get_all_pages_medal_data(
+                    initial_data=data,
+                    room_id=room_id,
+                    target_id=target_id,
+                    page_size=page_size
+                )
+
+                if not all_pages_data["success"]:
+                    return all_pages_data
+
+                data = all_pages_data["data"]
+
+            # 成功返回
+            return {
+                "success": True,
+                "message": "粉丝勋章面板获取成功",
+                "data": data,
+                "status_code": response.status_code
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "获取粉丝勋章面板失败",
+                "error": "请求超时",
+                "status_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "获取粉丝勋章面板失败",
+                "error": "网络连接错误",
+                "status_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "获取粉丝勋章面板失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取粉丝勋章面板过程中发生未知错误",
+                "error": str(e),
+                "status_code": None
+            }
+
+    def _get_all_pages_medal_data(self, initial_data: Dict[str, Any], room_id: Optional[int] = None,
+                                  target_id: Optional[int] = None, page_size: int = 10) -> Dict[str, Any]:
+        """
+        获取所有页的勋章数据
+
+        Args:
+            initial_data: 第一页的数据
+            room_id: 房间ID
+            target_id: 目标用户ID
+            page_size: 每页数量
+
+        Returns:
+            包含所有页数据的字典
+        """
+        try:
+            page_info = initial_data.get("page_info", {})
+            total_pages = page_info.get("total_page", 1)
+            current_page = page_info.get("current_page", 1)
+
+            # 如果只有一页，直接返回
+            if total_pages <= 1:
+                return {
+                    "success": True,
+                    "message": "已获取所有页数据",
+                    "data": initial_data
+                }
+
+
+            all_list_data = initial_data.get("list", [])
+            all_special_list_data = initial_data.get("special_list", [])
+
+            # 从第二页开始获取
+            for page in range(2, total_pages + 1):
+
+                # 构建API请求
+                api_url = "https://api.live.bilibili.com/xlive/app-ucenter/v1/fansMedal/panel"
+                params = {
+                    'page': page,
+                    'page_size': page_size
+                }
+
+                # 添加可选参数
+                if room_id:
+                    params['room_id'] = room_id
+                if target_id:
+                    params['target_id'] = target_id
+
+                # 发送请求
+                response = requests.get(
+                    url=api_url,
+                    headers=self.headers,
+                    params=params,
+                    verify=self.verify_ssl,
+                    timeout=30
+                )
+
+                # 检查HTTP状态码
+                if response.status_code != 200:
+                    return {
+                        "success": False,
+                        "message": f"获取第 {page} 页数据失败",
+                        "error": f"HTTP错误: {response.status_code}",
+                        "status_code": response.status_code
+                    }
+
+                # 解析响应
+                result = response.json()
+
+                # 检查B站API返回状态
+                if result.get("code") != 0:
+                    return {
+                        "success": False,
+                        "message": f"获取第 {page} 页数据失败",
+                        "error": result.get("message", "未知错误"),
+                        "status_code": response.status_code,
+                        "api_code": result.get("code")
+                    }
+
+                page_data = result.get("data", {})
+
+                # 合并数据
+                all_list_data.extend(page_data.get("list", []))
+                # 特殊列表通常只有第一页有，但为了完整性也合并
+                if page == 2:  # 只在第二页合并特殊列表，避免重复
+                    all_special_list_data.extend(page_data.get("special_list", []))
+
+                # 添加小延迟，避免请求过快
+                import time
+                time.sleep(0.5)
+
+            # 更新数据
+            initial_data["list"] = all_list_data
+            if all_special_list_data:
+                initial_data["special_list"] = all_special_list_data
+
+            # 更新分页信息
+            initial_data["page_info"] = {
+                "number": len(all_list_data),
+                "current_page": 1,
+                "has_more": False,
+                "next_page": None,
+                "next_light_status": page_info.get("next_light_status", 0),
+                "total_page": 1,
+                "is_all_pages": True,  # 标记为已获取所有页
+                "original_total_pages": total_pages
+            }
+
+            return {
+                "success": True,
+                "message": f"成功获取所有 {total_pages} 页数据",
+                "data": initial_data
+            }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "获取所有页数据过程中发生错误",
+                "error": str(e)
             }
 
 
@@ -7645,6 +8561,396 @@ class BilibiliCSRFAuthenticator:
                 "status_code": None
             }
 
+    def send_danmaku(self, room_id: int, message: str, font_size: int = 25,
+                     color: int = 16777215, mode: int = 1, bubble: int = 0,
+                     reply_mid: int = 0, reply_uname: str = "") -> Dict[str, Any]:
+        """
+        发送直播间弹幕
+
+        Args:
+            room_id: 直播间ID
+            message: 弹幕内容
+            font_size: 字体大小，默认25
+            color: 十进制颜色值，默认16777215（白色）
+            mode: 展示模式，默认1
+            bubble: 气泡，默认0
+            reply_mid: 要@的用户mid，默认0（不@）
+            reply_uname: 要@的用户名称，默认空字符串
+
+        Returns:
+            包含发送结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（包含弹幕信息）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的code
+            - blocked_reason: 屏蔽原因（如果被屏蔽）
+        """
+        try:
+            # 检查认证器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "发送弹幕失败",
+                    "error": "认证器未正确初始化",
+                    "status_code": None,
+                    "api_code": None,
+                    "blocked_reason": None
+                }
+
+            # 验证必要参数
+            if not self.csrf:
+                return {
+                    "success": False,
+                    "message": "发送弹幕失败",
+                    "error": "缺少bili_jct参数，无法获取csrf token",
+                    "status_code": None,
+                    "api_code": None,
+                    "blocked_reason": None
+                }
+
+            if not room_id or room_id <= 0:
+                return {
+                    "success": False,
+                    "message": "发送弹幕失败",
+                    "error": "房间ID无效",
+                    "status_code": None,
+                    "api_code": None,
+                    "blocked_reason": None
+                }
+
+            if not message or len(message.strip()) == 0:
+                return {
+                    "success": False,
+                    "message": "发送弹幕失败",
+                    "error": "弹幕内容不能为空",
+                    "status_code": None,
+                    "api_code": None,
+                    "blocked_reason": None
+                }
+
+            # 检查弹幕长度限制（B站限制通常为20个字符）
+            if len(message) > 20:
+                return {
+                    "success": False,
+                    "message": "发送弹幕失败",
+                    "error": "弹幕内容过长，最多20个字符",
+                    "status_code": None,
+                    "api_code": None,
+                    "blocked_reason": None
+                }
+
+            # 构建请求负载
+            payload = {
+                "roomid": room_id,
+                "msg": message,
+                "rnd": int(time.time()),  # 当前Unix时间戳
+                "fontsize": font_size,
+                "color": color,
+                "mode": mode,
+                "bubble": bubble,
+                "room_type": 0,
+                "jumpfrom": 0,
+                "reply_mid": reply_mid,
+                "reply_attr": 0,
+                "reply_uname": reply_uname,
+                "replay_dmid": "",
+                "statistics": '{"appId":100,"platform":5}',
+                "csrf": self.csrf,
+                "csrf_token": self.csrf
+            }
+
+            api_url = "https://api.live.bilibili.com/msg/send"
+
+            response = requests.post(
+                url=api_url,
+                headers=self.headers,
+                data=payload,
+                verify=self.verify_ssl,
+                timeout=10
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "发送弹幕失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text,
+                    "blocked_reason": None
+                }
+
+            # 解析响应
+            result = response.json()
+
+            # 根据B站API返回的code判断是否成功
+            api_code = result.get("code", -1)
+            api_message = result.get("message", "")
+            api_msg = result.get("msg", "")
+
+            # 处理特殊情况：code为0但实际发送失败（屏蔽词等情况）
+            if api_code == 0:
+                # 检查是否为屏蔽词导致的失败
+                if api_message == "f" or api_msg == "f":
+                    return {
+                        "success": False,
+                        "message": "发送弹幕失败",
+                        "error": "弹幕内容包含B站屏蔽词",
+                        "status_code": response.status_code,
+                        "api_code": api_code,
+                        "api_response": result,
+                        "blocked_reason": "bilibili_sensitive_words"
+                    }
+                elif api_message == "k" or api_msg == "k":
+                    return {
+                        "success": False,
+                        "message": "发送弹幕失败",
+                        "error": "弹幕内容被主播设置的屏蔽词拦截",
+                        "status_code": response.status_code,
+                        "api_code": api_code,
+                        "api_response": result,
+                        "blocked_reason": "streamer_blocked_words"
+                    }
+                else:
+                    # 真正成功的情况
+                    return {
+                        "success": True,
+                        "message": "弹幕发送成功",
+                        "data": {
+                            "mode_info": result.get("data", {}).get("mode_info", {}),
+                            "dm_v2": result.get("data", {}).get("dm_v2"),
+                            "api_response": result
+                        },
+                        "status_code": response.status_code,
+                        "api_code": api_code,
+                        "blocked_reason": None
+                    }
+            else:
+                # 弹幕发送失败
+                error_message = result.get("message", "未知错误")
+                common_errors = {
+                    -101: "账号未登录",
+                    -111: "CSRF校验失败",
+                    -400: "请求参数错误",
+                    1003212: "弹幕内容超出限制长度",
+                    10031: "发送频率过快",
+                    10030: "重复弹幕",
+                    10032: "弹幕包含敏感词"
+                }
+
+                # 使用预定义的错误消息或API返回的消息
+                if api_code in common_errors:
+                    error_message = common_errors[api_code]
+
+                return {
+                    "success": False,
+                    "message": "B站API返回错误",
+                    "error": error_message,
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "api_response": result,
+                    "blocked_reason": None
+                }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "发送弹幕失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None,
+                "blocked_reason": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "发送弹幕失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None,
+                "blocked_reason": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "发送弹幕失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None,
+                "blocked_reason": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "发送弹幕过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None,
+                "blocked_reason": None
+            }
+
+    def wear_fans_medal(self, medal_id: int, target_id: int) -> Dict[str, Any]:
+        """
+        佩戴粉丝勋章
+
+        Args:
+            medal_id: 粉丝勋章ID
+            target_id: 目标用户ID（主播UID）
+
+        Returns:
+            包含佩戴结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的code
+        """
+        try:
+            # 检查认证器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "佩戴粉丝勋章失败",
+                    "error": "认证器未正确初始化",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            # 验证必要参数
+            if not self.csrf:
+                return {
+                    "success": False,
+                    "message": "佩戴粉丝勋章失败",
+                    "error": "缺少bili_jct参数，无法获取csrf token",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            if not medal_id or medal_id <= 0:
+                return {
+                    "success": False,
+                    "message": "佩戴粉丝勋章失败",
+                    "error": "勋章ID无效",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            if not target_id or target_id <= 0:
+                return {
+                    "success": False,
+                    "message": "佩戴粉丝勋章失败",
+                    "error": "目标用户ID无效",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            # 构建请求负载
+            payload = {
+                "medal_id": medal_id,
+                "target_id": target_id,
+                "csrf_token": self.csrf,
+                "csrf": self.csrf
+            }
+
+            api_url = "https://api.live.bilibili.com/xlive/app-ucenter/v1/fansMedal/wear"
+
+            response = requests.post(
+                url=api_url,
+                headers=self.headers,
+                data=payload,
+                verify=self.verify_ssl,
+                timeout=10
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "佩戴粉丝勋章失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            result = response.json()
+
+            # 根据B站API返回的code判断是否成功
+            api_code = result.get("code", -1)
+
+            # 成功佩戴粉丝勋章
+            if api_code == 0:
+                return {
+                    "success": True,
+                    "message": "粉丝勋章佩戴成功",
+                    "data": {
+                        "api_response": result
+                    },
+                    "status_code": response.status_code,
+                    "api_code": api_code
+                }
+            else:
+                # 佩戴粉丝勋章失败
+                error_message = result.get("message", "未知错误")
+                common_errors = {
+                    -101: "账号未登录",
+                    -111: "CSRF校验失败",
+                    -400: "请求参数错误",
+                    10032: "勋章不存在",
+                    10033: "没有该勋章的佩戴权限",
+                    10034: "勋章佩戴失败"
+                }
+
+                # 使用预定义的错误消息或API返回的消息
+                if api_code in common_errors:
+                    error_message = common_errors[api_code]
+
+                return {
+                    "success": False,
+                    "message": "B站API返回错误",
+                    "error": error_message,
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "api_response": result
+                }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "佩戴粉丝勋章失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "佩戴粉丝勋章失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "佩戴粉丝勋章失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "佩戴粉丝勋章过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
+            }
 
 
 @lru_cache(maxsize=None)

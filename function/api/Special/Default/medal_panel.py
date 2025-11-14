@@ -83,8 +83,8 @@ class BilibiliSpecialApiManager:
         Args:
             page: 页码（默认1）
             page_size: 每页数量（默认10）
-            room_id: 房间ID（可选）
-            target_id: 目标用户ID（可选，默认使用当前用户）
+            room_id: 房间ID
+            target_id: 房间主播UID
             get_all_pages: 是否获取全部页数据（默认False）
 
         Returns:
