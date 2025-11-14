@@ -1,5 +1,4 @@
 import asyncio
-import bisect
 import datetime
 import hashlib
 import json
@@ -16,7 +15,7 @@ from typing import Set, Optional, Union, Dict, Any, OrderedDict
 
 from PIL import Image
 
-from function.api.Authentication.Wbi.get_danmu_info import WbiSigna
+from function.api.Special.Wbi import WbiSigna
 from function.api.Special.Csrf import BilibiliCSRFAuthenticator
 from function.tools.EncodingConversion.parse_cookie import parse_cookie
 from function.tools.EncodingConversion.dict_to_cookie_string import dict_to_cookie_string

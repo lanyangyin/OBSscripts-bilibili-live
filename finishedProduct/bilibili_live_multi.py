@@ -10568,6 +10568,10 @@ def script_defaults(settings):  # 设置其默认值
         widget.Group.danmuOnOff.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.Group.danmuOnOff.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
+    if widget.Group.danmuSend.Name in update_widget_for_props_name:
+        widget.Group.danmuSend.Visible = True if get_b_u_c_m().get_default_user_id() else False
+        widget.Group.danmuSend.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+
     if widget.Button.bottom.Name in update_widget_for_props_name:
         widget.Button.bottom.Visible = False
         widget.Button.bottom.Enabled = False
@@ -11050,6 +11054,15 @@ def script_defaults(settings):  # 设置其默认值
     if widget.Button.stopDanmu.Name in update_widget_for_props_name:
         widget.Button.stopDanmu.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.Button.stopDanmu.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+
+    if widget.TextBox.danmuSendText.Name in update_widget_for_props_name:
+        widget.TextBox.danmuSendText.Visible = True if get_b_u_c_m().get_default_user_id() else False
+        widget.TextBox.danmuSendText.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget.TextBox.danmuSendText.Text = ""
+
+    if widget.Button.danmuSend.Name in update_widget_for_props_name:
+        widget.Button.danmuSend.Visible = True if get_b_u_c_m().get_default_user_id() else False
+        widget.Button.danmuSend.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
     clear_cache()
     return True
@@ -29631,6 +29644,27 @@ class ButtonFunction:
         
         return True
 
+    @staticmethod
+    def button_function_danmu_send(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        send_danmu_t = obs.obs_data_get_string(GlobalVariableOfData.script_settings, widget.TextBox.danmuSendText.Name)
+        log_save(obs.LOG_INFO, send_danmu_t)
+        send_danmaku_return = get_b_csrf_a().send_danmaku(int(widget.ComboBox.danmuRoom.Value), send_danmu_t)
+        if send_danmaku_return["success"]:
+            log_save(obs.LOG_INFO, f"发送成功")
+            obs.obs_data_set_string(GlobalVariableOfData.script_settings, widget.TextBox.danmuSendText.Name, "")
+        else:
+            obs.obs_data_set_string(GlobalVariableOfData.script_settings, widget.TextBox.danmuSendText.Name, f"{send_danmu_t}\n{send_danmaku_return['error']}")
+            log_save(obs.LOG_INFO, f"{send_danmaku_return['error']}")
+
+        clear_cache()
+        return True
+
+
 # 创建控件表单
 widget = Widget()
 
@@ -29678,6 +29712,13 @@ widget.widget_Group_dict = {
             "Description": "on/off",
             "Type": obs.OBS_GROUP_NORMAL,
             "GroupProps": "danmu_onoff_props",
+            "ModifiedIs": False
+        },
+        "danmuSend": {
+            "Name": "danmu_send_group",
+            "Description": "弹幕发送",
+            "Type": obs.OBS_GROUP_NORMAL,
+            "GroupProps": "danmu_send_props",
             "ModifiedIs": False
         },
     },
@@ -29733,6 +29774,15 @@ widget.widget_TextBox_dict = {
             "Name": "danmu_Web_css_textBox",
             "Description": "弹幕样式",
             "LongDescription": "弹幕css",
+            "Type": obs.OBS_TEXT_MULTILINE,
+            "ModifiedIs": True
+        },
+    },
+    "danmu_send_props": {
+        "danmuSendText": {
+            "Name": "danmu_send_text_textBox",
+            "Description": "输入",
+            "LongDescription": "弹幕发送文字",
             "Type": obs.OBS_TEXT_MULTILINE,
             "ModifiedIs": True
         },
@@ -30261,6 +30311,15 @@ widget.widget_Button_dict = {
             "ModifiedIs": False
         },
     },
+    "danmu_send_props": {
+        "danmuSend": {
+            "Name": "danmu_send_button",
+            "Description": "发送",
+            "Type": obs.OBS_BUTTON_DEFAULT,
+            "Callback": ButtonFunction.button_function_danmu_send,
+            "ModifiedIs": False
+        },
+    },
 }
 
 widget.widget_list = [
@@ -30347,6 +30406,9 @@ widget.widget_list = [
     "stop_danmu_forwarding_service_button",
     "remove_danmu_browser_button",
     "stop_danmu_button",
+    "danmu_send_group",
+    "danmu_send_text_textBox",
+    "danmu_send_button",
     "bottom_button",
 ]
 
