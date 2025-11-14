@@ -6,12 +6,9 @@ import requests
 from function.tools.EncodingConversion.parse_cookie import parse_cookie
 
 
-class BilibiliRoomInfoManager:
+class BilibiliSpecialApiManager:
     """
-    B站直播间信息管理器，用于获取直播间相关状态信息。
-
-    该类专门用于获取B站直播间的各种状态信息，如房间ID、高亮状态等。
-    自动从Cookie中提取必要的认证信息，并提供简化的API调用接口。
+    B站需要登陆的API管理器，用于获取直播间相关状态信息。
 
     特性：
     - 自动从Cookie中解析必要认证信息
@@ -22,7 +19,7 @@ class BilibiliRoomInfoManager:
 
     def __init__(self, headers: Dict[str, str], verify_ssl: bool = True):
         """
-        初始化直播间信息管理器
+        初始化管理器
 
         Args:
             headers: 包含Cookie等认证信息的请求头字典
@@ -215,7 +212,7 @@ if __name__ == '__main__':
     }
 
     # 创建管理器实例
-    room_manager = BilibiliRoomInfoManager(Headers)
+    room_manager = BilibiliSpecialApiManager(Headers)
 
     # 获取房间公告
     room_news = room_manager.get_room_news(DataInput.cc_user_id, DataInput.cc_room_id)

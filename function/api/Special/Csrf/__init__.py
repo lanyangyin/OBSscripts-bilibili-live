@@ -2287,6 +2287,397 @@ class BilibiliCSRFAuthenticator:
                 "status_code": None
             }
 
+    def send_danmaku(self, room_id: int, message: str, font_size: int = 25,
+                     color: int = 16777215, mode: int = 1, bubble: int = 0,
+                     reply_mid: int = 0, reply_uname: str = "") -> Dict[str, Any]:
+        """
+        发送直播间弹幕
+
+        Args:
+            room_id: 直播间ID
+            message: 弹幕内容
+            font_size: 字体大小，默认25
+            color: 十进制颜色值，默认16777215（白色）
+            mode: 展示模式，默认1
+            bubble: 气泡，默认0
+            reply_mid: 要@的用户mid，默认0（不@）
+            reply_uname: 要@的用户名称，默认空字符串
+
+        Returns:
+            包含发送结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据（包含弹幕信息）
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的code
+            - blocked_reason: 屏蔽原因（如果被屏蔽）
+        """
+        try:
+            # 检查认证器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "发送弹幕失败",
+                    "error": "认证器未正确初始化",
+                    "status_code": None,
+                    "api_code": None,
+                    "blocked_reason": None
+                }
+
+            # 验证必要参数
+            if not self.csrf:
+                return {
+                    "success": False,
+                    "message": "发送弹幕失败",
+                    "error": "缺少bili_jct参数，无法获取csrf token",
+                    "status_code": None,
+                    "api_code": None,
+                    "blocked_reason": None
+                }
+
+            if not room_id or room_id <= 0:
+                return {
+                    "success": False,
+                    "message": "发送弹幕失败",
+                    "error": "房间ID无效",
+                    "status_code": None,
+                    "api_code": None,
+                    "blocked_reason": None
+                }
+
+            if not message or len(message.strip()) == 0:
+                return {
+                    "success": False,
+                    "message": "发送弹幕失败",
+                    "error": "弹幕内容不能为空",
+                    "status_code": None,
+                    "api_code": None,
+                    "blocked_reason": None
+                }
+
+            # 检查弹幕长度限制（B站限制通常为20个字符）
+            if len(message) > 20:
+                return {
+                    "success": False,
+                    "message": "发送弹幕失败",
+                    "error": "弹幕内容过长，最多20个字符",
+                    "status_code": None,
+                    "api_code": None,
+                    "blocked_reason": None
+                }
+
+            # 构建请求负载
+            payload = {
+                "roomid": room_id,
+                "msg": message,
+                "rnd": int(time.time()),  # 当前Unix时间戳
+                "fontsize": font_size,
+                "color": color,
+                "mode": mode,
+                "bubble": bubble,
+                "room_type": 0,
+                "jumpfrom": 0,
+                "reply_mid": reply_mid,
+                "reply_attr": 0,
+                "reply_uname": reply_uname,
+                "replay_dmid": "",
+                "statistics": '{"appId":100,"platform":5}',
+                "csrf": self.csrf,
+                "csrf_token": self.csrf
+            }
+
+            api_url = "https://api.live.bilibili.com/msg/send"
+
+            response = requests.post(
+                url=api_url,
+                headers=self.headers,
+                data=payload,
+                verify=self.verify_ssl,
+                timeout=10
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "发送弹幕失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text,
+                    "blocked_reason": None
+                }
+
+            # 解析响应
+            result = response.json()
+
+            # 根据B站API返回的code判断是否成功
+            api_code = result.get("code", -1)
+            api_message = result.get("message", "")
+            api_msg = result.get("msg", "")
+
+            # 处理特殊情况：code为0但实际发送失败（屏蔽词等情况）
+            if api_code == 0:
+                # 检查是否为屏蔽词导致的失败
+                if api_message == "f" or api_msg == "f":
+                    return {
+                        "success": False,
+                        "message": "发送弹幕失败",
+                        "error": "弹幕内容包含B站屏蔽词",
+                        "status_code": response.status_code,
+                        "api_code": api_code,
+                        "api_response": result,
+                        "blocked_reason": "bilibili_sensitive_words"
+                    }
+                elif api_message == "k" or api_msg == "k":
+                    return {
+                        "success": False,
+                        "message": "发送弹幕失败",
+                        "error": "弹幕内容被主播设置的屏蔽词拦截",
+                        "status_code": response.status_code,
+                        "api_code": api_code,
+                        "api_response": result,
+                        "blocked_reason": "streamer_blocked_words"
+                    }
+                else:
+                    # 真正成功的情况
+                    return {
+                        "success": True,
+                        "message": "弹幕发送成功",
+                        "data": {
+                            "mode_info": result.get("data", {}).get("mode_info", {}),
+                            "dm_v2": result.get("data", {}).get("dm_v2"),
+                            "api_response": result
+                        },
+                        "status_code": response.status_code,
+                        "api_code": api_code,
+                        "blocked_reason": None
+                    }
+            else:
+                # 弹幕发送失败
+                error_message = result.get("message", "未知错误")
+                common_errors = {
+                    -101: "账号未登录",
+                    -111: "CSRF校验失败",
+                    -400: "请求参数错误",
+                    1003212: "弹幕内容超出限制长度",
+                    10031: "发送频率过快",
+                    10030: "重复弹幕",
+                    10032: "弹幕包含敏感词"
+                }
+
+                # 使用预定义的错误消息或API返回的消息
+                if api_code in common_errors:
+                    error_message = common_errors[api_code]
+
+                return {
+                    "success": False,
+                    "message": "B站API返回错误",
+                    "error": error_message,
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "api_response": result,
+                    "blocked_reason": None
+                }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "发送弹幕失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None,
+                "blocked_reason": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "发送弹幕失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None,
+                "blocked_reason": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "发送弹幕失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None,
+                "blocked_reason": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "发送弹幕过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None,
+                "blocked_reason": None
+            }
+
+    def wear_fans_medal(self, medal_id: int, target_id: int) -> Dict[str, Any]:
+        """
+        佩戴粉丝勋章
+
+        Args:
+            medal_id: 粉丝勋章ID
+            target_id: 目标用户ID（主播UID）
+
+        Returns:
+            包含佩戴结果的字典：
+            - success: 操作是否成功
+            - message: 结果描述信息
+            - data: 成功时的数据
+            - error: 失败时的错误信息
+            - status_code: HTTP状态码
+            - api_code: B站API返回的code
+        """
+        try:
+            # 检查认证器是否正常初始化
+            if not self.initialization_result["success"]:
+                return {
+                    "success": False,
+                    "message": "佩戴粉丝勋章失败",
+                    "error": "认证器未正确初始化",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            # 验证必要参数
+            if not self.csrf:
+                return {
+                    "success": False,
+                    "message": "佩戴粉丝勋章失败",
+                    "error": "缺少bili_jct参数，无法获取csrf token",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            if not medal_id or medal_id <= 0:
+                return {
+                    "success": False,
+                    "message": "佩戴粉丝勋章失败",
+                    "error": "勋章ID无效",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            if not target_id or target_id <= 0:
+                return {
+                    "success": False,
+                    "message": "佩戴粉丝勋章失败",
+                    "error": "目标用户ID无效",
+                    "status_code": None,
+                    "api_code": None
+                }
+
+            # 构建请求负载
+            payload = {
+                "medal_id": medal_id,
+                "target_id": target_id,
+                "csrf_token": self.csrf,
+                "csrf": self.csrf
+            }
+
+            api_url = "https://api.live.bilibili.com/xlive/app-ucenter/v1/fansMedal/wear"
+
+            response = requests.post(
+                url=api_url,
+                headers=self.headers,
+                data=payload,
+                verify=self.verify_ssl,
+                timeout=10
+            )
+
+            # 检查HTTP状态码
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "message": "佩戴粉丝勋章失败",
+                    "error": f"HTTP错误: {response.status_code}",
+                    "status_code": response.status_code,
+                    "api_code": None,
+                    "response_text": response.text
+                }
+
+            # 解析响应
+            result = response.json()
+
+            # 根据B站API返回的code判断是否成功
+            api_code = result.get("code", -1)
+
+            # 成功佩戴粉丝勋章
+            if api_code == 0:
+                return {
+                    "success": True,
+                    "message": "粉丝勋章佩戴成功",
+                    "data": {
+                        "api_response": result
+                    },
+                    "status_code": response.status_code,
+                    "api_code": api_code
+                }
+            else:
+                # 佩戴粉丝勋章失败
+                error_message = result.get("message", "未知错误")
+                common_errors = {
+                    -101: "账号未登录",
+                    -111: "CSRF校验失败",
+                    -400: "请求参数错误",
+                    10032: "勋章不存在",
+                    10033: "没有该勋章的佩戴权限",
+                    10034: "勋章佩戴失败"
+                }
+
+                # 使用预定义的错误消息或API返回的消息
+                if api_code in common_errors:
+                    error_message = common_errors[api_code]
+
+                return {
+                    "success": False,
+                    "message": "B站API返回错误",
+                    "error": error_message,
+                    "status_code": response.status_code,
+                    "api_code": api_code,
+                    "api_response": result
+                }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "佩戴粉丝勋章失败",
+                "error": "请求超时",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "佩戴粉丝勋章失败",
+                "error": "网络连接错误",
+                "status_code": None,
+                "api_code": None
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": "佩戴粉丝勋章失败",
+                "error": f"网络请求异常: {str(e)}",
+                "status_code": None,
+                "api_code": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "佩戴粉丝勋章过程中发生未知错误",
+                "error": str(e),
+                "status_code": None,
+                "api_code": None
+            }
+
 
 # 使用示例
 if __name__ == "__main__":

@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 from typing import Dict, Any
 
@@ -10,14 +11,14 @@ class BilibiliCSRFAuthenticator:
     """
     B站CSRF认证管理器，用于处理需要CSRF令牌的API请求。
 
-    该类专门用于B站直播相关的CSRF认证操作，特别是直播公告的更新。
+    该类专门用于B站直播相关的CSRF认证操作，包括佩戴粉丝勋章功能。
     自动从Cookie中提取必要的认证信息，并提供简化的API调用接口。
 
     特性：
     - 自动从Cookie中解析CSRF令牌（bili_jct）
     - 自动提取用户ID（DedeUserID）
     - 支持SSL验证配置
-    - 提供直播公告更新功能
+    - 提供粉丝勋章佩戴功能
     - 统一的错误处理和响应格式
     """
 
@@ -142,136 +143,171 @@ class BilibiliCSRFAuthenticator:
             "message": "用户信息获取成功"
         }
 
-    def change_room_news(self, room_id: int, content: str) -> Dict[str, Any]:
+    def wear_fans_medal(self, medal_id: int, target_id: int) -> Dict[str, Any]:
         """
-        更新直播公告
+        佩戴粉丝勋章
 
         Args:
-            room_id: 直播间ID
-            content: 公告内容
+            medal_id: 粉丝勋章ID
+            target_id: 目标用户ID（主播UID）
 
         Returns:
-            包含操作结果的字典：
+            包含佩戴结果的字典：
             - success: 操作是否成功
             - message: 结果描述信息
-            - data: 成功时的数据（API返回的data字段）
+            - data: 成功时的数据
             - error: 失败时的错误信息
-            - status_code: HTTP状态码（如果有）
+            - status_code: HTTP状态码
+            - api_code: B站API返回的code
         """
         try:
             # 检查认证器是否正常初始化
             if not self.initialization_result["success"]:
                 return {
                     "success": False,
-                    "message": "更新直播公告失败",
+                    "message": "佩戴粉丝勋章失败",
                     "error": "认证器未正确初始化",
-                    "status_code": None
+                    "status_code": None,
+                    "api_code": None
                 }
 
-            # 验证输入参数
-            if not room_id or room_id <= 0:
+            # 验证必要参数
+            if not self.csrf:
                 return {
                     "success": False,
-                    "message": "更新直播公告失败",
-                    "error": "直播间ID无效",
-                    "status_code": None
+                    "message": "佩戴粉丝勋章失败",
+                    "error": "缺少bili_jct参数，无法获取csrf token",
+                    "status_code": None,
+                    "api_code": None
                 }
 
-            if not content or len(content.strip()) == 0:
+            if not medal_id or medal_id <= 0:
                 return {
                     "success": False,
-                    "message": "更新直播公告失败",
-                    "error": "公告内容不能为空",
-                    "status_code": None
+                    "message": "佩戴粉丝勋章失败",
+                    "error": "勋章ID无效",
+                    "status_code": None,
+                    "api_code": None
                 }
 
-            headers = self.headers.copy()
-            csrf = self.csrf
+            if not target_id or target_id <= 0:
+                return {
+                    "success": False,
+                    "message": "佩戴粉丝勋章失败",
+                    "error": "目标用户ID无效",
+                    "status_code": None,
+                    "api_code": None
+                }
 
-            api = "https://api.live.bilibili.com/xlive/app-blink/v1/index/updateRoomNews"
-            updateRoomNews_data = {
-                'room_id': room_id,
-                'uid': self.cookies["DedeUserID"],
-                'content': content,
-                'csrf_token': csrf,
-                'csrf': csrf
+            # 构建请求负载
+            payload = {
+                "medal_id": medal_id,
+                "target_id": target_id,
+                "csrf_token": self.csrf,
+                "csrf": self.csrf
             }
 
-            # 发送请求
+            api_url = "https://api.live.bilibili.com/xlive/app-ucenter/v1/fansMedal/wear"
+
             response = requests.post(
+                url=api_url,
+                headers=self.headers,
+                data=payload,
                 verify=self.verify_ssl,
-                url=api,
-                headers=headers,
-                data=updateRoomNews_data,
-                timeout=30
+                timeout=10
             )
 
             # 检查HTTP状态码
             if response.status_code != 200:
                 return {
                     "success": False,
-                    "message": "更新直播公告失败",
+                    "message": "佩戴粉丝勋章失败",
                     "error": f"HTTP错误: {response.status_code}",
                     "status_code": response.status_code,
+                    "api_code": None,
                     "response_text": response.text
                 }
 
             # 解析响应
             result = response.json()
 
-            # 检查B站API返回状态
-            if result.get("code") != 0:
+            # 根据B站API返回的code判断是否成功
+            api_code = result.get("code", -1)
+
+            # 成功佩戴粉丝勋章
+            if api_code == 0:
+                return {
+                    "success": True,
+                    "message": "粉丝勋章佩戴成功",
+                    "data": {
+                        "api_response": result
+                    },
+                    "status_code": response.status_code,
+                    "api_code": api_code
+                }
+            else:
+                # 佩戴粉丝勋章失败
+                error_message = result.get("message", "未知错误")
+                common_errors = {
+                    -101: "账号未登录",
+                    -111: "CSRF校验失败",
+                    -400: "请求参数错误",
+                    10032: "勋章不存在",
+                    10033: "没有该勋章的佩戴权限",
+                    10034: "勋章佩戴失败"
+                }
+
+                # 使用预定义的错误消息或API返回的消息
+                if api_code in common_errors:
+                    error_message = common_errors[api_code]
+
                 return {
                     "success": False,
                     "message": "B站API返回错误",
-                    "error": result.get("message", "未知错误"),
+                    "error": error_message,
                     "status_code": response.status_code,
-                    "api_code": result.get("code")
+                    "api_code": api_code,
+                    "api_response": result
                 }
-
-            # 成功返回
-            return {
-                "success": True,
-                "message": "直播公告更新成功",
-                "data": result.get("data", {}),
-                "status_code": response.status_code,
-                "api_response": result  # 包含完整的API响应
-            }
 
         except requests.exceptions.Timeout:
             return {
                 "success": False,
-                "message": "更新直播公告失败",
+                "message": "佩戴粉丝勋章失败",
                 "error": "请求超时",
-                "status_code": None
+                "status_code": None,
+                "api_code": None
             }
         except requests.exceptions.ConnectionError:
             return {
                 "success": False,
-                "message": "更新直播公告失败",
+                "message": "佩戴粉丝勋章失败",
                 "error": "网络连接错误",
-                "status_code": None
+                "status_code": None,
+                "api_code": None
             }
         except requests.exceptions.RequestException as e:
             return {
                 "success": False,
-                "message": "更新直播公告失败",
+                "message": "佩戴粉丝勋章失败",
                 "error": f"网络请求异常: {str(e)}",
-                "status_code": None
+                "status_code": None,
+                "api_code": None
             }
         except Exception as e:
             return {
                 "success": False,
-                "message": "更新直播公告过程中发生未知错误",
+                "message": "佩戴粉丝勋章过程中发生未知错误",
                 "error": str(e),
-                "status_code": None
+                "status_code": None,
+                "api_code": None
             }
 
 
+# 使用示例
 if __name__ == "__main__":
-    from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
     from function.tools.EncodingConversion.dict_to_cookie_string import dict_to_cookie_string
-    from function.api.Special.Default import BilibiliSpecialApiManager as GetRoomHighlightInfo
+    from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
     from _Input.function.api.Special import Csrf as DataInput
 
     # 示例用法
@@ -286,30 +322,23 @@ if __name__ == "__main__":
     # 创建认证器实例
     authenticator = BilibiliCSRFAuthenticator(Headers)
 
-    # 创建房间信息管理器实例
-    room_manager = GetRoomHighlightInfo(Headers)
+    # 检查初始化结果
+    if authenticator.initialization_result["success"]:
+        # 获取用户信息
+        user_info = authenticator.get_user_info()
+        if user_info["success"]:
+            print("用户信息:", user_info)
 
-    # 检查房间管理器是否初始化成功
-    if not room_manager.initialization_result["success"]:
-        print(f"房间管理器初始化失败: {room_manager.initialization_result['error']}")
-    else:
-        # 获取房间信息
-        room_info = room_manager.get_room_highlight_info()
+            # 示例：佩戴粉丝勋章
+            wear_result = authenticator.wear_fans_medal(DataInput.wear_fans_medal_medal_id, DataInput.wear_fans_medal_target_id)
 
-        if room_info["success"]:
-            room_id = room_info["data"]["room_id"]
-            # 使用有意义的公告内容，而不是初始化消息
-            content = DataInput.change_room_news
-
-            # 更新直播公告
-            result = authenticator.change_room_news(room_id, content)
-
-            if result["success"]:
-                print("直播公告更新成功")
-                print(f"API响应: {result.get('api_response', {})}")
+            if wear_result["success"]:
+                print("粉丝勋章佩戴成功!")
             else:
-                print(f"直播公告更新失败: {result['error']}")
-                if "status_code" in result and result["status_code"]:
-                    print(f"HTTP状态码: {result['status_code']}")
+                print(f"粉丝勋章佩戴失败: {wear_result['error']}")
+                if wear_result.get("api_code"):
+                    print(f"B站错误代码: {wear_result['api_code']}")
         else:
-            print(f"获取房间信息失败: {room_info['error']}")
+            print("获取用户信息失败:", user_info.get("error", "未知错误"))
+    else:
+        print("认证器初始化失败:", authenticator.initialization_result.get("error", "未知错误"))

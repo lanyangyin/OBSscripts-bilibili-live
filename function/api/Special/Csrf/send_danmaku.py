@@ -401,11 +401,7 @@ if __name__ == "__main__":
         if user_info["success"]:
             print("用户信息:", user_info)
 
-            # 示例：发送弹幕到指定直播间
-            room_id = 1899237171  # 示例房间ID，请替换为实际房间ID
-            danmaku_message = "测试弹幕"
-
-            send_result = authenticator.send_danmaku(room_id, danmaku_message)
+            send_result = authenticator.send_danmaku(DataInput.send_roomid, DataInput.danmaku_message)
 
             if send_result["success"]:
                 print("弹幕发送成功!")

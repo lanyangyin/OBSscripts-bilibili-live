@@ -6,12 +6,9 @@ import requests
 from function.tools.EncodingConversion.parse_cookie import parse_cookie
 
 
-class BilibiliRoomInfoManager:
+class BilibiliSpecialApiManager:
     """
-    B站直播间信息管理器，用于获取直播间相关状态信息。
-
-    该类专门用于获取B站直播间的各种状态信息，如房间ID、高亮状态等。
-    自动从Cookie中提取必要的认证信息，并提供简化的API调用接口。
+    B站需要登陆的API管理器，用于获取直播间相关状态信息。
 
     特性：
     - 自动从Cookie中解析必要认证信息
@@ -22,7 +19,7 @@ class BilibiliRoomInfoManager:
 
     def __init__(self, headers: Dict[str, str], verify_ssl: bool = True):
         """
-        初始化直播间信息管理器
+        初始化管理器
 
         Args:
             headers: 包含Cookie等认证信息的请求头字典
@@ -78,18 +75,18 @@ class BilibiliRoomInfoManager:
                 "error": str(e)
             }
 
-    def get_live_stream_info(self, room_id: int) -> Dict[str, Any]:
+    def get_medal_wall(self, target_id: int) -> Dict[str, Any]:
         """
-        获取直播间推流信息
+        获取指定用户的所有粉丝勋章信息（最多200个）
 
         Args:
-            room_id: 直播间房间ID,必须和 cookie 对应
+            target_id: 目标用户ID
 
         Returns:
-            包含推流信息的字典：
+            包含粉丝勋章信息的字典：
             - success: 操作是否成功
             - message: 结果描述信息
-            - data: 成功时的数据（包含推流地址等信息）
+            - data: 成功时的数据（包含勋章列表等）
             - error: 失败时的错误信息
             - status_code: HTTP状态码（如果有）
         """
@@ -98,23 +95,25 @@ class BilibiliRoomInfoManager:
             if not self.initialization_result["success"]:
                 return {
                     "success": False,
-                    "message": "获取推流信息失败",
+                    "message": "获取粉丝勋章墙失败",
                     "error": "管理器未正确初始化",
                     "status_code": None
                 }
 
-            # 检查房间ID是否有效
-            if not room_id or room_id <= 0:
+            # 检查目标ID是否有效
+            if not target_id or target_id <= 0:
                 return {
                     "success": False,
-                    "message": "获取推流信息失败",
-                    "error": "房间ID无效",
+                    "message": "获取粉丝勋章墙失败",
+                    "error": "目标用户ID无效",
                     "status_code": None
                 }
 
             # 构建API请求
-            api_url = "https://api.live.bilibili.com/live_stream/v1/StreamList/get_stream_by_roomId"
-            params = {"room_id": room_id}
+            api_url = "https://api.live.bilibili.com/xlive/web-ucenter/user/MedalWall"
+            params = {
+                'target_id': target_id
+            }
 
             # 发送请求
             response = requests.get(
@@ -129,7 +128,7 @@ class BilibiliRoomInfoManager:
             if response.status_code != 200:
                 return {
                     "success": False,
-                    "message": "获取推流信息失败",
+                    "message": "获取粉丝勋章墙失败",
                     "error": f"HTTP错误: {response.status_code}",
                     "status_code": response.status_code,
                     "response_text": response.text
@@ -161,7 +160,7 @@ class BilibiliRoomInfoManager:
             # 成功返回
             return {
                 "success": True,
-                "message": "推流信息获取成功",
+                "message": "粉丝勋章墙获取成功",
                 "data": result["data"],
                 "status_code": response.status_code
             }
@@ -169,28 +168,28 @@ class BilibiliRoomInfoManager:
         except requests.exceptions.Timeout:
             return {
                 "success": False,
-                "message": "获取推流信息失败",
+                "message": "获取粉丝勋章墙失败",
                 "error": "请求超时",
                 "status_code": None
             }
         except requests.exceptions.ConnectionError:
             return {
                 "success": False,
-                "message": "获取推流信息失败",
+                "message": "获取粉丝勋章墙失败",
                 "error": "网络连接错误",
                 "status_code": None
             }
         except requests.exceptions.RequestException as e:
             return {
                 "success": False,
-                "message": "获取推流信息失败",
+                "message": "获取粉丝勋章墙失败",
                 "error": f"网络请求异常: {str(e)}",
                 "status_code": None
             }
         except Exception as e:
             return {
                 "success": False,
-                "message": "获取推流信息过程中发生未知错误",
+                "message": "获取粉丝勋章墙过程中发生未知错误",
                 "error": str(e),
                 "status_code": None
             }
@@ -200,8 +199,9 @@ class BilibiliRoomInfoManager:
 if __name__ == '__main__':
     from function.tools.EncodingConversion.dict_to_cookie_string import dict_to_cookie_string
     from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
-    from function.api.Special.Room import BilibiliRoomInfoManager as GetRoomHighlightInfo
+    from _Input.function.api.Special import Room as DataInput
 
+    # 初始化配置管理器
     BULC = BilibiliUserConfigManager(Path('../../../../cookies/config.json'))
     cookies = BULC.get_user_cookies()['data']
     Headers = {
@@ -211,35 +211,57 @@ if __name__ == '__main__':
     }
 
     # 创建管理器实例
-    room_manager = BilibiliRoomInfoManager(Headers)
-
-    # 创建房间信息管理器实例
-    ghi = GetRoomHighlightInfo(Headers)
+    api_manager = BilibiliSpecialApiManager(Headers)
 
     # 检查管理器是否初始化成功
-    print(room_manager.initialization_result)
-    if not room_manager.initialization_result["success"]:
-        print(f"管理器初始化失败: {room_manager.initialization_result['error']}")
-    elif not ghi.initialization_result["success"]:
-        print(f"高亮信息管理器初始化失败: {ghi.initialization_result['error']}")
+    if not api_manager.initialization_result["success"]:
+        print(f"管理器初始化失败: {api_manager.initialization_result['error']}")
     else:
-        # 获取房间高亮信息
-        highlight_info = ghi.get_room_highlight_info()
+        # 获取粉丝勋章墙信息（这里使用当前用户ID作为示例）
+        target_user_id = DataInput.medal_wall_uid
+        medal_result = api_manager.get_medal_wall(target_user_id)
 
-        if highlight_info["success"]:
-            room_id = highlight_info["data"]["room_id"]
-            stream_info = room_manager.get_live_stream_info(room_id)
+        if medal_result["success"]:
+            print("粉丝勋章墙获取成功")
+            medal_data = medal_result["data"]
 
-            if stream_info["success"]:
-                print("推流信息获取成功")
-                print(f"RTMP地址: {stream_info['data']['rtmp']['addr']}")
-                print(f"推流码: {stream_info['data']['rtmp']['code']}")
-                print(f"可用线路: {stream_info['data']['stream_line']}")
+            print(f"(我的UID: {medal_data.get('uid', '未知')})")
+            print(f"用户: {medal_data.get('name', '未知')} (UID: {DataInput.medal_wall_uid})")
+            print(f"勋章总数: {medal_data.get('count', 0)}")
+            print(f"关闭空间显示: {'是' if medal_data.get('close_space_medal', 0) else '否'}")
+            print(f"只显示佩戴: {'是' if medal_data.get('only_show_wearing', 0) else '否'}")
+
+            medal_list = medal_data.get("list", [])
+            if medal_list:
+                print(f"\n=== 粉丝勋章列表 ({len(medal_list)}个) ===")
+                for i, medal in enumerate(medal_list, 1):
+                    medal_info = medal.get("medal_info", {})
+                    target_name = medal.get("target_name", "未知主播")
+                    live_status = medal.get("live_status", 0)
+                    wearing_status = medal_info.get("wearing_status", 0)
+
+                    # 直播状态文本
+                    live_status_text = {
+                        0: "未直播",
+                        1: "直播中",
+                        2: "轮播中"
+                    }.get(live_status, "未知")
+
+                    # 佩戴状态文本
+                    wearing_text = "✅佩戴中" if wearing_status == 1 else "❌未佩戴"
+
+                    print(f"{i}. {target_name} - {medal_info.get('medal_name', '未知勋章')}")
+                    print(f"   等级: Lv{medal_info.get('level', 0)} | {wearing_text}")
+                    print(f"   亲密度: {medal_info.get('intimacy', 0)}/{medal_info.get('next_intimacy', 0)}")
+                    print(f"   今日获得: {medal_info.get('today_feed', 0)} | 上限: {medal_info.get('day_limit', 0)}")
+                    print(f"   直播状态: {live_status_text}")
+                    print(f"   主播主页: {medal.get('link', '无')}")
+                    print()
             else:
-                print(f"获取推流信息失败: {stream_info['error']}")
-                if "status_code" in stream_info and stream_info["status_code"]:
-                    print(f"HTTP状态码: {stream_info['status_code']}")
-                if "api_code" in stream_info:
-                    print(f"API错误码: {stream_info['api_code']}")
+                print("没有找到任何粉丝勋章")
         else:
-            print(f"获取房间信息失败: {highlight_info['error']}")
+            print(f"获取粉丝勋章墙失败: {medal_result['error']}")
+            if "status_code" in medal_result and medal_result["status_code"]:
+                print(f"HTTP状态码: {medal_result['status_code']}")
+            if "api_code" in medal_result:
+                print(f"API错误码: {medal_result['api_code']}")

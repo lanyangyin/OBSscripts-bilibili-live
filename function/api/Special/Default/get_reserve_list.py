@@ -6,12 +6,9 @@ import requests
 from function.tools.EncodingConversion.parse_cookie import parse_cookie
 
 
-class BilibiliRoomInfoManager:
+class BilibiliSpecialApiManager:
     """
-    B站直播间信息管理器，用于获取直播间相关状态信息。
-
-    该类专门用于获取B站直播间的各种状态信息，如房间ID、高亮状态等。
-    自动从Cookie中提取必要的认证信息，并提供简化的API调用接口。
+    B站需要登陆的API管理器，用于获取直播间相关状态信息。
 
     特性：
     - 自动从Cookie中解析必要认证信息
@@ -22,7 +19,7 @@ class BilibiliRoomInfoManager:
 
     def __init__(self, headers: Dict[str, str], verify_ssl: bool = True):
         """
-        初始化直播间信息管理器
+        初始化管理器
 
         Args:
             headers: 包含Cookie等认证信息的请求头字典
@@ -78,15 +75,15 @@ class BilibiliRoomInfoManager:
                 "error": str(e)
             }
 
-    def get_nav_info(self) -> Dict[str, Any]:
+    def get_reserve_list(self) -> Dict[str, Any]:
         """
-        获取导航栏用户信息（需要登录）
+        获取用户直播预约列表
 
         Returns:
-            包含用户信息的字典：
+            包含预约列表结果的字典：
             - success: 操作是否成功
             - message: 结果描述信息
-            - data: 成功时的数据（包含用户信息）
+            - data: 成功时的数据（包含预约列表）
             - error: 失败时的错误信息
             - status_code: HTTP状态码（如果有）
         """
@@ -95,13 +92,13 @@ class BilibiliRoomInfoManager:
             if not self.initialization_result["success"]:
                 return {
                     "success": False,
-                    "message": "获取用户信息失败",
+                    "message": "获取预约列表失败",
                     "error": "管理器未正确初始化",
                     "status_code": None
                 }
 
             # 构建API请求
-            api_url = "https://api.bilibili.com/x/web-interface/nav"
+            api_url = "https://api.live.bilibili.com/xlive/app-ucenter/v2/schedule/GetReserveList"
 
             # 发送请求
             response = requests.get(
@@ -115,7 +112,7 @@ class BilibiliRoomInfoManager:
             if response.status_code != 200:
                 return {
                     "success": False,
-                    "message": "获取用户信息失败",
+                    "message": "获取预约列表失败",
                     "error": f"HTTP错误: {response.status_code}",
                     "status_code": response.status_code,
                     "response_text": response.text
@@ -134,49 +131,47 @@ class BilibiliRoomInfoManager:
                     "api_code": result.get("code")
                 }
 
-            # 检查用户是否已登录
-            if not result.get("data", {}).get("isLogin", False):
-                return {
-                    "success": False,
-                    "message": "获取用户信息失败",
-                    "error": "用户未登录",
-                    "status_code": response.status_code,
-                    "response_data": result
-                }
+            # 成功返回 - 处理list为None的情况
+            list_data = result.get("data", {}).get("list")
+            if list_data is None:
+                # 当list为None时，转换为空列表
+                list_data = []
 
-            # 成功返回
             return {
                 "success": True,
-                "message": "用户信息获取成功",
-                "data": result.get("data", {}),
+                "message": "预约列表获取成功",
+                "data": {
+                    "list": list_data,
+                    "full_response": result  # 包含完整的API响应
+                },
                 "status_code": response.status_code
             }
 
         except requests.exceptions.Timeout:
             return {
                 "success": False,
-                "message": "获取用户信息失败",
+                "message": "获取预约列表失败",
                 "error": "请求超时",
                 "status_code": None
             }
         except requests.exceptions.ConnectionError:
             return {
                 "success": False,
-                "message": "获取用户信息失败",
+                "message": "获取预约列表失败",
                 "error": "网络连接错误",
                 "status_code": None
             }
         except requests.exceptions.RequestException as e:
             return {
                 "success": False,
-                "message": "获取用户信息失败",
+                "message": "获取预约列表失败",
                 "error": f"网络请求异常: {str(e)}",
                 "status_code": None
             }
         except Exception as e:
             return {
                 "success": False,
-                "message": "获取用户信息过程中发生未知错误",
+                "message": "获取预约列表过程中发生未知错误",
                 "error": str(e),
                 "status_code": None
             }
@@ -196,25 +191,28 @@ if __name__ == '__main__':
     }
 
     # 创建管理器实例
-    room_manager = BilibiliRoomInfoManager(Headers)
+    room_manager = BilibiliSpecialApiManager(Headers)
 
     # 检查管理器是否初始化成功
     if not room_manager.initialization_result["success"]:
         print(f"管理器初始化失败: {room_manager.initialization_result['error']}")
     else:
-        # 获取用户信息
-        nav_info = room_manager.get_nav_info()
+        # 获取预约列表
+        reserve_result = room_manager.get_reserve_list()
 
-        if nav_info["success"]:
-            print("用户信息获取成功")
-            user_data = nav_info["data"]
-            print(f"用户名: {user_data.get('uname', '未知')}")
-            print(f"用户ID: {user_data.get('mid', '未知')}")
-            print(f"当前等级: {user_data.get('level_info', {}).get('current_level', '未知')}")
-            print(f"会员状态: {'是' if user_data.get('vipStatus', 0) else '否'}")
+        if reserve_result["success"]:
+            print("预约列表获取成功")
+            reserve_list = reserve_result["data"]["list"]
+            if reserve_list:
+                print(f"找到 {len(reserve_list)} 个预约:")
+                for i, reserve in enumerate(reserve_list, 1):
+                    reserve_info = reserve.get("reserve_info", {})
+                    print(f"{i}. {reserve_info.get('name', '未知预约')} (ID: {reserve_info.get('sid', '未知')})")
+            else:
+                print("没有找到任何预约")
         else:
-            print(f"获取用户信息失败: {nav_info['error']}")
-            if "status_code" in nav_info and nav_info["status_code"]:
-                print(f"HTTP状态码: {nav_info['status_code']}")
-            if "api_code" in nav_info:
-                print(f"API错误码: {nav_info['api_code']}")
+            print(f"获取预约列表失败: {reserve_result['error']}")
+            if "status_code" in reserve_result and reserve_result["status_code"]:
+                print(f"HTTP状态码: {reserve_result['status_code']}")
+            if "api_code" in reserve_result:
+                print(f"API错误码: {reserve_result['api_code']}")

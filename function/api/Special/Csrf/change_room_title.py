@@ -283,7 +283,7 @@ class BilibiliCSRFAuthenticator:
 if __name__ == "__main__":
     from function.tools.EncodingConversion.dict_to_cookie_string import dict_to_cookie_string
     from function.tools.ConfigControl.BilibiliUserConfigManager import BilibiliUserConfigManager
-    from function.api.Special.Room import BilibiliRoomInfoManager as GetRoomHighlightInfo
+    from function.api.Special.Default import BilibiliSpecialApiManager as GetRoomHighlightInfo
     from _Input.function.api.Special import Csrf as DataInput
 
     # 示例用法

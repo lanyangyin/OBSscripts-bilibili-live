@@ -4751,12 +4751,9 @@ class BilibiliApiGeneric:
             }
 
 
-class BilibiliRoomInfoManager:
+class BilibiliSpecialApiManager:
     """
-    B站直播间信息管理器，用于获取直播间相关状态信息。
-
-    该类专门用于获取B站直播间的各种状态信息，如房间ID、高亮状态等。
-    自动从Cookie中提取必要的认证信息，并提供简化的API调用接口。
+    B站需要登陆的API管理器，用于获取直播间相关状态信息。
 
     特性：
     - 自动从Cookie中解析必要认证信息
@@ -4767,7 +4764,7 @@ class BilibiliRoomInfoManager:
 
     def __init__(self, headers: Dict[str, str], verify_ssl: bool = True):
         """
-        初始化直播间信息管理器
+        初始化管理器
 
         Args:
             headers: 包含Cookie等认证信息的请求头字典
@@ -7693,7 +7690,7 @@ def get_b_a_g():
 
 
 @lru_cache(maxsize=None)
-def get_b_r_m():
+def get_b_s_a_m():
     if get_b_u_c_m().get_default_user_id():
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
@@ -7701,7 +7698,7 @@ def get_b_r_m():
             'cookie': Tools.dict_to_cookie_string(get_b_u_c_m().get_user_cookies()['data'])
         }
 
-        b_r_m = BilibiliRoomInfoManager(headers, GlobalVariableOfData.sslVerification)
+        b_r_m = BilibiliSpecialApiManager(headers, GlobalVariableOfData.sslVerification)
     else:
         b_r_m = None
     return b_r_m
@@ -7755,7 +7752,7 @@ def get_uid_nickname_dict():
                           '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
             'cookie': Tools.dict_to_cookie_string(get_b_u_c_m().get_user_cookies(int(uid))["data"])
         }
-        is_login = BilibiliRoomInfoManager(headers, GlobalVariableOfData.sslVerification).get_nav_info()["data"]
+        is_login = BilibiliSpecialApiManager(headers, GlobalVariableOfData.sslVerification).get_nav_info()["data"]
         if is_login["isLogin"]:
             uid_nickname_dict[uid] = get_b_a_g().get_bilibili_user_card(uid)['data']['data']['card']['name']
         else:
@@ -7894,7 +7891,7 @@ def get_room_news():
     # 获取 直播间公告
     if get_b_u_c_m().get_default_user_id():
         if get_room_status():
-            room_news = get_b_r_m().get_room_news(int(get_b_u_c_m().get_default_user_id()), get_b_r_m().get_room_highlight_info()["data"]["room_id"])["data"]["content"]
+            room_news = get_b_s_a_m().get_room_news(int(get_b_u_c_m().get_default_user_id()), get_b_s_a_m().get_room_highlight_info()["data"]["room_id"])["data"]["content"]
             """直播间公告"""
             log_save(obs.LOG_INFO, f"║║登录账户 的 直播间公告：{room_news}")
         else:
@@ -8061,7 +8058,7 @@ def get_reserve_list():
     # 登录用户的直播预约列表信息
     if get_b_u_c_m().get_default_user_id():
         if get_room_status():
-            reserve_list = get_b_r_m().get_reserve_list()["data"]["list"]
+            reserve_list = get_b_s_a_m().get_reserve_list()["data"]["list"]
             """获取 '登录用户' 的 直播预约列表信息"""
             log_save(obs.LOG_INFO, f"║║登录账户 的 直播预约列表信息：{reserve_list}")
         else:
@@ -8169,7 +8166,7 @@ def clear_cache():
     get_b_l_i_r.cache_clear()
     get_i_c.cache_clear()
     get_b_l_d_m.cache_clear()
-    get_b_r_m.cache_clear()
+    get_b_s_a_m.cache_clear()
     get_c_d_m.cache_clear()
     get_uid_nickname_dict.cache_clear()
     get_default_user_nickname.cache_clear()
@@ -10522,7 +10519,7 @@ class ButtonFunction:
         title_textbox_t = obs.obs_data_get_string(GlobalVariableOfData.script_settings, widget.TextBox.roomTitle.Name)
         """标题文本框中的文本"""
 
-        turn_title_return = get_b_csrf_a().change_room_title(get_b_r_m().get_room_highlight_info()["data"]["room_id"], title_textbox_t)
+        turn_title_return = get_b_csrf_a().change_room_title(get_b_s_a_m().get_room_highlight_info()["data"]["room_id"], title_textbox_t)
         """更改标题的返回值"""
         log_save(obs.LOG_INFO, f"更改直播间标题返回消息：{turn_title_return}")
         if turn_title_return['success']:
@@ -10566,7 +10563,7 @@ class ButtonFunction:
         room_news_textbox_t = obs.obs_data_get_string(GlobalVariableOfData.script_settings,widget.TextBox.roomNews.Name)
         """公告文本框中的文本"""
 
-        turn_news_return = get_b_csrf_a().change_room_news(get_b_r_m().get_room_highlight_info()["data"]["room_id"], room_news_textbox_t)["api_response"]
+        turn_news_return = get_b_csrf_a().change_room_news(get_b_s_a_m().get_room_highlight_info()["data"]["room_id"], room_news_textbox_t)["api_response"]
         """更改公告的返回值"""
         if turn_news_return['code'] == 0:
             log_save(obs.LOG_INFO, f"直播间公告更改成功: {room_news_textbox_t}")
@@ -10685,7 +10682,7 @@ class ButtonFunction:
             GlobalVariableOfData.script_settings,widget.ComboBox.roomSubArea.Name
         )
 
-        change_room_area_return = get_b_csrf_a().change_room_area(get_b_r_m().get_room_highlight_info()["data"]["room_id"], int(sub_live_area_combobox_value))
+        change_room_area_return = get_b_csrf_a().change_room_area(get_b_s_a_m().get_room_highlight_info()["data"]["room_id"], int(sub_live_area_combobox_value))
         log_save(obs.LOG_INFO, f"更新直播间分区返回：{change_room_area_return}")
         if change_room_area_return["success"]:
             log_save(obs.LOG_INFO, f"直播间分区更改成功: {sub_live_area_combobox_value}")
@@ -10755,7 +10752,7 @@ class ButtonFunction:
         )
         log_save(obs.LOG_INFO, f"使用【{live_streaming_platform}】平台 在【{sub_live_area_combobox_value}】分区 开播")
 
-        start_live = get_b_csrf_a().start_live(get_b_r_m().get_room_highlight_info()["data"]["room_id"], int(sub_live_area_combobox_value), live_streaming_platform)
+        start_live = get_b_csrf_a().start_live(get_b_s_a_m().get_room_highlight_info()["data"]["room_id"], int(sub_live_area_combobox_value), live_streaming_platform)
         log_save(obs.LOG_INFO, f"开播返回：{start_live}")
         if start_live["success"]:
             log_save(obs.LOG_INFO, f"开播成功。")
@@ -10859,7 +10856,7 @@ class ButtonFunction:
             prop = args[1]
         if len(args) == 3:
             settings = args[2]
-        stream_addr = get_b_r_m().get_live_stream_info(get_b_r_m().get_room_highlight_info()["data"]["room_id"])
+        stream_addr = get_b_s_a_m().get_live_stream_info(get_b_s_a_m().get_room_highlight_info()["data"]["room_id"])
         log_save(obs.LOG_INFO, f"获取直播服务器返回：{stream_addr}")
         if stream_addr["success"]:
             log_save(obs.LOG_INFO, f"获取直播服务器成功")
@@ -10882,7 +10879,7 @@ class ButtonFunction:
             prop = args[1]
         if len(args) == 3:
             settings = args[2]
-        stream_addr = get_b_r_m().get_live_stream_info(get_b_r_m().get_room_highlight_info()["data"]["room_id"])
+        stream_addr = get_b_s_a_m().get_live_stream_info(get_b_s_a_m().get_room_highlight_info()["data"]["room_id"])
         log_save(obs.LOG_INFO, f"获取直播推流码返回：{stream_addr}")
         if stream_addr["success"]:
             log_save(obs.LOG_INFO, f"获取直播推流码成功")
@@ -10917,7 +10914,7 @@ class ButtonFunction:
                                                           'live_streaming_platform_comboBox')
         log_save(obs.LOG_INFO, f"在【{live_streaming_platform}】平台 结束直播")
 
-        stop_live = get_b_csrf_a().stop_live(get_b_r_m().get_room_highlight_info()["data"]["room_id"], live_streaming_platform)
+        stop_live = get_b_csrf_a().stop_live(get_b_s_a_m().get_room_highlight_info()["data"]["room_id"], live_streaming_platform)
         log_save(obs.LOG_INFO, f"停播返回：{stop_live}")
         if stop_live["success"]:
             log_save(obs.LOG_INFO, f"停播成功。")
