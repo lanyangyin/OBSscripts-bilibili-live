@@ -20621,3 +20621,7 @@ def obs_frontend_remove_event_callback(callback, *private_data):
 
     """
     return None
+
+
+def obs_frontend_get_current_scene():
+    return None

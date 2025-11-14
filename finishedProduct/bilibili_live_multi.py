@@ -8154,6 +8154,17 @@ def get_common_danmu_own_big_expression():
     get_c_d_m().add_data(get_b_u_c_m().get_default_user_id(), "danmuOwnImg", json.dumps(danmu_own_big_expression_dict, ensure_ascii=False), 1)
     return json.loads(get_c_d_m().get_data(get_b_u_c_m().get_default_user_id(), "danmuOwnImg")[0])
 
+@lru_cache(maxsize=None)
+def get_common_danmu_web_css():
+    danmu_web_css = get_c_d_m().get_data(get_b_u_c_m().get_default_user_id(), "danmuWebCss")
+    if not danmu_web_css:
+        get_c_d_m().add_data(
+            get_b_u_c_m().get_default_user_id(),
+            "danmuWebCss",
+            "body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden; }",
+            1
+        )
+    return get_c_d_m().get_data(get_b_u_c_m().get_default_user_id(), "danmuWebCss")[0]
 
 def clear_cache():
     # 清除函数缓存
@@ -8186,6 +8197,7 @@ def clear_cache():
     get_common_danmu_roomid_dict.cache_clear()
     get_common_danmu_web_socket_server_prot.cache_clear()
     get_common_danmu_own_big_expression.cache_clear()
+    get_common_danmu_web_css.cache_clear()
 
 # ====================================================================================================================
 
@@ -9110,15 +9122,23 @@ def trigger_frontend_event(event):
         GlobalVariableOfData.causeOfTheFrontDeskIncident = ""
     elif event == obs.OBS_FRONTEND_EVENT_STREAMING_STOPPED:
         if not GlobalVariableOfData.causeOfTheFrontDeskIncident:
-            log_save(obs.LOG_INFO, "此次 推流已开始 事件 由前台按钮【停止直播】引起")
+            log_save(obs.LOG_INFO, "此次 推流已结束 事件 由前台按钮【停止直播】引起")
 
         if GlobalVariableOfData.causeOfTheFrontDeskIncident == "开始直播并复制推流码":
             log_save(obs.LOG_INFO, "此次 推流已结束 事件 不发送 撤销直播申请")
         else:
             if get_live_status():
-                log_save(obs.LOG_INFO, "未开播，此次 推流已结束 事件 发送 撤销直播申请")
+                log_save(obs.LOG_INFO, "正在直播，此次 推流已结束 事件 发送 撤销直播申请")
                 ButtonFunction.button_function_stop_live()
         GlobalVariableOfData.causeOfTheFrontDeskIncident = ""
+    elif event == obs.OBS_FRONTEND_EVENT_FINISHED_LOADING:
+        # 尝试关闭弹幕web
+        log_save(obs.LOG_INFO, "正在直播，此次 OBS 完成加载 事件 清除哔哩哔哩弹幕浏览器源")
+        ButtonFunction.button_function_remove_danmu_browser()
+    elif event == obs.OBS_FRONTEND_EVENT_SCRIPTING_SHUTDOWN:
+        if get_live_status():
+            log_save(obs.LOG_INFO, "正在直播，此次 脚本关闭中 事件 发送 撤销直播申请")
+            ButtonFunction.button_function_stop_live()
     clear_cache()
     return True
 
@@ -9244,6 +9264,10 @@ def script_defaults(settings):  # 设置其默认值
     if widget.Group.danmu.Name in update_widget_for_props_name:
         widget.Group.danmu.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.Group.danmu.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+
+    if widget.Group.danmuOnOff.Name in update_widget_for_props_name:
+        widget.Group.danmuOnOff.Visible = True if get_b_u_c_m().get_default_user_id() else False
+        widget.Group.danmuOnOff.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
     if widget.Button.bottom.Name in update_widget_for_props_name:
         widget.Button.bottom.Visible = False
@@ -9665,6 +9689,30 @@ def script_defaults(settings):  # 设置其默认值
         widget.Button.settingDanmuData.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.Button.settingDanmuData.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
+    if widget.TextBox.danmuWebCss.Name in update_widget_for_props_name:
+        widget.TextBox.danmuWebCss.Visible = True if get_b_u_c_m().get_default_user_id() else False
+        widget.TextBox.danmuWebCss.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget.TextBox.danmuWebCss.Text = get_common_danmu_web_css()
+
+    if widget.Button.applyDanmuCss.Name in update_widget_for_props_name:
+        widget.Button.applyDanmuCss.Visible = True if get_b_u_c_m().get_default_user_id() else False
+        widget.Button.applyDanmuCss.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+
+    if widget.TextBox.danmuWssProt.Name in update_widget_for_props_name:
+        widget.TextBox.danmuWssProt.Visible = True if get_b_u_c_m().get_default_user_id() else False
+        if get_b_u_c_m().get_default_user_id():
+            if not GlobalVariableOfData.danmu_running:
+                widget.TextBox.danmuWssProt.Enabled = True
+            else:
+                widget.TextBox.danmuWssProt.Enabled = False
+        else:
+            widget.TextBox.danmuWssProt.Enabled = False
+        widget.TextBox.danmuWssProt.Text = get_common_danmu_web_socket_server_prot()
+
+    if widget.Button.confirmDanmuWssPort.Name in update_widget_for_props_name:
+        widget.Button.confirmDanmuWssPort.Visible = True if get_b_u_c_m().get_default_user_id() else False
+        widget.Button.confirmDanmuWssPort.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+
     if widget.ComboBox.danmuRoom.Name in update_widget_for_props_name:
         widget.ComboBox.danmuRoom.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.ComboBox.danmuRoom.Enabled = True if get_b_u_c_m().get_default_user_id() else False
@@ -9680,14 +9728,25 @@ def script_defaults(settings):  # 设置其默认值
         widget.Button.delDanmuRoomid.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.Button.delDanmuRoomid.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
-    if widget.TextBox.danmuWssProt.Name in update_widget_for_props_name:
-        widget.TextBox.danmuWssProt.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.TextBox.danmuWssProt.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.TextBox.danmuWssProt.Text = get_common_danmu_web_socket_server_prot()
+    if widget.Button.startDanmuForwardingService.Name in update_widget_for_props_name:
+        widget.Button.startDanmuForwardingService.Visible = False
+        widget.Button.startDanmuForwardingService.Enabled = False
+
+    if widget.Button.addDanmuBrowser.Name in update_widget_for_props_name:
+        widget.Button.addDanmuBrowser.Visible = False
+        widget.Button.addDanmuBrowser.Enabled = False
 
     if widget.Button.startDanmu.Name in update_widget_for_props_name:
         widget.Button.startDanmu.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.Button.startDanmu.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+
+    if widget.Button.stopDanmuForwardingService.Name in update_widget_for_props_name:
+        widget.Button.stopDanmuForwardingService.Visible = False
+        widget.Button.stopDanmuForwardingService.Enabled = False
+
+    if widget.Button.removeDanmuBrowser.Name in update_widget_for_props_name:
+        widget.Button.removeDanmuBrowser.Visible = False
+        widget.Button.removeDanmuBrowser.Enabled = False
 
     if widget.Button.stopDanmu.Name in update_widget_for_props_name:
         widget.Button.stopDanmu.Visible = True if get_b_u_c_m().get_default_user_id() else False
@@ -9951,6 +10010,7 @@ def script_unload():
     log_save(obs.LOG_INFO, "╔══已卸载: bilibili-live══╗")
     log_save(obs.LOG_INFO, "║  已卸载: bilibili-live  ║")
     log_save(obs.LOG_INFO, "╚══已卸载: bilibili-live══╝")
+    # """保存日志文件"""
     log_save(obs.LOG_INFO, "==保存日志文件==")
     log_save(obs.LOG_INFO, f"{'═' * 120}\n")
     with open(Path(GlobalVariableOfData.scriptsLogDir) / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.log", "w",
@@ -11173,6 +11233,68 @@ class ButtonFunction:
         return False
 
     @staticmethod
+    def button_function_apply_danmu_css(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        danmu_web_css_t: str = obs.obs_data_get_string(GlobalVariableOfData.script_settings, widget.TextBox.danmuWebCss.Name)
+
+        get_c_d_m().add_data(
+            get_b_u_c_m().get_default_user_id(),
+            "danmuWebCss",
+            danmu_web_css_t,
+            1
+        )
+
+        clear_cache()
+        # -----------------------------------------------------------------------------------------------------------
+        # 更新脚本控制台中的控件-----------------------------------------------------------------------------------------
+        GlobalVariableOfData.update_widget_for_props_dict = {
+            "danmu_props": {
+                widget.TextBox.danmuWebCss.Name,
+            }
+        }
+        log_save(obs.LOG_INFO, f"更新控件配置信息")
+        script_defaults(GlobalVariableOfData.script_settings)
+        # 更新脚本用户小部件
+        log_save(obs.LOG_INFO, f"更新控件UI")
+        update_ui_interface_data()
+        GlobalVariableOfData.update_widget_for_props_dict = widget.props_Collection
+        return False
+
+    @staticmethod
+    def button_function_confirm_danmu_wss_port(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        server_prot: str = obs.obs_data_get_string(GlobalVariableOfData.script_settings, widget.TextBox.danmuWssProt.Name)
+        log_save(obs.LOG_INFO, f"弹幕服务端口：{server_prot}")
+        if not widget.TextBox.danmuWssProt.Text:
+            log_save(obs.LOG_WARNING, "错误: 服务端口不合法")
+            return False
+        get_c_d_m().add_data(get_b_u_c_m().get_default_user_id(), "danmuWssProt", server_prot, 1)
+
+        clear_cache()
+        # -----------------------------------------------------------------------------------------------------------
+        # 更新脚本控制台中的控件-----------------------------------------------------------------------------------------
+        GlobalVariableOfData.update_widget_for_props_dict = {
+            "danmu_props": {
+                widget.TextBox.danmuWssProt.Name,
+            }
+        }
+        log_save(obs.LOG_INFO, f"更新控件配置信息")
+        script_defaults(GlobalVariableOfData.script_settings)
+        # 更新脚本用户小部件
+        log_save(obs.LOG_INFO, f"更新控件UI")
+        update_ui_interface_data()
+        GlobalVariableOfData.update_widget_for_props_dict = widget.props_Collection
+        return False
+
+    @staticmethod
     def button_function_add_danmu_roomid(*args):
         if len(args) == 2:
             props = args[0]
@@ -11188,6 +11310,9 @@ class ButtonFunction:
         if room_base_info["success"]:
             get_c_d_m().add_data(get_b_u_c_m().get_default_user_id(), "danmuRoomid", str(room_base_info["data"]["room_id"]), 99)
             log_save(obs.LOG_INFO, f"添加直播间：{room}成功")
+        else:
+            return False
+            
         clear_cache()
 
         # 更新脚本控制台中的控件
@@ -11214,6 +11339,7 @@ class ButtonFunction:
             room = list(widget.ComboBox.danmuRoom.Dictionary.keys())[list(widget.ComboBox.danmuRoom.Dictionary.values()).index(str(room))]
         log_save(obs.LOG_INFO, f"删除直播间：{room}")
         log_save(obs.LOG_INFO, str(get_c_d_m().remove_data(get_b_u_c_m().get_default_user_id(), "danmuRoomid", str(room))))
+
         clear_cache()
 
         # 更新脚本控制台中的控件
@@ -11229,24 +11355,12 @@ class ButtonFunction:
         return True
 
     @staticmethod
-    def button_function_start_danmu(*args):
+    def button_function_start_danmu_forwarding_service(*args):
         if len(args) == 2:
             props = args[0]
             prop = args[1]
         if len(args) == 3:
             settings = args[2]
-        server_prot: str = obs.obs_data_get_string(GlobalVariableOfData.script_settings, widget.TextBox.danmuWssProt.Name)
-        log_save(obs.LOG_INFO, f"弹幕服务端口：{server_prot}")
-        room: str = obs.obs_data_get_string(GlobalVariableOfData.script_settings, widget.ComboBox.danmuRoom.Name)
-        if not server_prot:
-            log_save(obs.LOG_WARNING, "错误: 服务端口不合法")
-            return False
-        if str(room) in list(widget.ComboBox.danmuRoom.Dictionary.values()):
-            room = list(widget.ComboBox.danmuRoom.Dictionary.keys())[list(widget.ComboBox.danmuRoom.Dictionary.values()).index(str(room))]
-            log_save(obs.LOG_INFO, f"直播间：{room}")
-        else:
-            log_save(obs.LOG_WARNING, f"直播间：{room}，未记录")
-            return False            
         # -----------------------------------------------------------------------------------------------------------
         # 启动弹幕服务-------------------------------------------------------------------------------------------------
         async def show_danmu():
@@ -11484,7 +11598,7 @@ class ButtonFunction:
                         fleet_title = {'1': '总督', '2': '提督', '3': '舰长'}[
                             str(privilege_level)]  # if is_medal_other_display:
                         fleet_badge = f'https://blc.huixinghao.cn/static/img/icons/guard-level-{privilege_level}.png'
-                    if user_id == get_b_a_g().get_room_base_info(int(room))["data"]["uid"]:
+                    if user_id == get_b_a_g().get_room_base_info(int(widget.ComboBox.danmuRoom.Value))["data"]["uid"]:
                         identity_title = "owner"  # 房主
                     elif content_info[2][2]:
                         if widget.CheckBox.tagAdministratorDisplay.Bool:
@@ -11497,7 +11611,7 @@ class ButtonFunction:
                         light_ok = widget.CheckBox.medalUnLightDisplay.Bool or medal.get("is_light", False)
                         # 检查归属条件
                         owner_ok = widget.CheckBox.medalOtherDisplay.Bool or medal.get("ruid") == \
-                                   get_b_a_g().get_room_base_info(int(room))["data"]["uid"]
+                                   get_b_a_g().get_room_base_info(int(widget.ComboBox.danmuRoom.Value))["data"]["uid"]
                         # 同时满足两个条件才显示
                         if light_ok and owner_ok:
                             fan_medal_name = medal["name"]
@@ -12459,7 +12573,7 @@ class ButtonFunction:
                         fleet_title = {'1': '总督', '2': '提督', '3': '舰长'}[
                             str(privilege_level)]  # if is_medal_other_display:
                         #     fleet_badge = f'https://blc.huixinghao.cn/static/img/icons/guard-level-{privilege_level}.png'
-                    if user_id == get_b_a_g().get_room_base_info(int(room))["data"]["uid"]:
+                    if user_id == get_b_a_g().get_room_base_info(int(widget.ComboBox.danmuRoom.Value))["data"]["uid"]:
                         identity_title = "owner"  # 房主
 
                     medal = contentdata["uinfo"]["medal"]
@@ -12468,7 +12582,7 @@ class ButtonFunction:
                         light_ok = widget.CheckBox.medalUnLightDisplay.Bool or medal.get("is_light", False)
                         # 检查归属条件
                         owner_ok = widget.CheckBox.medalOtherDisplay.Bool or medal.get("ruid") == \
-                                   get_b_a_g().get_room_base_info(int(room))["data"]["uid"]
+                                   get_b_a_g().get_room_base_info(int(widget.ComboBox.danmuRoom.Value))["data"]["uid"]
                         # 同时满足两个条件才显示
                         if light_ok and owner_ok:
                             fan_medal_name = medal["name"]
@@ -12602,8 +12716,8 @@ class ButtonFunction:
                     INTERACT_WORD_V2()
 
             result = get_b_a_g().get_guard_list(
-                room,
-                get_b_a_g().get_room_base_info(int(room))["data"]["uid"],
+                widget.ComboBox.danmuRoom.Value,
+                get_b_a_g().get_room_base_info(int(widget.ComboBox.danmuRoom.Value))["data"]["uid"],
                 page=1,
                 page_size=20,
                 typ=5,
@@ -12617,7 +12731,7 @@ class ButtonFunction:
                     guard_level = guard["uinfo"]["guard"]["level"]
                     guard_dict[uid] = guard_level
 
-            ws_server = WebSocketServer(port=int(server_prot))
+            ws_server = WebSocketServer(port=int(widget.TextBox.danmuWssProt.Text))
             ws_server.registerCallback = lambda clients_count: log_save(obs.LOG_INFO, f"新的网页客户端连接，当前连接数: {clients_count}")
             ws_server.unregisterCallback = lambda clients_count: log_save(obs.LOG_INFO, f"网页客户端断开，当前连接数: {clients_count}")
             ws_server.startServerCallback = lambda host, port: log_save(obs.LOG_INFO, f"弹幕转发服务器启动在 ws://{host}:{port}")
@@ -12625,7 +12739,7 @@ class ButtonFunction:
             ws_server.serverErroCallback = lambda ero: log_save(obs.LOG_INFO, f"WebSocket 服务器错误: {ero}")
             ws_server.serverStopCallback = lambda: log_save(obs.LOG_INFO, "WebSocket 服务器已停止")
 
-            cdm = get_b_l_d_m().connect_room(int(room), widget.DigitalDisplay.danmuNumCommentsClient.Value, widget.DigitalDisplay.danmuIntervalNumCommentsClient.Value / 1000)
+            cdm = get_b_l_d_m().connect_room(int(widget.ComboBox.danmuRoom.Value), widget.DigitalDisplay.danmuNumCommentsClient.Value, widget.DigitalDisplay.danmuIntervalNumCommentsClient.Value / 1000)
             cdm.o_m_d.max_size = widget.DigitalDisplay.danmuNumCacheEntries.Value
             cdm.o_m_d.ttl_seconds = widget.DigitalDisplay.danmuCacheDuration.Value
             cdm.replyAuthenticationPackageCallable = lambda content: log_save(obs.LOG_INFO, f"身份验证回复: {content}\n")
@@ -12665,12 +12779,38 @@ class ButtonFunction:
             def start():
                 asyncio.run(show_danmu())
             show_danmu_thread = threading.Thread(target=start)
+            show_danmu_thread.daemon = True
             show_danmu_thread.start()
         else:
             log_save(obs.LOG_INFO, f"无法开启弹幕服务，弹幕服务正在运行")
             return False
         # -----------------------------------------------------------------------------------------------------------
+        # 更新脚本控制台中的控件-----------------------------------------------------------------------------------------
+        GlobalVariableOfData.update_widget_for_props_dict = {
+            "danmu_props": {
+                widget.DigitalDisplay.danmuNumCommentsClient.Name,
+                widget.DigitalDisplay.danmuIntervalNumCommentsClient.Name,
+                widget.TextBox.danmuWssProt.Name,
+            }
+        }
+        log_save(obs.LOG_INFO, f"更新控件配置信息")
+        script_defaults(GlobalVariableOfData.script_settings)
+        # 更新脚本用户小部件
+        log_save(obs.LOG_INFO, f"更新控件UI")
+        update_ui_interface_data()
+        GlobalVariableOfData.update_widget_for_props_dict = widget.props_Collection
+        return True
+
+    @staticmethod
+    def button_function_add_danmu_browser(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        # -----------------------------------------------------------------------------------------------------------
         # 添加网页源-------------------------------------------------------------------------------------------------
+        ButtonFunction.button_function_remove_danmu_browser()  # 先删除原有的弹幕浏览器源
         html_content = """
         <!DOCTYPE html>
         <html lang="zh" nighteye="disabled">
@@ -27770,7 +27910,7 @@ class ButtonFunction:
                                 }
 
                                 this.socket = new WebSocket('ws://localhost:"""
-        html_content += server_prot
+        html_content += widget.TextBox.danmuWssProt.Text
         html_content +=  """');
 
                                 this.socket.onopen = () => {
@@ -28039,6 +28179,7 @@ class ButtonFunction:
         )
         # 基本设置
         obs.obs_data_set_string(GlobalVariableOfData.script_settings, "url", url)
+        obs.obs_data_set_string(GlobalVariableOfData.script_settings, "css", widget.TextBox.danmuWebCss.Text)
         obs.obs_data_set_int(GlobalVariableOfData.script_settings, "width", width)
         obs.obs_data_set_int(GlobalVariableOfData.script_settings, "height", height)
         obs.obs_data_set_bool(GlobalVariableOfData.script_settings, "shutdown", False)  # 不关闭源
@@ -28067,24 +28208,39 @@ class ButtonFunction:
             log_save(obs.LOG_INFO, "无法获取场景对象")
         # 释放场景源
         obs.obs_source_release(current_scene)
-
-        # 更新脚本控制台中的控件
-        GlobalVariableOfData.update_widget_for_props_dict = {
-            "danmu_props": {
-                widget.DigitalDisplay.danmuNumCommentsClient.Name,
-                widget.DigitalDisplay.danmuIntervalNumCommentsClient.Name,
-            }
-        }
-        log_save(obs.LOG_INFO, f"更新控件配置信息")
-        script_defaults(GlobalVariableOfData.script_settings)
-        # 更新脚本用户小部件
-        log_save(obs.LOG_INFO, f"更新控件UI")
-        update_ui_interface_data()
-        GlobalVariableOfData.update_widget_for_props_dict = widget.props_Collection
         return True
 
     @staticmethod
-    def button_function_stop_danmu(*args):
+    def button_function_start_danmu(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        # -----------------------------------------------------------------------------------------------------------
+        # 弹幕数据设置-------------------------------------------------------------------------------------------------
+        ButtonFunction.button_function_setting_danmu_data()
+        # -----------------------------------------------------------------------------------------------------------
+        # 弹幕样式设置-------------------------------------------------------------------------------------------------
+        ButtonFunction.button_function_apply_danmu_css()
+        # -----------------------------------------------------------------------------------------------------------
+        # 弹幕转发服务端口----------------------------------------------------------------------------------------------
+        ButtonFunction.button_function_confirm_danmu_wss_port()
+        # -----------------------------------------------------------------------------------------------------------
+        # 确认直播间---------------------------------------------------------------------------------------------------
+        if not ButtonFunction.button_function_add_danmu_roomid():
+            return False
+        # -----------------------------------------------------------------------------------------------------------
+        # 启动弹幕服务-------------------------------------------------------------------------------------------------
+        ButtonFunction.button_function_start_danmu_forwarding_service()
+        # -----------------------------------------------------------------------------------------------------------
+        # 添加网页源-------------------------------------------------------------------------------------------------
+        ButtonFunction.button_function_add_danmu_browser()
+        
+        return True
+    
+    @staticmethod
+    def button_function_stop_danmu_forwarding_service(*args):
         if len(args) == 2:
             props = args[0]
             prop = args[1]
@@ -28099,7 +28255,30 @@ class ButtonFunction:
             log_save(obs.LOG_INFO, "弹幕服务关闭失败，弹幕服务正在启动中")
         else:
             log_save(obs.LOG_INFO, "弹幕服务关闭失败，弹幕服务未运行")
+        # -----------------------------------------------------------------------------------------------------------
+        # 更新脚本控制台中的控件-----------------------------------------------------------------------------------------
+        GlobalVariableOfData.update_widget_for_props_dict = {
+            "danmu_props": {
+                widget.DigitalDisplay.danmuNumCommentsClient.Name,
+                widget.DigitalDisplay.danmuIntervalNumCommentsClient.Name,
+                widget.TextBox.danmuWssProt.Name,
+            }
+        }
+        log_save(obs.LOG_INFO, f"更新控件配置信息")
+        script_defaults(GlobalVariableOfData.script_settings)
+        # 更新脚本用户小部件
+        log_save(obs.LOG_INFO, f"更新控件UI")
+        update_ui_interface_data()
+        GlobalVariableOfData.update_widget_for_props_dict = widget.props_Collection
+        return True
 
+    @staticmethod
+    def button_function_remove_danmu_browser(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
         # -----------------------------------------------------------------------------------------------------------
         # 移除浏览器源-------------------------------------------------------------------------------------------------
         current_scene = obs.obs_frontend_get_current_scene()
@@ -28135,22 +28314,23 @@ class ButtonFunction:
             log_save(obs.LOG_WARNING, "无法获取场景对象")
         # 释放场景源
         obs.obs_source_release(current_scene)
-
-        # 更新脚本控制台中的控件
-        GlobalVariableOfData.update_widget_for_props_dict = {
-            "danmu_props": {
-                widget.DigitalDisplay.danmuNumCommentsClient.Name,
-                widget.DigitalDisplay.danmuIntervalNumCommentsClient.Name,
-            }
-        }
-        log_save(obs.LOG_INFO, f"更新控件配置信息")
-        script_defaults(GlobalVariableOfData.script_settings)
-        # 更新脚本用户小部件
-        log_save(obs.LOG_INFO, f"更新控件UI")
-        update_ui_interface_data()
-        GlobalVariableOfData.update_widget_for_props_dict = widget.props_Collection
         return True
 
+    @staticmethod
+    def button_function_stop_danmu(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        # -----------------------------------------------------------------------------------------------------------
+        # 停止弹幕转发-------------------------------------------------------------------------------------------------
+        ButtonFunction.button_function_stop_danmu_forwarding_service()
+        # -----------------------------------------------------------------------------------------------------------
+        # 移除浏览器源-------------------------------------------------------------------------------------------------
+        ButtonFunction.button_function_remove_danmu_browser()
+        
+        return True
 
 # 创建控件表单
 widget = Widget()
@@ -28193,6 +28373,15 @@ widget.widget_Group_dict = {
             "ModifiedIs": False
         },
     },
+    "danmu_props": {
+        "danmuOnOff": {
+            "Name": "danmu_onoff_group",
+            "Description": "on/off",
+            "Type": obs.OBS_GROUP_NORMAL,
+            "GroupProps": "danmu_onoff_props",
+            "ModifiedIs": False
+        },
+    },
 }
 
 widget.widget_TextBox_dict = {
@@ -28220,7 +28409,7 @@ widget.widget_TextBox_dict = {
         "roomNews": {
             "Name": "room_news_textBox",
             "Description": "直播间公告",
-            "Type": obs.OBS_TEXT_DEFAULT,
+            "Type": obs.OBS_TEXT_MULTILINE,
             "ModifiedIs": True
         },
     },
@@ -28236,9 +28425,16 @@ widget.widget_TextBox_dict = {
     "danmu_props": {
         "danmuWssProt": {
             "Name": "danmu_Web_socket_server_prot_textBox",
-            "Description": "弹幕服务端转发端口",
-            "LongDescription": "弹幕服务端转发端口",
+            "Description": "弹幕端口",
+            "LongDescription": "弹幕服务端转发端口，如果冲突尽量更改，1024-49151之间",
             "Type": obs.OBS_TEXT_DEFAULT,
+            "ModifiedIs": True
+        },
+        "danmuWebCss": {
+            "Name": "danmu_Web_css_textBox",
+            "Description": "弹幕样式",
+            "LongDescription": "弹幕css",
+            "Type": obs.OBS_TEXT_MULTILINE,
             "ModifiedIs": True
         },
     },
@@ -28693,6 +28889,20 @@ widget.widget_Button_dict = {
             "Callback": ButtonFunction.button_function_setting_danmu_data,
             "ModifiedIs": False
         },
+        "applyDanmuCss": {
+            "Name": "apply_danmu_css_button",
+            "Description": "应用弹幕样式",
+            "Type": obs.OBS_BUTTON_DEFAULT,
+            "Callback": ButtonFunction.button_function_apply_danmu_css,
+            "ModifiedIs": False
+        },
+        "confirmDanmuWssPort": {
+            "Name": "confirm_danmu_wss_port_button",
+            "Description": "确认弹幕转发端口",
+            "Type": obs.OBS_BUTTON_DEFAULT,
+            "Callback": ButtonFunction.button_function_confirm_danmu_wss_port,
+            "ModifiedIs": False
+        },
         "addDanmuRoomid": {
             "Name": "add_danmu_roomid_button",
             "Description": "添加直播间",
@@ -28707,16 +28917,46 @@ widget.widget_Button_dict = {
             "Callback": ButtonFunction.button_function_del_danmu_roomid,
             "ModifiedIs": False
         },
+    },
+    "danmu_onoff_props": {
+        "startDanmuForwardingService": {
+            "Name": "start_danmu_forwarding_service_button",
+            "Description": "开启弹幕转发服务",
+            "Type": obs.OBS_BUTTON_DEFAULT,
+            "Callback": ButtonFunction.button_function_start_danmu_forwarding_service,
+            "ModifiedIs": False
+        },
+        "addDanmuBrowser": {
+            "Name": "add_danmu_browser_button",
+            "Description": "添加弹幕浏览器源",
+            "Type": obs.OBS_BUTTON_DEFAULT,
+            "Callback": ButtonFunction.button_function_add_danmu_browser,
+            "ModifiedIs": False
+        },
         "startDanmu": {
             "Name": "start_danmu_button",
-            "Description": "开启弹幕服务",
+            "Description": "开启弹幕",
             "Type": obs.OBS_BUTTON_DEFAULT,
             "Callback": ButtonFunction.button_function_start_danmu,
             "ModifiedIs": False
         },
+        "stopDanmuForwardingService": {
+            "Name": "stop_danmu_forwarding_service_button",
+            "Description": "终止弹幕转发服务",
+            "Type": obs.OBS_BUTTON_DEFAULT,
+            "Callback": ButtonFunction.button_function_stop_danmu_forwarding_service,
+            "ModifiedIs": False
+        },
+        "removeDanmuBrowser": {
+            "Name": "remove_danmu_browser_button",
+            "Description": "移除弹幕浏览器源",
+            "Type": obs.OBS_BUTTON_DEFAULT,
+            "Callback": ButtonFunction.button_function_remove_danmu_browser,
+            "ModifiedIs": False
+        },
         "stopDanmu": {
             "Name": "stop_danmu_button",
-            "Description": "终止弹幕服务及删除网页源",
+            "Description": "停止弹幕",
             "Type": obs.OBS_BUTTON_DEFAULT,
             "Callback": ButtonFunction.button_function_stop_danmu,
             "ModifiedIs": False
@@ -28794,11 +29034,19 @@ widget.widget_list = [
     "danmu_message_text_size_digitalSlider",
     "danmu_time_text_size_digitalSlider",
     "setting_danmu_data_button",
+    "danmu_Web_css_textBox",
+    "apply_danmu_css_button",
+    "danmu_Web_socket_server_prot_textBox",
+    "confirm_danmu_wss_port_button",
     "danmu_room_comboBox",
     "add_danmu_roomid_button",
     "del_danmu_roomid_button",
-    "danmu_Web_socket_server_prot_textBox",
+    "danmu_onoff_group",
+    "start_danmu_forwarding_service_button",
+    "add_danmu_browser_button",
     "start_danmu_button",
+    "stop_danmu_forwarding_service_button",
+    "remove_danmu_browser_button",
     "stop_danmu_button",
     "bottom_button",
 ]
