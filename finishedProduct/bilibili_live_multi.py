@@ -13856,7 +13856,7 @@ class ButtonFunction:
                                 GlobalVariableOfData.scriptsDataDirpath / user_face_picture.replace('./', ''))
                             face_picture_x, face_picture_y = pillow_img.size
                         else:
-                            print(f"无法获取图片: {result['Message']}")
+                            log_save(obs.LOG_INFO, f"无法获取图片: {result['Message']}")
                     else:
                         pillow_img = Image.open(
                             GlobalVariableOfData.scriptsDataDirpath / user_face_picture.replace('./', ''))
