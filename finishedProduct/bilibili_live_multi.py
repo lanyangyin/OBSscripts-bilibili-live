@@ -9720,7 +9720,7 @@ def clear_cache():
 # OBS Script Functions                                      -
 # -----------------------------------------------------------
 
-script_version = bytes.fromhex('302e332e38').decode('utf-8')
+script_version = bytes.fromhex('302e332e39').decode('utf-8')
 """脚本版本.encode().hex()"""
 
 
@@ -29864,50 +29864,114 @@ class ButtonFunction:
             prop = args[1]
         if len(args) == 3:
             settings = args[2]
-        send_danmu_t = obs.obs_data_get_string(GlobalVariableOfData.script_settings, widget.TextBox.danmuSendText.Name)
-        log_save(obs.LOG_INFO, send_danmu_t)
-        send_danmaku_return = get_w_s_a().send_danmu(int(widget.ComboBox.danmuRoom.Value), send_danmu_t)
-        if send_danmaku_return["success"]:
-            log_save(obs.LOG_INFO, f"发送成功")
-            obs.obs_data_set_string(GlobalVariableOfData.script_settings, widget.TextBox.danmuSendText.Name, "")
-        elif send_danmaku_return["api_code"] == 1003212:
-            str_len_max = 40
-            emjio_list = ["[dog]", "[花]"]
-            split_one_list = []
-            str_len = 0
-            split_one_list_start_num = 0
-            pattern = r'(\[.*?\])'
-            emoji_name_text_separation_list = re.split(pattern, send_danmu_t)
-            emoji_name_text_separation_list = [emoji_name_text_separation for emoji_name_text_separation in
-                                               emoji_name_text_separation_list if emoji_name_text_separation]
-            for emoji_name_text_separation in emoji_name_text_separation_list:
-                if emoji_name_text_separation.startswith("[") and emoji_name_text_separation.endswith("]") and len(emoji_name_text_separation) <= str_len_max:
-                    split_one_list.append(emoji_name_text_separation)
-                else:
-                    split_one_list.extend(emoji_name_text_separation)
-            for nt in split_one_list:
-                if nt in emjio_list:
-                    str_len += 1
-                else:
-                    str_len += len(nt)
-                if nt == split_one_list[-1]:
-                    get_w_s_a().send_danmu(
-                        int(widget.ComboBox.danmuRoom.Value),
-                        ''.join(split_one_list[split_one_list_start_num:split_one_list.index(nt)+1])
-                    )
-                elif str_len > str_len_max:
-                    get_w_s_a().send_danmu(
-                        int(widget.ComboBox.danmuRoom.Value),
-                        ''.join(split_one_list[split_one_list_start_num:split_one_list.index(nt)])
-                    )
-                    split_one_list_start_num = split_one_list.index(nt)
-                    str_len = 0
+        send_danmu_t_source = obs.obs_data_get_string(
+            GlobalVariableOfData.script_settings, widget.TextBox.danmuSendText.Name
+        )
+        send_danmu_ts = [seg for seg in re.split("\n", send_danmu_t_source) if seg]
+        emjio_list = ["[dog]", "[花]"]
 
-        else:
-            obs.obs_data_set_string(GlobalVariableOfData.script_settings, widget.TextBox.danmuSendText.Name, f"{send_danmu_t}\n{send_danmaku_return['error']}")
-            log_save(obs.LOG_INFO, f"{send_danmaku_return['error']}")
+        def run():
+            def fastout(send_danmaku_return, send_danmu_t):
+                log_save(obs.LOG_INFO, f"{send_danmaku_return['error']}")
+                while send_danmaku_return["api_code"] == 10030:
+                    time.sleep(0.3)
+                    log_save(obs.LOG_INFO, f"再次尝试发送")
+                    send_danmaku_return = get_w_s_a().send_danmu(
+                        int(widget.ComboBox.danmuRoom.Value), send_danmu_t
+                    )
+                    if send_danmaku_return["success"]:
+                        log_save(obs.LOG_INFO, f"发送成功")
+                    elif send_danmaku_return["api_code"] == 1003212:
+                        lenout(send_danmaku_return, send_danmu_t)
 
-        clear_cache()
+                    else:
+                        log_save(obs.LOG_INFO, f"{send_danmaku_return['error']}")
+                        return False
+                return True
+            def lenout(send_danmaku_return, send_danmu_t):
+                log_save(obs.LOG_INFO, f"{send_danmaku_return['error']}")
+                str_len_max = 40
+
+                # 使用正则分割，保留表情和普通文本
+                pattern = r'(\[.*?\])'
+                segments = re.split(pattern, send_danmu_t)
+                segments = [seg for seg in segments if seg]  # 过滤空字符串
+
+                # 处理分割后的片段
+                processed_segments = []
+                for seg in segments:
+                    if seg.startswith("[") and seg.endswith("]") and len(seg) <= str_len_max:
+                        # 表情或特殊标记，整体保留
+                        processed_segments.append(seg)
+                    else:
+                        # 普通文本，按字符拆分
+                        processed_segments.extend(list(seg))
+
+                # 分组发送
+                current_group = []
+                current_length = 0
+
+                for seg in processed_segments:
+                    seg_length = 1 if seg in emjio_list else len(seg)
+
+                    if current_length + seg_length <= str_len_max:
+                        current_group.append(seg)
+                        current_length += seg_length
+                    else:
+                        # 发送当前分组
+                        if current_group:
+                            log_save(obs.LOG_INFO, f"发送：{''.join(current_group)}")
+                            send_danmaku_return = get_w_s_a().send_danmu(
+                                int(widget.ComboBox.danmuRoom.Value),
+                                ''.join(current_group)
+                            )
+                            if send_danmaku_return["success"]:
+                                log_save(obs.LOG_INFO, f"发送成功")
+                            elif send_danmaku_return["api_code"] == 10030:
+                                if not fastout(send_danmaku_return, ''.join(current_group)):
+                                    return False
+                            else:
+                                log_save(obs.LOG_INFO, f"{send_danmaku_return['error']}")
+                                return False
+                        # 开始新分组
+                        current_group = [seg]
+                        current_length = seg_length
+
+                # 发送最后一组
+                if current_group:
+                    log_save(obs.LOG_INFO, f"发送：{''.join(current_group)}")
+                    send_danmaku_return = get_w_s_a().send_danmu(
+                        int(widget.ComboBox.danmuRoom.Value),
+                        ''.join(current_group)
+                    )
+                    if send_danmaku_return["success"]:
+                        log_save(obs.LOG_INFO, f"发送成功")
+                    elif send_danmaku_return["api_code"] == 10030:
+                        if not fastout(send_danmaku_return, ''.join(current_group)):
+                            return False
+                    else:
+                        log_save(obs.LOG_INFO, f"{send_danmaku_return['error']}")
+                        return False
+                return True
+            for send_danmu_t in send_danmu_ts:
+                send_danmaku_return = get_w_s_a().send_danmu(int(widget.ComboBox.danmuRoom.Value), send_danmu_t)
+                log_save(obs.LOG_INFO, f"发送：{send_danmu_t}")
+                if send_danmaku_return["success"]:
+                    log_save(obs.LOG_INFO, f"发送成功")
+                elif send_danmaku_return["api_code"] == 10030:
+                    if not fastout(send_danmaku_return, send_danmu_t):
+                        return False
+                elif send_danmaku_return["api_code"] == 1003212:
+                    if not lenout(send_danmaku_return, send_danmu_t):
+                        return False
+                else:
+                    log_save(obs.LOG_INFO, f"{send_danmaku_return['error']}")
+            clear_cache()
+        ds = threading.Thread(target=run)
+        ds.daemon = True
+        ds.start()
+        obs.obs_data_set_string(
+            GlobalVariableOfData.script_settings, widget.TextBox.danmuSendText.Name, "")
         return True
 
 
@@ -30014,14 +30078,14 @@ widget.widget_TextBox_dict = {
             "Description": "弹幕端口",
             "LongDescription": "弹幕服务端转发端口，如果冲突尽量更改，1024-49151之间",
             "Type": obs.OBS_TEXT_DEFAULT,
-            "ModifiedIs": True
+            "ModifiedIs": False
         },
         "danmuWebCss": {
             "Name": "danmu_Web_css_textBox",
             "Description": "弹幕样式",
             "LongDescription": "弹幕css",
             "Type": obs.OBS_TEXT_MULTILINE,
-            "ModifiedIs": True
+            "ModifiedIs": False
         },
     },
     "danmu_send_props": {
@@ -30030,7 +30094,7 @@ widget.widget_TextBox_dict = {
             "Description": "输入",
             "LongDescription": "弹幕发送文字",
             "Type": obs.OBS_TEXT_MULTILINE,
-            "ModifiedIs": True
+            "ModifiedIs": False
         },
     },
 }
