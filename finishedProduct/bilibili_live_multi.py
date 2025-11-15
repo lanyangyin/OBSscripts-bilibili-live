@@ -13208,9 +13208,7 @@ class ButtonFunction:
                         pattern = r'(\[.*?\])'
                         emoji_name_text_separation_list = re.split(pattern, damu_text)
                         """分离的带‘[]’的表情名称和普通文本"""
-                        pattern = r'(' + '|'.join(
-                            [re.escape(sep) for sep in list(get_common_danmu_own_big_expression().keys()) + list(
-                                danmu_extra['emots'] if danmu_extra['emots'] else [])]) + ')'
+                        pattern = r'(' + '|'.join([re.escape(sep) for sep in list(get_common_danmu_own_big_expression().keys()) + list(danmu_extra['emots'] if danmu_extra['emots'] else [])]) + ')'
                         emoji_text_own_separation_list = re.split(pattern, damu_text)
                         for damu_split in emoji_text_own_separation_list:
                             if not damu_split:
@@ -29872,6 +29870,39 @@ class ButtonFunction:
         if send_danmaku_return["success"]:
             log_save(obs.LOG_INFO, f"发送成功")
             obs.obs_data_set_string(GlobalVariableOfData.script_settings, widget.TextBox.danmuSendText.Name, "")
+        elif send_danmaku_return["api_code"] == 1003212:
+            str_len_max = 40
+            emjio_list = ["[dog]", "[花]"]
+            split_one_list = []
+            str_len = 0
+            split_one_list_start_num = 0
+            pattern = r'(\[.*?\])'
+            emoji_name_text_separation_list = re.split(pattern, send_danmu_t)
+            emoji_name_text_separation_list = [emoji_name_text_separation for emoji_name_text_separation in
+                                               emoji_name_text_separation_list if emoji_name_text_separation]
+            for emoji_name_text_separation in emoji_name_text_separation_list:
+                if emoji_name_text_separation.startswith("[") and emoji_name_text_separation.endswith("]") and len(emoji_name_text_separation) <= str_len_max:
+                    split_one_list.append(emoji_name_text_separation)
+                else:
+                    split_one_list.extend(emoji_name_text_separation)
+            for nt in split_one_list:
+                if nt in emjio_list:
+                    str_len += 1
+                else:
+                    str_len += len(nt)
+                if nt == split_one_list[-1]:
+                    get_w_s_a().send_danmu(
+                        int(widget.ComboBox.danmuRoom.Value),
+                        ''.join(split_one_list[split_one_list_start_num:split_one_list.index(nt)+1])
+                    )
+                elif str_len > str_len_max:
+                    get_w_s_a().send_danmu(
+                        int(widget.ComboBox.danmuRoom.Value),
+                        ''.join(split_one_list[split_one_list_start_num:split_one_list.index(nt)])
+                    )
+                    split_one_list_start_num = split_one_list.index(nt)
+                    str_len = 0
+
         else:
             obs.obs_data_set_string(GlobalVariableOfData.script_settings, widget.TextBox.danmuSendText.Name, f"{send_danmu_t}\n{send_danmaku_return['error']}")
             log_save(obs.LOG_INFO, f"{send_danmaku_return['error']}")
