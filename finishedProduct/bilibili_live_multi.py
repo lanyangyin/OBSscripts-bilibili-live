@@ -9815,6 +9815,7 @@ def get_common_danmu_web_css():
         )
     return get_c_d_m().get_data(get_b_u_c_m().get_default_user_id(), "danmuWebCss")[0]
 
+
 def clear_cache():
     # 清除函数缓存
     get_w_s_a.cache_clear()
@@ -11405,6 +11406,17 @@ def script_defaults(settings):  # 设置其默认值
     if widget.Button.stopDanmu.Name in update_widget_for_props_name:
         widget.Button.stopDanmu.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.Button.stopDanmu.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+
+    if widget.Button.mergeEmoticons.Name in update_widget_for_props_name:
+        widget.Button.mergeEmoticons.Visible = True if get_b_u_c_m().get_default_user_id() else False
+        widget.Button.mergeEmoticons.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+
+    if widget.ComboBox.danmuEmoticons.Name in update_widget_for_props_name:
+        widget.ComboBox.danmuEmoticons.Visible = True if get_b_u_c_m().get_default_user_id() else False
+        widget.ComboBox.danmuEmoticons.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget.ComboBox.danmuEmoticons.Text = ""
+        widget.ComboBox.danmuEmoticons.Value = ""
+        widget.ComboBox.danmuEmoticons.Dictionary = {json.dumps(emoji, ensure_ascii=False) : emoji["emoji"] for emoji in get_b_s_a_m().get_room_emoticons(int(widget.ComboBox.danmuRoom.Value))["data"]["data"][0]["emoticons"]} if get_b_u_c_m().get_default_user_id() else {}
 
     if widget.TextBox.danmuSendText.Name in update_widget_for_props_name:
         widget.TextBox.danmuSendText.Visible = True if get_b_u_c_m().get_default_user_id() else False
@@ -29994,6 +30006,26 @@ class ButtonFunction:
         return True
 
     @staticmethod
+    def button_function_merge_emoticons(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        danmu_emoticons = obs.obs_data_get_string(
+            GlobalVariableOfData.script_settings, widget.ComboBox.danmuEmoticons.Name
+        )
+        send_danmu_t_source = obs.obs_data_get_string(
+            GlobalVariableOfData.script_settings, widget.TextBox.danmuSendText.Name
+        )
+        obs.obs_data_set_string(
+            GlobalVariableOfData.script_settings,
+            widget.TextBox.danmuSendText.Name,
+            send_danmu_t_source + json.loads(danmu_emoticons)["emoji"]
+        )
+        return True
+
+    @staticmethod
     def button_function_danmu_send(*args):
         if len(args) == 2:
             props = args[0]
@@ -30004,7 +30036,7 @@ class ButtonFunction:
             GlobalVariableOfData.script_settings, widget.TextBox.danmuSendText.Name
         )
         send_danmu_ts = [seg for seg in re.split("\n", send_danmu_t_source) if seg]
-        emjio_list = ["[dog]", "[花]"]
+        emjio_list = list(widget.ComboBox.danmuEmoticons.Dictionary.values())
 
         def run():
             def fastout(send_danmaku_return, send_danmu_t):
@@ -30021,7 +30053,7 @@ class ButtonFunction:
                         lenout(send_danmaku_return, send_danmu_t)
 
                     else:
-                        log_save(obs.LOG_INFO, f"{send_danmaku_return['error']}")
+                        log_save(obs.LOG_INFO, f"{send_danmaku_return['message']}{send_danmaku_return['error']}")
                         return False
                 return True
             def lenout(send_danmaku_return, send_danmu_t):
@@ -30067,7 +30099,7 @@ class ButtonFunction:
                                 if not fastout(send_danmaku_return, ''.join(current_group)):
                                     return False
                             else:
-                                log_save(obs.LOG_INFO, f"{send_danmaku_return['error']}")
+                                log_save(obs.LOG_INFO, f"{send_danmaku_return['message']}{send_danmaku_return['error']}")
                                 return False
                         # 开始新分组
                         current_group = [seg]
@@ -30086,12 +30118,12 @@ class ButtonFunction:
                         if not fastout(send_danmaku_return, ''.join(current_group)):
                             return False
                     else:
-                        log_save(obs.LOG_INFO, f"{send_danmaku_return['error']}")
+                        log_save(obs.LOG_INFO, f"{send_danmaku_return['message']}{send_danmaku_return['error']}")
                         return False
                 return True
             for send_danmu_t in send_danmu_ts:
                 send_danmaku_return = get_w_s_a().send_danmu(int(widget.ComboBox.danmuRoom.Value), send_danmu_t)
-                log_save(obs.LOG_INFO, f"发送：{send_danmu_t}")
+                log_save(obs.LOG_INFO, f"发送：{send_danmu_t}{send_danmaku_return}")
                 if send_danmaku_return["success"]:
                     log_save(obs.LOG_INFO, f"发送成功")
                 elif send_danmaku_return["api_code"] == 10030:
@@ -30101,7 +30133,7 @@ class ButtonFunction:
                     if not lenout(send_danmaku_return, send_danmu_t):
                         return False
                 else:
-                    log_save(obs.LOG_INFO, f"{send_danmaku_return['error']}")
+                    log_save(obs.LOG_INFO, f"{send_danmaku_return['message']}{send_danmaku_return['error']}")
             clear_cache()
         ds = threading.Thread(target=run)
         ds.daemon = True
@@ -30291,6 +30323,14 @@ widget.widget_ComboBox_dict = {
             "Name": "danmu_room_comboBox",
             "Description": "直播间",
             "Type": obs.OBS_COMBO_TYPE_EDITABLE,
+            "ModifiedIs": True
+        },
+    },
+    "danmu_send_props": {
+        "danmuEmoticons": {
+            "Name": "danmu_emoticons_comboBox",
+            "Description": "表情",
+            "Type": obs.OBS_COMBO_TYPE_LIST,
             "ModifiedIs": True
         },
     },
@@ -30758,6 +30798,13 @@ widget.widget_Button_dict = {
         },
     },
     "danmu_send_props": {
+        "mergeEmoticons": {
+            "Name": "merge_emoticons_button",
+            "Description": "输入表情",
+            "Type": obs.OBS_BUTTON_DEFAULT,
+            "Callback": ButtonFunction.button_function_merge_emoticons,
+            "ModifiedIs": False
+        },
         "danmuSend": {
             "Name": "danmu_send_button",
             "Description": "发送",
@@ -30853,6 +30900,8 @@ widget.widget_list = [
     "remove_danmu_browser_button",
     "stop_danmu_button",
     "danmu_send_group",
+    "danmu_emoticons_comboBox",
+    "merge_emoticons_button",
     "danmu_send_text_textBox",
     "danmu_send_button",
     "bottom_button",
