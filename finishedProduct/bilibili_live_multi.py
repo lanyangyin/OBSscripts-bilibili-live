@@ -9410,14 +9410,14 @@ def get_uid_nickname_dict():
         }
         is_login = BilibiliSpecialApiManager(headers, GlobalVariableOfData.sslVerification).get_nav_info()["data"]
         if is_login["isLogin"]:
-            uid_nickname_dict[uid] = get_b_a_g().get_bilibili_user_card(uid)['data']['data']['card']['name']
+            uid_nickname_dict[get_b_a_g().get_bilibili_user_card(uid)['data']['data']['card']['name']] = uid
         else:
             log_save(obs.LOG_INFO, f"❌{get_b_a_g().get_bilibili_user_card(uid)['data']['data']['card']['name']}过期")
             if get_b_u_c_m().get_default_user_id() == uid:
                 get_b_u_c_m().clear_default_user()
             get_b_u_c_m().delete_user(int(uid))
     if not get_b_u_c_m().get_user_cookies()["success"]:
-        uid_nickname_dict['-1'] = '添加或选择一个账号登录'
+        uid_nickname_dict['添加或选择一个账号登录'] = '-1'
     log_save(obs.LOG_INFO, f"║║载入账号字典：{uid_nickname_dict}")
     return uid_nickname_dict
 
@@ -9426,7 +9426,7 @@ def get_uid_nickname_dict():
 def get_default_user_nickname():
     # 获取 '登录用户' 的昵称
     if get_b_u_c_m().get_default_user_id():
-        default_user_nickname: Optional[str] = get_uid_nickname_dict()[get_b_u_c_m().get_default_user_id()]
+        default_user_nickname: Optional[str] = list(get_uid_nickname_dict().keys())[list(get_uid_nickname_dict().values()).index(get_b_u_c_m().get_default_user_id())]
         """登录用户的昵称，没有登录则为None"""
         log_save(obs.LOG_INFO, f"║║用户：{default_user_nickname} 已登录")
     else:
@@ -9533,7 +9533,7 @@ def get_common_title4number():
         if get_room_status():
             get_c_d_m().add_data(get_b_u_c_m().get_default_user_id(), "title", get_room_title())
             for number, commonTitle in enumerate(get_c_d_m().get_data(get_b_u_c_m().get_default_user_id(), "title")):
-                common_title4number[str(number)] = commonTitle
+                common_title4number[commonTitle] = str(number)
             log_save(obs.LOG_INFO, f"║║登录账户 的 常用直播间标题：{common_title4number}")
         else:
             log_save(obs.LOG_INFO, f"║║登录账户 的 常用直播间标题：⚠️无直播间")
@@ -9615,16 +9615,16 @@ def get_common_area_id_dict_str4common_area_name_dict_str():
                 for common_area in get_common_areas():
                     common_area_id = json.dumps({common_area['parent_id']: common_area['id']}, ensure_ascii=False)
                     common_area_name = json.dumps({common_area['parent_name']: common_area['name']}, ensure_ascii=False)
-                    common_area_id_dict_str4common_area_name_dict_str[common_area_id] = common_area_name
+                    common_area_id_dict_str4common_area_name_dict_str[common_area_name] = common_area_id
             else:
-                common_area_id_dict_str4common_area_name_dict_str = {"-1": "无常用分区"}
+                common_area_id_dict_str4common_area_name_dict_str = {"无常用分区": "-1"}
             id_dict_str4name_dict_value_list = list(common_area_id_dict_str4common_area_name_dict_str.values())
             log_save(obs.LOG_INFO, f"║║登录账户 的 常用直播间分区：{id_dict_str4name_dict_value_list}")
         else:
-            common_area_id_dict_str4common_area_name_dict_str = {"-1": '⚠️无直播间'}
+            common_area_id_dict_str4common_area_name_dict_str = {"⚠️无直播间": '-1'}
             log_save(obs.LOG_INFO, f"║║登录账户 的 常用直播间分区：⚠️无直播间")
     else:
-        common_area_id_dict_str4common_area_name_dict_str = {"-1": "⚠️未登录账号"}
+        common_area_id_dict_str4common_area_name_dict_str = {"⚠️无直播间": '-1'}
         log_save(obs.LOG_INFO, f"║║登录账户 的 常用直播间分区：⚠️未登录账号")
     return common_area_id_dict_str4common_area_name_dict_str
 
@@ -9651,15 +9651,15 @@ def get_parent_live_area_name4parent_live_area_id():
     if get_b_u_c_m().get_default_user_id():
         if get_room_status():
             for AreaObjData in get_area_obj_data_list()['data']:
-                parent_live_area_name4parent_live_area_id[str(AreaObjData["id"])] = AreaObjData["name"]
+                parent_live_area_name4parent_live_area_id[AreaObjData["name"]] = str(AreaObjData["id"])
             if not get_area():
-                parent_live_area_name4parent_live_area_id |= {"-1": "请选择一级分区"}
+                parent_live_area_name4parent_live_area_id |= {"请选择一级分区": "-1"}
             log_save(obs.LOG_INFO, f"║║获取 直播间父分区数据：{parent_live_area_name4parent_live_area_id}")
         else:
-            parent_live_area_name4parent_live_area_id = {"-1": '⚠️无直播间'}
+            parent_live_area_name4parent_live_area_id = {'⚠️无直播间': "-1"}
             log_save(obs.LOG_INFO, f"║║获取 直播间父分区数据：⚠️无直播间")
     else:
-        parent_live_area_name4parent_live_area_id = {"-1": "⚠️未登录账号"}
+        parent_live_area_name4parent_live_area_id = {"⚠️未登录账号": "-1"}
         log_save(obs.LOG_INFO, f"║║获取 直播间父分区数据：⚠️未登录账号")
     return parent_live_area_name4parent_live_area_id
 
@@ -9675,14 +9675,14 @@ def get_sub_live_area_name4sub_live_area_id():
                 for AreaObjData in get_area_obj_data_list()["data"]:
                     if str(get_area()["parent_area_id"]) == str(AreaObjData["id"]):
                         for subAreaObj in AreaObjData["list"]:
-                            sub_live_area_name4sub_live_area_id[str(subAreaObj["id"])] = subAreaObj["name"]
+                            sub_live_area_name4sub_live_area_id[subAreaObj["name"]] = str(subAreaObj["id"])
                         break
             else:
-                sub_live_area_name4sub_live_area_id = {"-1": "请选择一级分区"}
+                sub_live_area_name4sub_live_area_id = {"请选择一级分区": "-1"}
         else:
-            sub_live_area_name4sub_live_area_id = {"-1": '⚠️无直播间'}
+            sub_live_area_name4sub_live_area_id = {'⚠️无直播间': "-1"}
     else:
-        sub_live_area_name4sub_live_area_id = {"-1": "⚠️未登录账号"}
+        sub_live_area_name4sub_live_area_id = {"⚠️未登录账号": "-1"}
     log_save(obs.LOG_INFO, f"║║获取 直播间父分区 对应的 直播间子分区数据：{sub_live_area_name4sub_live_area_id}")
     return sub_live_area_name4sub_live_area_id
 
@@ -9740,15 +9740,15 @@ def get_reserve_name4reserve_sid():
                     reserve_sid = str(reserve['reserve_info']['sid'])
                     reserve_name = reserve['reserve_info']['name']
                     reserve_time = datetime.fromtimestamp(reserve['reserve_info']['live_plan_start_time'])
-                    reserve_name4reserve_sid[reserve_sid] = f"{reserve_name}|{reserve_time}"
-                    log_save(obs.LOG_INFO, f"║║登录账户 的 直播预约：{(list(reserve_name4reserve_sid.values()))}")
+                    reserve_name4reserve_sid[f"{reserve_name}|{reserve_time}"] = reserve_sid
+                    log_save(obs.LOG_INFO, f"║║登录账户 的 直播预约：{(list(reserve_name4reserve_sid.keys()))}")
             else:
-                reserve_name4reserve_sid = {"-1": "无直播预约"}
+                reserve_name4reserve_sid = {"无直播预约": "-1"}
         else:
-            reserve_name4reserve_sid = {"-1": "⚠️无直播间"}
+            reserve_name4reserve_sid = {"⚠️无直播间": "-1"}
             log_save(obs.LOG_INFO, f"║║登录账户 的 直播预约：⚠️无直播间")
     else:
-        reserve_name4reserve_sid = {"-1": "⚠️未登录账号"}
+        reserve_name4reserve_sid = {"⚠️未登录账号": "-1"}
         log_save(obs.LOG_INFO, f"║║登录账户 的 直播预约：⚠️未登录账号")
     return reserve_name4reserve_sid
 
@@ -9775,11 +9775,11 @@ def get_common_danmu_roomid_dict():
         common_danmu_roomid = get_c_d_m().get_data(get_b_u_c_m().get_default_user_id(), "danmuRoomid")
         if common_danmu_roomid:
             for danmu_roomid in common_danmu_roomid:
-                danmu_roomid_uname_dict[str(danmu_roomid)] = get_b_a_g().get_room_base_info(int(danmu_roomid))["data"]['uname']
+                danmu_roomid_uname_dict[get_b_a_g().get_room_base_info(int(danmu_roomid))["data"]['uname']] = str(danmu_roomid)
         else:
             if get_room_status():
                 get_c_d_m().add_data(get_b_u_c_m().get_default_user_id(), "danmuRoomid", str(get_room_id()), 99)
-                danmu_roomid_uname_dict[str(get_room_id())] = get_b_a_g().get_room_base_info(int(get_room_id()))["data"]['uname']
+                danmu_roomid_uname_dict[get_b_a_g().get_room_base_info(int(get_room_id()))["data"]['uname']] = str(get_room_id())
     return danmu_roomid_uname_dict
 
 
@@ -9815,6 +9815,13 @@ def get_common_danmu_web_css():
         )
     return get_c_d_m().get_data(get_b_u_c_m().get_default_user_id(), "danmuWebCss")[0]
 
+@lru_cache(maxsize=None)
+def get_common_danmu_emoticons():
+    danmu_emoticons_dict = {}
+    for emoji in get_b_s_a_m().get_room_emoticons(int(widget.ComboBox.danmuRoom.Value))["data"]["data"][0]["emoticons"]:
+        danmu_emoticons_dict[emoji["emoji"]] = json.dumps(emoji, ensure_ascii=False)
+    return danmu_emoticons_dict
+
 
 def clear_cache():
     # 清除函数缓存
@@ -9849,6 +9856,7 @@ def clear_cache():
     get_common_danmu_web_socket_server_prot.cache_clear()
     get_common_danmu_own_big_expression.cache_clear()
     get_common_danmu_web_css.cache_clear()
+    get_common_danmu_emoticons.cache_clear()
 
 # ====================================================================================================================
 
@@ -10921,8 +10929,8 @@ def script_defaults(settings):  # 设置其默认值
         widget.Group.danmuOnOff.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
     if widget.Group.danmuSend.Name in update_widget_for_props_name:
-        widget.Group.danmuSend.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.Group.danmuSend.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget.Group.danmuSend.Visible = True if get_common_danmu_roomid_dict() else False
+        widget.Group.danmuSend.Enabled = True if get_common_danmu_roomid_dict() else False
 
     if widget.Button.bottom.Name in update_widget_for_props_name:
         widget.Button.bottom.Visible = False
@@ -10945,19 +10953,13 @@ def script_defaults(settings):  # 设置其默认值
     if widget.ComboBox.uid.Name in update_widget_for_props_name:
         widget.ComboBox.uid.Visible = True
         widget.ComboBox.uid.Enabled = True
-        if get_b_u_c_m().get_default_user_id():
-            widget.ComboBox.uid.Text = get_default_user_nickname()
-        else:
-            widget.ComboBox.uid.Text = '添加或选择一个账号登录'
-        if get_b_u_c_m().get_default_user_id():
-            widget.ComboBox.uid.Value = get_b_u_c_m().get_default_user_id()
-        else:
-            widget.ComboBox.uid.Value = '-1'
+        widget.ComboBox.uid.Text = get_default_user_nickname() if get_b_u_c_m().get_default_user_id() else '添加或选择一个账号登录'
+        widget.ComboBox.uid.Value = get_b_u_c_m().get_default_user_id() if get_b_u_c_m().get_default_user_id() else '-1'
         widget.ComboBox.uid.Dictionary = get_uid_nickname_dict()
 
     if widget.Button.login.Name in update_widget_for_props_name:
-        widget.Button.login.Visible = True if get_uid_nickname_dict() != {'-1': '添加或选择一个账号登录'} else False
-        widget.Button.login.Enabled = True if get_uid_nickname_dict() != {'-1': '添加或选择一个账号登录'} else False
+        widget.Button.login.Visible = True if get_uid_nickname_dict() != {'添加或选择一个账号登录': '-1'} else False
+        widget.Button.login.Enabled = True if get_uid_nickname_dict() != {'添加或选择一个账号登录': '-1'} else False
 
     if widget.Button.accountListUpdate.Name in update_widget_for_props_name:
         widget.Button.accountListUpdate.Visible = True
@@ -10972,8 +10974,8 @@ def script_defaults(settings):  # 设置其默认值
         widget.Button.qrPictureDisplay.Enabled = False
 
     if widget.Button.accountDelete.Name in update_widget_for_props_name:
-        widget.Button.accountDelete.Visible = True if get_uid_nickname_dict() != {'-1': '添加或选择一个账号登录'} else False
-        widget.Button.accountDelete.Enabled = True if get_uid_nickname_dict() != {'-1': '添加或选择一个账号登录'} else False
+        widget.Button.accountDelete.Visible = True if get_uid_nickname_dict() != {'添加或选择一个账号登录': '-1'} else False
+        widget.Button.accountDelete.Enabled = True if get_uid_nickname_dict() != {'添加或选择一个账号登录': '-1'} else False
 
     if widget.Button.accountBackup.Name in update_widget_for_props_name:
         widget.Button.accountBackup.Visible = False
@@ -11067,12 +11069,12 @@ def script_defaults(settings):  # 设置其默认值
         widget.ComboBox.roomCommonAreas.Visible = bool(get_room_status())
         widget.ComboBox.roomCommonAreas.Enabled = bool(get_room_status())
         if get_common_areas():
-            common_areas_text = list(get_common_area_id_dict_str4common_area_name_dict_str().values())[0]
+            common_areas_text = list(get_common_area_id_dict_str4common_area_name_dict_str().keys())[0]
             widget.ComboBox.roomCommonAreas.Text = common_areas_text
         else:
             widget.ComboBox.roomCommonAreas.Text = "无常用分区"
         if get_common_areas():
-            common_areas_value = list(get_common_area_id_dict_str4common_area_name_dict_str().keys())[0]
+            common_areas_value = list(get_common_area_id_dict_str4common_area_name_dict_str().values())[0]
             widget.ComboBox.roomCommonAreas.Value = common_areas_value
         else:
             widget.ComboBox.roomCommonAreas.Value = "-1"
@@ -11122,7 +11124,7 @@ def script_defaults(settings):  # 设置其默认值
         if not bool(widget.ComboBox.liveStreamingPlatform.Value):
             widget.ComboBox.liveStreamingPlatform.Value = "pc_link"
         widget.ComboBox.liveStreamingPlatform.Dictionary = {
-            "pc_link": "直播姬（pc）", "web_link": "web在线直播", "android_link": "bililink"
+            "直播姬（pc）": "pc_link", "web在线直播": "web_link", "bililink": "android_link"
         }
 
     if widget.Button.liveStart.Name in update_widget_for_props_name:
@@ -11371,8 +11373,8 @@ def script_defaults(settings):  # 设置其默认值
     if widget.ComboBox.danmuRoom.Name in update_widget_for_props_name:
         widget.ComboBox.danmuRoom.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.ComboBox.danmuRoom.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.ComboBox.danmuRoom.Text = str(list(get_common_danmu_roomid_dict().values())[0]) if get_common_danmu_roomid_dict() else ""
-        widget.ComboBox.danmuRoom.Value = str(list(get_common_danmu_roomid_dict().keys())[0]) if get_common_danmu_roomid_dict() else ""
+        widget.ComboBox.danmuRoom.Text = str(list(get_common_danmu_roomid_dict().keys())[0]) if get_common_danmu_roomid_dict() else ""
+        widget.ComboBox.danmuRoom.Value = str(list(get_common_danmu_roomid_dict().values())[0]) if get_common_danmu_roomid_dict() else ""
         widget.ComboBox.danmuRoom.Dictionary = get_common_danmu_roomid_dict()
 
     if widget.Button.addDanmuRoomid.Name in update_widget_for_props_name:
@@ -11383,6 +11385,8 @@ def script_defaults(settings):  # 设置其默认值
         widget.Button.delDanmuRoomid.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.Button.delDanmuRoomid.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
+    # 分组框【弹幕启动】
+    # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     if widget.Button.startDanmuForwardingService.Name in update_widget_for_props_name:
         widget.Button.startDanmuForwardingService.Visible = False
         widget.Button.startDanmuForwardingService.Enabled = False
@@ -11407,25 +11411,27 @@ def script_defaults(settings):  # 设置其默认值
         widget.Button.stopDanmu.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.Button.stopDanmu.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
-    if widget.Button.mergeEmoticons.Name in update_widget_for_props_name:
-        widget.Button.mergeEmoticons.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.Button.mergeEmoticons.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-
+    # 分组框【弹幕发送】
+    # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     if widget.ComboBox.danmuEmoticons.Name in update_widget_for_props_name:
-        widget.ComboBox.danmuEmoticons.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.ComboBox.danmuEmoticons.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget.ComboBox.danmuEmoticons.Visible = True if get_common_danmu_roomid_dict() else False
+        widget.ComboBox.danmuEmoticons.Enabled = True if get_common_danmu_roomid_dict() else False
         widget.ComboBox.danmuEmoticons.Text = ""
         widget.ComboBox.danmuEmoticons.Value = ""
-        widget.ComboBox.danmuEmoticons.Dictionary = {json.dumps(emoji, ensure_ascii=False) : emoji["emoji"] for emoji in get_b_s_a_m().get_room_emoticons(int(widget.ComboBox.danmuRoom.Value))["data"]["data"][0]["emoticons"]} if get_b_u_c_m().get_default_user_id() else {}
+        widget.ComboBox.danmuEmoticons.Dictionary = get_common_danmu_emoticons() if get_common_danmu_roomid_dict() else {}
+
+    if widget.Button.mergeEmoticons.Name in update_widget_for_props_name:
+        widget.Button.mergeEmoticons.Visible = True if get_common_danmu_roomid_dict() else False
+        widget.Button.mergeEmoticons.Enabled = True if get_common_danmu_roomid_dict() else False
 
     if widget.TextBox.danmuSendText.Name in update_widget_for_props_name:
-        widget.TextBox.danmuSendText.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.TextBox.danmuSendText.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget.TextBox.danmuSendText.Visible = True if get_common_danmu_roomid_dict() else False
+        widget.TextBox.danmuSendText.Enabled = True if get_common_danmu_roomid_dict() else False
         widget.TextBox.danmuSendText.Text = ""
 
     if widget.Button.danmuSend.Name in update_widget_for_props_name:
-        widget.Button.danmuSend.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.Button.danmuSend.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget.Button.danmuSend.Visible = True if get_common_danmu_roomid_dict() else False
+        widget.Button.danmuSend.Enabled = True if get_common_danmu_roomid_dict() else False
 
     clear_cache()
     return True
@@ -11648,7 +11654,7 @@ def update_ui_interface_data():
                         for common_area_id_dict_str in w.Dictionary:
                             if common_area_id_dict_str != w.Value:
                                 obs.obs_property_list_add_string(
-                                    w.Obj, w.Dictionary[common_area_id_dict_str], common_area_id_dict_str
+                                    w.Obj, common_area_id_dict_str, w.Dictionary[common_area_id_dict_str]
                                 )
                             else:
                                 obs.obs_property_list_insert_string(w.Obj, 0, w.Text, w.Value)
@@ -11657,7 +11663,7 @@ def update_ui_interface_data():
                             obs.obs_data_set_string(
                                 GlobalVariableOfData.script_settings, w.Name, obs.obs_property_list_item_name(w.Obj, 0)
                             )
-                    else:
+                    elif w.Type == obs.OBS_COMBO_TYPE_LIST:
                         if obs.obs_data_get_string(GlobalVariableOfData.script_settings, w.Name) != w.Value:
                             obs.obs_data_set_string(
                                 GlobalVariableOfData.script_settings, w.Name, obs.obs_property_list_item_string(w.Obj, 0)
@@ -11774,7 +11780,7 @@ class ButtonFunction:
         GlobalVariableOfData.update_widget_for_props_dict = {
             "account_props": widget.props_Collection["account_props"]
         }
-        if widget.ComboBox.uid.Dictionary == {'-1': '添加或选择一个账号登录'}:
+        if widget.ComboBox.uid.Dictionary == {'添加或选择一个账号登录': '-1'}:
             GlobalVariableOfData.update_widget_for_props_dict =widget.props_Collection
         log_save(obs.LOG_INFO, f"更新控件配置信息")
         script_defaults(GlobalVariableOfData.script_settings)
@@ -11862,7 +11868,7 @@ class ButtonFunction:
                     else:
                         get_b_u_c_m().add_user(cookies)
                         log_save(obs.LOG_INFO, f"添加用户成功")
-                        if widget.ComboBox.uid.Dictionary == {'-1': '添加或选择一个账号登录'}:
+                        if widget.ComboBox.uid.Dictionary == {'添加或选择一个账号登录': '-1'}:
                             get_b_u_c_m().update_user(cookies, True)
                         log_save(obs.LOG_INFO, "请点击按钮【更新账号列表】，更新用户列表")
                 else:
@@ -12375,17 +12381,17 @@ class ButtonFunction:
             return False
 
         # 更改默认常用直播间分区
-        common_areas_text = list(get_common_area_id_dict_str4common_area_name_dict_str().values())[0]
+        common_areas_text = list(get_common_area_id_dict_str4common_area_name_dict_str().keys())[0]
         widget.ComboBox.roomCommonAreas.Text = common_areas_text
-        common_areas_value = list(get_common_area_id_dict_str4common_area_name_dict_str().keys())[0]
+        common_areas_value = list(get_common_area_id_dict_str4common_area_name_dict_str().values())[0]
         widget.ComboBox.roomCommonAreas.Value = common_areas_value
         widget.ComboBox.roomCommonAreas.Dictionary = get_common_area_id_dict_str4common_area_name_dict_str()
 
         widget.ComboBox.roomParentArea.Text = get_area()["parent_area_name"]
         widget.ComboBox.roomParentArea.Value = get_area()["parent_area_id"]
 
-        widget.ComboBox.roomSubArea.Text = get_sub_live_area_name4sub_live_area_id()[str(get_area()["area_id"])]
-        widget.ComboBox.roomSubArea.Value = get_area()["area_id"]
+        widget.ComboBox.roomSubArea.Text = get_area()["area_name"]
+        widget.ComboBox.roomSubArea.Value = get_sub_live_area_name4sub_live_area_id()[str(get_area()["area_name"])]
         widget.ComboBox.roomSubArea.Dictionary = get_sub_live_area_name4sub_live_area_id()
 
         clear_cache()
@@ -12444,7 +12450,7 @@ class ButtonFunction:
             log_save(obs.LOG_ERROR, f"开播失败：【{start_live['message']}】。")
             return True
 
-        widget.ComboBox.liveStreamingPlatform.Text = widget.ComboBox.liveStreamingPlatform.Dictionary[live_streaming_platform]
+        widget.ComboBox.liveStreamingPlatform.Text = list(widget.ComboBox.liveStreamingPlatform.Dictionary.keys())[list(widget.ComboBox.liveStreamingPlatform.Dictionary.values()).index(live_streaming_platform)]
         widget.ComboBox.liveStreamingPlatform.Value = live_streaming_platform
 
         # 推流地址
@@ -12780,7 +12786,7 @@ class ButtonFunction:
         if live_bookings_sid in ["-1"]:
             log_save(obs.LOG_ERROR, f"无直播预约")
             return False
-        cancel_reserve_return = get_b_csrf_a().cancel_reserve(live_bookings_sid)
+        cancel_reserve_return = get_b_csrf_a().cancel_reserve(int(live_bookings_sid))
         log_save(obs.LOG_INFO, f"取消直播预约返回: {cancel_reserve_return}")
         if cancel_reserve_return['success']:
             log_save(obs.LOG_INFO, f"取消直播预约成功")
@@ -12977,8 +12983,8 @@ class ButtonFunction:
         if len(args) == 3:
             settings = args[2]
         room: str = obs.obs_data_get_string(GlobalVariableOfData.script_settings, widget.ComboBox.danmuRoom.Name)
-        if str(room) in list(widget.ComboBox.danmuRoom.Dictionary.values()):
-            room = list(widget.ComboBox.danmuRoom.Dictionary.keys())[list(widget.ComboBox.danmuRoom.Dictionary.values()).index(str(room))]
+        if str(room) in list(widget.ComboBox.danmuRoom.Dictionary.keys()):
+            room = list(widget.ComboBox.danmuRoom.Dictionary.values())[list(widget.ComboBox.danmuRoom.Dictionary.keys()).index(str(room))]
         log_save(obs.LOG_INFO, f"添加直播间：{room}")
         room_base_info = get_b_a_g().get_room_base_info(int(room))
         log_save(obs.LOG_INFO, f"获取直播间基本信息: {room_base_info}")
@@ -12992,7 +12998,16 @@ class ButtonFunction:
 
         # 更新脚本控制台中的控件
         GlobalVariableOfData.update_widget_for_props_dict = {
-            "danmu_props": {"danmu_room_comboBox"}
+            "danmu_props": {
+                "danmu_room_comboBox",
+                "danmu_send_group",
+            },
+            "danmu_send_props": {
+                "danmu_emoticons_comboBox",
+                "merge_emoticons_button",
+                "danmu_send_text_textBox",
+                "danmu_send_button",
+            },
         }
         log_save(obs.LOG_INFO, f"更新控件配置信息")
         script_defaults(GlobalVariableOfData.script_settings)
@@ -13010,8 +13025,8 @@ class ButtonFunction:
         if len(args) == 3:
             settings = args[2]
         room: str = obs.obs_data_get_string(GlobalVariableOfData.script_settings, widget.ComboBox.danmuRoom.Name)
-        if str(room) in list(widget.ComboBox.danmuRoom.Dictionary.values()):
-            room = list(widget.ComboBox.danmuRoom.Dictionary.keys())[list(widget.ComboBox.danmuRoom.Dictionary.values()).index(str(room))]
+        if str(room) in list(widget.ComboBox.danmuRoom.Dictionary.keys()):
+            room = list(widget.ComboBox.danmuRoom.Dictionary.values())[list(widget.ComboBox.danmuRoom.Dictionary.keys()).index(str(room))]
         log_save(obs.LOG_INFO, f"删除直播间：{room}")
         log_save(obs.LOG_INFO, str(get_c_d_m().remove_data(get_b_u_c_m().get_default_user_id(), "danmuRoomid", str(room))))
 
@@ -13019,7 +13034,16 @@ class ButtonFunction:
 
         # 更新脚本控制台中的控件
         GlobalVariableOfData.update_widget_for_props_dict = {
-            "danmu_props": {"danmu_room_comboBox"}
+            "danmu_props": {
+                "danmu_room_comboBox",
+                "danmu_send_group",
+            },
+            "danmu_send_props": {
+                "danmu_emoticons_comboBox",
+                "merge_emoticons_button",
+                "danmu_send_text_textBox",
+                "danmu_send_button",
+            },
         }
         log_save(obs.LOG_INFO, f"更新控件配置信息")
         script_defaults(GlobalVariableOfData.script_settings)
@@ -30036,7 +30060,7 @@ class ButtonFunction:
             GlobalVariableOfData.script_settings, widget.TextBox.danmuSendText.Name
         )
         send_danmu_ts = [seg for seg in re.split("\n", send_danmu_t_source) if seg]
-        emjio_list = list(widget.ComboBox.danmuEmoticons.Dictionary.values())
+        emjio_list = list(widget.ComboBox.danmuEmoticons.Dictionary.keys())
 
         def run():
             def fastout(send_danmaku_return, send_danmu_t):
