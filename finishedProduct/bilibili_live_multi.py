@@ -9567,9 +9567,9 @@ def get_area():
     if get_b_u_c_m().get_default_user_id():
         if get_room_status():
             area = {
-                "parent_area_id": get_room_base_info()["parent_area_id"],
+                "parent_area_id": str(get_room_base_info()["parent_area_id"]),
                 "parent_area_name": get_room_base_info()["parent_area_name"],
-                "area_id": get_room_base_info()["area_id"],
+                "area_id": str(get_room_base_info()["area_id"]),
                 "area_name": get_room_base_info()["area_name"],
             }
             """登录用户的直播间分区】{"parent_area_id": 3, "parent_area_name": "手游", "area_id": 255, "area_name": "明日方舟"}"""
@@ -11651,10 +11651,10 @@ def update_ui_interface_data():
                         combo_box_option_dictionary[combo_box_option_dictionary_key] = combo_box_option_dictionary_value
                     if w.Dictionary != combo_box_option_dictionary:
                         obs.obs_property_list_clear(w.Obj)
-                        for common_area_id_dict_str in w.Dictionary:
-                            if common_area_id_dict_str != w.Value:
+                        for dict_key in w.Dictionary:
+                            if dict_key != w.Text:
                                 obs.obs_property_list_add_string(
-                                    w.Obj, common_area_id_dict_str, w.Dictionary[common_area_id_dict_str]
+                                    w.Obj, dict_key, w.Dictionary[dict_key]
                                 )
                             else:
                                 obs.obs_property_list_insert_string(w.Obj, 0, w.Text, w.Value)
