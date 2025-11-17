@@ -10792,7 +10792,7 @@ def trigger_frontend_event(event):
         GlobalVariableOfData.causeOfTheFrontDeskIncident = ""
     elif event == obs.OBS_FRONTEND_EVENT_FINISHED_LOADING:
         # 尝试关闭弹幕web
-        log_save(obs.LOG_INFO, "正在直播，此次 OBS 完成加载 事件 清除哔哩哔哩弹幕浏览器源")
+        log_save(obs.LOG_INFO, "此次 OBS 完成加载 事件 清除哔哩哔哩弹幕浏览器源")
         ButtonFunction.button_function_remove_danmu_browser()
     elif event == obs.OBS_FRONTEND_EVENT_SCRIPTING_SHUTDOWN:
         if get_live_status():
