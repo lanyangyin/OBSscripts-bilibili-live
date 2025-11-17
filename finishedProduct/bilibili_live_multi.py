@@ -9302,12 +9302,10 @@ def get_w_s_a():
         w_s_a = None
     return w_s_a
 
-
 @lru_cache(maxsize=None)
 def get_b_u_c_m():
     b_u_c_m = BilibiliUserConfigManager(config_path=GlobalVariableOfData.scriptsUsersConfigFilepath)
     return b_u_c_m
-
 
 @lru_cache(maxsize=None)
 def get_b_l_i_r():
@@ -9320,7 +9318,6 @@ def get_b_l_i_r():
     b_l_i_r = BilibiliLogInRegister(headers, GlobalVariableOfData.sslVerification)
     return b_l_i_r
 
-
 @lru_cache(maxsize=None)
 def get_i_c():
     headers = {
@@ -9332,7 +9329,6 @@ def get_i_c():
     i_c = ImproveCookies(headers, GlobalVariableOfData.sslVerification)
     return i_c
 
-
 @lru_cache(maxsize=None)
 def get_b_a_g():
     headers = {
@@ -9343,7 +9339,6 @@ def get_b_a_g():
     # 初始化API对象
     b_a_g = BilibiliApiGeneric(headers, GlobalVariableOfData.sslVerification)
     return b_a_g
-
 
 @lru_cache(maxsize=None)
 def get_b_s_a_m():
@@ -9359,7 +9354,6 @@ def get_b_s_a_m():
         b_r_m = None
     return b_r_m
 
-
 @lru_cache(maxsize=None)
 def get_b_l_d_m():
     if get_b_u_c_m().get_default_user_id():
@@ -9372,7 +9366,6 @@ def get_b_l_d_m():
     else:
         dm = None
     return dm
-
 
 @lru_cache(maxsize=None)
 def get_b_csrf_a():
@@ -9388,13 +9381,11 @@ def get_b_csrf_a():
         b_csrf_a = None
     return b_csrf_a
 
-
 @lru_cache(maxsize=None)
 def get_c_d_m():
     # 创建用户常用数据实例
     c_d_m = CommonDataManager(Path(GlobalVariableOfData.scriptsDataDirpath) / "commonData.json")
     return c_d_m
-
 
 @lru_cache(maxsize=None)
 def get_uid_nickname_dict():
@@ -9421,7 +9412,6 @@ def get_uid_nickname_dict():
     log_save(obs.LOG_INFO, f"║║载入账号字典：{uid_nickname_dict}")
     return uid_nickname_dict
 
-
 @lru_cache(maxsize=None)
 def get_default_user_nickname():
     # 获取 '登录用户' 的昵称
@@ -9435,7 +9425,6 @@ def get_default_user_nickname():
         log_save(obs.LOG_INFO, f"║║用户：⚠️未登录账号")
     return default_user_nickname
 
-
 @lru_cache(maxsize=None)
 def get_room_info_old():
     # 获取 '登录用户' 对应的直播间基础信息
@@ -9448,7 +9437,6 @@ def get_room_info_old():
         """直播间基础信息"""
         log_save(obs.LOG_INFO, f"║║登录账户 的 直播间基础信息：⚠️未登录账号")
     return room_info_old
-
 
 @lru_cache(maxsize=None)
 def get_room_status():
@@ -9465,7 +9453,6 @@ def get_room_status():
         """登录用户的直播间存在状态"""
         log_save(obs.LOG_INFO, f"║║登录账户 的 直播间状态：⚠️未登录账号")
     return room_status
-
 
 @lru_cache(maxsize=None)
 def get_room_id():
@@ -9485,7 +9472,6 @@ def get_room_id():
         log_save(obs.LOG_INFO, f"║║登录账户 的 直播间id：⚠️未登录账号")
     return room_id
 
-
 @lru_cache(maxsize=None)
 def get_room_base_info():
     # 获取 '登录用户' 直播间基本信息
@@ -9503,7 +9489,6 @@ def get_room_base_info():
         """直播间基本信息"""
         log_save(obs.LOG_INFO, f"║║登录账户 的 直播间基本信息：⚠️未登录账号")
     return room_base_info
-
 
 @lru_cache(maxsize=None)
 def get_room_title():
@@ -9523,7 +9508,6 @@ def get_room_title():
         log_save(obs.LOG_INFO, f"║║登录账户 的 直播间标题：⚠️未登录账号")
     return room_title
 
-
 @lru_cache(maxsize=None)
 def get_common_title4number():
     # 添加当前直播间标题 到 常用直播间标 题配置文件
@@ -9540,7 +9524,6 @@ def get_common_title4number():
     else:
         log_save(obs.LOG_INFO, f"║║登录账户 的 常用直播间标题：⚠️未登录账号")
     return common_title4number
-
 
 @lru_cache(maxsize=None)
 def get_room_news():
@@ -9559,7 +9542,6 @@ def get_room_news():
         """直播间公告"""
         log_save(obs.LOG_INFO, f"║║登录账户 的 直播间公告：⚠️未登录账号")
     return room_news
-
 
 @lru_cache(maxsize=None)
 def get_area():
@@ -9584,7 +9566,6 @@ def get_area():
         log_save(obs.LOG_INFO, f"║║登录账户 的 直播间分区数据：⚠️未登录账号")
     return area
 
-
 @lru_cache(maxsize=None)
 def get_common_areas():
     # 获取 '登录用户' 直播间 常用分区信息
@@ -9602,7 +9583,6 @@ def get_common_areas():
         """获取 '登录用户' 直播间 常用分区信息】[{"id": "255", "name": "明日方舟", "parent_id": "3", "parent_name": "手游",}, ]"""
         log_save(obs.LOG_INFO, f"║║登录账户 的 常用分区信息：⚠️未登录账号")
     return common_areas
-
 
 @lru_cache(maxsize=None)
 def get_common_area_id_dict_str4common_area_name_dict_str():
@@ -9628,7 +9608,6 @@ def get_common_area_id_dict_str4common_area_name_dict_str():
         log_save(obs.LOG_INFO, f"║║登录账户 的 常用直播间分区：⚠️未登录账号")
     return common_area_id_dict_str4common_area_name_dict_str
 
-
 @lru_cache(maxsize=None)
 def get_area_obj_data_list():
     # 获取 B站直播分区信息
@@ -9641,7 +9620,6 @@ def get_area_obj_data_list():
         """B站直播分区信息"""
         log_save(obs.LOG_INFO, f"║║获取B站直播分区信息：⚠️未登录账号")
     return area_obj_data_list
-
 
 @lru_cache(maxsize=None)
 def get_parent_live_area_name4parent_live_area_id():
@@ -9662,7 +9640,6 @@ def get_parent_live_area_name4parent_live_area_id():
         parent_live_area_name4parent_live_area_id = {"⚠️未登录账号": "-1"}
         log_save(obs.LOG_INFO, f"║║获取 直播间父分区数据：⚠️未登录账号")
     return parent_live_area_name4parent_live_area_id
-
 
 @lru_cache(maxsize=None)
 def get_sub_live_area_name4sub_live_area_id():
@@ -9686,7 +9663,6 @@ def get_sub_live_area_name4sub_live_area_id():
     log_save(obs.LOG_INFO, f"║║获取 直播间父分区 对应的 直播间子分区数据：{sub_live_area_name4sub_live_area_id}")
     return sub_live_area_name4sub_live_area_id
 
-
 @lru_cache(maxsize=None)
 def get_live_status():
     # 获取 '登录用户' 的 直播状态
@@ -9708,7 +9684,6 @@ def get_live_status():
         log_save(obs.LOG_INFO, f"║║登录账户 的 直播状态：⚠️未登录账号")
     return live_status
 
-
 @lru_cache(maxsize=None)
 def get_reserve_list():
     # 登录用户的直播预约列表信息
@@ -9726,7 +9701,6 @@ def get_reserve_list():
         """获取 '登录用户' 的 直播预约列表信息"""
         log_save(obs.LOG_INFO, f"║║登录账户 的 直播预约列表信息：⚠️未登录账号")
     return reserve_list
-
 
 @lru_cache(maxsize=None)
 def get_reserve_name4reserve_sid():
@@ -9752,7 +9726,6 @@ def get_reserve_name4reserve_sid():
         log_save(obs.LOG_INFO, f"║║登录账户 的 直播预约：⚠️未登录账号")
     return reserve_name4reserve_sid
 
-
 @lru_cache(maxsize=None)
 def get_common_danmu_setting():
     """
@@ -9766,7 +9739,6 @@ def get_common_danmu_setting():
             get_c_d_m().add_data(get_b_u_c_m().get_default_user_id(), "danmuSetting", setting, 1)
         danmu_setting_list = [int(item) for item in get_c_d_m().get_data(get_b_u_c_m().get_default_user_id(), "danmuSetting")[0].split("/")]
     return danmu_setting_list
-
 
 @lru_cache(maxsize=None)
 def get_common_danmu_roomid_dict():
@@ -9782,14 +9754,12 @@ def get_common_danmu_roomid_dict():
                 danmu_roomid_uname_dict[get_b_a_g().get_room_base_info(int(get_room_id()))["data"]['uname']] = str(get_room_id())
     return danmu_roomid_uname_dict
 
-
 @lru_cache(maxsize=None)
 def get_common_danmu_web_socket_server_prot():
     danmu_web_socket_server_prot = get_c_d_m().get_data(get_b_u_c_m().get_default_user_id(), "danmuWssProt")
     if not danmu_web_socket_server_prot:
         get_c_d_m().add_data(get_b_u_c_m().get_default_user_id(), "danmuWssProt", "8765", 1)
     return get_c_d_m().get_data(get_b_u_c_m().get_default_user_id(), "danmuWssProt")[0]
-
 
 @lru_cache(maxsize=None)
 def get_common_danmu_own_big_expression():
@@ -9818,10 +9788,21 @@ def get_common_danmu_web_css():
 @lru_cache(maxsize=None)
 def get_common_danmu_emoticons():
     danmu_emoticons_dict = {}
-    for emoji in get_b_s_a_m().get_room_emoticons(int(widget.ComboBox.danmuRoom.Value))["data"]["data"][0]["emoticons"]:
+    for emoji in get_b_s_a_m().get_room_emoticons(int(str(list(get_common_danmu_roomid_dict().values())[0])))["data"]["data"][0]["emoticons"]:
         danmu_emoticons_dict[emoji["emoji"]] = json.dumps(emoji, ensure_ascii=False)
     return danmu_emoticons_dict
 
+@lru_cache(maxsize=None)
+def get_common_widget_visibility() -> dict[str, int]:
+    widget_visibility_dict = {}
+    widget_visibility_setting = get_c_d_m().get_data(get_b_u_c_m().get_default_user_id(), "widgetVisibility")
+    if not widget_visibility_setting:
+        widget_visibility_dict_ = json.dumps({}, ensure_ascii=False)
+        get_c_d_m().add_data(get_b_u_c_m().get_default_user_id(), "widgetVisibility", widget_visibility_dict_, 1)
+    widget_visibility_dict_list = get_c_d_m().get_data(get_b_u_c_m().get_default_user_id(), "widgetVisibility")
+    for widget_visibility in json.loads(widget_visibility_dict_list[0]):
+        widget_visibility_dict[widget_visibility] = int(widget_visibility_dict[widget_visibility])
+    return widget_visibility_dict
 
 def clear_cache():
     # 清除函数缓存
@@ -9857,6 +9838,7 @@ def clear_cache():
     get_common_danmu_own_big_expression.cache_clear()
     get_common_danmu_web_css.cache_clear()
     get_common_danmu_emoticons.cache_clear()
+    get_common_widget_visibility.cache_clear()
 
 # ====================================================================================================================
 
@@ -10823,8 +10805,6 @@ def property_modified(t: str) -> bool:
             return ButtonFunction.button_function_start_parent_area()
         elif t == "room_cover_fileDialogBox":
             return ButtonFunction.button_function_update_room_cover()
-        elif t == "room_commonTitles_comboBox":
-            return ButtonFunction.button_function_true_live_room_title()
         elif t == "room_commonAreas_comboBox":
             return ButtonFunction.button_function_true_live_room_common_area()
         elif t == "live_bookings_day_digitalSlider":
@@ -10907,30 +10887,37 @@ def script_defaults(settings):  # 设置其默认值
     if widget.Group.account.Name in update_widget_for_props_name:
         widget.Group.account.Visible = True
         widget.Group.account.Enabled = not bool(get_live_status())
+        widget.Group.account.Bool = bool(get_common_widget_visibility().get(widget.Group.account.Name, True))
 
     if widget.Group.room.Name in update_widget_for_props_name:
         widget.Group.room.Visible = True
         widget.Group.room.Enabled = True
+        widget.Group.room.Bool = bool(get_common_widget_visibility().get(widget.Group.room.Name, True))
 
     if widget.Group.live.Name in update_widget_for_props_name:
         widget.Group.live.Visible = bool(get_room_status())
         widget.Group.live.Enabled = bool(get_room_status())
+        widget.Group.live.Bool = bool(get_common_widget_visibility().get(widget.Group.live.Name, True))
 
     if widget.Group.booking.Name in update_widget_for_props_name:
         widget.Group.booking.Visible = bool(get_room_status())
         widget.Group.booking.Enabled = bool(get_room_status())
+        widget.Group.booking.Bool = bool(get_common_widget_visibility().get(widget.Group.booking.Name, True))
 
     if widget.Group.danmu.Name in update_widget_for_props_name:
         widget.Group.danmu.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.Group.danmu.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget.Group.danmu.Bool = bool(get_common_widget_visibility().get(widget.Group.danmu.Name, True))
 
     if widget.Group.danmuOnOff.Name in update_widget_for_props_name:
         widget.Group.danmuOnOff.Visible = True if get_b_u_c_m().get_default_user_id() else False
         widget.Group.danmuOnOff.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget.Group.danmuOnOff.Bool = bool(get_common_widget_visibility().get(widget.Group.danmuOnOff.Name, True))
 
     if widget.Group.danmuSend.Name in update_widget_for_props_name:
         widget.Group.danmuSend.Visible = True if get_common_danmu_roomid_dict() else False
         widget.Group.danmuSend.Enabled = True if get_common_danmu_roomid_dict() else False
+        widget.Group.danmuSend.Bool = bool(get_common_widget_visibility().get(widget.Group.danmuSend.Name, True))
 
     if widget.Button.bottom.Name in update_widget_for_props_name:
         widget.Button.bottom.Visible = False
@@ -11042,15 +11029,6 @@ def script_defaults(settings):  # 设置其默认值
         widget.ComboBox.roomCommonTitles.Text = get_room_title() if bool(get_room_status()) else ""
         widget.ComboBox.roomCommonTitles.Value = "0"
         widget.ComboBox.roomCommonTitles.Dictionary = get_common_title4number()
-
-    if widget.Button.roomCommonTitlesTrue.Name in update_widget_for_props_name:
-        widget.Button.roomCommonTitlesTrue.Visible = False
-        widget.Button.roomCommonTitlesTrue.Enabled = False
-
-    if widget.TextBox.roomTitle.Name in update_widget_for_props_name:
-        widget.TextBox.roomTitle.Visible = bool(get_room_status())
-        widget.TextBox.roomTitle.Enabled = bool(get_room_status())
-        widget.TextBox.roomTitle.Text = get_room_title() if bool(get_room_status()) else ""
 
     if widget.Button.roomTitleChange.Name in update_widget_for_props_name:
         widget.Button.roomTitleChange.Visible = bool(get_room_status())
@@ -12195,26 +12173,6 @@ class ButtonFunction:
         return False
 
     @staticmethod
-    def button_function_true_live_room_title(*args):
-        """将可 可编辑组合框【常用标题】 中的文本 复制到 普通文本框【直播间标题】 """
-        if len(args) == 2:
-            props = args[0]
-            prop = args[1]
-        if len(args) == 3:
-            settings = args[2]
-        # 获取 可编辑组合框【常用标题】 当前 显示文本
-        title_text = obs.obs_data_get_string(
-            GlobalVariableOfData.script_settings, widget.ComboBox.roomCommonTitles.Name
-        )
-        log_save(obs.LOG_INFO, f"获取 可编辑组合框【常用标题】 当前 显示文本：{title_text}")
-        # 更新 普通文本框【直播间标题】 的 文本
-        obs.obs_data_set_string(
-            GlobalVariableOfData.script_settings, widget.TextBox.roomTitle.Name, title_text
-        )
-        log_save(obs.LOG_INFO, f"更新 普通文本框【直播间标题】 的 文本")
-        return True
-
-    @staticmethod
     def button_function_change_live_room_title(*args):
         """
         更改直播间标题
@@ -12226,29 +12184,24 @@ class ButtonFunction:
             prop = args[1]
         if len(args) == 3:
             settings = args[2]
-        title_textbox_t = obs.obs_data_get_string(GlobalVariableOfData.script_settings, widget.TextBox.roomTitle.Name)
+        room_title = obs.obs_data_get_string(GlobalVariableOfData.script_settings, widget.ComboBox.roomCommonTitles.Name)
         """标题文本框中的文本"""
 
-        turn_title_return = get_b_csrf_a().change_room_title(get_b_s_a_m().get_room_highlight_info()["data"]["room_id"], title_textbox_t)
+        turn_title_return = get_b_csrf_a().change_room_title(get_b_s_a_m().get_room_highlight_info()["data"]["room_id"], room_title)
         """更改标题的返回值"""
         log_save(obs.LOG_INFO, f"更改直播间标题返回消息：{turn_title_return}")
         if turn_title_return['success']:
-            log_save(obs.LOG_INFO, f"直播间标题更改成功: {title_textbox_t}")
+            log_save(obs.LOG_INFO, f"直播间标题更改成功: {room_title}")
         else:
             log_save(obs.LOG_INFO, f"直播间标题更改失败{turn_title_return['message']}")
             return False
-        get_c_d_m().add_data(get_b_u_c_m().get_default_user_id(), "title", title_textbox_t)
-
-        widget.ComboBox.roomCommonTitles.Text = title_textbox_t
-        widget.ComboBox.roomCommonTitles.Value = "0"
-
-        widget.TextBox.roomTitle.Text = title_textbox_t
+        get_c_d_m().add_data(get_b_u_c_m().get_default_user_id(), "title", room_title)
 
         clear_cache()
 
         # 更新脚本控制台中的控件
         GlobalVariableOfData.update_widget_for_props_dict = {
-            "room_props": {"room_commonTitles_comboBox"}
+            "room_props": {"room_Titles_comboBox"}
         }
         log_save(obs.LOG_INFO, f"更新控件配置信息")
         script_defaults(GlobalVariableOfData.script_settings)
@@ -30169,7 +30122,7 @@ class ButtonFunction:
                 return True
             for send_danmu_t in send_danmu_ts:
                 send_danmaku_return = get_w_s_a().send_danmu(int(widget.ComboBox.danmuRoom.Value), send_danmu_t)
-                log_save(obs.LOG_INFO, f"发送：{send_danmu_t}{send_danmaku_return}")
+                log_save(obs.LOG_INFO, f"发送：{send_danmu_t}")
                 if send_danmaku_return["success"]:
                     log_save(obs.LOG_INFO, f"发送成功")
                 elif send_danmaku_return["api_code"] == 10030:
@@ -30208,25 +30161,27 @@ widget.widget_Group_dict = {
             "GroupProps": "room_props",
             "ModifiedIs": False
         },
-        "live": {
-            "Name": "live_group",
-            "Description": "直播",
-            "Type": obs.OBS_GROUP_NORMAL,
-            "GroupProps": "live_props",
-            "ModifiedIs": False
-        },
         "booking": {
             "Name": "booking_group",
             "Description": "直播预约",
-            "Type": obs.OBS_GROUP_NORMAL,
+            "Type": obs.OBS_GROUP_CHECKABLE,
             "GroupProps": "booking_props",
-            "ModifiedIs": False
+            "ModifiedIs": True
         },
         "danmu": {
             "Name": "danmu_group",
             "Description": "弹幕",
             "Type": obs.OBS_GROUP_NORMAL,
             "GroupProps": "danmu_props",
+            "ModifiedIs": False
+        },
+    },
+    "room_props": {
+        "live": {
+            "Name": "live_group",
+            "Description": "直播",
+            "Type": obs.OBS_GROUP_NORMAL,
+            "GroupProps": "live_props",
             "ModifiedIs": False
         },
     },
@@ -30260,19 +30215,13 @@ widget.widget_TextBox_dict = {
     "room_props": {
         "roomStatus": {
             "Name": "room_status_textBox",
-            "Description": "直播状态",
+            "Description": "状态",
             "Type": obs.OBS_TEXT_INFO,
             "ModifiedIs": False
         },
-        "roomTitle": {
-            "Name": "room_title_textBox",
-            "Description": "直播间标题",
-            "Type": obs.OBS_TEXT_DEFAULT,
-            "ModifiedIs": True
-        },
         "roomNews": {
             "Name": "room_news_textBox",
-            "Description": "直播间公告",
+            "Description": "公告",
             "Type": obs.OBS_TEXT_MULTILINE,
             "ModifiedIs": True
         },
@@ -30324,26 +30273,26 @@ widget.widget_ComboBox_dict = {
     },
     "room_props": {
         "roomCommonTitles": {
-            "Name": "room_commonTitles_comboBox",
-            "Description": "常用标题",
+            "Name": "room_Titles_comboBox",
+            "Description": "标题",
             "Type": obs.OBS_COMBO_TYPE_EDITABLE,
             "ModifiedIs": True
         },
         "roomCommonAreas": {
             "Name": "room_commonAreas_comboBox",
-            "Description": "常用分区",
+            "Description": "分区",
             "Type": obs.OBS_COMBO_TYPE_LIST,
             "ModifiedIs": True
         },
         "roomParentArea": {
             "Name": "room_parentArea_comboBox",
-            "Description": "一级分区",
+            "Description": "一级",
             "Type": obs.OBS_COMBO_TYPE_LIST,
             "ModifiedIs": True
         },
         "roomSubArea": {
             "Name": "room_subArea_comboBox",
-            "Description": "二级分区",
+            "Description": "二级",
             "Type": obs.OBS_COMBO_TYPE_LIST,
             "ModifiedIs": True
         },
@@ -30351,7 +30300,7 @@ widget.widget_ComboBox_dict = {
     "live_props": {
         "liveStreamingPlatform": {
             "Name": "live_streaming_platform_comboBox",
-            "Description": "直播平台",
+            "Description": "平台",
             "Type": obs.OBS_COMBO_TYPE_LIST,
             "ModifiedIs": True
         },
@@ -30386,7 +30335,7 @@ widget.widget_PathBox_dict = {
     "room_props": {
         "roomCover": {
             "Name": "room_cover_fileDialogBox",
-            "Description": "直播间封面",
+            "Description": "封面",
             "Type": obs.OBS_PATH_FILE,
             "Filter": "图片(*.jpg *.jpeg *.png)",
             "StartPath": "",
@@ -30637,13 +30586,6 @@ widget.widget_Button_dict = {
             "Callback": ButtonFunction.button_function_update_room_cover,
             "ModifiedIs": False
         },
-        "roomCommonTitlesTrue": {
-            "Name": "room_commonTitles_true_button",
-            "Description": "确认标题",
-            "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": ButtonFunction.button_function_true_live_room_title,
-            "ModifiedIs": False
-        },
         "roomTitleChange": {
             "Name": "room_title_change_button",
             "Description": "更改直播间标题",
@@ -30882,9 +30824,7 @@ widget.widget_list = [
     "room_cover_view_button",
     "room_cover_fileDialogBox",
     "room_cover_update_button",
-    "room_commonTitles_comboBox",
-    "room_commonTitles_true_button",
-    "room_title_textBox",
+    "room_Titles_comboBox",
     "room_title_change_button",
     "room_news_textBox",
     "room_news_change_button",
