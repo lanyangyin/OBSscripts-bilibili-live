@@ -11646,8 +11646,8 @@ def update_ui_interface_data():
                 elif w.ControlType == "ComboBox":
                     combo_box_option_dictionary = {}
                     for idx in range(obs.obs_property_list_item_count(w.Obj)):
-                        combo_box_option_dictionary_key = obs.obs_property_list_item_string(w.Obj, idx)
-                        combo_box_option_dictionary_value = obs.obs_property_list_item_name(w.Obj, idx)
+                        combo_box_option_dictionary_key = obs.obs_property_list_item_name(w.Obj, idx)
+                        combo_box_option_dictionary_value = obs.obs_property_list_item_string(w.Obj, idx)
                         combo_box_option_dictionary[combo_box_option_dictionary_key] = combo_box_option_dictionary_value
                     if w.Dictionary != combo_box_option_dictionary:
                         obs.obs_property_list_clear(w.Obj)
