@@ -11694,9 +11694,31 @@ def script_unload():
     # """保存日志文件"""
     log_save(obs.LOG_INFO, "==保存日志文件==")
     log_save(obs.LOG_INFO, f"{'═' * 120}\n")
-    with open(Path(GlobalVariableOfData.scriptsLogDir) / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.log", "w",
-              encoding="utf-8") as f:
+    # 创建日志目录路径对象
+    log_dir = Path(GlobalVariableOfData.scriptsLogDir)
+
+    # 生成新的日志文件名
+    new_log_filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+    new_log_path = log_dir / new_log_filename
+
+    # 写入新的日志文件
+    with open(new_log_path, "w", encoding="utf-8") as f:
         f.write(str(GlobalVariableOfData.logRecording))
+
+    log_num_max = 100
+
+    # 获取所有.log文件并按修改时间排序（最新的在前）
+    log_files = sorted(
+        [f for f in log_dir.iterdir() if f.is_file() and f.suffix.lower() == '.log'],
+        key=lambda x: x.stat().st_mtime,
+        reverse=True
+    )
+
+    # 如果文件数量超过100，删除最旧的文件
+    if len(log_files) > log_num_max:
+        files_to_delete = log_files[log_num_max:]
+        for old_file in files_to_delete:
+            old_file.unlink()  # 删除文件
 
 
 class ButtonFunction:
