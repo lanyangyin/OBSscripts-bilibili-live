@@ -30163,7 +30163,7 @@ widget.widget_Group_dict = {
         "room": {
             "Name": "room_group",
             "Description": "直播间",
-            "Type": obs.OBS_GROUP_NORMAL,
+            "Type": obs.OBS_GROUP_CHECKABLE,
             "GroupProps": "room_props",
             "ModifiedIs": False
         },
@@ -30177,7 +30177,7 @@ widget.widget_Group_dict = {
         "danmu": {
             "Name": "danmu_group",
             "Description": "弹幕",
-            "Type": obs.OBS_GROUP_NORMAL,
+            "Type": obs.OBS_GROUP_CHECKABLE,
             "GroupProps": "danmu_props",
             "ModifiedIs": False
         },
@@ -30186,7 +30186,7 @@ widget.widget_Group_dict = {
         "live": {
             "Name": "live_group",
             "Description": "直播",
-            "Type": obs.OBS_GROUP_NORMAL,
+            "Type": obs.OBS_GROUP_CHECKABLE,
             "GroupProps": "live_props",
             "ModifiedIs": False
         },
@@ -30195,14 +30195,14 @@ widget.widget_Group_dict = {
         "danmuOnOff": {
             "Name": "danmu_onoff_group",
             "Description": "on/off",
-            "Type": obs.OBS_GROUP_NORMAL,
+            "Type": obs.OBS_GROUP_CHECKABLE,
             "GroupProps": "danmu_onoff_props",
             "ModifiedIs": False
         },
         "danmuSend": {
             "Name": "danmu_send_group",
             "Description": "弹幕发送",
-            "Type": obs.OBS_GROUP_NORMAL,
+            "Type": obs.OBS_GROUP_CHECKABLE,
             "GroupProps": "danmu_send_props",
             "ModifiedIs": False
         },
