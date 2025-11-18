@@ -30034,6 +30034,12 @@ class ButtonFunction:
         send_danmu_t_source = obs.obs_data_get_string(
             GlobalVariableOfData.script_settings, widget.TextBox.danmuSendText.Name
         )
+        # -----------------------------------------------------------------------------------------------------------
+        # 确认直播间---------------------------------------------------------------------------------------------------
+        if not ButtonFunction.button_function_add_danmu_roomid():
+            return False
+        # -----------------------------------------------------------------------------------------------------------
+        # 发送弹幕----------------------------------------------------------------------------------------------------
         send_danmu_ts = [seg for seg in re.split("\n", send_danmu_t_source) if seg]
         emjio_list = list(widget.ComboBox.danmuEmoticons.Dictionary.keys())
 
@@ -30137,8 +30143,8 @@ class ButtonFunction:
         ds = threading.Thread(target=run)
         ds.daemon = True
         ds.start()
-        obs.obs_data_set_string(
-            GlobalVariableOfData.script_settings, widget.TextBox.danmuSendText.Name, "")
+        obs.obs_data_set_string(GlobalVariableOfData.script_settings, widget.TextBox.danmuSendText.Name, "")
+
         return True
 
 
