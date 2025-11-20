@@ -30323,7 +30323,7 @@ widget.widget_Group_dict = {
         "account": {
             "Name": "account_group",
             "Description": "账号",
-            "Type": obs.OBS_GROUP_NORMAL,
+            "Type": obs.OBS_GROUP_CHECKABLE,
             "GroupProps": "account_props",
             "ModifiedIs": False
         },
