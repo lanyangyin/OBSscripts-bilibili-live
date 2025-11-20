@@ -9801,7 +9801,7 @@ def get_common_widget_visibility() -> dict[str, int]:
         get_c_d_m().add_data(get_b_u_c_m().get_default_user_id(), "widgetVisibility", widget_visibility_dict_, 1)
     widget_visibility_dict_list = get_c_d_m().get_data(get_b_u_c_m().get_default_user_id(), "widgetVisibility")
     for widget_visibility in json.loads(widget_visibility_dict_list[0]):
-        widget_visibility_dict[widget_visibility] = int(widget_visibility_dict[widget_visibility])
+        widget_visibility_dict[widget_visibility] = int(json.loads(widget_visibility_dict_list[0])[widget_visibility])
     return widget_visibility_dict
 
 def clear_cache():
@@ -10815,6 +10815,8 @@ def property_modified(t: str) -> bool:
             return ButtonFunction.button_function_true_live_appointment_minute()
         elif t == "enter_room_display_checkBox":
             return ButtonFunction.button_function_setting_danmu_data()
+        elif t in [group_info["Name"] for category in widget.widget_Group_dict.values() for group_info in category.values() if "Name" in group_info]:
+            return ButtonFunction.button_function_set_widget_visibility()
         else:
             log_save(obs.LOG_INFO, t)
     else:
@@ -10865,6 +10867,12 @@ def script_defaults(settings):  # 设置其默认值
 
     # =================================================================================================================
     # 设置属性集合=======================================================================================================
+    psg_unv_name = set()
+    for psg in get_common_widget_visibility():
+        if not bool(get_common_widget_visibility().get(psg, True)):
+            psg_unv_name |= widget.props_Collection[psg]
+    log_save(obs.LOG_INFO, f"关闭显示：{psg_unv_name}")
+
     if not GlobalVariableOfData.update_widget_for_props_dict:
         GlobalVariableOfData.update_widget_for_props_dict = widget.props_Collection
     log_save(obs.LOG_INFO, f"║║💫更新属性集为{GlobalVariableOfData.update_widget_for_props_dict}的控件")
@@ -10880,536 +10888,663 @@ def script_defaults(settings):  # 设置其默认值
         update_widget_for_props_name |= GlobalVariableOfData.update_widget_for_props_dict[props_name]
     # =================================================================================================================
     # 设置控件属性=======================================================================================================
-    if widget.Button.top.Name in update_widget_for_props_name:
-        widget.Button.top.Visible = False
-        widget.Button.top.Enabled = False
+    widget_specific_object = widget.Button.top
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
+        widget_specific_object.Enabled = False
 
-    if widget.Group.account.Name in update_widget_for_props_name:
-        widget.Group.account.Visible = True
-        widget.Group.account.Enabled = not bool(get_live_status())
-        widget.Group.account.Bool = bool(get_common_widget_visibility().get(widget.Group.account.Name, True))
+    widget_specific_object = widget.Group.account
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True
+        widget_specific_object.Enabled = not bool(get_live_status())
+        widget_specific_object.Bool = bool(get_common_widget_visibility().get(widget_specific_object.GroupProps, True))
 
-    if widget.Group.room.Name in update_widget_for_props_name:
-        widget.Group.room.Visible = True
-        widget.Group.room.Enabled = True
-        widget.Group.room.Bool = bool(get_common_widget_visibility().get(widget.Group.room.Name, True))
+    widget_specific_object = widget.Group.room
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True
+        widget_specific_object.Enabled = True
+        widget_specific_object.Bool = bool(get_common_widget_visibility().get(widget_specific_object.GroupProps, True))
 
-    if widget.Group.live.Name in update_widget_for_props_name:
-        widget.Group.live.Visible = bool(get_room_status())
-        widget.Group.live.Enabled = bool(get_room_status())
-        widget.Group.live.Bool = bool(get_common_widget_visibility().get(widget.Group.live.Name, True))
+    widget_specific_object = widget.Group.liveBroadcastCover
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True
+        widget_specific_object.Enabled = True
+        widget_specific_object.Bool = bool(get_common_widget_visibility().get(widget_specific_object.GroupProps, True))
 
-    if widget.Group.booking.Name in update_widget_for_props_name:
-        widget.Group.booking.Visible = bool(get_room_status())
-        widget.Group.booking.Enabled = bool(get_room_status())
-        widget.Group.booking.Bool = bool(get_common_widget_visibility().get(widget.Group.booking.Name, True))
+    widget_specific_object = widget.Group.liveBroadcastTitle
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True
+        widget_specific_object.Enabled = True
+        widget_specific_object.Bool = bool(get_common_widget_visibility().get(widget_specific_object.GroupProps, True))
 
-    if widget.Group.danmu.Name in update_widget_for_props_name:
-        widget.Group.danmu.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.Group.danmu.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.Group.danmu.Bool = bool(get_common_widget_visibility().get(widget.Group.danmu.Name, True))
+    widget_specific_object = widget.Group.liveBroadcastAnnouncement
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True
+        widget_specific_object.Enabled = True
+        widget_specific_object.Bool = bool(get_common_widget_visibility().get(widget_specific_object.GroupProps, True))
 
-    if widget.Group.danmuOnOff.Name in update_widget_for_props_name:
-        widget.Group.danmuOnOff.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.Group.danmuOnOff.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.Group.danmuOnOff.Bool = bool(get_common_widget_visibility().get(widget.Group.danmuOnOff.Name, True))
+    widget_specific_object = widget.Group.liveStreamingSection
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True
+        widget_specific_object.Enabled = True
+        widget_specific_object.Bool = bool(get_common_widget_visibility().get(widget_specific_object.GroupProps, True))
 
-    if widget.Group.danmuSend.Name in update_widget_for_props_name:
-        widget.Group.danmuSend.Visible = True if get_common_danmu_roomid_dict() else False
-        widget.Group.danmuSend.Enabled = True if get_common_danmu_roomid_dict() else False
-        widget.Group.danmuSend.Bool = bool(get_common_widget_visibility().get(widget.Group.danmuSend.Name, True))
+    widget_specific_object = widget.Group.live
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else bool(get_room_status())
+        widget_specific_object.Enabled = bool(get_room_status())
+        widget_specific_object.Bool = bool(get_common_widget_visibility().get(widget_specific_object.GroupProps, True))
 
-    if widget.Button.bottom.Name in update_widget_for_props_name:
-        widget.Button.bottom.Visible = False
-        widget.Button.bottom.Enabled = False
+    widget_specific_object = widget.Group.bookingSend
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else bool(get_room_status())
+        widget_specific_object.Enabled = bool(get_room_status())
+        widget_specific_object.Bool = bool(get_common_widget_visibility().get(widget_specific_object.GroupProps, True))
+
+    widget_specific_object = widget.Group.booking
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else bool(get_room_status())
+        widget_specific_object.Enabled = bool(get_room_status())
+        widget_specific_object.Bool = bool(get_common_widget_visibility().get(widget_specific_object.GroupProps, True))
+
+    widget_specific_object = widget.Group.danmu
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Bool = bool(get_common_widget_visibility().get(widget_specific_object.GroupProps, True))
+
+    widget_specific_object = widget.Group.danmuDisplayOptions
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Bool = bool(get_common_widget_visibility().get(widget_specific_object.GroupProps, True))
+
+    widget_specific_object = widget.Group.danmuOnOff
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Bool = bool(get_common_widget_visibility().get(widget_specific_object.GroupProps, True))
+
+    widget_specific_object = widget.Group.danmuSend
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_common_danmu_roomid_dict() else False
+        widget_specific_object.Enabled = True if get_common_danmu_roomid_dict() else False
+        widget_specific_object.Bool = bool(get_common_widget_visibility().get(widget_specific_object.GroupProps, True))
+
+    widget_specific_object = widget.Button.setWidgetVisibility
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
+        widget_specific_object.Enabled = False
+
+    widget_specific_object = widget.Button.bottom
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
+        widget_specific_object.Enabled = False
 
     # 分组框【账号】
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    if widget.TextBox.loginStatus.Name in update_widget_for_props_name:
-        widget.TextBox.loginStatus.Visible = True
-        widget.TextBox.loginStatus.Enabled = True
+    widget_specific_object = widget.TextBox.loginStatus
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True
+        widget_specific_object.Enabled = True
         if get_b_u_c_m().get_default_user_id():
-            widget.TextBox.loginStatus.Text = f'{get_default_user_nickname()} 已登录'
+            widget_specific_object.Text = f'{get_default_user_nickname()} 已登录'
         else:
-            widget.TextBox.loginStatus.Text = '未登录，请登录后点击【更新账号列表】'
+            widget_specific_object.Text = '未登录，请登录后点击【更新账号列表】'
         if get_b_u_c_m().get_default_user_id():
-            widget.TextBox.loginStatus.InfoType = obs.OBS_TEXT_INFO_NORMAL
+            widget_specific_object.InfoType = obs.OBS_TEXT_INFO_NORMAL
         else:
-            widget.TextBox.loginStatus.InfoType = obs.OBS_TEXT_INFO_WARNING
+            widget_specific_object.InfoType = obs.OBS_TEXT_INFO_WARNING
 
-    if widget.ComboBox.uid.Name in update_widget_for_props_name:
-        widget.ComboBox.uid.Visible = True
-        widget.ComboBox.uid.Enabled = True
-        widget.ComboBox.uid.Text = get_default_user_nickname() if get_b_u_c_m().get_default_user_id() else '添加或选择一个账号登录'
-        widget.ComboBox.uid.Value = get_b_u_c_m().get_default_user_id() if get_b_u_c_m().get_default_user_id() else '-1'
-        widget.ComboBox.uid.Dictionary = get_uid_nickname_dict()
+    widget_specific_object = widget.ComboBox.uid
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True
+        widget_specific_object.Enabled = True
+        widget_specific_object.Text = get_default_user_nickname() if get_b_u_c_m().get_default_user_id() else '添加或选择一个账号登录'
+        widget_specific_object.Value = get_b_u_c_m().get_default_user_id() if get_b_u_c_m().get_default_user_id() else '-1'
+        widget_specific_object.Dictionary = get_uid_nickname_dict()
 
-    if widget.Button.login.Name in update_widget_for_props_name:
-        widget.Button.login.Visible = True if get_uid_nickname_dict() != {'添加或选择一个账号登录': '-1'} else False
-        widget.Button.login.Enabled = True if get_uid_nickname_dict() != {'添加或选择一个账号登录': '-1'} else False
+    widget_specific_object = widget.Button.login
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_uid_nickname_dict() != {'添加或选择一个账号登录': '-1'} else False
+        widget_specific_object.Enabled = True if get_uid_nickname_dict() != {'添加或选择一个账号登录': '-1'} else False
 
-    if widget.Button.accountListUpdate.Name in update_widget_for_props_name:
-        widget.Button.accountListUpdate.Visible = True
-        widget.Button.accountListUpdate.Enabled = True
+    widget_specific_object = widget.Button.accountListUpdate
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True
+        widget_specific_object.Enabled = True
 
-    if widget.Button.qrAddAccount.Name in update_widget_for_props_name:
-        widget.Button.qrAddAccount.Visible = True
-        widget.Button.qrAddAccount.Enabled = True
+    widget_specific_object = widget.Button.qrAddAccount
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True
+        widget_specific_object.Enabled = True
 
-    if widget.Button.qrPictureDisplay.Name in update_widget_for_props_name:
-        widget.Button.qrPictureDisplay.Visible = False
-        widget.Button.qrPictureDisplay.Enabled = False
+    widget_specific_object = widget.Button.qrPictureDisplay
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
+        widget_specific_object.Enabled = False
 
-    if widget.Button.accountDelete.Name in update_widget_for_props_name:
-        widget.Button.accountDelete.Visible = True if get_uid_nickname_dict() != {'添加或选择一个账号登录': '-1'} else False
-        widget.Button.accountDelete.Enabled = True if get_uid_nickname_dict() != {'添加或选择一个账号登录': '-1'} else False
+    widget_specific_object = widget.Button.accountDelete
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_uid_nickname_dict() != {'添加或选择一个账号登录': '-1'} else False
+        widget_specific_object.Enabled = True if get_uid_nickname_dict() != {'添加或选择一个账号登录': '-1'} else False
 
-    if widget.Button.accountBackup.Name in update_widget_for_props_name:
-        widget.Button.accountBackup.Visible = False
-        widget.Button.accountBackup.Enabled = False
+    widget_specific_object = widget.Button.accountBackup
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
+        widget_specific_object.Enabled = False
 
-    if widget.Button.accountRestore.Name in update_widget_for_props_name:
-        widget.Button.accountRestore.Visible = False
-        widget.Button.accountRestore.Enabled = False
+    widget_specific_object = widget.Button.accountRestore
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
+        widget_specific_object.Enabled = False
 
-    if widget.Button.logout.Name in update_widget_for_props_name:
-        widget.Button.logout.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.Button.logout.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+    widget_specific_object = widget.Button.logout
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
     # 分组框【直播间】
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    if widget.TextBox.roomStatus.Name in update_widget_for_props_name:
-        widget.TextBox.roomStatus.Visible = True
-        widget.TextBox.roomStatus.Enabled = True
+    widget_specific_object = widget.TextBox.roomStatus
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True
+        widget_specific_object.Enabled = True
         if get_b_u_c_m().get_default_user_id():
             if get_room_status():
                 if get_live_status():
-                    widget.TextBox.roomStatus.Text = f"{str(get_room_id())}直播中"
+                    widget_specific_object.Text = f"{str(get_room_id())}直播中"
                 else:
-                    widget.TextBox.roomStatus.Text = f"{str(get_room_id())}未开播"
+                    widget_specific_object.Text = f"{str(get_room_id())}未开播"
             else:
-                widget.TextBox.roomStatus.Text = "无直播间"
+                widget_specific_object.Text = "无直播间"
         else:
-            widget.TextBox.roomStatus.Text = "未登录"
+            widget_specific_object.Text = "未登录"
         if get_b_u_c_m().get_default_user_id():
             if get_room_status():
                 if get_live_status():
-                    widget.TextBox.roomStatus.InfoType = obs.OBS_TEXT_INFO_NORMAL
+                    widget_specific_object.InfoType = obs.OBS_TEXT_INFO_NORMAL
                 else:
-                    widget.TextBox.roomStatus.InfoType = obs.OBS_TEXT_INFO_WARNING
+                    widget_specific_object.InfoType = obs.OBS_TEXT_INFO_WARNING
             else:
-                widget.TextBox.roomStatus.InfoType = obs.OBS_TEXT_INFO_WARNING
+                widget_specific_object.InfoType = obs.OBS_TEXT_INFO_WARNING
         else:
-            widget.TextBox.roomStatus.InfoType = obs.OBS_TEXT_INFO_ERROR
+            widget_specific_object.InfoType = obs.OBS_TEXT_INFO_ERROR
 
-    if widget.Button.roomOpened.Name in update_widget_for_props_name:
-        widget.Button.roomOpened.Visible = (not bool(get_room_status())) if get_b_u_c_m().get_default_user_id() else False
-        widget.Button.roomOpened.Enabled = (not bool(get_room_status())) if get_b_u_c_m().get_default_user_id() else False
+    widget_specific_object = widget.Button.roomOpened
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else (not bool(get_room_status())) if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = (not bool(get_room_status())) if get_b_u_c_m().get_default_user_id() else False
 
-    if widget.Button.realNameAuthentication.Name in update_widget_for_props_name:
-        widget.Button.realNameAuthentication.Visible = False
-        widget.Button.realNameAuthentication.Enabled = False
+    widget_specific_object = widget.Button.realNameAuthentication
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
+        widget_specific_object.Enabled = False
 
-    if widget.Button.roomCoverView.Name in update_widget_for_props_name:
-        widget.Button.roomCoverView.Visible = bool(get_room_status())
-        widget.Button.roomCoverView.Enabled = bool(get_room_status())
+    widget_specific_object = widget.Button.roomCoverView
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else bool(get_room_status())
+        widget_specific_object.Enabled = bool(get_room_status())
 
-    if widget.PathBox.roomCover.Name in update_widget_for_props_name:
-        widget.PathBox.roomCover.Visible = bool(get_room_status())
-        widget.PathBox.roomCover.Enabled = bool(get_room_status())
-        widget.PathBox.roomCover.Text = ""
+    widget_specific_object = widget.PathBox.roomCover
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else bool(get_room_status())
+        widget_specific_object.Enabled = bool(get_room_status())
+        widget_specific_object.Text = ""
 
-    if widget.Button.roomCoverUpdate.Name in update_widget_for_props_name:
-        widget.Button.roomCoverUpdate.Visible = False
-        widget.Button.roomCoverUpdate.Enabled = False
+    widget_specific_object = widget.Button.roomCoverUpdate
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
+        widget_specific_object.Enabled = False
 
-    if widget.ComboBox.roomCommonTitles.Name in update_widget_for_props_name:
-        widget.ComboBox.roomCommonTitles.Visible = bool(get_room_status())
-        widget.ComboBox.roomCommonTitles.Enabled = bool(get_room_status())
-        widget.ComboBox.roomCommonTitles.Text = get_room_title() if bool(get_room_status()) else ""
-        widget.ComboBox.roomCommonTitles.Value = "0"
-        widget.ComboBox.roomCommonTitles.Dictionary = get_common_title4number()
+    widget_specific_object = widget.ComboBox.roomCommonTitles
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else bool(get_room_status())
+        widget_specific_object.Enabled = bool(get_room_status())
+        widget_specific_object.Text = get_room_title() if bool(get_room_status()) else ""
+        widget_specific_object.Value = "0"
+        widget_specific_object.Dictionary = get_common_title4number()
 
-    if widget.Button.roomTitleChange.Name in update_widget_for_props_name:
-        widget.Button.roomTitleChange.Visible = bool(get_room_status())
-        widget.Button.roomTitleChange.Enabled = bool(get_room_status())
+    widget_specific_object = widget.Button.roomTitleChange
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else bool(get_room_status())
+        widget_specific_object.Enabled = bool(get_room_status())
 
-    if widget.TextBox.roomNews.Name in update_widget_for_props_name:
-        widget.TextBox.roomNews.Visible = bool(get_room_status())
-        widget.TextBox.roomNews.Enabled = bool(get_room_status())
-        widget.TextBox.roomNews.Text = get_room_news() if bool(get_room_status()) else ""
+    widget_specific_object = widget.TextBox.roomNews
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else bool(get_room_status())
+        widget_specific_object.Enabled = bool(get_room_status())
+        widget_specific_object.Text = get_room_news() if bool(get_room_status()) else ""
 
-    if widget.Button.roomNewsChange.Name in update_widget_for_props_name:
-        widget.Button.roomNewsChange.Visible = bool(get_room_status())
-        widget.Button.roomNewsChange.Enabled = bool(get_room_status())
+    widget_specific_object = widget.Button.roomNewsChange
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else bool(get_room_status())
+        widget_specific_object.Enabled = bool(get_room_status())
 
-    if widget.ComboBox.roomCommonAreas.Name in update_widget_for_props_name:
-        widget.ComboBox.roomCommonAreas.Visible = bool(get_room_status())
-        widget.ComboBox.roomCommonAreas.Enabled = bool(get_room_status())
+    widget_specific_object = widget.ComboBox.roomCommonAreas
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else bool(get_room_status())
+        widget_specific_object.Enabled = bool(get_room_status())
         if get_common_areas():
             common_areas_text = list(get_common_area_id_dict_str4common_area_name_dict_str().keys())[0]
-            widget.ComboBox.roomCommonAreas.Text = common_areas_text
+            widget_specific_object.Text = common_areas_text
         else:
-            widget.ComboBox.roomCommonAreas.Text = "无常用分区"
+            widget_specific_object.Text = "无常用分区"
         if get_common_areas():
             common_areas_value = list(get_common_area_id_dict_str4common_area_name_dict_str().values())[0]
-            widget.ComboBox.roomCommonAreas.Value = common_areas_value
+            widget_specific_object.Value = common_areas_value
         else:
-            widget.ComboBox.roomCommonAreas.Value = "-1"
-        widget.ComboBox.roomCommonAreas.Dictionary = get_common_area_id_dict_str4common_area_name_dict_str()
+            widget_specific_object.Value = "-1"
+        widget_specific_object.Dictionary = get_common_area_id_dict_str4common_area_name_dict_str()
 
-    if widget.Button.roomCommonAreasTrue.Name in update_widget_for_props_name:
-        widget.Button.roomCommonAreasTrue.Visible = False
-        widget.Button.roomCommonAreasTrue.Enabled = False
+    widget_specific_object = widget.Button.roomCommonAreasTrue
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
+        widget_specific_object.Enabled = False
 
-    if widget.ComboBox.roomParentArea.Name in update_widget_for_props_name:
-        widget.ComboBox.roomParentArea.Visible = bool(get_room_status())
-        widget.ComboBox.roomParentArea.Enabled = bool(get_room_status())
-        widget.ComboBox.roomParentArea.Text = str(get_area()["parent_area_name"]) if bool(get_area()) else "请选择一级分区"
-        widget.ComboBox.roomParentArea.Value = str(get_area()["parent_area_id"]) if bool(get_area()) else "-1"
-        widget.ComboBox.roomParentArea.Dictionary = get_parent_live_area_name4parent_live_area_id()
+    widget_specific_object = widget.ComboBox.roomParentArea
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else bool(get_room_status())
+        widget_specific_object.Enabled = bool(get_room_status())
+        widget_specific_object.Text = str(get_area()["parent_area_name"]) if bool(get_area()) else "请选择一级分区"
+        widget_specific_object.Value = str(get_area()["parent_area_id"]) if bool(get_area()) else "-1"
+        widget_specific_object.Dictionary = get_parent_live_area_name4parent_live_area_id()
 
-    if widget.Button.roomParentAreaTrue.Name in update_widget_for_props_name:
-        widget.Button.roomParentAreaTrue.Visible = False
-        widget.Button.roomParentAreaTrue.Enabled = False
+    widget_specific_object = widget.Button.roomParentAreaTrue
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
+        widget_specific_object.Enabled = False
 
-    if widget.ComboBox.roomSubArea.Name in update_widget_for_props_name:
-        widget.ComboBox.roomSubArea.Visible = bool(get_room_status())
-        widget.ComboBox.roomSubArea.Enabled = bool(get_room_status())
-        widget.ComboBox.roomSubArea.Text = str(get_area()["area_name"]) if bool(get_area()) else "请确认一级分区"
-        widget.ComboBox.roomSubArea.Value = str(get_area()["area_id"]) if bool(get_area()) else "-1"
-        widget.ComboBox.roomSubArea.Dictionary = get_sub_live_area_name4sub_live_area_id()
+    widget_specific_object = widget.ComboBox.roomSubArea
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else bool(get_room_status())
+        widget_specific_object.Enabled = bool(get_room_status())
+        widget_specific_object.Text = str(get_area()["area_name"]) if bool(get_area()) else "请确认一级分区"
+        widget_specific_object.Value = str(get_area()["area_id"]) if bool(get_area()) else "-1"
+        widget_specific_object.Dictionary = get_sub_live_area_name4sub_live_area_id()
 
-    if widget.Button.roomSubAreaTrue.Name in update_widget_for_props_name:
-        widget.Button.roomSubAreaTrue.Visible = bool(get_room_status())
-        widget.Button.roomSubAreaTrue.Enabled = bool(get_room_status())
+    widget_specific_object = widget.Button.roomSubAreaTrue
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else bool(get_room_status())
+        widget_specific_object.Enabled = bool(get_room_status())
 
-    if widget.Button.bliveWebJump.Name in update_widget_for_props_name:
-        widget.Button.bliveWebJump.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.Button.bliveWebJump.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+    widget_specific_object = widget.Button.bliveWebJump
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
     # 分组框【直播】
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    if widget.Button.liveFaceAuth.Name in update_widget_for_props_name:
-        widget.Button.liveFaceAuth.Visible = bool(get_room_status())
-        widget.Button.liveFaceAuth.Enabled = bool(get_room_status())
+    widget_specific_object = widget.Button.liveFaceAuth
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else bool(get_room_status())
+        widget_specific_object.Enabled = bool(get_room_status())
 
-    if widget.ComboBox.liveStreamingPlatform.Name in update_widget_for_props_name:
-        widget.ComboBox.liveStreamingPlatform.Visible = bool(get_room_status())
-        widget.ComboBox.liveStreamingPlatform.Enabled = not bool(get_live_status())
-        if not bool(widget.ComboBox.liveStreamingPlatform.Text):
-            widget.ComboBox.liveStreamingPlatform.Text = "直播姬（pc）"
-        if not bool(widget.ComboBox.liveStreamingPlatform.Value):
-            widget.ComboBox.liveStreamingPlatform.Value = "pc_link"
-        widget.ComboBox.liveStreamingPlatform.Dictionary = {
+    widget_specific_object = widget.ComboBox.liveStreamingPlatform
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else bool(get_room_status())
+        widget_specific_object.Enabled = not bool(get_live_status())
+        if not bool(widget_specific_object.Text):
+            widget_specific_object.Text = "直播姬（pc）"
+        if not bool(widget_specific_object.Value):
+            widget_specific_object.Value = "pc_link"
+        widget_specific_object.Dictionary = {
             "直播姬（pc）": "pc_link", "web在线直播": "web_link", "bililink": "android_link"
         }
 
-    if widget.Button.liveStart.Name in update_widget_for_props_name:
-        widget.Button.liveStart.Visible = True if ((not get_live_status()) and get_room_status()) else False
-        widget.Button.liveStart.Enabled = True if ((not get_live_status()) and get_room_status()) else False
+    widget_specific_object = widget.Button.liveStart
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if ((not get_live_status()) and get_room_status()) else False
+        widget_specific_object.Enabled = True if ((not get_live_status()) and get_room_status()) else False
 
-    if widget.Button.liveRtmpAddressCopy.Name in update_widget_for_props_name:
-        widget.Button.liveRtmpAddressCopy.Visible = True if (get_live_status() and get_room_status()) else False
-        widget.Button.liveRtmpAddressCopy.Enabled = True if (get_live_status() and get_room_status()) else False
+    widget_specific_object = widget.Button.liveRtmpAddressCopy
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if (get_live_status() and get_room_status()) else False
+        widget_specific_object.Enabled = True if (get_live_status() and get_room_status()) else False
 
-    if widget.Button.liveRtmpCodeCopy.Name in update_widget_for_props_name:
-        widget.Button.liveRtmpCodeCopy.Visible = True if (get_live_status() and get_room_status()) else False
-        widget.Button.liveRtmpCodeCopy.Enabled = True if (get_live_status() and get_room_status()) else False
+    widget_specific_object = widget.Button.liveRtmpCodeCopy
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if (get_live_status() and get_room_status()) else False
+        widget_specific_object.Enabled = True if (get_live_status() and get_room_status()) else False
 
-    if widget.Button.liveStop.Name in update_widget_for_props_name:
-        widget.Button.liveStop.Visible = True if (get_live_status() and get_room_status()) else False
-        widget.Button.liveStop.Enabled = True if (get_live_status() and get_room_status()) else False
+    widget_specific_object = widget.Button.liveStop
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if (get_live_status() and get_room_status()) else False
+        widget_specific_object.Enabled = True if (get_live_status() and get_room_status()) else False
 
     # 分组框【直播预约】
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    if widget.DigitalDisplay.liveBookingsDay.Name in update_widget_for_props_name:
-        widget.DigitalDisplay.liveBookingsDay.Visible = bool(get_room_status())
-        widget.DigitalDisplay.liveBookingsDay.Enabled = bool(get_room_status())
-        widget.DigitalDisplay.liveBookingsDay.Value = 0
-        widget.DigitalDisplay.liveBookingsDay.Min = 0
-        widget.DigitalDisplay.liveBookingsDay.Max = 180
-        widget.DigitalDisplay.liveBookingsDay.Step = 1
+    widget_specific_object = widget.DigitalDisplay.liveBookingsDay
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else bool(get_room_status())
+        widget_specific_object.Enabled = bool(get_room_status())
+        widget_specific_object.Value = 0
+        widget_specific_object.Min = 0
+        widget_specific_object.Max = 180
+        widget_specific_object.Step = 1
 
-    if widget.Button.liveBookingsDayTrue.Name in update_widget_for_props_name:
-        widget.Button.liveBookingsDayTrue.Visible = False
-        widget.Button.liveBookingsDayTrue.Enabled = False
+    widget_specific_object = widget.Button.liveBookingsDayTrue
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
+        widget_specific_object.Enabled = False
 
-    if widget.DigitalDisplay.liveBookingsHour.Name in update_widget_for_props_name:
-        widget.DigitalDisplay.liveBookingsHour.Visible = bool(get_room_status())
-        widget.DigitalDisplay.liveBookingsHour.Enabled = bool(get_room_status())
-        widget.DigitalDisplay.liveBookingsHour.Value = 0
-        widget.DigitalDisplay.liveBookingsHour.Min = 0
-        widget.DigitalDisplay.liveBookingsHour.Max = 23
-        widget.DigitalDisplay.liveBookingsHour.Step = 1
+    widget_specific_object = widget.DigitalDisplay.liveBookingsHour
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else bool(get_room_status())
+        widget_specific_object.Enabled = bool(get_room_status())
+        widget_specific_object.Value = 0
+        widget_specific_object.Min = 0
+        widget_specific_object.Max = 23
+        widget_specific_object.Step = 1
 
-    if widget.Button.liveBookingsHourTrue.Name in update_widget_for_props_name:
-        widget.Button.liveBookingsHourTrue.Visible = False
-        widget.Button.liveBookingsHourTrue.Enabled = False
+    widget_specific_object = widget.Button.liveBookingsHourTrue
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
+        widget_specific_object.Enabled = False
 
-    if widget.DigitalDisplay.liveBookingsMinute.Name in update_widget_for_props_name:
-        widget.DigitalDisplay.liveBookingsMinute.Visible = bool(get_room_status())
-        widget.DigitalDisplay.liveBookingsMinute.Enabled = bool(get_room_status())
-        widget.DigitalDisplay.liveBookingsMinute.Value = 5
-        widget.DigitalDisplay.liveBookingsMinute.Min = 5
-        widget.DigitalDisplay.liveBookingsMinute.Max = 59
-        widget.DigitalDisplay.liveBookingsMinute.Step = 1
+    widget_specific_object = widget.DigitalDisplay.liveBookingsMinute
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else bool(get_room_status())
+        widget_specific_object.Enabled = bool(get_room_status())
+        widget_specific_object.Value = 6
+        widget_specific_object.Min = 5
+        widget_specific_object.Max = 59
+        widget_specific_object.Step = 1
 
-    if widget.Button.liveBookingsMinuteTrue.Name in update_widget_for_props_name:
-        widget.Button.liveBookingsMinuteTrue.Visible = False
-        widget.Button.liveBookingsMinuteTrue.Enabled = False
+    widget_specific_object = widget.Button.liveBookingsMinuteTrue
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
+        widget_specific_object.Enabled = False
 
-    if widget.CheckBox.liveBookingsDynamic.Name in update_widget_for_props_name:
-        widget.CheckBox.liveBookingsDynamic.Visible = bool(get_room_status())
-        widget.CheckBox.liveBookingsDynamic.Enabled = bool(get_room_status())
-        widget.CheckBox.liveBookingsDynamic.Bool = False
+    widget_specific_object = widget.CheckBox.liveBookingsDynamic
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else bool(get_room_status())
+        widget_specific_object.Enabled = bool(get_room_status())
+        widget_specific_object.Bool = False
 
-    if widget.TextBox.liveBookingsTitle.Name in update_widget_for_props_name:
-        widget.TextBox.liveBookingsTitle.Visible = bool(get_room_status())
-        widget.TextBox.liveBookingsTitle.Enabled = bool(get_room_status())
-        widget.TextBox.liveBookingsTitle.Text = ""
+    widget_specific_object = widget.TextBox.liveBookingsTitle
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else bool(get_room_status())
+        widget_specific_object.Enabled = bool(get_room_status())
+        widget_specific_object.Text = ""
 
-    if widget.Button.liveBookingsCreate.Name in update_widget_for_props_name:
-        widget.Button.liveBookingsCreate.Visible = bool(get_room_status())
-        widget.Button.liveBookingsCreate.Enabled = bool(get_room_status())
+    widget_specific_object = widget.Button.liveBookingsCreate
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else bool(get_room_status())
+        widget_specific_object.Enabled = bool(get_room_status())
 
-    if widget.ComboBox.liveBookings.Name in update_widget_for_props_name:
-        widget.ComboBox.liveBookings.Visible = bool(get_room_status())
-        widget.ComboBox.liveBookings.Enabled = bool(get_room_status())
-        widget.ComboBox.liveBookings.Text = "无直播预约"
+    widget_specific_object = widget.ComboBox.liveBookings
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else bool(get_room_status())
+        widget_specific_object.Enabled = bool(get_room_status())
+        widget_specific_object.Text = "无直播预约"
         if get_b_u_c_m().get_default_user_id():
             if get_room_status():
                 if get_reserve_list():
                     for reserve in get_reserve_list():
                         reserve_name = reserve['reserve_info']['name']
                         reserve_time = datetime.fromtimestamp(reserve['reserve_info']['live_plan_start_time'])
-                        widget.ComboBox.liveBookings.Text = f"{reserve_name}|{reserve_time}"
+                        widget_specific_object.Text = f"{reserve_name}|{reserve_time}"
                 else:
-                    widget.ComboBox.liveBookings.Text = "无直播预约"
+                    widget_specific_object.Text = "无直播预约"
             else:
-                widget.ComboBox.liveBookings.Text = '⚠️无直播间'
+                widget_specific_object.Text = '⚠️无直播间'
         else:
-            widget.ComboBox.liveBookings.Text = "⚠️未登录账号"
+            widget_specific_object.Text = "⚠️未登录账号"
         if get_b_u_c_m().get_default_user_id():
             if get_room_status():
                 if get_reserve_list():
                     for reserve in get_reserve_list():
-                        widget.ComboBox.liveBookings.Value = str(reserve['reserve_info']['sid'])
+                        widget_specific_object.Value = str(reserve['reserve_info']['sid'])
                 else:
-                    widget.ComboBox.liveBookings.Value = "-1"
+                    widget_specific_object.Value = "-1"
             else:
-                widget.ComboBox.liveBookings.Value = "-1"
+                widget_specific_object.Value = "-1"
         else:
-            widget.ComboBox.liveBookings.Value = "-1"
-        widget.ComboBox.liveBookings.Dictionary = get_reserve_name4reserve_sid()
+            widget_specific_object.Value = "-1"
+        widget_specific_object.Dictionary = get_reserve_name4reserve_sid()
 
-    if widget.Button.liveBookingsCancel.Name in update_widget_for_props_name:
-        widget.Button.liveBookingsCancel.Visible = bool(get_room_status())
-        widget.Button.liveBookingsCancel.Enabled = bool(get_room_status())
+    widget_specific_object = widget.Button.liveBookingsCancel
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else bool(get_room_status())
+        widget_specific_object.Enabled = bool(get_room_status())
 
     # 分组框【弹幕】
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    if widget.DigitalDisplay.danmuNumCommentsClient.Name in update_widget_for_props_name:
-        widget.DigitalDisplay.danmuNumCommentsClient.Visible = True if get_b_u_c_m().get_default_user_id() else False
+    widget_specific_object = widget.DigitalDisplay.danmuNumCommentsClient
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
         if get_b_u_c_m().get_default_user_id():
             if not GlobalVariableOfData.danmu_running:
-                widget.DigitalDisplay.danmuNumCommentsClient.Enabled = True
+                widget_specific_object.Enabled = True
             else:
-                widget.DigitalDisplay.danmuNumCommentsClient.Enabled = False
+                widget_specific_object.Enabled = False
         else:
-            widget.DigitalDisplay.danmuNumCommentsClient.Enabled = False
-        widget.DigitalDisplay.danmuNumCommentsClient.Value = int(get_common_danmu_setting()[0]) if get_common_danmu_setting() else 1
-        widget.DigitalDisplay.danmuNumCommentsClient.Min = 1
-        widget.DigitalDisplay.danmuNumCommentsClient.Max = 50
-        widget.DigitalDisplay.danmuNumCommentsClient.Step = 1
+            widget_specific_object.Enabled = False
+        widget_specific_object.Value = int(get_common_danmu_setting()[0]) if get_common_danmu_setting() else 1
+        widget_specific_object.Min = 1
+        widget_specific_object.Max = 50
+        widget_specific_object.Step = 1
 
-    if widget.DigitalDisplay.danmuIntervalNumCommentsClient.Name in update_widget_for_props_name:
-        widget.DigitalDisplay.danmuIntervalNumCommentsClient.Visible = True if get_b_u_c_m().get_default_user_id() else False
+    widget_specific_object = widget.DigitalDisplay.danmuIntervalNumCommentsClient
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
         if get_b_u_c_m().get_default_user_id():
             if not GlobalVariableOfData.danmu_running:
-                widget.DigitalDisplay.danmuIntervalNumCommentsClient.Enabled = True
+                widget_specific_object.Enabled = True
             else:
-                widget.DigitalDisplay.danmuIntervalNumCommentsClient.Enabled = False
+                widget_specific_object.Enabled = False
         else:
-            widget.DigitalDisplay.danmuIntervalNumCommentsClient.Enabled = False
-        widget.DigitalDisplay.danmuIntervalNumCommentsClient.Value = int(get_common_danmu_setting()[1]) if get_common_danmu_setting() else 0
-        widget.DigitalDisplay.danmuIntervalNumCommentsClient.Min = 0
-        widget.DigitalDisplay.danmuIntervalNumCommentsClient.Max = 3000
-        widget.DigitalDisplay.danmuIntervalNumCommentsClient.Step = 100
+            widget_specific_object.Enabled = False
+        widget_specific_object.Value = int(get_common_danmu_setting()[1]) if get_common_danmu_setting() else 0
+        widget_specific_object.Min = 0
+        widget_specific_object.Max = 3000
+        widget_specific_object.Step = 100
 
-    if widget.CheckBox.enterRoomDisplay.Name in update_widget_for_props_name:
-        widget.CheckBox.enterRoomDisplay.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.CheckBox.enterRoomDisplay.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.CheckBox.enterRoomDisplay.Bool = bool(get_common_danmu_setting()[2]) if get_common_danmu_setting() else False
+    widget_specific_object = widget.CheckBox.enterRoomDisplay
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Bool = bool(get_common_danmu_setting()[2]) if get_common_danmu_setting() else False
 
-    if widget.CheckBox.medalDisplay.Name in update_widget_for_props_name:
-        widget.CheckBox.medalDisplay.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.CheckBox.medalDisplay.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.CheckBox.medalDisplay.Bool = bool(get_common_danmu_setting()[3]) if get_common_danmu_setting() else False
+    widget_specific_object = widget.CheckBox.medalDisplay
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Bool = bool(get_common_danmu_setting()[3]) if get_common_danmu_setting() else False
 
-    if widget.CheckBox.medalOtherDisplay.Name in update_widget_for_props_name:
-        widget.CheckBox.medalOtherDisplay.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.CheckBox.medalOtherDisplay.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.CheckBox.medalOtherDisplay.Bool = bool(get_common_danmu_setting()[4]) if get_common_danmu_setting() else False
+    widget_specific_object = widget.CheckBox.medalOtherDisplay
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Bool = bool(get_common_danmu_setting()[4]) if get_common_danmu_setting() else False
 
-    if widget.CheckBox.medalUnLightDisplay.Name in update_widget_for_props_name:
-        widget.CheckBox.medalUnLightDisplay.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.CheckBox.medalUnLightDisplay.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.CheckBox.medalUnLightDisplay.Bool = bool(get_common_danmu_setting()[5]) if get_common_danmu_setting() else False
+    widget_specific_object = widget.CheckBox.medalUnLightDisplay
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Bool = bool(get_common_danmu_setting()[5]) if get_common_danmu_setting() else False
 
-    if widget.CheckBox.lineBreakDisplay.Name in update_widget_for_props_name:
-        widget.CheckBox.lineBreakDisplay.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.CheckBox.lineBreakDisplay.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.CheckBox.lineBreakDisplay.Bool = bool(get_common_danmu_setting()[6]) if get_common_danmu_setting() else False
+    widget_specific_object = widget.CheckBox.lineBreakDisplay
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Bool = bool(get_common_danmu_setting()[6]) if get_common_danmu_setting() else False
 
-    if widget.CheckBox.tagAdministratorDisplay.Name in update_widget_for_props_name:
-        widget.CheckBox.tagAdministratorDisplay.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.CheckBox.tagAdministratorDisplay.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.CheckBox.tagAdministratorDisplay.Bool = bool(get_common_danmu_setting()[7]) if get_common_danmu_setting() else False
+    widget_specific_object = widget.CheckBox.tagAdministratorDisplay
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Bool = bool(get_common_danmu_setting()[7]) if get_common_danmu_setting() else False
 
-    if widget.CheckBox.timestampDisplay.Name in update_widget_for_props_name:
-        widget.CheckBox.timestampDisplay.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.CheckBox.timestampDisplay.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.CheckBox.timestampDisplay.Bool = bool(get_common_danmu_setting()[8]) if get_common_danmu_setting() else False
+    widget_specific_object = widget.CheckBox.timestampDisplay
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Bool = bool(get_common_danmu_setting()[8]) if get_common_danmu_setting() else False
 
-    if widget.DigitalDisplay.danmuNumCacheEntries.Name in update_widget_for_props_name:
-        widget.DigitalDisplay.danmuNumCacheEntries.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.DigitalDisplay.danmuNumCacheEntries.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.DigitalDisplay.danmuNumCacheEntries.Value = int(get_common_danmu_setting()[9]) if get_common_danmu_setting() else 2
-        widget.DigitalDisplay.danmuNumCacheEntries.Min = 2
-        widget.DigitalDisplay.danmuNumCacheEntries.Max = 30
-        widget.DigitalDisplay.danmuNumCacheEntries.Step = 1
+    widget_specific_object = widget.DigitalDisplay.danmuNumCacheEntries
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Value = int(get_common_danmu_setting()[9]) if get_common_danmu_setting() else 2
+        widget_specific_object.Min = 2
+        widget_specific_object.Max = 30
+        widget_specific_object.Step = 1
 
-    if widget.DigitalDisplay.danmuCacheDuration.Name in update_widget_for_props_name:
-        widget.DigitalDisplay.danmuCacheDuration.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.DigitalDisplay.danmuCacheDuration.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.DigitalDisplay.danmuCacheDuration.Value = int(get_common_danmu_setting()[10]) if get_common_danmu_setting() else 1
-        widget.DigitalDisplay.danmuCacheDuration.Min = 1
-        widget.DigitalDisplay.danmuCacheDuration.Max = 10
-        widget.DigitalDisplay.danmuCacheDuration.Step = 1
+    widget_specific_object = widget.DigitalDisplay.danmuCacheDuration
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Value = int(get_common_danmu_setting()[10]) if get_common_danmu_setting() else 1
+        widget_specific_object.Min = 1
+        widget_specific_object.Max = 10
+        widget_specific_object.Step = 1
 
-    if widget.DigitalDisplay.danmuFacePictureSize.Name in update_widget_for_props_name:
-        widget.DigitalDisplay.danmuFacePictureSize.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.DigitalDisplay.danmuFacePictureSize.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.DigitalDisplay.danmuFacePictureSize.Value = int(get_common_danmu_setting()[11]) if get_common_danmu_setting() else 1
-        widget.DigitalDisplay.danmuFacePictureSize.Min = 1
-        widget.DigitalDisplay.danmuFacePictureSize.Max = 100
-        widget.DigitalDisplay.danmuFacePictureSize.Step = 1
+    widget_specific_object = widget.DigitalDisplay.danmuFacePictureSize
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Value = int(get_common_danmu_setting()[11]) if get_common_danmu_setting() else 1
+        widget_specific_object.Min = 1
+        widget_specific_object.Max = 100
+        widget_specific_object.Step = 1
 
-    if widget.DigitalDisplay.danmuFanMedalTextSize.Name in update_widget_for_props_name:
-        widget.DigitalDisplay.danmuFanMedalTextSize.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.DigitalDisplay.danmuFanMedalTextSize.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.DigitalDisplay.danmuFanMedalTextSize.Value = int(get_common_danmu_setting()[12]) if get_common_danmu_setting() else 1
-        widget.DigitalDisplay.danmuFanMedalTextSize.Min = 1
-        widget.DigitalDisplay.danmuFanMedalTextSize.Max = 100
-        widget.DigitalDisplay.danmuFanMedalTextSize.Step = 1
+    widget_specific_object = widget.DigitalDisplay.danmuFanMedalTextSize
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Value = int(get_common_danmu_setting()[12]) if get_common_danmu_setting() else 1
+        widget_specific_object.Min = 1
+        widget_specific_object.Max = 100
+        widget_specific_object.Step = 1
 
-    if widget.DigitalDisplay.danmuMessageTextSize.Name in update_widget_for_props_name:
-        widget.DigitalDisplay.danmuMessageTextSize.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.DigitalDisplay.danmuMessageTextSize.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.DigitalDisplay.danmuMessageTextSize.Value = int(get_common_danmu_setting()[13]) if get_common_danmu_setting() else 1
-        widget.DigitalDisplay.danmuMessageTextSize.Min = 1
-        widget.DigitalDisplay.danmuMessageTextSize.Max = 100
-        widget.DigitalDisplay.danmuMessageTextSize.Step = 1
+    widget_specific_object = widget.DigitalDisplay.danmuMessageTextSize
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Value = int(get_common_danmu_setting()[13]) if get_common_danmu_setting() else 1
+        widget_specific_object.Min = 1
+        widget_specific_object.Max = 100
+        widget_specific_object.Step = 1
 
-    if widget.DigitalDisplay.danmuTimeTextSize.Name in update_widget_for_props_name:
-        widget.DigitalDisplay.danmuTimeTextSize.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.DigitalDisplay.danmuTimeTextSize.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.DigitalDisplay.danmuTimeTextSize.Value = int(get_common_danmu_setting()[14]) if get_common_danmu_setting() else 1
-        widget.DigitalDisplay.danmuTimeTextSize.Min = 1
-        widget.DigitalDisplay.danmuTimeTextSize.Max = 100
-        widget.DigitalDisplay.danmuTimeTextSize.Step = 1
+    widget_specific_object = widget.DigitalDisplay.danmuTimeTextSize
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Value = int(get_common_danmu_setting()[14]) if get_common_danmu_setting() else 1
+        widget_specific_object.Min = 1
+        widget_specific_object.Max = 100
+        widget_specific_object.Step = 1
 
-    if widget.Button.settingDanmuData.Name in update_widget_for_props_name:
-        widget.Button.settingDanmuData.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.Button.settingDanmuData.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+    widget_specific_object = widget.Button.settingDanmuData
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
-    if widget.TextBox.danmuWebCss.Name in update_widget_for_props_name:
-        widget.TextBox.danmuWebCss.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.TextBox.danmuWebCss.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.TextBox.danmuWebCss.Text = get_common_danmu_web_css()
+    widget_specific_object = widget.TextBox.danmuWebCss
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Text = get_common_danmu_web_css()
 
-    if widget.Button.applyDanmuCss.Name in update_widget_for_props_name:
-        widget.Button.applyDanmuCss.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.Button.applyDanmuCss.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+    widget_specific_object = widget.Button.applyDanmuCss
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
-    if widget.TextBox.danmuWssProt.Name in update_widget_for_props_name:
-        widget.TextBox.danmuWssProt.Visible = True if get_b_u_c_m().get_default_user_id() else False
+    widget_specific_object = widget.TextBox.danmuWssProt
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
         if get_b_u_c_m().get_default_user_id():
             if not GlobalVariableOfData.danmu_running:
-                widget.TextBox.danmuWssProt.Enabled = True
+                widget_specific_object.Enabled = True
             else:
-                widget.TextBox.danmuWssProt.Enabled = False
+                widget_specific_object.Enabled = False
         else:
-            widget.TextBox.danmuWssProt.Enabled = False
-        widget.TextBox.danmuWssProt.Text = get_common_danmu_web_socket_server_prot()
+            widget_specific_object.Enabled = False
+        widget_specific_object.Text = get_common_danmu_web_socket_server_prot()
 
-    if widget.Button.confirmDanmuWssPort.Name in update_widget_for_props_name:
-        widget.Button.confirmDanmuWssPort.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.Button.confirmDanmuWssPort.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+    widget_specific_object = widget.Button.confirmDanmuWssPort
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
-    if widget.ComboBox.danmuRoom.Name in update_widget_for_props_name:
-        widget.ComboBox.danmuRoom.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.ComboBox.danmuRoom.Enabled = True if get_b_u_c_m().get_default_user_id() else False
-        widget.ComboBox.danmuRoom.Text = str(list(get_common_danmu_roomid_dict().keys())[0]) if get_common_danmu_roomid_dict() else ""
-        widget.ComboBox.danmuRoom.Value = str(list(get_common_danmu_roomid_dict().values())[0]) if get_common_danmu_roomid_dict() else ""
-        widget.ComboBox.danmuRoom.Dictionary = get_common_danmu_roomid_dict()
+    widget_specific_object = widget.ComboBox.danmuRoom
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Text = str(list(get_common_danmu_roomid_dict().keys())[0]) if get_common_danmu_roomid_dict() else ""
+        widget_specific_object.Value = str(list(get_common_danmu_roomid_dict().values())[0]) if get_common_danmu_roomid_dict() else ""
+        widget_specific_object.Dictionary = get_common_danmu_roomid_dict()
 
-    if widget.Button.addDanmuRoomid.Name in update_widget_for_props_name:
-        widget.Button.addDanmuRoomid.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.Button.addDanmuRoomid.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+    widget_specific_object = widget.Button.addDanmuRoomid
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
-    if widget.Button.delDanmuRoomid.Name in update_widget_for_props_name:
-        widget.Button.delDanmuRoomid.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.Button.delDanmuRoomid.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+    widget_specific_object = widget.Button.delDanmuRoomid
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
     # 分组框【弹幕启动】
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    if widget.Button.startDanmuForwardingService.Name in update_widget_for_props_name:
-        widget.Button.startDanmuForwardingService.Visible = False
-        widget.Button.startDanmuForwardingService.Enabled = False
+    widget_specific_object = widget.Button.startDanmuForwardingService
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
+        widget_specific_object.Enabled = False
 
-    if widget.Button.addDanmuBrowser.Name in update_widget_for_props_name:
-        widget.Button.addDanmuBrowser.Visible = False
-        widget.Button.addDanmuBrowser.Enabled = False
+    widget_specific_object = widget.Button.addDanmuBrowser
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
+        widget_specific_object.Enabled = False
 
-    if widget.Button.startDanmu.Name in update_widget_for_props_name:
-        widget.Button.startDanmu.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.Button.startDanmu.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+    widget_specific_object = widget.Button.startDanmu
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
-    if widget.Button.stopDanmuForwardingService.Name in update_widget_for_props_name:
-        widget.Button.stopDanmuForwardingService.Visible = False
-        widget.Button.stopDanmuForwardingService.Enabled = False
+    widget_specific_object = widget.Button.stopDanmuForwardingService
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
+        widget_specific_object.Enabled = False
 
-    if widget.Button.removeDanmuBrowser.Name in update_widget_for_props_name:
-        widget.Button.removeDanmuBrowser.Visible = False
-        widget.Button.removeDanmuBrowser.Enabled = False
+    widget_specific_object = widget.Button.removeDanmuBrowser
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
+        widget_specific_object.Enabled = False
 
-    if widget.Button.stopDanmu.Name in update_widget_for_props_name:
-        widget.Button.stopDanmu.Visible = True if get_b_u_c_m().get_default_user_id() else False
-        widget.Button.stopDanmu.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+    widget_specific_object = widget.Button.stopDanmu
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
     # 分组框【弹幕发送】
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    if widget.ComboBox.danmuEmoticons.Name in update_widget_for_props_name:
-        widget.ComboBox.danmuEmoticons.Visible = True if get_common_danmu_roomid_dict() else False
-        widget.ComboBox.danmuEmoticons.Enabled = True if get_common_danmu_roomid_dict() else False
-        widget.ComboBox.danmuEmoticons.Text = ""
-        widget.ComboBox.danmuEmoticons.Value = ""
-        widget.ComboBox.danmuEmoticons.Dictionary = get_common_danmu_emoticons() if get_common_danmu_roomid_dict() else {}
+    widget_specific_object = widget.ComboBox.danmuEmoticons
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_common_danmu_roomid_dict() else False
+        widget_specific_object.Enabled = True if get_common_danmu_roomid_dict() else False
+        widget_specific_object.Text = ""
+        widget_specific_object.Value = ""
+        widget_specific_object.Dictionary = get_common_danmu_emoticons() if get_common_danmu_roomid_dict() else {}
 
-    if widget.Button.mergeEmoticons.Name in update_widget_for_props_name:
-        widget.Button.mergeEmoticons.Visible = True if get_common_danmu_roomid_dict() else False
-        widget.Button.mergeEmoticons.Enabled = True if get_common_danmu_roomid_dict() else False
+    widget_specific_object = widget.Button.mergeEmoticons
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_common_danmu_roomid_dict() else False
+        widget_specific_object.Enabled = True if get_common_danmu_roomid_dict() else False
 
-    if widget.TextBox.danmuSendText.Name in update_widget_for_props_name:
-        widget.TextBox.danmuSendText.Visible = True if get_common_danmu_roomid_dict() else False
-        widget.TextBox.danmuSendText.Enabled = True if get_common_danmu_roomid_dict() else False
-        widget.TextBox.danmuSendText.Text = ""
+    widget_specific_object = widget.TextBox.danmuSendText
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_common_danmu_roomid_dict() else False
+        widget_specific_object.Enabled = True if get_common_danmu_roomid_dict() else False
+        widget_specific_object.Text = ""
 
-    if widget.Button.danmuSend.Name in update_widget_for_props_name:
-        widget.Button.danmuSend.Visible = True if get_common_danmu_roomid_dict() else False
-        widget.Button.danmuSend.Enabled = True if get_common_danmu_roomid_dict() else False
+    widget_specific_object = widget.Button.danmuSend
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_common_danmu_roomid_dict() else False
+        widget_specific_object.Enabled = True if get_common_danmu_roomid_dict() else False
 
     clear_cache()
     return True
@@ -12201,7 +12336,7 @@ class ButtonFunction:
 
         # 更新脚本控制台中的控件
         GlobalVariableOfData.update_widget_for_props_dict = {
-            "room_props": {"room_Titles_comboBox"}
+            "live_broadcast_title_props": {"room_Titles_comboBox"}
         }
         log_save(obs.LOG_INFO, f"更新控件配置信息")
         script_defaults(GlobalVariableOfData.script_settings)
@@ -12373,7 +12508,7 @@ class ButtonFunction:
 
         # 更新脚本控制台中的控件
         GlobalVariableOfData.update_widget_for_props_dict = {
-            "room_props": {"room_commonAreas_comboBox", "room_parentArea_comboBox", "room_subArea_comboBox"}
+            "live_streaming_section_props": widget.props_Collection["live_streaming_section_props"],
         }
         log_save(obs.LOG_INFO, f"更新控件配置信息")
         script_defaults(GlobalVariableOfData.script_settings)
@@ -12735,7 +12870,8 @@ class ButtonFunction:
 
         # 更新脚本控制台中的控件
         GlobalVariableOfData.update_widget_for_props_dict = {
-            "booking_props": {"live_bookings_comboBox"}
+            "booking_props": {"live_bookings_comboBox"},
+            "booking_send_props": widget.props_Collection["booking_send_props"],
         }
         log_save(obs.LOG_INFO, f"更新控件配置信息")
         script_defaults(GlobalVariableOfData.script_settings)
@@ -30144,7 +30280,38 @@ class ButtonFunction:
         ds.daemon = True
         ds.start()
         obs.obs_data_set_string(GlobalVariableOfData.script_settings, widget.TextBox.danmuSendText.Name, "")
+        return True
 
+    @staticmethod
+    def button_function_set_widget_visibility(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        widget_visibility_dict_old = get_c_d_m().get_data(get_b_u_c_m().get_default_user_id(), "widgetVisibility")
+        widget_visibility_old_dict = json.loads(widget_visibility_dict_old[0])
+        widget_visibility_dict = {}
+        for w in widget.get_sorted_controls():
+            if w.ControlType == "Group":
+                if w.Type == obs.OBS_GROUP_CHECKABLE:
+                    widget_visibility_dict[w.GroupProps] = "1" if obs.obs_data_get_bool(GlobalVariableOfData.script_settings, w.Name) else "0"
+        widget_visibility_dict_ = json.dumps(widget_visibility_dict, ensure_ascii=False)
+        get_c_d_m().add_data(get_b_u_c_m().get_default_user_id(), "widgetVisibility", widget_visibility_dict_, 1)
+        updata_ps_list = [key for key in widget_visibility_dict if key in widget_visibility_old_dict and widget_visibility_dict[key] != widget_visibility_old_dict[key]]
+
+        clear_cache()
+
+        # 更新脚本控制台中的控件
+        GlobalVariableOfData.update_widget_for_props_dict = {}
+        for updata_ps in updata_ps_list:
+            GlobalVariableOfData.update_widget_for_props_dict[updata_ps] = widget.props_Collection[updata_ps]
+        log_save(obs.LOG_INFO, f"更新控件配置信息")
+        script_defaults(GlobalVariableOfData.script_settings)
+        # 更新脚本用户小部件
+        log_save(obs.LOG_INFO, f"更新控件UI")
+        update_ui_interface_data()
+        GlobalVariableOfData.update_widget_for_props_dict = widget.props_Collection
         return True
 
 
@@ -30165,7 +30332,7 @@ widget.widget_Group_dict = {
             "Description": "直播间",
             "Type": obs.OBS_GROUP_CHECKABLE,
             "GroupProps": "room_props",
-            "ModifiedIs": False
+            "ModifiedIs": True
         },
         "booking": {
             "Name": "booking_group",
@@ -30179,32 +30346,76 @@ widget.widget_Group_dict = {
             "Description": "弹幕",
             "Type": obs.OBS_GROUP_CHECKABLE,
             "GroupProps": "danmu_props",
-            "ModifiedIs": False
+            "ModifiedIs": True
         },
     },
     "room_props": {
+        "liveBroadcastCover": {
+            "Name": "live_broadcast_cover_group",
+            "Description": "直播封面",
+            "Type": obs.OBS_GROUP_CHECKABLE,
+            "GroupProps": "live_broadcast_cover_props",
+            "ModifiedIs": True
+        },
+        "liveBroadcastTitle": {
+            "Name": "live_broadcast_title_group",
+            "Description": "直播标题",
+            "Type": obs.OBS_GROUP_CHECKABLE,
+            "GroupProps": "live_broadcast_title_props",
+            "ModifiedIs": True
+        },
+        "liveBroadcastAnnouncement": {
+            "Name": "live_broadcast_announcement_group",
+            "Description": "直播公告",
+            "Type": obs.OBS_GROUP_CHECKABLE,
+            "GroupProps": "live_broadcast_announcement_props",
+            "ModifiedIs": True
+        },
+        "liveStreamingSection": {
+            "Name": "live_streaming_section_group",
+            "Description": "直播分区",
+            "Type": obs.OBS_GROUP_CHECKABLE,
+            "GroupProps": "live_streaming_section_props",
+            "ModifiedIs": True
+        },
         "live": {
             "Name": "live_group",
             "Description": "直播",
             "Type": obs.OBS_GROUP_CHECKABLE,
             "GroupProps": "live_props",
+            "ModifiedIs": True
+        },
+    },
+    "booking_props": {
+        "bookingSend": {
+            "Name": "booking_send_group",
+            "Description": "直播预约发送",
+            "Type": obs.OBS_GROUP_NORMAL,
+            "GroupProps": "booking_send_props",
             "ModifiedIs": False
         },
     },
     "danmu_props": {
+        "danmuDisplayOptions": {
+            "Name": "danmu_display_options_group",
+            "Description": "显示选项",
+            "Type": obs.OBS_GROUP_NORMAL,
+            "GroupProps": "danmu_display_options_props",
+            "ModifiedIs": False
+        },
         "danmuOnOff": {
             "Name": "danmu_onoff_group",
             "Description": "on/off",
             "Type": obs.OBS_GROUP_CHECKABLE,
             "GroupProps": "danmu_onoff_props",
-            "ModifiedIs": False
+            "ModifiedIs": True
         },
         "danmuSend": {
             "Name": "danmu_send_group",
             "Description": "弹幕发送",
             "Type": obs.OBS_GROUP_CHECKABLE,
             "GroupProps": "danmu_send_props",
-            "ModifiedIs": False
+            "ModifiedIs": True
         },
     },
 }
@@ -30225,6 +30436,8 @@ widget.widget_TextBox_dict = {
             "Type": obs.OBS_TEXT_INFO,
             "ModifiedIs": False
         },
+    },
+    "live_broadcast_announcement_props": {
         "roomNews": {
             "Name": "room_news_textBox",
             "Description": "公告",
@@ -30232,7 +30445,7 @@ widget.widget_TextBox_dict = {
             "ModifiedIs": True
         },
     },
-    "booking_props": {
+    "booking_send_props": {
         "liveBookingsTitle": {
             "Name": "live_bookings_title_textBox",
             "Description": "直播预约标题",
@@ -30277,13 +30490,15 @@ widget.widget_ComboBox_dict = {
             "ModifiedIs": True
         },
     },
-    "room_props": {
+    "live_broadcast_title_props": {
         "roomCommonTitles": {
             "Name": "room_Titles_comboBox",
             "Description": "标题",
             "Type": obs.OBS_COMBO_TYPE_EDITABLE,
             "ModifiedIs": True
         },
+    },
+    "live_streaming_section_props": {
         "roomCommonAreas": {
             "Name": "room_commonAreas_comboBox",
             "Description": "分区",
@@ -30338,7 +30553,7 @@ widget.widget_ComboBox_dict = {
 }
 
 widget.widget_PathBox_dict = {
-    "room_props": {
+    "live_broadcast_cover_props": {
         "roomCover": {
             "Name": "room_cover_fileDialogBox",
             "Description": "封面",
@@ -30351,7 +30566,7 @@ widget.widget_PathBox_dict = {
 }
 
 widget.widget_DigitalDisplay_dict = {
-    "booking_props": {
+    "booking_send_props": {
         "liveBookingsDay": {
             "Name": "live_bookings_day_digitalSlider",
             "Description": "预约天",
@@ -30435,14 +30650,14 @@ widget.widget_DigitalDisplay_dict = {
 }
 
 widget.widget_CheckBox_dict = {
-    "booking_props": {
+    "booking_send_props": {
         "liveBookingsDynamic": {
             "Name": "live_bookings_dynamic_checkBox",
             "Description": "是否发直播预约动态",
             "ModifiedIs": True
         },
     },
-    "danmu_props": {
+    "danmu_display_options_props": {
         "enterRoomDisplay": {
             "Name": "enter_room_display_checkBox",
             "Description": "是否显示进房消息",
@@ -30495,6 +30710,13 @@ widget.widget_Button_dict = {
             "Description": "启动脚本",
             "Type": obs.OBS_BUTTON_DEFAULT,
             "Callback": ButtonFunction.button_function_start_script,
+            "ModifiedIs": False
+        },
+        "setWidgetVisibility": {
+            "Name": "set_widget_visibility_button",
+            "Description": "设置控件组可见性",
+            "Type": obs.OBS_BUTTON_DEFAULT,
+            "Callback": ButtonFunction.button_function_set_widget_visibility,
             "ModifiedIs": False
         },
         "bottom": {
@@ -30578,6 +30800,16 @@ widget.widget_Button_dict = {
             "Callback": ButtonFunction.button_function_real_name_authentication,
             "ModifiedIs": False
         },
+        "bliveWebJump": {
+            "Name": "blive_web_jump_button",
+            "Description": "跳转直播间后台网页",
+            "Type": obs.OBS_BUTTON_URL,
+            "Callback": ButtonFunction.button_function_jump_blive_web,
+            "Url": "https://link.bilibili.com/p/center/index#/my-room/start-live",
+            "ModifiedIs": False
+        },
+    },
+    "live_broadcast_cover_props": {
         "roomCoverView": {
             "Name": "room_cover_view_button",
             "Description": "查看直播间封面",
@@ -30592,6 +30824,8 @@ widget.widget_Button_dict = {
             "Callback": ButtonFunction.button_function_update_room_cover,
             "ModifiedIs": False
         },
+    },
+    "live_broadcast_title_props": {
         "roomTitleChange": {
             "Name": "room_title_change_button",
             "Description": "更改直播间标题",
@@ -30599,6 +30833,8 @@ widget.widget_Button_dict = {
             "Callback": ButtonFunction.button_function_change_live_room_title,
             "ModifiedIs": False
         },
+    },
+    "live_broadcast_announcement_props": {
         "roomNewsChange": {
             "Name": "room_news_change_button",
             "Description": "更改直播间公告",
@@ -30606,6 +30842,8 @@ widget.widget_Button_dict = {
             "Callback": ButtonFunction.button_function_change_live_room_news,
             "ModifiedIs": False
         },
+    },
+    "live_streaming_section_props": {
         "roomCommonAreasTrue": {
             "Name": "room_commonAreas_true_button",
             "Description": "确认分区",
@@ -30625,14 +30863,6 @@ widget.widget_Button_dict = {
             "Description": "「确认分区」",
             "Type": obs.OBS_BUTTON_DEFAULT,
             "Callback": ButtonFunction.button_function_start_sub_area,
-            "ModifiedIs": False
-        },
-        "bliveWebJump": {
-            "Name": "blive_web_jump_button",
-            "Description": "跳转直播间后台网页",
-            "Type": obs.OBS_BUTTON_URL,
-            "Callback": ButtonFunction.button_function_jump_blive_web,
-            "Url": "https://link.bilibili.com/p/center/index#/my-room/start-live",
             "ModifiedIs": False
         },
     },
@@ -30674,6 +30904,15 @@ widget.widget_Button_dict = {
         },
     },
     "booking_props": {
+        "liveBookingsCancel": {
+            "Name": "live_bookings_cancel_button",
+            "Description": "取消直播预约",
+            "Type": obs.OBS_BUTTON_DEFAULT,
+            "Callback": ButtonFunction.button_function_cancel_live_appointment,
+            "ModifiedIs": False
+        },
+    },
+    "booking_send_props": {
         "liveBookingsDayTrue": {
             "Name": "live_bookings_day_true_button",
             "Description": "确认预约天",
@@ -30700,13 +30939,6 @@ widget.widget_Button_dict = {
             "Description": "发布直播预约",
             "Type": obs.OBS_BUTTON_DEFAULT,
             "Callback": ButtonFunction.button_function_creat_live_appointment,
-            "ModifiedIs": False
-        },
-        "liveBookingsCancel": {
-            "Name": "live_bookings_cancel_button",
-            "Description": "取消直播预约",
-            "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": ButtonFunction.button_function_cancel_live_appointment,
             "ModifiedIs": False
         },
     },
@@ -30827,20 +31059,23 @@ widget.widget_list = [
     "room_status_textBox",
     "room_opened_button",
     "real_name_authentication_button",
+    "live_broadcast_cover_group",
     "room_cover_view_button",
     "room_cover_fileDialogBox",
     "room_cover_update_button",
+    "live_broadcast_title_group",
     "room_Titles_comboBox",
     "room_title_change_button",
+    "live_broadcast_announcement_group",
     "room_news_textBox",
     "room_news_change_button",
+    "live_streaming_section_group",
     "room_commonAreas_comboBox",
     "room_commonAreas_true_button",
     "room_parentArea_comboBox",
     "room_parentArea_true_button",
     "room_subArea_comboBox",
     "room_subArea_true_button",
-    "blive_web_jump_button",
     "live_group",
     "live_face_auth_button",
     "live_streaming_platform_comboBox",
@@ -30848,7 +31083,9 @@ widget.widget_list = [
     "live_rtmp_address_copy_button",
     "live_rtmp_code_copy_button",
     "live_stop_button",
+    "blive_web_jump_button",
     "booking_group",
+    "booking_send_group",
     "live_bookings_day_digitalSlider",
     "live_bookings_day_true_button",
     "live_bookings_hour_digitalSlider",
@@ -30863,6 +31100,7 @@ widget.widget_list = [
     "danmu_group",
     "danmu_number_of_comments_client_digitalSlider",
     "danmu_interval_number_of_comments_client_digitalSlider",
+    "danmu_display_options_group",
     "enter_room_display_checkBox",
     "medal_display_checkBox",
     "medal_other_display_checkBox",
@@ -30896,6 +31134,7 @@ widget.widget_list = [
     "merge_emoticons_button",
     "danmu_send_text_textBox",
     "danmu_send_button",
+    "set_widget_visibility_button",
     "bottom_button",
 ]
 
