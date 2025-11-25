@@ -9904,6 +9904,10 @@ class GlobalVariableOfData:
     """弹幕运行标志"""
     danmu_run_status = False
     """弹幕运行状态"""
+    danmuLog: str = ''
+    """弹幕日志"""
+    danmuLogDir: Optional[Path] = None
+    """日志文件文件夹"""
 
 
 
@@ -10861,6 +10865,9 @@ def script_defaults(settings):  # 设置其默认值
     GlobalVariableOfData.scriptsLogDir = Path(GlobalVariableOfData.scriptsDataDirpath) / "log"
     os.makedirs(GlobalVariableOfData.scriptsLogDir, exist_ok=True)
     log_save(obs.LOG_INFO, f"║║脚本日志文件夹路径：{GlobalVariableOfData.scriptsLogDir}")
+    GlobalVariableOfData.danmuLogDir = Path(GlobalVariableOfData.scriptsDataDirpath) / "danmu"
+    os.makedirs(GlobalVariableOfData.danmuLogDir, exist_ok=True)
+    log_save(obs.LOG_INFO, f"║║弹幕日志文件夹路径：{GlobalVariableOfData.danmuLogDir}")
     GlobalVariableOfData.scriptsCacheDir = Path(GlobalVariableOfData.scriptsDataDirpath) / "cache"
     os.makedirs(GlobalVariableOfData.scriptsCacheDir, exist_ok=True)
     log_save(obs.LOG_INFO, f"║║脚本缓存文件夹路径：{GlobalVariableOfData.scriptsCacheDir}")
@@ -13293,6 +13300,15 @@ class ButtonFunction:
                 if GlobalVariableOfData.danmu_running:
                     return
                 log_save(obs.LOG_INFO, "关闭弹幕转发和弹幕")
+                # 创建日志目录路径对象
+                log_dir = Path(GlobalVariableOfData.danmuLogDir)
+                # 生成新的日志文件名
+                new_log_filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+                new_log_path = log_dir / new_log_filename
+                # 写入新的日志文件
+                with open(new_log_path, "w", encoding="utf-8") as f:
+                    f.write(str(GlobalVariableOfData.danmuLog))
+                GlobalVariableOfData.danmuLog = ''
                 ws_server.stop_server()
                 cdm.stop()
                 GlobalVariableOfData.danmu_run_status = False
@@ -13314,6 +13330,8 @@ class ButtonFunction:
                 Returns:
 
                 """
+                GlobalVariableOfData.danmuLog += f"{json.dumps(content, ensure_ascii=False)}\n"
+
                 def LIVE():
                     # 直播开始 (LIVE)
                     contentdata = content
