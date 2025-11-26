@@ -13324,6 +13324,7 @@ class ButtonFunction:
                 # 写入新的日志文件
                 with open(new_log_path, "w", encoding="utf-8") as f:
                     f.write(str(GlobalVariableOfData.danmuLog))
+                GlobalVariableOfData.danmuLog = ''
                 ws_server.stop_server()
                 cdm.stop()
                 GlobalVariableOfData.danmu_run_status = False
@@ -14618,7 +14619,6 @@ class ButtonFunction:
             log_save(obs.LOG_INFO, f"开启弹幕服务")
             GlobalVariableOfData.danmu_running = True
             def start():
-                GlobalVariableOfData.danmuLog = ''
                 asyncio.run(show_danmu())
             show_danmu_thread = threading.Thread(target=start)
             show_danmu_thread.daemon = True
