@@ -18,14 +18,16 @@ obs用于B站直播的插件，只是因为不想直播时网页obs两头跑而�
 > 使用本插件从事违法行为后果请自行承担
 
 ## 环境需求
-电脑系统：macOS14+/Windows10+
+电脑系统：macOS 14+ / Windows 7 & 10+
 
-python版本：3.9-3.12
+python版本：3.6 (for Win7) & 3.9-3.12 (for Win10+)
 
-obs_studio版本：30+
+obs_studio版本：27.2.4 (for Win7) 30+ (for Win10+)
 
 ## 配置方法
-* [Windows配置方法](doc/Windows.md)
+* [Windows 7配置方法](doc/Windows 7.md)
+* [Windows 10+配置方法](doc/Windows 10+.md)
+* [Windows Python环境集成包制作方法](doc/Windows下制作易用的Python环境集成包.md)
 * [MacOS配置方法](doc/MacOS.md)
 * [Ubuntu配置方法](doc/Ubuntu.md)
 
