@@ -25,8 +25,8 @@ python版本：3.6 (for Win7) & 3.9-3.12 (for Win10+)
 obs_studio版本：27.2.4 (for Win7) 30+ (for Win10+)
 
 ## 配置方法
-* [Windows 7配置方法](doc/Windows 7.md)
-* [Windows 10+配置方法](doc/Windows 10+.md)
+* [Windows 7配置方法](doc/Windows7.md)
+* [Windows 10+配置方法](doc/Windows10+.md)
 * [Windows Python环境集成包制作方法](doc/Windows下制作易用的Python环境集成包.md)
 * [MacOS配置方法](doc/MacOS.md)
 * [Ubuntu配置方法](doc/Ubuntu.md)
