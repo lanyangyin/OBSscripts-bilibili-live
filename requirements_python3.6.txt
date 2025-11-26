@@ -1,0 +1,10 @@
+werkzeug
+flask
+protobuf
+django-qrcode
+qrcode
+requests
+pyperclip~=1.9.0
+pillow
+urllib3
+websockets

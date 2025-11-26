@@ -172,7 +172,7 @@ class Tools:
         # 1. 首先尝试快速DNS连接检查
         try:
             start_time = time.time()
-            socket.create_connection(("8.8.8.8", 53), timeout=2)
+            socket.create_connection(("8.8.8.8", 53), timeout=5)
             elapsed = (time.time() - start_time) * 1000
 
             result['connected'] = True
@@ -219,7 +219,7 @@ class Tools:
                 # 发送HEAD请求减少数据传输量
                 start_time = time.time()
                 req = urllib.request.Request(url, method="HEAD")
-                with urllib.request.urlopen(req, timeout=3) as response:
+                with urllib.request.urlopen(req, timeout=5) as response:
                     elapsed = (time.time() - start_time) * 1000
 
                     # 检查响应状态
@@ -239,7 +239,7 @@ class Tools:
                         service_result['error'] = f'服务器错误: 状态码 {response.status}'
                         service_result['status_code'] = response.status
             except TimeoutError:
-                service_result['error'] = '连接超时 (3秒)'
+                service_result['error'] = '连接超时 (5秒)'
             except ConnectionError:
                 service_result['error'] = '连接错误 (网络问题)'
             except URLError as e:
@@ -260,7 +260,7 @@ class Tools:
 
         try:
             start_time = time.time()
-            response = urllib.request.urlopen("http://example.com", timeout=3)
+            response = urllib.request.urlopen("http://example.com", timeout=5)
             elapsed = (time.time() - start_time) * 1000
 
             result['connected'] = True
@@ -10349,6 +10349,8 @@ class Widget:
             """📵组合框的控件类型为 ComboBox"""
             Type: Optional[int] = None  # 组合框类型
             """📵组合框类型"""
+            LongDescription: str = ""
+            """📵长描述"""
             Text: str = ""
             """组合框显示的文字"""
             Value: str = ""
@@ -10723,7 +10725,7 @@ class Widget:
                             obj.Url = self.widget_dict_all[basic_types_controls][Ps][name]["Url"]
                     if obj.ControlType in ["Group"]:
                         obj.GroupProps = self.widget_dict_all[basic_types_controls][Ps][name]["GroupProps"]
-                    if obj.ControlType in ["TextBox"]:
+                    if obj.ControlType in ["TextBox"] or obj.ControlType in ["ComboBox"]:
                         obj.LongDescription = self.widget_dict_all[basic_types_controls][Ps][name].get("LongDescription", "")
                     if obj.ControlType in ["DigitalDisplay"]:
                         obj.Suffix = self.widget_dict_all[basic_types_controls][Ps][name]["Suffix"]
@@ -10771,15 +10773,15 @@ def trigger_frontend_event(event):
 
         if GlobalVariableOfData.causeOfTheFrontDeskIncident == "开始直播并复制推流码":
             log_save(obs.LOG_INFO, "此次 推流已结束 事件 不发送 撤销直播申请")
-        else:
-            if get_live_status():
-                log_save(obs.LOG_INFO, "正在直播，此次 推流已结束 事件 发送 撤销直播申请")
-                ButtonFunction.button_function_stop_live()
+        # else:
+            # if get_live_status():
+                # log_save(obs.LOG_INFO, "正在直播，此次 推流已结束 事件 发送 撤销直播申请")
+                # ButtonFunction.button_function_stop_live()
         GlobalVariableOfData.causeOfTheFrontDeskIncident = ""
-    elif event == obs.OBS_FRONTEND_EVENT_FINISHED_LOADING:
+    # elif event == obs.OBS_FRONTEND_EVENT_FINISHED_LOADING:
         # 尝试关闭弹幕web
-        log_save(obs.LOG_INFO, "此次 OBS 完成加载 事件 清除哔哩哔哩弹幕浏览器源")
-        ButtonFunction.button_function_remove_danmu_browser()
+        # log_save(obs.LOG_INFO, "此次 OBS 完成加载 事件 清除哔哩哔哩弹幕浏览器源")
+        # ButtonFunction.button_function_remove_danmu_browser()
     elif event == obs.OBS_FRONTEND_EVENT_SCRIPTING_SHUTDOWN:
         if get_live_status():
             log_save(obs.LOG_INFO, "正在直播，此次 脚本关闭中 事件 发送 撤销直播申请")
@@ -11504,8 +11506,8 @@ def script_defaults(settings):  # 设置其默认值
 
     widget_specific_object = widget.Button.addDanmuBrowser
     if widget_specific_object.Name in update_widget_for_props_name:
-        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
-        widget_specific_object.Enabled = False
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
     widget_specific_object = widget.Button.startDanmu
     if widget_specific_object.Name in update_widget_for_props_name:
@@ -11514,18 +11516,18 @@ def script_defaults(settings):  # 设置其默认值
 
     widget_specific_object = widget.Button.stopDanmuForwardingService
     if widget_specific_object.Name in update_widget_for_props_name:
-        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
-        widget_specific_object.Enabled = False
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
     widget_specific_object = widget.Button.removeDanmuBrowser
     if widget_specific_object.Name in update_widget_for_props_name:
-        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
-        widget_specific_object.Enabled = False
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
     widget_specific_object = widget.Button.stopDanmu
     if widget_specific_object.Name in update_widget_for_props_name:
-        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
-        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
+        widget_specific_object.Enabled = False
 
     # 分组框【弹幕发送】
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -11710,6 +11712,8 @@ def script_properties():  # 建立控件
             log_save(obs.LOG_INFO, f"组合框控件: {w.Name} 【{w.Description}】")
             w.Obj = obs.obs_properties_add_list(props_dict[w.Props], w.Name, w.Description, w.Type,
                                                 obs.OBS_COMBO_FORMAT_STRING)
+            if w.LongDescription:
+                obs.obs_property_set_long_description(w.Obj, w.LongDescription)
         elif w.ControlType == "PathBox":
             # 添加路径对话框控件
             log_save(obs.LOG_INFO, f"路径对话框控件: {w.Name} 【{w.Description}】")
@@ -12365,16 +12369,25 @@ class ButtonFunction:
             prop = args[1]
         if len(args) == 3:
             settings = args[2]
-        room_news_textbox_t = obs.obs_data_get_string(GlobalVariableOfData.script_settings,widget.TextBox.roomNews.Name)
+        room_news_textbox_t = obs.obs_data_get_string(GlobalVariableOfData.script_settings, widget.TextBox.roomNews.Name)
         """公告文本框中的文本"""
 
-        turn_news_return = get_b_csrf_a().change_room_news(get_b_s_a_m().get_room_highlight_info()["data"]["room_id"], room_news_textbox_t)["api_response"]
-        """更改公告的返回值"""
-        if turn_news_return['code'] == 0:
-            log_save(obs.LOG_INFO, f"直播间公告更改成功: {room_news_textbox_t}")
-        else:
-            log_save(obs.LOG_INFO, f"直播间公告更改失败{turn_news_return['message']}")
+        try:
+            turn_news_return = get_b_csrf_a().change_room_news(get_b_s_a_m().get_room_highlight_info()["data"]["room_id"], room_news_textbox_t)["api_response"]
+            """更改公告的返回值"""
+        except KeyError as e:
+            log_save(obs.LOG_ERROR, f"直播间公告更改失败，不存在相应的键{e}，公告不能为空")
             return False
+        except Exception as e:
+            log_save(obs.LOG_ERROR, f"直播间公告更改失败{e}")
+            return False
+        else:
+            if turn_news_return['code'] == 0:
+                log_save(obs.LOG_INFO, f"直播间公告更改成功: {room_news_textbox_t}")
+            else:
+                log_save(obs.LOG_WARNING, f"直播间公告更改失败{turn_news_return['message']}")
+                return False
+        
         widget.TextBox.roomNews.Text = room_news_textbox_t
 
         clear_cache()
@@ -12583,6 +12596,8 @@ class ButtonFunction:
         # 获取当前流服务
         streaming_service = obs.obs_frontend_get_streaming_service()
         # 获取当前流服务设置
+        streaming_service_type = obs.obs_service_get_type(streaming_service)
+        log_save(obs.LOG_INFO, f"目前obs的推流类型：【{streaming_service_type}】")
         streaming_service_settings = obs.obs_service_get_settings(streaming_service)
         currently_service_string = obs.obs_data_get_string(streaming_service_settings, "service")
         log_save(obs.LOG_INFO, f"目前obs的推流服务：【{currently_service_string}】")
@@ -12591,7 +12606,8 @@ class ButtonFunction:
         currently_rtmp_push_code = obs.obs_data_get_string(streaming_service_settings, "key")
         log_save(obs.LOG_INFO, f"目前obs的rtmp推流码：【{currently_rtmp_push_code}】")
         log_save(obs.LOG_INFO, f"obs推流状态：{obs.obs_frontend_streaming_active()}")
-        if currently_rtmp_push_code == rtmp_push_code and currently_rtmp_server == rtmp_server and currently_service_string == "Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP":
+        if (streaming_service_type == "rtmp_custom" and currently_rtmp_push_code == rtmp_push_code and currently_rtmp_server == rtmp_server) or \
+            (currently_service_string == "Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP" and currently_rtmp_push_code == rtmp_push_code and currently_rtmp_server == rtmp_server):
             log_save(obs.LOG_INFO, f"推流信息未发生变化，准备推流")
             if obs.obs_frontend_streaming_active():
                 log_save(obs.LOG_INFO, f"正在推流状态中")
@@ -30008,7 +30024,7 @@ class ButtonFunction:
         obs.obs_data_set_string(GlobalVariableOfData.script_settings, "css", widget.TextBox.danmuWebCss.Text)
         obs.obs_data_set_int(GlobalVariableOfData.script_settings, "width", width)
         obs.obs_data_set_int(GlobalVariableOfData.script_settings, "height", height)
-        obs.obs_data_set_bool(GlobalVariableOfData.script_settings, "shutdown", False)  # 不关闭源
+        obs.obs_data_set_bool(GlobalVariableOfData.script_settings, "shutdown", True)  # 隐藏时关闭源
         obs.obs_data_set_bool(GlobalVariableOfData.script_settings, "restart_when_active", False)  # 激活时不重启
         # 应用设置
         obs.obs_source_update(GlobalVariableOfData.browserSource, GlobalVariableOfData.script_settings)
@@ -30061,7 +30077,7 @@ class ButtonFunction:
         ButtonFunction.button_function_start_danmu_forwarding_service()
         # -----------------------------------------------------------------------------------------------------------
         # 添加网页源-------------------------------------------------------------------------------------------------
-        ButtonFunction.button_function_add_danmu_browser()
+        # ButtonFunction.button_function_add_danmu_browser()
         
         return True
     
@@ -30134,6 +30150,9 @@ class ButtonFunction:
                                         # 从场景中移除源
                                         obs.obs_sceneitem_remove(source)
                                         log_save(obs.LOG_INFO, f"已从场景中移除浏览器源: {source_name}")
+                                        break
+                else:
+                    log_save(obs.LOG_INFO, "bilibili弹幕源未创建")
                 # 释放场景项列表
                 obs.sceneitem_list_release(scene_items)
         else:
@@ -30423,7 +30442,7 @@ widget.widget_Group_dict = {
         },
         "danmuOnOff": {
             "Name": "danmu_onoff_group",
-            "Description": "on/off",
+            "Description": "弹幕显示开关",
             "Type": obs.OBS_GROUP_CHECKABLE,
             "GroupProps": "danmu_onoff_props",
             "ModifiedIs": True
@@ -30467,7 +30486,6 @@ widget.widget_TextBox_dict = {
         "liveBookingsTitle": {
             "Name": "live_bookings_title_textBox",
             "Description": "直播预约标题",
-            "LongDescription": "直播预约标题",
             "Type": obs.OBS_TEXT_DEFAULT,
             "ModifiedIs": True
         },
@@ -30555,7 +30573,8 @@ widget.widget_ComboBox_dict = {
     "danmu_props": {
         "danmuRoom": {
             "Name": "danmu_room_comboBox",
-            "Description": "直播间",
+            "Description": "目标直播间",
+            "LongDescription": "发送和接收弹幕的直播间，输入房间号也可以添加",
             "Type": obs.OBS_COMBO_TYPE_EDITABLE,
             "ModifiedIs": True
         },
