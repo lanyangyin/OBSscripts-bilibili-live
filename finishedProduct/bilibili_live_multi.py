@@ -172,14 +172,14 @@ class Tools:
         # 1. 首先尝试快速DNS连接检查
         try:
             start_time = time.time()
-            socket.create_connection(("8.8.8.8", 53), timeout=5)
+            socket.create_connection(("119.29.29.29", 53), timeout=3)
             elapsed = (time.time() - start_time) * 1000
 
             result['connected'] = True
             result['code'] = NetworkErrorCode.NETWORK_CONNECTION_SUCCESS
             result['data']['dns_checked'] = True
             result['data']['latency_ms'] = elapsed
-            result['data']['successful_service'] = 'DNS (8.8.8.8:53)'
+            result['data']['successful_service'] = 'DNS (119.29.29.29:53)'
             result['message'] = f'DNS连接成功，延迟: {elapsed:.2f}ms'
 
             return result
@@ -190,17 +190,17 @@ class Tools:
 
         # 2. 尝试多个服务提供者的链接
         test_services = [
+            {"url": "http://www.msftconnecttest.com/connecttest.txt", "provider": "Microsoft"},
+            {"url": "http://connect.rom.miui.com/generate_204", "provider": "小米"},
+            {"url": "http://connectivitycheck.platform.hicloud.com/generate_204", "provider": "华为"},
+            {"url": "http://wifi.vivo.com.cn/generate_204", "provider": "Vivo"},
+            {"url": "http://detectportal.firefox.com/success.txt", "provider": "Firefox"},
+            {"url": "http://cp.cloudflare.com/", "provider": "Cloudflare"},
             {"url": "http://www.gstatic.com/generate_204", "provider": "Google"},
             {"url": "http://www.google-analytics.com/generate_204", "provider": "Google"},
             {"url": "http://connectivitycheck.gstatic.com/generate_204", "provider": "Google"},
             {"url": "http://captive.apple.com", "provider": "Apple"},
-            {"url": "http://www.msftconnecttest.com/connecttest.txt", "provider": "Microsoft"},
-            {"url": "http://cp.cloudflare.com/", "provider": "Cloudflare"},
-            {"url": "http://detectportal.firefox.com/success.txt", "provider": "Firefox"},
-            {"url": "http://www.v2ex.com/generate_204", "provider": "V2ex"},
-            {"url": "http://connect.rom.miui.com/generate_204", "provider": "小米"},
-            {"url": "http://connectivitycheck.platform.hicloud.com/generate_204", "provider": "华为"},
-            {"url": "http://wifi.vivo.com.cn/generate_204", "provider": "Vivo"}
+            {"url": "http://www.v2ex.com/generate_204", "provider": "V2ex"}
         ]
 
         for service in test_services:
@@ -219,7 +219,7 @@ class Tools:
                 # 发送HEAD请求减少数据传输量
                 start_time = time.time()
                 req = urllib.request.Request(url, method="HEAD")
-                with urllib.request.urlopen(req, timeout=5) as response:
+                with urllib.request.urlopen(req, timeout=3) as response:
                     elapsed = (time.time() - start_time) * 1000
 
                     # 检查响应状态
@@ -239,7 +239,7 @@ class Tools:
                         service_result['error'] = f'服务器错误: 状态码 {response.status}'
                         service_result['status_code'] = response.status
             except TimeoutError:
-                service_result['error'] = '连接超时 (5秒)'
+                service_result['error'] = '连接超时 (3秒)'
             except ConnectionError:
                 service_result['error'] = '连接错误 (网络问题)'
             except URLError as e:
@@ -260,7 +260,7 @@ class Tools:
 
         try:
             start_time = time.time()
-            response = urllib.request.urlopen("http://example.com", timeout=5)
+            response = urllib.request.urlopen("http://example.com", timeout=3)
             elapsed = (time.time() - start_time) * 1000
 
             result['connected'] = True
