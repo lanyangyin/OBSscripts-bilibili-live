@@ -116,3 +116,10 @@ obs_studio版本：27.2.4 (for Win7) 30+ (for Win10+)
   - 界面参考：[DoodleBears/blivechat](https://github.com/DoodleBears/blivechat)
   - 界面参考：[直播弹幕姬BLC](https://play-live.bilibili.com/details/1675336975685)
   - 界面参考：[LAPLACE Chat](https://chat.laplace.live/)
+
+
+# 感谢所有贡献者的努力
+
+<a href="https://github.com/lanyangyin/OBSscripts-bilibili-live/graphs/contributors" target="_blank">
+  <img src="https://contrib.rocks/image?repo=lanyangyin/OBSscripts-bilibili-live" />
+</a>
