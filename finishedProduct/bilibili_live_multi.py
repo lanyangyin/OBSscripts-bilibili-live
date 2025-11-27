@@ -9793,6 +9793,20 @@ def get_common_danmu_emoticons():
     return danmu_emoticons_dict
 
 @lru_cache(maxsize=None)
+def get_common_script_setting():
+    """
+    是否联动推流和开播/是否联动推流和停播/是否自动填写推流服务器/是否每次重置弹幕源
+    """
+    script_setting_list = []
+    if get_b_u_c_m().get_default_user_id():
+        danmu_client_creations_number = get_c_d_m().get_data(get_b_u_c_m().get_default_user_id(), "scriptSetting")
+        if not danmu_client_creations_number:
+            setting = "1/1/1/1"
+            get_c_d_m().add_data(get_b_u_c_m().get_default_user_id(), "scriptSetting", setting, 1)
+        script_setting_list = [int(item) for item in get_c_d_m().get_data(get_b_u_c_m().get_default_user_id(), "scriptSetting")[0].split("/")]
+    return script_setting_list
+
+@lru_cache(maxsize=None)
 def get_common_widget_visibility() -> dict[str, int]:
     widget_visibility_dict = {}
     widget_visibility_setting = get_c_d_m().get_data(get_b_u_c_m().get_default_user_id(), "widgetVisibility")
@@ -9838,6 +9852,7 @@ def clear_cache():
     get_common_danmu_own_big_expression.cache_clear()
     get_common_danmu_web_css.cache_clear()
     get_common_danmu_emoticons.cache_clear()
+    get_common_script_setting.cache_clear()
     get_common_widget_visibility.cache_clear()
 
 # ====================================================================================================================
@@ -10978,6 +10993,12 @@ def script_defaults(settings):  # 设置其默认值
         widget_specific_object.Enabled = True if get_common_danmu_roomid_dict() else False
         widget_specific_object.Bool = bool(get_common_widget_visibility().get(widget_specific_object.GroupProps, True))
 
+    widget_specific_object = widget.Group.scriptSet
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True
+        widget_specific_object.Enabled = True
+        widget_specific_object.Bool = bool(get_common_widget_visibility().get(widget_specific_object.GroupProps, True))
+
     widget_specific_object = widget.Button.setWidgetVisibility
     if widget_specific_object.Name in update_widget_for_props_name:
         widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
@@ -11552,6 +11573,37 @@ def script_defaults(settings):  # 设置其默认值
     if widget_specific_object.Name in update_widget_for_props_name:
         widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_common_danmu_roomid_dict() else False
         widget_specific_object.Enabled = True if get_common_danmu_roomid_dict() else False
+
+    # 分组框【脚本设置】
+    # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    widget_specific_object = widget.CheckBox.linkStreamLiveStart
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Bool = bool(get_common_script_setting()[0]) if get_common_script_setting() else False
+
+    widget_specific_object = widget.CheckBox.linkStreamLiveStop
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Bool = bool(get_common_script_setting()[1]) if get_common_script_setting() else False
+
+    widget_specific_object = widget.CheckBox.autoFillStreamServer
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Bool = bool(get_common_script_setting()[2]) if get_common_script_setting() else False
+
+    widget_specific_object = widget.CheckBox.resetDanmuSource
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Bool = bool(get_common_script_setting()[3]) if get_common_script_setting() else False
+
+    widget_specific_object = widget.Button.updateScriptSet
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_common_danmu_roomid_dict() else False
+        widget_specific_object.Enabled = True
 
     clear_cache()
     return True
@@ -12957,8 +13009,7 @@ class ButtonFunction:
             GlobalVariableOfData.script_settings, widget.CheckBox.medalOtherDisplay.Name
         )
         is_medal_other_display = "1" if widget.CheckBox.medalOtherDisplay.Bool else "0"
-        
-        
+
         widget.CheckBox.medalUnLightDisplay.Bool = obs.obs_data_get_bool(
             GlobalVariableOfData.script_settings, widget.CheckBox.medalUnLightDisplay.Name
         )
@@ -30301,6 +30352,44 @@ class ButtonFunction:
         return True
 
     @staticmethod
+    def button_function_update_script_set(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        widget.CheckBox.linkStreamLiveStart.Bool = obs.obs_data_get_bool(
+            GlobalVariableOfData.script_settings, widget.CheckBox.linkStreamLiveStart.Name
+        )
+        is_link_stream_live_start = "1" if widget.CheckBox.linkStreamLiveStart.Bool else "0"
+
+        widget.CheckBox.linkStreamLiveStop.Bool = obs.obs_data_get_bool(
+            GlobalVariableOfData.script_settings, widget.CheckBox.linkStreamLiveStop.Name
+        )
+        is_link_stream_live_stop = "1" if widget.CheckBox.linkStreamLiveStop.Bool else "0"
+
+        widget.CheckBox.autoFillStreamServer.Bool = obs.obs_data_get_bool(
+            GlobalVariableOfData.script_settings, widget.CheckBox.autoFillStreamServer.Name
+        )
+        is_auto_fill_stream_server = "1" if widget.CheckBox.autoFillStreamServer.Bool else "0"
+
+        widget.CheckBox.resetDanmuSource.Bool = obs.obs_data_get_bool(
+            GlobalVariableOfData.script_settings, widget.CheckBox.resetDanmuSource.Name
+        )
+        is_reset_danmu_source = "1" if widget.CheckBox.resetDanmuSource.Bool else "0"
+
+        setting = "/".join([
+            is_link_stream_live_start,
+            is_link_stream_live_stop,
+            is_auto_fill_stream_server,
+            is_reset_danmu_source,
+        ])
+        get_c_d_m().add_data(get_b_u_c_m().get_default_user_id(), "scriptSetting", setting, 1)
+        log_save(obs.LOG_INFO, f"弹幕默认值更改：{setting}")
+        clear_cache()
+        return False
+
+    @staticmethod
     def button_function_set_widget_visibility(*args):
         if len(args) == 2:
             props = args[0]
@@ -30364,6 +30453,13 @@ widget.widget_Group_dict = {
             "Description": "弹幕",
             "Type": obs.OBS_GROUP_CHECKABLE,
             "GroupProps": "danmu_props",
+            "ModifiedIs": True
+        },
+        "scriptSet": {
+            "Name": "script_set_group",
+            "Description": "脚本设置",
+            "Type": obs.OBS_GROUP_CHECKABLE,
+            "GroupProps": "script_set_props",
             "ModifiedIs": True
         },
     },
@@ -30712,6 +30808,28 @@ widget.widget_CheckBox_dict = {
             "ModifiedIs": True
         },
     },
+    "script_set_props": {
+        "linkStreamLiveStart": {
+            "Name": "link_stream_live_start_checkBox",
+            "Description": "联动推流和开播",
+            "ModifiedIs": True
+        },
+        "linkStreamLiveStop": {
+            "Name": "link_stream_live_stop_checkBox",
+            "Description": "联动推流和停播",
+            "ModifiedIs": True
+        },
+        "autoFillStreamServer": {
+            "Name": "auto_fill_stream_server_checkBox",
+            "Description": "自动填写推流服务器",
+            "ModifiedIs": True
+        },
+        "resetDanmuSource": {
+            "Name": "reset_danmu_source_checkBox",
+            "Description": "每次重置弹幕源",
+            "ModifiedIs": True
+        },
+    },
 }
 
 widget.widget_Button_dict = {
@@ -31057,6 +31175,15 @@ widget.widget_Button_dict = {
             "ModifiedIs": False
         },
     },
+    "script_set_props": {
+        "updateScriptSet": {
+            "Name": "update_script_set_button",
+            "Description": "更新脚本设置",
+            "Type": obs.OBS_BUTTON_DEFAULT,
+            "Callback": ButtonFunction.button_function_update_script_set,
+            "ModifiedIs": False
+        },
+    },
 }
 
 widget.widget_list = [
@@ -31152,6 +31279,12 @@ widget.widget_list = [
     "merge_emoticons_button",
     "danmu_send_text_textBox",
     "danmu_send_button",
+    "script_set_group",
+    "link_stream_live_start_checkBox",
+    "link_stream_live_stop_checkBox",
+    "auto_fill_stream_server_checkBox",
+    "reset_danmu_source_checkBox",
+    "update_script_set_button",
     "set_widget_visibility_button",
     "bottom_button",
 ]
