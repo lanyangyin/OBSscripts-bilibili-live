@@ -9802,8 +9802,8 @@ def get_common_script_setting():
         danmu_client_creations_number = get_c_d_m().get_data(get_b_u_c_m().get_default_user_id(), "scriptSetting")
         if not danmu_client_creations_number:
             setting = "1/1/1/1"
-            get_c_d_m().add_data(get_b_u_c_m().get_default_user_id(), "scriptSetting", setting, 1)
-        script_setting_list = [int(item) for item in get_c_d_m().get_data(get_b_u_c_m().get_default_user_id(), "scriptSetting")[0].split("/")]
+            get_c_d_m().add_data("system", "scriptSetting", setting, 1)
+        script_setting_list = [int(item) for item in get_c_d_m().get_data("system", "scriptSetting")[0].split("/")]
     return script_setting_list
 
 @lru_cache(maxsize=None)
@@ -30384,7 +30384,7 @@ class ButtonFunction:
             is_auto_fill_stream_server,
             is_reset_danmu_source,
         ])
-        get_c_d_m().add_data(get_b_u_c_m().get_default_user_id(), "scriptSetting", setting, 1)
+        get_c_d_m().add_data("system", "scriptSetting", setting, 1)
         log_save(obs.LOG_INFO, f"弹幕默认值更改：{setting}")
         clear_cache()
         return False
