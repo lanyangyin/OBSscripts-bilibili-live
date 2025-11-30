@@ -172,14 +172,16 @@ class Tools:
         # 1. 首先尝试快速DNS连接检查
         try:
             start_time = time.time()
-            socket.create_connection(("8.8.8.8", 53), timeout=2)
+            # socket.create_connection(("8.8.8.8", 53), timeout=2)
+            socket.create_connection(("119.29.29.29", 53), timeout=3)  # 修改了DNS服务器为国内外都能用的腾讯云  @Phiomoe
             elapsed = (time.time() - start_time) * 1000
 
             result['connected'] = True
             result['code'] = NetworkErrorCode.NETWORK_CONNECTION_SUCCESS
             result['data']['dns_checked'] = True
             result['data']['latency_ms'] = elapsed
-            result['data']['successful_service'] = 'DNS (8.8.8.8:53)'
+            # result['data']['successful_service'] = 'DNS (8.8.8.8:53)'
+            result['data']['successful_service'] = 'DNS (119.29.29.29:53)'  # 修改了DNS服务器为国内外都能用的腾讯云  @Phiomoe
             result['message'] = f'DNS连接成功，延迟: {elapsed:.2f}ms'
 
             return result
@@ -190,18 +192,18 @@ class Tools:
 
         # 2. 尝试多个服务提供者的链接
         test_services = [
+            {"url": "http://www.msftconnecttest.com/connecttest.txt", "provider": "Microsoft"},
+            {"url": "http://connect.rom.miui.com/generate_204", "provider": "小米"},
+            {"url": "http://connectivitycheck.platform.hicloud.com/generate_204", "provider": "华为"},
+            {"url": "http://wifi.vivo.com.cn/generate_204", "provider": "Vivo"},
+            {"url": "http://detectportal.firefox.com/success.txt", "provider": "Firefox"},
+            {"url": "http://cp.cloudflare.com/", "provider": "Cloudflare"},
             {"url": "http://www.gstatic.com/generate_204", "provider": "Google"},
             {"url": "http://www.google-analytics.com/generate_204", "provider": "Google"},
             {"url": "http://connectivitycheck.gstatic.com/generate_204", "provider": "Google"},
             {"url": "http://captive.apple.com", "provider": "Apple"},
-            {"url": "http://www.msftconnecttest.com/connecttest.txt", "provider": "Microsoft"},
-            {"url": "http://cp.cloudflare.com/", "provider": "Cloudflare"},
-            {"url": "http://detectportal.firefox.com/success.txt", "provider": "Firefox"},
-            {"url": "http://www.v2ex.com/generate_204", "provider": "V2ex"},
-            {"url": "http://connect.rom.miui.com/generate_204", "provider": "小米"},
-            {"url": "http://connectivitycheck.platform.hicloud.com/generate_204", "provider": "华为"},
-            {"url": "http://wifi.vivo.com.cn/generate_204", "provider": "Vivo"}
-        ]
+            {"url": "http://www.v2ex.com/generate_204", "provider": "V2ex"}
+        ]  # 更改了网络检测的节点顺序，提高国内外都能使用的微软节点的优先级  @Phiomoe
 
         for service in test_services:
             url = service["url"]
@@ -10364,6 +10366,8 @@ class Widget:
             """📵组合框的控件类型为 ComboBox"""
             Type: Optional[int] = None  # 组合框类型
             """📵组合框类型"""
+            LongDescription: str = ""
+            """📵长描述"""
             Text: str = ""
             """组合框显示的文字"""
             Value: str = ""
@@ -10738,7 +10742,7 @@ class Widget:
                             obj.Url = self.widget_dict_all[basic_types_controls][Ps][name]["Url"]
                     if obj.ControlType in ["Group"]:
                         obj.GroupProps = self.widget_dict_all[basic_types_controls][Ps][name]["GroupProps"]
-                    if obj.ControlType in ["TextBox"]:
+                    if obj.ControlType in ["TextBox", "ComboBox"]:
                         obj.LongDescription = self.widget_dict_all[basic_types_controls][Ps][name].get("LongDescription", "")
                     if obj.ControlType in ["DigitalDisplay"]:
                         obj.Suffix = self.widget_dict_all[basic_types_controls][Ps][name]["Suffix"]
@@ -11765,6 +11769,8 @@ def script_properties():  # 建立控件
             log_save(obs.LOG_INFO, f"组合框控件: {w.Name} 【{w.Description}】")
             w.Obj = obs.obs_properties_add_list(props_dict[w.Props], w.Name, w.Description, w.Type,
                                                 obs.OBS_COMBO_FORMAT_STRING)
+            if w.LongDescription:
+                obs.obs_property_set_long_description(w.Obj, w.LongDescription)
         elif w.ControlType == "PathBox":
             # 添加路径对话框控件
             log_save(obs.LOG_INFO, f"路径对话框控件: {w.Name} 【{w.Description}】")
@@ -12420,16 +12426,25 @@ class ButtonFunction:
             prop = args[1]
         if len(args) == 3:
             settings = args[2]
-        room_news_textbox_t = obs.obs_data_get_string(GlobalVariableOfData.script_settings,widget.TextBox.roomNews.Name)
+        room_news_textbox_t = obs.obs_data_get_string(GlobalVariableOfData.script_settings, widget.TextBox.roomNews.Name)
         """公告文本框中的文本"""
 
-        turn_news_return = get_b_csrf_a().change_room_news(get_b_s_a_m().get_room_highlight_info()["data"]["room_id"], room_news_textbox_t)["api_response"]
-        """更改公告的返回值"""
-        if turn_news_return['code'] == 0:
-            log_save(obs.LOG_INFO, f"直播间公告更改成功: {room_news_textbox_t}")
-        else:
-            log_save(obs.LOG_INFO, f"直播间公告更改失败{turn_news_return['message']}")
+        try:
+            turn_news_return = get_b_csrf_a().change_room_news(get_b_s_a_m().get_room_highlight_info()["data"]["room_id"], room_news_textbox_t)["api_response"]
+            """更改公告的返回值"""
+        except KeyError as e:
+            log_save(obs.LOG_ERROR, f"直播间公告更改失败，不存在相应的键{e}，公告不能为空")
             return False
+        except Exception as e:
+            log_save(obs.LOG_ERROR, f"直播间公告更改失败{e}")
+            return False
+        else:
+            if turn_news_return['code'] == 0:
+                log_save(obs.LOG_INFO, f"直播间公告更改成功: {room_news_textbox_t}")
+            else:
+                log_save(obs.LOG_WARNING, f"直播间公告更改失败{turn_news_return['message']}")
+                return False
+
         widget.TextBox.roomNews.Text = room_news_textbox_t
 
         clear_cache()
@@ -30200,6 +30215,9 @@ class ButtonFunction:
                                         # 从场景中移除源
                                         obs.obs_sceneitem_remove(source)
                                         log_save(obs.LOG_INFO, f"已从场景中移除浏览器源: {source_name}")
+                                        break
+                else:
+                    log_save(obs.LOG_INFO, "bilibili弹幕源未创建")
                 # 释放场景项列表
                 obs.sceneitem_list_release(scene_items)
         else:
@@ -30667,6 +30685,7 @@ widget.widget_ComboBox_dict = {
         "danmuRoom": {
             "Name": "danmu_room_comboBox",
             "Description": "直播间",
+            "LongDescription": "发送和接收弹幕的直播间，输入房间号也可以添加",
             "Type": obs.OBS_COMBO_TYPE_EDITABLE,
             "ModifiedIs": True
         },
