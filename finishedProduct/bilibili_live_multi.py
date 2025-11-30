@@ -11006,6 +11006,18 @@ def script_defaults(settings):  # 设置其默认值
         widget_specific_object.Enabled = True
         widget_specific_object.Bool = bool(get_common_widget_visibility().get(widget_specific_object.GroupProps, True))
 
+    widget_specific_object = widget.Group.scriptLiveSet
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True
+        widget_specific_object.Enabled = True
+        widget_specific_object.Bool = bool(get_common_widget_visibility().get(widget_specific_object.GroupProps, True))
+
+    widget_specific_object = widget.Group.scriptDanmuSet
+    if widget_specific_object.Name in update_widget_for_props_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True
+        widget_specific_object.Enabled = True
+        widget_specific_object.Bool = bool(get_common_widget_visibility().get(widget_specific_object.GroupProps, True))
+
     widget_specific_object = widget.Button.setWidgetVisibility
     if widget_specific_object.Name in update_widget_for_props_name:
         widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
@@ -11583,6 +11595,8 @@ def script_defaults(settings):  # 设置其默认值
 
     # 分组框【脚本设置】
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # 分组框【直播设置】
+    # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     widget_specific_object = widget.CheckBox.linkStreamLiveStart
     if widget_specific_object.Name in update_widget_for_props_name:
         widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
@@ -11601,6 +11615,8 @@ def script_defaults(settings):  # 设置其默认值
         widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
         widget_specific_object.Bool = bool(get_common_script_setting()[2]) if get_common_script_setting() else False
 
+    # 分组框【弹幕设置】
+    # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     widget_specific_object = widget.CheckBox.resetDanmuSource
     if widget_specific_object.Name in update_widget_for_props_name:
         widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
@@ -30565,6 +30581,22 @@ widget.widget_Group_dict = {
             "ModifiedIs": True
         },
     },
+    "script_set_props": {
+        "scriptLiveSet": {
+            "Name": "script_live_set_group",
+            "Description": "直播设置",
+            "Type": obs.OBS_GROUP_NORMAL,
+            "GroupProps": "script_live_set_props",
+            "ModifiedIs": True
+        },
+        "scriptDanmuSet": {
+            "Name": "script_danmu_set_group",
+            "Description": "弹幕设置",
+            "Type": obs.OBS_GROUP_NORMAL,
+            "GroupProps": "script_danmu_set_props",
+            "ModifiedIs": True
+        },
+    },
 }
 
 widget.widget_TextBox_dict = {
@@ -30842,7 +30874,7 @@ widget.widget_CheckBox_dict = {
             "ModifiedIs": True
         },
     },
-    "script_set_props": {
+    "script_live_set_props": {
         "linkStreamLiveStart": {
             "Name": "link_stream_live_start_checkBox",
             "Description": "联动推流和开播",
@@ -30858,6 +30890,8 @@ widget.widget_CheckBox_dict = {
             "Description": "自动填写推流服务器",
             "ModifiedIs": True
         },
+    },
+    "script_danmu_set_props": {
         "resetDanmuSource": {
             "Name": "reset_danmu_source_checkBox",
             "Description": "每次重置弹幕源",
@@ -31314,9 +31348,11 @@ widget.widget_list = [
     "danmu_send_text_textBox",
     "danmu_send_button",
     "script_set_group",
+    "script_live_set_group",
     "link_stream_live_start_checkBox",
     "link_stream_live_stop_checkBox",
     "auto_fill_stream_server_checkBox",
+    "script_danmu_set_group",
     "reset_danmu_source_checkBox",
     "update_script_set_button",
     "set_widget_visibility_button",
