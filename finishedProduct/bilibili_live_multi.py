@@ -9799,9 +9799,9 @@ def get_common_script_setting():
     """
     script_setting_list = []
     if get_b_u_c_m().get_default_user_id():
-        danmu_client_creations_number = get_c_d_m().get_data(get_b_u_c_m().get_default_user_id(), "scriptSetting")
+        danmu_client_creations_number = get_c_d_m().get_data("system", "scriptSetting")
         if not danmu_client_creations_number:
-            setting = "1/1/1/1"
+            setting = "0/0/0/0"
             get_c_d_m().add_data("system", "scriptSetting", setting, 1)
         script_setting_list = [int(item) for item in get_c_d_m().get_data("system", "scriptSetting")[0].split("/")]
     return script_setting_list
@@ -10774,27 +10774,30 @@ def trigger_frontend_event(event):
         if not GlobalVariableOfData.causeOfTheFrontDeskIncident:
             log_save(obs.LOG_INFO, "此次 推流已开始 事件 由前台按钮【开始直播】引起")
 
-        if not get_live_status():
-            log_save(obs.LOG_INFO, "未开播，此次 推流已开始 事件 发送 直播申请")
-            ButtonFunction.button_function_start_live()
-        else:
-            log_save(obs.LOG_INFO, "正在直播，此次 推流已开始 事件 不发送 直播申请")
+        if widget.CheckBox.linkStreamLiveStart.Bool:
+            if not get_live_status():
+                log_save(obs.LOG_INFO, "未开播，此次 推流已开始 事件 发送 直播申请")
+                ButtonFunction.button_function_start_live()
+            else:
+                log_save(obs.LOG_INFO, "正在直播，此次 推流已开始 事件 不发送 直播申请")
         GlobalVariableOfData.causeOfTheFrontDeskIncident = ""
     elif event == obs.OBS_FRONTEND_EVENT_STREAMING_STOPPED:
         if not GlobalVariableOfData.causeOfTheFrontDeskIncident:
             log_save(obs.LOG_INFO, "此次 推流已结束 事件 由前台按钮【停止直播】引起")
 
-        if GlobalVariableOfData.causeOfTheFrontDeskIncident == "开始直播并复制推流码":
-            log_save(obs.LOG_INFO, "此次 推流已结束 事件 不发送 撤销直播申请")
-        else:
-            if get_live_status():
-                log_save(obs.LOG_INFO, "正在直播，此次 推流已结束 事件 发送 撤销直播申请")
-                ButtonFunction.button_function_stop_live()
+        if widget.CheckBox.linkStreamLiveStop.Bool:
+            if GlobalVariableOfData.causeOfTheFrontDeskIncident == "开始直播并复制推流码":
+                log_save(obs.LOG_INFO, "此次 推流已结束 事件 不发送 撤销直播申请")
+            else:
+                if get_live_status():
+                    log_save(obs.LOG_INFO, "正在直播，此次 推流已结束 事件 发送 撤销直播申请")
+                    ButtonFunction.button_function_stop_live()
         GlobalVariableOfData.causeOfTheFrontDeskIncident = ""
     elif event == obs.OBS_FRONTEND_EVENT_FINISHED_LOADING:
         # 尝试关闭弹幕web
-        log_save(obs.LOG_INFO, "此次 OBS 完成加载 事件 清除哔哩哔哩弹幕浏览器源")
-        ButtonFunction.button_function_remove_danmu_browser()
+        if widget.CheckBox.resetDanmuSource.Bool:
+            log_save(obs.LOG_INFO, "此次 OBS 完成加载 事件 清除哔哩哔哩弹幕浏览器源")
+            ButtonFunction.button_function_remove_danmu_browser()
     elif event == obs.OBS_FRONTEND_EVENT_SCRIPTING_SHUTDOWN:
         if get_live_status():
             log_save(obs.LOG_INFO, "正在直播，此次 脚本关闭中 事件 发送 撤销直播申请")
@@ -12643,45 +12646,54 @@ class ButtonFunction:
         currently_rtmp_push_code = obs.obs_data_get_string(streaming_service_settings, "key")
         log_save(obs.LOG_INFO, f"目前obs的rtmp推流码：【{currently_rtmp_push_code}】")
         log_save(obs.LOG_INFO, f"obs推流状态：{obs.obs_frontend_streaming_active()}")
-        if currently_rtmp_push_code == rtmp_push_code and currently_rtmp_server == rtmp_server and currently_service_string == "Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP":
-            log_save(obs.LOG_INFO, f"推流信息未发生变化，准备推流")
-            if obs.obs_frontend_streaming_active():
-                log_save(obs.LOG_INFO, f"正在推流状态中")
+        if widget.CheckBox.autoFillStreamServer.Bool:
+            if currently_rtmp_push_code == rtmp_push_code and currently_rtmp_server == rtmp_server and currently_service_string == "Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP":
+                log_save(obs.LOG_INFO, f"推流信息未发生变化，准备推流")
+                if obs.obs_frontend_streaming_active():
+                    log_save(obs.LOG_INFO, f"正在推流状态中")
+                else:
+                    if widget.CheckBox.linkStreamLiveStart.Bool:
+                        log_save(obs.LOG_INFO, f"即将开始推流")
+                        GlobalVariableOfData.causeOfTheFrontDeskIncident = "开始直播并复制推流码"
+                        obs.obs_frontend_streaming_start()
+                    else:
+                        log_save(obs.LOG_INFO, "联动推流开播已关闭")
             else:
-                log_save(obs.LOG_INFO, f"即将开始推流")
-                GlobalVariableOfData.causeOfTheFrontDeskIncident = "开始直播并复制推流码"
-                obs.obs_frontend_streaming_start()
-        else:
-            log_save(obs.LOG_INFO, f"推流信息发生变化，更改推流信息")
-            # 停止推流
-            if obs.obs_frontend_streaming_active():
-                log_save(obs.LOG_INFO, f"正处于推流状态中，停止推流")
-                GlobalVariableOfData.causeOfTheFrontDeskIncident = "开始直播并复制推流码"
-                obs.obs_frontend_streaming_stop()
-            # 写入推流服务
-            obs.obs_data_set_string(streaming_service_settings, "service", "Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP")
-            log_save(obs.LOG_INFO, f"向obs写入推流服务：【Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP】")
-            # 写入推流地址
-            obs.obs_data_set_string(streaming_service_settings, "server", rtmp_server)
-            log_save(obs.LOG_INFO, f"向obs写入推流地址：【{rtmp_server}】")
-            # 写入rtmp推流码
-            obs.obs_data_set_string(streaming_service_settings, "key", rtmp_push_code)
-            log_save(obs.LOG_INFO, f"向obs写入rtmp推流码：【{rtmp_push_code}】")
-            # 应用更新
-            obs.obs_service_update(streaming_service, streaming_service_settings)
-            # 检查是否需要重启推流
-            log_save(obs.LOG_INFO, f"准备推流")
+                log_save(obs.LOG_INFO, f"推流信息发生变化，更改推流信息")
+                streaming_active = False
+                # 停止推流
+                if obs.obs_frontend_streaming_active():
+                    streaming_active = True
+                    log_save(obs.LOG_INFO, f"正处于推流状态中，停止推流")
+                    GlobalVariableOfData.causeOfTheFrontDeskIncident = "开始直播并复制推流码"
+                    obs.obs_frontend_streaming_stop()
+                # 写入推流服务
+                obs.obs_data_set_string(streaming_service_settings, "service", "Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP")
+                log_save(obs.LOG_INFO, f"向obs写入推流服务：【Bilibili Live - RTMP | 哔哩哔哩直播 - RTMP】")
+                # 写入推流地址
+                obs.obs_data_set_string(streaming_service_settings, "server", rtmp_server)
+                log_save(obs.LOG_INFO, f"向obs写入推流地址：【{rtmp_server}】")
+                # 写入rtmp推流码
+                obs.obs_data_set_string(streaming_service_settings, "key", rtmp_push_code)
+                log_save(obs.LOG_INFO, f"向obs写入rtmp推流码：【{rtmp_push_code}】")
+                # 应用更新
+                obs.obs_service_update(streaming_service, streaming_service_settings)
+                # 检查是否需要重启推流
+                log_save(obs.LOG_INFO, f"准备推流")
 
-            if not obs.obs_frontend_streaming_active():
-                log_save(obs.LOG_INFO, f"开始推流")
-                GlobalVariableOfData.causeOfTheFrontDeskIncident = "开始直播并复制推流码"
-                obs.obs_frontend_streaming_start()
-            currently_service_string = obs.obs_data_get_string(streaming_service_settings, "service")
-            log_save(obs.LOG_INFO, f"目前obs的推流服务：【{currently_service_string}】")
-            currently_rtmp_server = obs.obs_data_get_string(streaming_service_settings, "server")
-            log_save(obs.LOG_INFO, f"目前obs的rtmp推流地址：【{currently_rtmp_server}】")
-            currently_rtmp_push_code = obs.obs_data_get_string(streaming_service_settings, "key")
-            log_save(obs.LOG_INFO, f"目前obs的rtmp推流码：【{currently_rtmp_push_code}】")
+                if streaming_active or widget.CheckBox.linkStreamLiveStart.Bool:
+                    if not obs.obs_frontend_streaming_active():
+                        log_save(obs.LOG_INFO, f"开始推流")
+                        GlobalVariableOfData.causeOfTheFrontDeskIncident = "开始直播并复制推流码"
+                        obs.obs_frontend_streaming_start()
+                currently_service_string = obs.obs_data_get_string(streaming_service_settings, "service")
+                log_save(obs.LOG_INFO, f"目前obs的推流服务：【{currently_service_string}】")
+                currently_rtmp_server = obs.obs_data_get_string(streaming_service_settings, "server")
+                log_save(obs.LOG_INFO, f"目前obs的rtmp推流地址：【{currently_rtmp_server}】")
+                currently_rtmp_push_code = obs.obs_data_get_string(streaming_service_settings, "key")
+                log_save(obs.LOG_INFO, f"目前obs的rtmp推流码：【{currently_rtmp_push_code}】")
+        else:
+            log_save(obs.LOG_INFO, "自动填写直播服务器已关闭")
         # 释放流服务设置
         obs.obs_data_release(streaming_service_settings)
         # 保存到配置文件
@@ -12760,11 +12772,14 @@ class ButtonFunction:
             prop = args[1]
         if len(args) == 3:
             settings = args[2]
-        # 停止推流
-        if obs.obs_frontend_streaming_active():
-            log_save(obs.LOG_INFO, f"停止推流")
-            GlobalVariableOfData.causeOfTheFrontDeskIncident = "结束直播"
-            obs.obs_frontend_streaming_stop()
+        if widget.CheckBox.linkStreamLiveStop.Bool:
+            # 停止推流
+            if obs.obs_frontend_streaming_active():
+                log_save(obs.LOG_INFO, f"停止推流")
+                GlobalVariableOfData.causeOfTheFrontDeskIncident = "结束直播"
+                obs.obs_frontend_streaming_stop()
+        else:
+            log_save(obs.LOG_INFO, "联动推流停播已关闭")
 
         # 获取开播平台
         live_streaming_platform = obs.obs_data_get_string(GlobalVariableOfData.script_settings,
