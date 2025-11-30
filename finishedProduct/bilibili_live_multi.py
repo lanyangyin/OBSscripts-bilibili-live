@@ -9862,8 +9862,8 @@ def clear_cache():
 # OBS Script Functions                                      -
 # -----------------------------------------------------------
 
-script_version = bytes.fromhex('302e342e39').decode('utf-8')
-"""脚本版本.encode().hex()"""
+script_version = bytes.fromhex('302e342e3130').decode('utf-8')
+"""脚本版本''.encode().hex()"""
 
 
 class GlobalVariableOfData:
