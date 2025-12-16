@@ -3669,7 +3669,7 @@ def script_defaults(settings):  # 设置其默认值
     widget.ComboBox.uid.Type = obs.OBS_COMBO_TYPE_LIST
     widget.ComboBox.uid.Text = uname if b_u_l_c.get_cookies() else '添加或选择一个账号登录'
     widget.ComboBox.uid.Value = b_u_l_c.get_users()[0] if b_u_l_c.get_cookies() else '-1'
-    widget.ComboBox.uid.Dictionary = {uid or '-1': all_uname4uid.get(uid, '添加或选择一个账号登录') for uid in b_u_l_c.get_users().values()}
+    widget.ComboBox.uid.DictionaryList = {uid or '-1': all_uname4uid.get(uid, '添加或选择一个账号登录') for uid in b_u_l_c.get_users().values()}
 
     widget.Button.login.Visible = True if all_uname4uid else False
     widget.Button.login.Enabled = True if all_uname4uid else False
@@ -3767,7 +3767,7 @@ def script_defaults(settings):  # 设置其默认值
     widget.ComboBox.roomCommonTitles.Type = obs.OBS_COMBO_TYPE_EDITABLE
     widget.ComboBox.roomCommonTitles.Text = room_title if bool(room_status) else ""
     widget.ComboBox.roomCommonTitles.Value = "0"
-    widget.ComboBox.roomCommonTitles.Dictionary = common_title4number
+    widget.ComboBox.roomCommonTitles.DictionaryList = common_title4number
 
     widget.Button.roomCommonTitlesTrue.Visible = False
     widget.Button.roomCommonTitlesTrue.Enabled = False
@@ -3805,7 +3805,7 @@ def script_defaults(settings):  # 设置其默认值
     widget.ComboBox.roomCommonAreas.Type = obs.OBS_COMBO_TYPE_LIST
     widget.ComboBox.roomCommonAreas.Text = common_area_id_dict_str4common_area_name_dict_str[json.dumps({area["parent_area_id"]: str(area["area_id"])})] if common_areas else "无常用分区"
     widget.ComboBox.roomCommonAreas.Value = json.dumps({area["parent_area_id"]: str(area["area_id"])}, ensure_ascii=False) if common_areas else "-1"
-    widget.ComboBox.roomCommonAreas.Dictionary = common_area_id_dict_str4common_area_name_dict_str
+    widget.ComboBox.roomCommonAreas.DictionaryList = common_area_id_dict_str4common_area_name_dict_str
 
     widget.Button.roomCommonAreasTrue.Visible = False
     widget.Button.roomCommonAreasTrue.Enabled = False
@@ -3819,7 +3819,7 @@ def script_defaults(settings):  # 设置其默认值
     widget.ComboBox.roomParentArea.Type = obs.OBS_COMBO_TYPE_LIST
     widget.ComboBox.roomParentArea.Text = str(area["parent_area_name"]) if bool(area) else "请选择一级分区"
     widget.ComboBox.roomParentArea.Value = str(area["parent_area_id"]) if bool(area) else "-1"
-    widget.ComboBox.roomParentArea.Dictionary = parent_live_area_name4parent_live_area_id
+    widget.ComboBox.roomParentArea.DictionaryList = parent_live_area_name4parent_live_area_id
 
     widget.Button.roomParentAreaTrue.Visible = False
     widget.Button.roomParentAreaTrue.Enabled = False
@@ -3833,7 +3833,7 @@ def script_defaults(settings):  # 设置其默认值
     widget.ComboBox.roomSubArea.Type = obs.OBS_COMBO_TYPE_LIST
     widget.ComboBox.roomSubArea.Text = str(area["area_name"]) if bool(area) else "请确认一级分区"
     widget.ComboBox.roomSubArea.Value = str(area["area_id"]) if bool(area) else "-1"
-    widget.ComboBox.roomSubArea.Dictionary = sub_live_area_name4sub_live_area_id
+    widget.ComboBox.roomSubArea.DictionaryList = sub_live_area_name4sub_live_area_id
 
     widget.Button.roomSubAreaTrue.Visible = bool(room_status)
     widget.Button.roomSubAreaTrue.Enabled = bool(room_status)
@@ -3869,7 +3869,7 @@ def script_defaults(settings):  # 设置其默认值
     widget.ComboBox.liveStreamingPlatform.Type = obs.OBS_COMBO_TYPE_LIST
     widget.ComboBox.liveStreamingPlatform.Text = ""
     widget.ComboBox.liveStreamingPlatform.Value = ""
-    widget.ComboBox.liveStreamingPlatform.Dictionary = {"pc_link": "直播姬（pc）", "web_link": "web在线直播", "android_link": "bililink"}
+    widget.ComboBox.liveStreamingPlatform.DictionaryList = {"pc_link": "直播姬（pc）", "web_link": "web在线直播", "android_link": "bililink"}
 
     widget.Button.liveStart.Visible = True if ((not live_status) and room_status) else False
     widget.Button.liveStart.Enabled = True if ((not live_status) and room_status) else False
@@ -3972,7 +3972,7 @@ def script_defaults(settings):  # 设置其默认值
     widget.ComboBox.liveBookings.Type = obs.OBS_COMBO_TYPE_LIST
     widget.ComboBox.liveBookings.Text = ""
     widget.ComboBox.liveBookings.Value = ""
-    widget.ComboBox.liveBookings.Dictionary = reserve_name4reserve_sid
+    widget.ComboBox.liveBookings.DictionaryList = reserve_name4reserve_sid
 
     widget.Button.liveBookingsCancel.Visible = bool(room_status)
     widget.Button.liveBookingsCancel.Enabled = bool(room_status)
@@ -4186,10 +4186,10 @@ def update_ui_interface_data(is_script_properties=False):
         elif w.ControlType == "Button":
             pass
         elif w.ControlType == "ComboBox":
-            if w.Dictionary != {obs.obs_property_list_item_string(w.Obj, idx): obs.obs_property_list_item_name(w.Obj, idx) for idx in range(obs.obs_property_list_item_count(w.Obj))}:
+            if w.DictionaryList != {obs.obs_property_list_item_string(w.Obj, idx): obs.obs_property_list_item_name(w.Obj, idx) for idx in range(obs.obs_property_list_item_count(w.Obj))}:
                 obs.obs_property_list_clear(w.Obj)
-                for common_area_id_dict_str in w.Dictionary:
-                    obs.obs_property_list_add_string(w.Obj, w.Dictionary[common_area_id_dict_str], common_area_id_dict_str) if common_area_id_dict_str != w.Value else obs.obs_property_list_insert_string(w.Obj, 0, w.Text, w.Value)
+                for common_area_id_dict_str in w.DictionaryList:
+                    obs.obs_property_list_add_string(w.Obj, w.DictionaryList[common_area_id_dict_str], common_area_id_dict_str) if common_area_id_dict_str != w.Value else obs.obs_property_list_insert_string(w.Obj, 0, w.Text, w.Value)
             if w.Type == obs.OBS_COMBO_TYPE_EDITABLE:
                 if obs.obs_data_get_string(GlobalVariableOfData.script_settings, w.Name) != w.Text:
                     obs.obs_data_set_string(GlobalVariableOfData.script_settings, w.Name, obs.obs_property_list_item_name(w.Obj, 0))
@@ -4284,7 +4284,7 @@ def button_function_update_account_list(props=None, prop=None, settings=None):
     # 设置 组合框【用户】 可用状态
     widget.ComboBox.uid.Enabled = True
     # 设置 组合框【用户】 的数据字典
-    widget.ComboBox.uid.Dictionary = {uid or '-1': all_uname4uid.get(uid, '添加或选择一个账号登录') for uid in b_u_l_c.get_users().values()}
+    widget.ComboBox.uid.DictionaryList = {uid or '-1': all_uname4uid.get(uid, '添加或选择一个账号登录') for uid in b_u_l_c.get_users().values()}
     # 设置 组合框【用户】 默认显示内容
     widget.ComboBox.uid.Obj_string = uname if b_u_l_c.get_cookies() else '添加或选择一个账号登录'
     # 设置 组合框【用户】 默认显示内容 的 列表值
@@ -4383,15 +4383,15 @@ def button_function_update_account_list(props=None, prop=None, settings=None):
     else:
         log_save(0, f"　│││🧩 组合框【用户】 可用状态 未 发生变动")
     # 判断 组合框【用户】字典数据 和 当前数据是否有变化
-    if widget.ComboBox.uid.Dictionary != {obs.obs_property_list_item_string(widget.ComboBox.uid.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.uid.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.uid.Obj))}:
-        log_save(0, f"　│││✏️ 组合框【用户】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.uid.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.uid.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.uid.Obj))})}个元素➡️{len(widget.ComboBox.uid.Dictionary)}个元素")
+    if widget.ComboBox.uid.DictionaryList != {obs.obs_property_list_item_string(widget.ComboBox.uid.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.uid.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.uid.Obj))}:
+        log_save(0, f"　│││✏️ 组合框【用户】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.uid.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.uid.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.uid.Obj))})}个元素➡️{len(widget.ComboBox.uid.DictionaryList)}个元素")
         # 清空 组合框【用户】
         log_save(0, f"　│││📑 更新 组合框【用户】数据 第一步：清空 组合框【用户】")
         obs.obs_property_list_clear(widget.ComboBox.uid.Obj)
         # 添加 组合框【用户】 列表选项  默认值会被设置在第一位
         log_save(0, f"　│││📑  更新 组合框【用户】数据 第二步：添加 组合框【用户】 列表选项  如果有默认值，会被设置在第一位")
-        for uid in widget.ComboBox.uid.Dictionary:
-            obs.obs_property_list_add_string(widget.ComboBox.uid.Obj, widget.ComboBox.uid.Dictionary[uid], uid) if uid != widget.ComboBox.uid.Value else obs.obs_property_list_insert_string(widget.ComboBox.uid.Obj, 0, widget.ComboBox.uid.Obj_string, widget.ComboBox.uid.Value)
+        for uid in widget.ComboBox.uid.DictionaryList:
+            obs.obs_property_list_add_string(widget.ComboBox.uid.Obj, widget.ComboBox.uid.DictionaryList[uid], uid) if uid != widget.ComboBox.uid.Value else obs.obs_property_list_insert_string(widget.ComboBox.uid.Obj, 0, widget.ComboBox.uid.Obj_string, widget.ComboBox.uid.Value)
         # 设置 组合框【用户】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
         log_save(0, f"　│││📑 更新 组合框【用户】数据 第三步：更新 组合框【用户】 文本")
         obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'uid_comboBox', obs.obs_property_list_item_string(widget.ComboBox.uid.Obj, 0))
@@ -4973,8 +4973,8 @@ def button_function_change_live_room_title():
     widget.ComboBox.roomCommonTitles.Enabled = bool(room_status)
     log_save(0, f"║║║设置 可编辑组合框【常用标题】 可用状态：{str(widget.ComboBox.roomCommonTitles.Enabled)}")
     # 设置 可编辑组合框【常用标题】 的数据字典
-    widget.ComboBox.roomCommonTitles.Dictionary = common_title4number
-    log_save(0, f"║║║设置 可编辑组合框【常用标题】 数据字典：{str(widget.ComboBox.roomCommonTitles.Dictionary)}")
+    widget.ComboBox.roomCommonTitles.DictionaryList = common_title4number
+    log_save(0, f"║║║设置 可编辑组合框【常用标题】 数据字典：{str(widget.ComboBox.roomCommonTitles.DictionaryList)}")
     # 设置 可编辑组合框【常用标题】 默认显示内容
     widget.ComboBox.roomCommonTitles.Text = room_title if bool(room_status) else ""
     log_save(0, f"║║║设置 可编辑组合框【常用标题】 默认显示内容：{str(widget.ComboBox.roomCommonTitles.Text)}")
@@ -5021,15 +5021,15 @@ def button_function_change_live_room_title():
     else:
         log_save(0, f"　│││🧩 可编辑组合框【常用标题】 可用状态 未 发生变动")
     # 判断 可编辑组合框【常用标题】字典数据 和 当前数据是否有变化
-    if widget.ComboBox.roomCommonTitles.Dictionary != {obs.obs_property_list_item_string(widget.ComboBox.roomCommonTitles.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomCommonTitles.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomCommonTitles.Obj))}:
-        log_save(0, f"　│││✏️ 可编辑组合框【常用标题】列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.roomCommonTitles.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomCommonTitles.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomCommonTitles.Obj))})}个元素➡️{len(widget.ComboBox.roomCommonTitles.Dictionary)}个元素")
+    if widget.ComboBox.roomCommonTitles.DictionaryList != {obs.obs_property_list_item_string(widget.ComboBox.roomCommonTitles.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomCommonTitles.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomCommonTitles.Obj))}:
+        log_save(0, f"　│││✏️ 可编辑组合框【常用标题】列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.roomCommonTitles.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomCommonTitles.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomCommonTitles.Obj))})}个元素➡️{len(widget.ComboBox.roomCommonTitles.DictionaryList)}个元素")
         # 清空 可编辑组合框【常用标题】
         log_save(0, f"　│││更新 可编辑组合框【常用标题】数据 第一步：清空 可编辑组合框【常用标题】")
         obs.obs_property_list_clear(widget.ComboBox.roomCommonTitles.Obj)
         # 添加 可编辑组合框【常用标题】 列表选项  默认值会被设置在第一位
         log_save(0, f"　│││更新 可编辑组合框【常用标题】数据 第二步：添加 可编辑组合框【常用标题】 列表选项  如果有默认值，会被设置在第一位")
-        for number in widget.ComboBox.roomCommonTitles.Dictionary:
-            obs.obs_property_list_add_string(widget.ComboBox.roomCommonTitles.Obj, widget.ComboBox.roomCommonTitles.Dictionary[number], number) if number != widget.ComboBox.roomCommonTitles.Value else obs.obs_property_list_insert_string(widget.ComboBox.roomCommonTitles.Obj, 0, widget.ComboBox.roomCommonTitles.Text, widget.ComboBox.roomCommonTitles.Value)
+        for number in widget.ComboBox.roomCommonTitles.DictionaryList:
+            obs.obs_property_list_add_string(widget.ComboBox.roomCommonTitles.Obj, widget.ComboBox.roomCommonTitles.DictionaryList[number], number) if number != widget.ComboBox.roomCommonTitles.Value else obs.obs_property_list_insert_string(widget.ComboBox.roomCommonTitles.Obj, 0, widget.ComboBox.roomCommonTitles.Text, widget.ComboBox.roomCommonTitles.Value)
         # 设置 可编辑组合框【常用标题】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
         log_save(0, f"　│││更新 可编辑组合框【常用标题】数据 第三步：更新 可编辑组合框【常用标题】 显示文本：{obs.obs_property_list_item_name(widget.ComboBox.roomCommonTitles.Obj, 0)}")
         obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'room_commonTitles_comboBox', obs.obs_property_list_item_name(widget.ComboBox.roomCommonTitles.Obj, 0))
@@ -5256,36 +5256,36 @@ def button_function_start_parent_area():
         return False
 
     # 记录旧的 组合框【二级分区】 数据字典
-    sub_live_area_name4sub_live_area_id_old = widget.ComboBox.roomSubArea.Dictionary
+    sub_live_area_name4sub_live_area_id_old = widget.ComboBox.roomSubArea.DictionaryList
     # 获取B站直播分区信息
     area_obj_list = BilibiliApiGeneric(ssl_verification=GlobalVariableOfData.sslVerification).get_area_obj_list()
     # 获取 组合框【二级分区】 数据字典
     sub_live_area_name4sub_live_area_id = {str(subAreaObj["id"]): subAreaObj["name"] for subAreaObj in [AreaObj["list"] for AreaObj in area_obj_list["data"] if str(parent_live_area_combobox_value) == str(AreaObj["id"])][0]}
     log_save(0,  f"获取 当前父分区对应的子分区数据{sub_live_area_name4sub_live_area_id}")
     #  设置 临时 组合框【二级分区】 数据字典
-    widget.ComboBox.roomSubArea.Dictionary = sub_live_area_name4sub_live_area_id
+    widget.ComboBox.roomSubArea.DictionaryList = sub_live_area_name4sub_live_area_id
 
     # 临时 更新 组合框【二级分区】 数据
     # 组合框【二级分区】 UI
     log_save(0, f"　│┌{'─'*55}")
     log_save(0, f"　││组合框【二级分区】 UI")
     # 判断 组合框【二级分区】字典数据 和 当前数据是否有变化
-    if widget.ComboBox.roomSubArea.Dictionary != {obs.obs_property_list_item_string(widget.ComboBox.roomSubArea.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomSubArea.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomSubArea.Obj))}:
-        log_save(0, f"　││组合框【二级分区】数据发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.roomSubArea.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomSubArea.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomSubArea.Obj))})}个元素➡️{len(widget.ComboBox.roomSubArea.Dictionary)}个元素")
+    if widget.ComboBox.roomSubArea.DictionaryList != {obs.obs_property_list_item_string(widget.ComboBox.roomSubArea.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomSubArea.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomSubArea.Obj))}:
+        log_save(0, f"　││组合框【二级分区】数据发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.roomSubArea.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomSubArea.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomSubArea.Obj))})}个元素➡️{len(widget.ComboBox.roomSubArea.DictionaryList)}个元素")
         # 清空 组合框【二级分区】
         log_save(0, f"　││更新 组合框【二级分区】数据 第一步：清空 组合框【二级分区】")
         obs.obs_property_list_clear(widget.ComboBox.roomSubArea.Obj)
         # 添加 组合框【二级分区】 列表选项  默认值会被设置在第一位
         log_save(0, f"　││更新 组合框【二级分区】数据 第二步：添加 组合框【二级分区】 列表选项  如果有默认值，会被设置在第一位")
-        for subLiveAreaId in widget.ComboBox.roomSubArea.Dictionary:
-            obs.obs_property_list_add_string(widget.ComboBox.roomSubArea.Obj, widget.ComboBox.roomSubArea.Dictionary[subLiveAreaId], subLiveAreaId) if subLiveAreaId != widget.ComboBox.roomSubArea.Value else obs.obs_property_list_insert_string(widget.ComboBox.roomSubArea.Obj, 0, widget.ComboBox.roomSubArea.Text, widget.ComboBox.roomSubArea.Value)
+        for subLiveAreaId in widget.ComboBox.roomSubArea.DictionaryList:
+            obs.obs_property_list_add_string(widget.ComboBox.roomSubArea.Obj, widget.ComboBox.roomSubArea.DictionaryList[subLiveAreaId], subLiveAreaId) if subLiveAreaId != widget.ComboBox.roomSubArea.Value else obs.obs_property_list_insert_string(widget.ComboBox.roomSubArea.Obj, 0, widget.ComboBox.roomSubArea.Text, widget.ComboBox.roomSubArea.Value)
         # 设置 组合框【二级分区】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
         log_save(0, f"　││更新 组合框【二级分区】数据 第三步：更新 组合框【二级分区】 文本")
         obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'room_subArea_comboBox', obs.obs_property_list_item_string(widget.ComboBox.roomSubArea.Obj, 0))
     log_save(0, f"　│└{'─'*55}")
 
     # 返还旧的 组合框【二级分区】 数据字典
-    widget.ComboBox.roomSubArea.Dictionary = sub_live_area_name4sub_live_area_id_old
+    widget.ComboBox.roomSubArea.DictionaryList = sub_live_area_name4sub_live_area_id_old
     return True
 
 
@@ -5410,8 +5410,8 @@ def button_function_start_sub_area():
     widget.ComboBox.roomCommonAreas.Enabled = bool(room_status)
     log_save(0, f"║║║设置 组合框【常用分区】 可用状态：{str(widget.ComboBox.roomCommonAreas.Enabled)}")
     # 设置 组合框【常用分区】 的数据字典
-    widget.ComboBox.roomCommonAreas.Dictionary = common_area_id_dict_str4common_area_name_dict_str
-    log_save(0, f"║║║设置 组合框【常用分区】 数据字典：{str(widget.ComboBox.roomCommonAreas.Dictionary)}")
+    widget.ComboBox.roomCommonAreas.DictionaryList = common_area_id_dict_str4common_area_name_dict_str
+    log_save(0, f"║║║设置 组合框【常用分区】 数据字典：{str(widget.ComboBox.roomCommonAreas.DictionaryList)}")
     # 设置 组合框【常用分区】 默认显示内容
     widget.ComboBox.roomCommonAreas.Text = common_area_id_dict_str4common_area_name_dict_str[json.dumps({area["parent_area_id"]: str(area["area_id"])})] if common_areas else "无常用分区"
     log_save(0, f"║║║设置 组合框【常用分区】 默认显示内容：{str(widget.ComboBox.roomCommonAreas.Text)}")
@@ -5426,8 +5426,8 @@ def button_function_start_sub_area():
     widget.ComboBox.roomParentArea.Enabled = bool(room_status)
     log_save(0, f"║║║设置 组合框【一级分区】 可用状态：{str(widget.ComboBox.roomParentArea.Enabled)}")
     # 设置 组合框【一级分区】 的数据字典
-    widget.ComboBox.roomParentArea.Dictionary = parent_live_area_name4parent_live_area_id
-    log_save(0, f"║║║设置 组合框【一级分区】 数据字典：{str(widget.ComboBox.roomParentArea.Dictionary)}")
+    widget.ComboBox.roomParentArea.DictionaryList = parent_live_area_name4parent_live_area_id
+    log_save(0, f"║║║设置 组合框【一级分区】 数据字典：{str(widget.ComboBox.roomParentArea.DictionaryList)}")
     # 设置 组合框【一级分区】 默认显示内容
     widget.ComboBox.roomParentArea.Text = str(area["parent_area_name"]) if bool(area) else "请选择一级分区"
     log_save(0, f"║║║设置 组合框【一级分区】 默认显示内容：{str(widget.ComboBox.roomParentArea.Text)}")
@@ -5442,8 +5442,8 @@ def button_function_start_sub_area():
     widget.ComboBox.roomSubArea.Obj_enabled = bool(room_status)
     log_save(0, f"║║║设置 组合框【二级分区】 可用状态：{str(widget.ComboBox.roomSubArea.Obj_enabled)}")
     # 设置 组合框【二级分区】 数据字典
-    widget.ComboBox.roomSubArea.Dictionary = sub_live_area_name4sub_live_area_id
-    log_save(0, f"║║║设置 组合框【二级分区】 数据字典：{str(widget.ComboBox.roomSubArea.Dictionary)}")
+    widget.ComboBox.roomSubArea.DictionaryList = sub_live_area_name4sub_live_area_id
+    log_save(0, f"║║║设置 组合框【二级分区】 数据字典：{str(widget.ComboBox.roomSubArea.DictionaryList)}")
     # 设置 组合框【二级分区】 默认显示内容
     widget.ComboBox.roomSubArea.Text = str(area["area_name"]) if bool(area) else "请确认一级分区"
     log_save(0, f"║║║设置 组合框【二级分区】 默认显示内容：{str(widget.ComboBox.roomSubArea.Text)}")
@@ -5479,15 +5479,15 @@ def button_function_start_sub_area():
     else:
         log_save(0, f"　│││🧩 组合框【常用分区】 可用状态 未 发生变动")
     # 判断 组合框【常用分区】字典数据 和 当前数据是否有变化
-    if widget.ComboBox.roomCommonAreas.Dictionary != {obs.obs_property_list_item_string(widget.ComboBox.roomCommonAreas.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomCommonAreas.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomCommonAreas.Obj))}:
-        log_save(0, f"　│││✏️ 组合框【常用分区】列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.roomCommonAreas.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomCommonAreas.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomCommonAreas.Obj))})}个元素➡️{len(widget.ComboBox.roomCommonAreas.Dictionary)}个元素")
+    if widget.ComboBox.roomCommonAreas.DictionaryList != {obs.obs_property_list_item_string(widget.ComboBox.roomCommonAreas.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomCommonAreas.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomCommonAreas.Obj))}:
+        log_save(0, f"　│││✏️ 组合框【常用分区】列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.roomCommonAreas.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomCommonAreas.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomCommonAreas.Obj))})}个元素➡️{len(widget.ComboBox.roomCommonAreas.DictionaryList)}个元素")
         # 清空 组合框【常用分区】
         log_save(0, f"　│││📑 更新 组合框【常用分区】数据 第一步：清空 组合框【常用分区】")
         obs.obs_property_list_clear(widget.ComboBox.roomCommonAreas.Obj)
         # 添加 组合框【常用分区】 列表选项  默认值会被设置在第一位
         log_save(0, f"　│││📑  更新 组合框【常用分区】数据 第二步：添加 组合框【常用分区】 列表选项  如果有默认值，会被设置在第一位")
-        for common_area_id_dict_str in widget.ComboBox.roomCommonAreas.Dictionary:
-            obs.obs_property_list_add_string(widget.ComboBox.roomCommonAreas.Obj, widget.ComboBox.roomCommonAreas.Dictionary[common_area_id_dict_str], common_area_id_dict_str) if common_area_id_dict_str != widget.ComboBox.roomCommonAreas.Value else obs.obs_property_list_insert_string(widget.ComboBox.roomCommonAreas.Obj, 0, widget.ComboBox.roomCommonAreas.Text, widget.ComboBox.roomCommonAreas.Value)
+        for common_area_id_dict_str in widget.ComboBox.roomCommonAreas.DictionaryList:
+            obs.obs_property_list_add_string(widget.ComboBox.roomCommonAreas.Obj, widget.ComboBox.roomCommonAreas.DictionaryList[common_area_id_dict_str], common_area_id_dict_str) if common_area_id_dict_str != widget.ComboBox.roomCommonAreas.Value else obs.obs_property_list_insert_string(widget.ComboBox.roomCommonAreas.Obj, 0, widget.ComboBox.roomCommonAreas.Text, widget.ComboBox.roomCommonAreas.Value)
         # 设置 组合框【常用分区】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
         log_save(0, f"　│││📑 更新 组合框【常用分区】数据 第三步：更新 组合框【常用分区】 文本")
         obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'room_commonAreas_comboBox', obs.obs_property_list_item_string(widget.ComboBox.roomCommonAreas.Obj, 0))
@@ -5510,15 +5510,15 @@ def button_function_start_sub_area():
     else:
         log_save(0, f"　│││🧩 组合框【一级分区】 可用状态 未 发生变动")
     # 判断 组合框【一级分区】字典数据 和 当前数据是否有变化
-    if widget.ComboBox.roomParentArea.Dictionary != {obs.obs_property_list_item_string(widget.ComboBox.roomParentArea.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomParentArea.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomParentArea.Obj))}:
-        log_save(0, f"　│││✏️ 组合框【一级分区】列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.roomParentArea.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomParentArea.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomParentArea.Obj))})}个元素➡️{len(widget.ComboBox.roomParentArea.Dictionary)}个元素")
+    if widget.ComboBox.roomParentArea.DictionaryList != {obs.obs_property_list_item_string(widget.ComboBox.roomParentArea.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomParentArea.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomParentArea.Obj))}:
+        log_save(0, f"　│││✏️ 组合框【一级分区】列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.roomParentArea.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomParentArea.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomParentArea.Obj))})}个元素➡️{len(widget.ComboBox.roomParentArea.DictionaryList)}个元素")
         # 清空 组合框【一级分区】
         log_save(0, f"　│││📑 更新 组合框【一级分区】数据 第一步：清空 组合框【一级分区】")
         obs.obs_property_list_clear(widget.ComboBox.roomParentArea.Obj)
         # 添加 组合框【一级分区】 列表选项  默认值会被设置在第一位
         log_save(0, f"　│││📑  更新 组合框【一级分区】数据 第二步：添加 组合框【一级分区】 列表选项  如果有默认值，会被设置在第一位")
-        for common_area_id_dict_str in widget.ComboBox.roomParentArea.Dictionary:
-            obs.obs_property_list_add_string(widget.ComboBox.roomParentArea.Obj, widget.ComboBox.roomParentArea.Dictionary[common_area_id_dict_str], common_area_id_dict_str) if common_area_id_dict_str != widget.ComboBox.roomParentArea.Value else obs.obs_property_list_insert_string(widget.ComboBox.roomParentArea.Obj, 0, widget.ComboBox.roomParentArea.Text, widget.ComboBox.roomParentArea.Value)
+        for common_area_id_dict_str in widget.ComboBox.roomParentArea.DictionaryList:
+            obs.obs_property_list_add_string(widget.ComboBox.roomParentArea.Obj, widget.ComboBox.roomParentArea.DictionaryList[common_area_id_dict_str], common_area_id_dict_str) if common_area_id_dict_str != widget.ComboBox.roomParentArea.Value else obs.obs_property_list_insert_string(widget.ComboBox.roomParentArea.Obj, 0, widget.ComboBox.roomParentArea.Text, widget.ComboBox.roomParentArea.Value)
         # 设置 组合框【一级分区】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
         log_save(0, f"　│││📑 更新 组合框【一级分区】数据 第三步：更新 组合框【一级分区】 文本")
         obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'room_parentArea_comboBox', obs.obs_property_list_item_string(widget.ComboBox.roomParentArea.Obj, 0))
@@ -5541,15 +5541,15 @@ def button_function_start_sub_area():
     else:
         log_save(0, f"　│││🧩 组合框【二级分区】 可用状态 未 发生变动")
     # 判断 组合框【二级分区】字典数据 和 当前数据是否有变化
-    if widget.ComboBox.roomSubArea.Dictionary != {obs.obs_property_list_item_string(widget.ComboBox.roomSubArea.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomSubArea.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomSubArea.Obj))}:
-        log_save(0, f"　│││✏️ 组合框【二级分区】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.roomSubArea.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomSubArea.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomSubArea.Obj))})}个元素➡️{len(widget.ComboBox.roomSubArea.Dictionary)}个元素")
+    if widget.ComboBox.roomSubArea.DictionaryList != {obs.obs_property_list_item_string(widget.ComboBox.roomSubArea.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomSubArea.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomSubArea.Obj))}:
+        log_save(0, f"　│││✏️ 组合框【二级分区】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.roomSubArea.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.roomSubArea.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.roomSubArea.Obj))})}个元素➡️{len(widget.ComboBox.roomSubArea.DictionaryList)}个元素")
         # 清空 组合框【二级分区】
         log_save(0, f"　│││📑 更新 组合框【二级分区】数据 第一步：清空 组合框【二级分区】")
         obs.obs_property_list_clear(widget.ComboBox.roomSubArea.Obj)
         # 添加 组合框【二级分区】 列表选项  默认值会被设置在第一位
         log_save(0, f"　│││📑  更新 组合框【二级分区】数据 第二步：添加 组合框【二级分区】 列表选项  如果有默认值，会被设置在第一位")
-        for subLiveAreaId in widget.ComboBox.roomSubArea.Dictionary:
-            obs.obs_property_list_add_string(widget.ComboBox.roomSubArea.Obj, widget.ComboBox.roomSubArea.Dictionary[subLiveAreaId], subLiveAreaId) if subLiveAreaId != widget.ComboBox.roomSubArea.Value else obs.obs_property_list_insert_string(widget.ComboBox.roomSubArea.Obj, 0, widget.ComboBox.roomSubArea.Text, widget.ComboBox.roomSubArea.Value)
+        for subLiveAreaId in widget.ComboBox.roomSubArea.DictionaryList:
+            obs.obs_property_list_add_string(widget.ComboBox.roomSubArea.Obj, widget.ComboBox.roomSubArea.DictionaryList[subLiveAreaId], subLiveAreaId) if subLiveAreaId != widget.ComboBox.roomSubArea.Value else obs.obs_property_list_insert_string(widget.ComboBox.roomSubArea.Obj, 0, widget.ComboBox.roomSubArea.Text, widget.ComboBox.roomSubArea.Value)
         # 设置 组合框【二级分区】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
         log_save(0, f"　│││📑 更新 组合框【二级分区】数据 第三步：更新 组合框【二级分区】 文本")
         obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'room_subArea_comboBox', obs.obs_property_list_item_string(widget.ComboBox.roomSubArea.Obj, 0))
@@ -5722,8 +5722,8 @@ def button_function_start_live():
     widget.ComboBox.liveStreamingPlatform.Enabled = True if ((not live_status) and room_status) else False
     log_save(0, f"║║║设置 组合框【直播平台】 可用状态：{str(widget.ComboBox.liveStreamingPlatform.Enabled)}")
     # 设置 组合框【直播平台】 的数据字典
-    widget.ComboBox.liveStreamingPlatform.Dictionary = {"pc_link": "直播姬（pc）", "web_link": "web在线直播", "android_link": "bililink"}
-    log_save(0, f"║║║设置 组合框【直播平台】 的数据字典：{str(widget.ComboBox.liveStreamingPlatform.Dictionary)}")
+    widget.ComboBox.liveStreamingPlatform.DictionaryList = {"pc_link": "直播姬（pc）", "web_link": "web在线直播", "android_link": "bililink"}
+    log_save(0, f"║║║设置 组合框【直播平台】 的数据字典：{str(widget.ComboBox.liveStreamingPlatform.DictionaryList)}")
     # 设置 组合框【直播平台】 的内容
     widget.ComboBox.liveStreamingPlatform.Text = ""
     log_save(0, f"║║║设置 组合框【直播平台】 的内容：{str(widget.ComboBox.liveStreamingPlatform.Text)}")
@@ -5821,15 +5821,15 @@ def button_function_start_live():
     else:
         log_save(0, f"　│││🧩 组合框【直播平台】 可用状态 未 发生变动")
     # 判断 组合框【直播平台】字典数据 和 当前数据是否有变化
-    if widget.ComboBox.liveStreamingPlatform.Dictionary != {obs.obs_property_list_item_string(widget.ComboBox.liveStreamingPlatform.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.liveStreamingPlatform.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.liveStreamingPlatform.Obj))}:
-        log_save(0, f"　│││✏️ 组合框【直播平台】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.liveStreamingPlatform.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.liveStreamingPlatform.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.liveStreamingPlatform.Obj))})}个元素➡️{len(widget.ComboBox.liveStreamingPlatform.Dictionary)}个元素")
+    if widget.ComboBox.liveStreamingPlatform.DictionaryList != {obs.obs_property_list_item_string(widget.ComboBox.liveStreamingPlatform.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.liveStreamingPlatform.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.liveStreamingPlatform.Obj))}:
+        log_save(0, f"　│││✏️ 组合框【直播平台】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.liveStreamingPlatform.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.liveStreamingPlatform.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.liveStreamingPlatform.Obj))})}个元素➡️{len(widget.ComboBox.liveStreamingPlatform.DictionaryList)}个元素")
         # 清空 组合框【直播平台】
         log_save(0, f"　│││📑 更新 组合框【直播平台】数据 第一步：清空 组合框【直播平台】")
         obs.obs_property_list_clear(widget.ComboBox.liveStreamingPlatform.Obj)
         # 添加 组合框【直播平台】 列表选项  默认值会被设置在第一位
         log_save(0, f"　│││📑 更新 组合框【直播平台】数据 第二步：添加 组合框【直播平台】 列表选项  如果有默认值，会被设置在第一位")
-        for LivePlatforms in widget.ComboBox.liveStreamingPlatform.Dictionary:
-            obs.obs_property_list_add_string(widget.ComboBox.liveStreamingPlatform.Obj, widget.ComboBox.liveStreamingPlatform.Dictionary[LivePlatforms], LivePlatforms) if LivePlatforms != widget.ComboBox.liveStreamingPlatform.Value else obs.obs_property_list_insert_string(widget.ComboBox.liveStreamingPlatform.Obj, 0, widget.ComboBox.liveStreamingPlatform.Text, widget.ComboBox.liveStreamingPlatform.Value)
+        for LivePlatforms in widget.ComboBox.liveStreamingPlatform.DictionaryList:
+            obs.obs_property_list_add_string(widget.ComboBox.liveStreamingPlatform.Obj, widget.ComboBox.liveStreamingPlatform.DictionaryList[LivePlatforms], LivePlatforms) if LivePlatforms != widget.ComboBox.liveStreamingPlatform.Value else obs.obs_property_list_insert_string(widget.ComboBox.liveStreamingPlatform.Obj, 0, widget.ComboBox.liveStreamingPlatform.Text, widget.ComboBox.liveStreamingPlatform.Value)
         # 设置 组合框【直播平台】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
         log_save(0, f"　│││📑 更新 组合框【直播平台】数据 第三步：更新 组合框【直播平台】 文本")
         obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'live_streaming_platform_comboBox', obs.obs_property_list_item_string(widget.ComboBox.liveStreamingPlatform.Obj, 0))
@@ -6072,8 +6072,8 @@ def button_function_stop_live():
     widget.ComboBox.liveStreamingPlatform.Enabled = True if ((not live_status) and room_status) else False
     log_save(0, f"║║║设置 组合框【直播平台】 可用状态：{str(widget.ComboBox.liveStreamingPlatform.Enabled)}")
     # 设置 组合框【直播平台】 的数据字典
-    widget.ComboBox.liveStreamingPlatform.Dictionary = {"pc_link": "直播姬（pc）", "web_link": "web在线直播", "android_link": "bililink"}
-    log_save(0, f"║║║设置 组合框【直播平台】 的数据字典：{str(widget.ComboBox.liveStreamingPlatform.Dictionary)}")
+    widget.ComboBox.liveStreamingPlatform.DictionaryList = {"pc_link": "直播姬（pc）", "web_link": "web在线直播", "android_link": "bililink"}
+    log_save(0, f"║║║设置 组合框【直播平台】 的数据字典：{str(widget.ComboBox.liveStreamingPlatform.DictionaryList)}")
     # 设置 组合框【直播平台】 的内容
     widget.ComboBox.liveStreamingPlatform.Text = ""
     log_save(0, f"║║║设置 组合框【直播平台】 的内容：{str(widget.ComboBox.liveStreamingPlatform.Text)}")
@@ -6171,15 +6171,15 @@ def button_function_stop_live():
     else:
         log_save(0, f"　│││🧩 组合框【直播平台】 可用状态 未 发生变动")
     # 判断 组合框【直播平台】字典数据 和 当前数据是否有变化
-    if widget.ComboBox.liveStreamingPlatform.Dictionary != {obs.obs_property_list_item_string(widget.ComboBox.liveStreamingPlatform.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.liveStreamingPlatform.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.liveStreamingPlatform.Obj))}:
-        log_save(0, f"　│││✏️ 组合框【直播平台】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.liveStreamingPlatform.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.liveStreamingPlatform.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.liveStreamingPlatform.Obj))})}个元素➡️{len(widget.ComboBox.liveStreamingPlatform.Dictionary)}个元素")
+    if widget.ComboBox.liveStreamingPlatform.DictionaryList != {obs.obs_property_list_item_string(widget.ComboBox.liveStreamingPlatform.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.liveStreamingPlatform.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.liveStreamingPlatform.Obj))}:
+        log_save(0, f"　│││✏️ 组合框【直播平台】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.liveStreamingPlatform.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.liveStreamingPlatform.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.liveStreamingPlatform.Obj))})}个元素➡️{len(widget.ComboBox.liveStreamingPlatform.DictionaryList)}个元素")
         # 清空 组合框【直播平台】
         log_save(0, f"　│││📑 更新 组合框【直播平台】数据 第一步：清空 组合框【直播平台】")
         obs.obs_property_list_clear(widget.ComboBox.liveStreamingPlatform.Obj)
         # 添加 组合框【直播平台】 列表选项  默认值会被设置在第一位
         log_save(0, f"　│││📑 更新 组合框【直播平台】数据 第二步：添加 组合框【直播平台】 列表选项  如果有默认值，会被设置在第一位")
-        for LivePlatforms in widget.ComboBox.liveStreamingPlatform.Dictionary:
-            obs.obs_property_list_add_string(widget.ComboBox.liveStreamingPlatform.Obj, widget.ComboBox.liveStreamingPlatform.Dictionary[LivePlatforms], LivePlatforms) if LivePlatforms != widget.ComboBox.liveStreamingPlatform.Value else obs.obs_property_list_insert_string(widget.ComboBox.liveStreamingPlatform.Obj, 0, widget.ComboBox.liveStreamingPlatform.Text, widget.ComboBox.liveStreamingPlatform.Value)
+        for LivePlatforms in widget.ComboBox.liveStreamingPlatform.DictionaryList:
+            obs.obs_property_list_add_string(widget.ComboBox.liveStreamingPlatform.Obj, widget.ComboBox.liveStreamingPlatform.DictionaryList[LivePlatforms], LivePlatforms) if LivePlatforms != widget.ComboBox.liveStreamingPlatform.Value else obs.obs_property_list_insert_string(widget.ComboBox.liveStreamingPlatform.Obj, 0, widget.ComboBox.liveStreamingPlatform.Text, widget.ComboBox.liveStreamingPlatform.Value)
         # 设置 组合框【直播平台】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
         log_save(0, f"　│││📑 更新 组合框【直播平台】数据 第三步：更新 组合框【直播平台】 文本")
         obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'live_streaming_platform_comboBox', obs.obs_property_list_item_string(widget.ComboBox.liveStreamingPlatform.Obj, 0))
@@ -6487,8 +6487,8 @@ def button_function_creat_live_appointment(props, prop):
     widget.ComboBox.liveBookings.Enabled = True
     log_save(0, f"║║║设置 组合框【直播预约列表】 可用状态：{str(widget.ComboBox.liveBookings.Enabled)}")
     # 设置 组合框【直播预约列表】 的数据字典
-    widget.ComboBox.liveBookings.Dictionary = reserve_name4reserve_sid
-    log_save(0, f"║║║设置 组合框【直播预约列表】 的数据字典：{str(widget.ComboBox.liveBookings.Dictionary)}")
+    widget.ComboBox.liveBookings.DictionaryList = reserve_name4reserve_sid
+    log_save(0, f"║║║设置 组合框【直播预约列表】 的数据字典：{str(widget.ComboBox.liveBookings.DictionaryList)}")
     # 设置 组合框【直播预约列表】 的内容
     widget.ComboBox.liveBookings.Text = ""
     log_save(0, f"║║║设置 组合框【直播预约列表】 的内容：{str(widget.ComboBox.liveBookings.Text)}")
@@ -6679,15 +6679,15 @@ def button_function_creat_live_appointment(props, prop):
     else:
         log_save(0, f"　│││🧩 组合框【直播预约列表】 可用状态 未 发生变动")
     # 判断 组合框【直播预约列表】字典数据 和 当前数据是否有变化
-    if widget.ComboBox.liveBookings.Dictionary != {obs.obs_property_list_item_string(widget.ComboBox.liveBookings.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.liveBookings.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.liveBookings.Obj))}:
-        log_save(0, f"　│││✏️ 组合框【直播预约列表】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.liveBookings.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.liveBookings.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.liveBookings.Obj))})}个元素➡️{len(widget.ComboBox.liveBookings.Dictionary)}个元素")
+    if widget.ComboBox.liveBookings.DictionaryList != {obs.obs_property_list_item_string(widget.ComboBox.liveBookings.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.liveBookings.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.liveBookings.Obj))}:
+        log_save(0, f"　│││✏️ 组合框【直播预约列表】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.liveBookings.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.liveBookings.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.liveBookings.Obj))})}个元素➡️{len(widget.ComboBox.liveBookings.DictionaryList)}个元素")
         # 清空 组合框【直播预约列表】
         log_save(0, f"　│││📑 更新 组合框【直播预约列表】数据 第一步：清空 组合框【直播预约列表】")
         obs.obs_property_list_clear(widget.ComboBox.liveBookings.Obj)
         # 添加 组合框【直播预约列表】 列表选项  默认值会被设置在第一位
         log_save(0, f"　│││📑 更新 组合框【直播预约列表】数据 第二步：添加 组合框【直播预约列表】 列表选项  如果有默认值，会被设置在第一位")
-        for reserve_sid in widget.ComboBox.liveBookings.Dictionary:
-            obs.obs_property_list_add_string(widget.ComboBox.liveBookings.Obj, widget.ComboBox.liveBookings.Dictionary[reserve_sid], reserve_sid) if reserve_sid != widget.ComboBox.liveBookings.Value else obs.obs_property_list_insert_string(widget.ComboBox.liveBookings.Obj, 0, widget.ComboBox.liveBookings.Text, widget.ComboBox.liveBookings.Value)
+        for reserve_sid in widget.ComboBox.liveBookings.DictionaryList:
+            obs.obs_property_list_add_string(widget.ComboBox.liveBookings.Obj, widget.ComboBox.liveBookings.DictionaryList[reserve_sid], reserve_sid) if reserve_sid != widget.ComboBox.liveBookings.Value else obs.obs_property_list_insert_string(widget.ComboBox.liveBookings.Obj, 0, widget.ComboBox.liveBookings.Text, widget.ComboBox.liveBookings.Value)
         # 设置 组合框【直播预约列表】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
         log_save(0, f"　│││📑 更新 组合框【直播预约列表】数据 第三步：更新 组合框【直播预约列表】 文本")
         obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'live_bookings_comboBox', obs.obs_property_list_item_string(widget.ComboBox.liveBookings.Obj, 0))
@@ -6838,8 +6838,8 @@ def button_function_cancel_live_appointment(props, prop):
     widget.ComboBox.liveBookings.Enabled = True
     log_save(0, f"║║║设置 组合框【直播预约列表】 可用状态：{str(widget.ComboBox.liveBookings.Enabled)}")
     # 设置 组合框【直播预约列表】 的数据字典
-    widget.ComboBox.liveBookings.Dictionary = reserve_name4reserve_sid
-    log_save(0, f"║║║设置 组合框【直播预约列表】 的数据字典：{str(widget.ComboBox.liveBookings.Dictionary)}")
+    widget.ComboBox.liveBookings.DictionaryList = reserve_name4reserve_sid
+    log_save(0, f"║║║设置 组合框【直播预约列表】 的数据字典：{str(widget.ComboBox.liveBookings.DictionaryList)}")
     # 设置 组合框【直播预约列表】 的内容
     widget.ComboBox.liveBookings.Text = ""
     log_save(0, f"║║║设置 组合框【直播预约列表】 的内容：{str(widget.ComboBox.liveBookings.Text)}")
@@ -7030,15 +7030,15 @@ def button_function_cancel_live_appointment(props, prop):
     else:
         log_save(0, f"　│││🧩 组合框【直播预约列表】 可用状态 未 发生变动")
     # 判断 组合框【直播预约列表】字典数据 和 当前数据是否有变化
-    if widget.ComboBox.liveBookings.Dictionary != {obs.obs_property_list_item_string(widget.ComboBox.liveBookings.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.liveBookings.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.liveBookings.Obj))}:
-        log_save(0, f"　│││✏️ 组合框【直播预约列表】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.liveBookings.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.liveBookings.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.liveBookings.Obj))})}个元素➡️{len(widget.ComboBox.liveBookings.Dictionary)}个元素")
+    if widget.ComboBox.liveBookings.DictionaryList != {obs.obs_property_list_item_string(widget.ComboBox.liveBookings.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.liveBookings.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.liveBookings.Obj))}:
+        log_save(0, f"　│││✏️ 组合框【直播预约列表】 列表数据 发生变动：{len({obs.obs_property_list_item_string(widget.ComboBox.liveBookings.Obj, idx): obs.obs_property_list_item_name(widget.ComboBox.liveBookings.Obj, idx) for idx in range(obs.obs_property_list_item_count(widget.ComboBox.liveBookings.Obj))})}个元素➡️{len(widget.ComboBox.liveBookings.DictionaryList)}个元素")
         # 清空 组合框【直播预约列表】
         log_save(0, f"　│││📑 更新 组合框【直播预约列表】数据 第一步：清空 组合框【直播预约列表】")
         obs.obs_property_list_clear(widget.ComboBox.liveBookings.Obj)
         # 添加 组合框【直播预约列表】 列表选项  默认值会被设置在第一位
         log_save(0, f"　│││📑 更新 组合框【直播预约列表】数据 第二步：添加 组合框【直播预约列表】 列表选项  如果有默认值，会被设置在第一位")
-        for reserve_sid in widget.ComboBox.liveBookings.Dictionary:
-            obs.obs_property_list_add_string(widget.ComboBox.liveBookings.Obj, widget.ComboBox.liveBookings.Dictionary[reserve_sid], reserve_sid) if reserve_sid != widget.ComboBox.liveBookings.Value else obs.obs_property_list_insert_string(widget.ComboBox.liveBookings.Obj, 0, widget.ComboBox.liveBookings.Text, widget.ComboBox.liveBookings.Value)
+        for reserve_sid in widget.ComboBox.liveBookings.DictionaryList:
+            obs.obs_property_list_add_string(widget.ComboBox.liveBookings.Obj, widget.ComboBox.liveBookings.DictionaryList[reserve_sid], reserve_sid) if reserve_sid != widget.ComboBox.liveBookings.Value else obs.obs_property_list_insert_string(widget.ComboBox.liveBookings.Obj, 0, widget.ComboBox.liveBookings.Text, widget.ComboBox.liveBookings.Value)
         # 设置 组合框【直播预约列表】 文本 # 先判断设置的默认值是否在字典数据中，如果不在就不会设定默认选项，如果在，就将默认值设置到第一个选项并且强制设置为显示的选项
         log_save(0, f"　│││📑 更新 组合框【直播预约列表】数据 第三步：更新 组合框【直播预约列表】 文本")
         obs.obs_data_set_string(GlobalVariableOfData.script_settings, 'live_bookings_comboBox', obs.obs_property_list_item_string(widget.ComboBox.liveBookings.Obj, 0))

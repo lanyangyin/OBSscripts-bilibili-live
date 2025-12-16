@@ -11121,7 +11121,7 @@ def script_defaults(settings):  # 设置其默认值
         widget_specific_object.Enabled = True
         widget_specific_object.Text = get_default_user_nickname() if get_b_u_c_m().get_default_user_id() else '添加或选择一个账号登录'
         widget_specific_object.Value = get_b_u_c_m().get_default_user_id() if get_b_u_c_m().get_default_user_id() else '-1'
-        widget_specific_object.Dictionary = get_uid_nickname_dict()
+        widget_specific_object.DictionaryList = get_uid_nickname_dict()
 
     widget_specific_object = widget.Button.login
     if widget_specific_object.Name in update_widget_for_props_name:
@@ -11222,7 +11222,7 @@ def script_defaults(settings):  # 设置其默认值
         widget_specific_object.Enabled = bool(get_room_status())
         widget_specific_object.Text = get_room_title() if bool(get_room_status()) else ""
         widget_specific_object.Value = "0"
-        widget_specific_object.Dictionary = get_common_title4number()
+        widget_specific_object.DictionaryList = get_common_title4number()
 
     widget_specific_object = widget.Button.roomTitleChange
     if widget_specific_object.Name in update_widget_for_props_name:
@@ -11254,7 +11254,7 @@ def script_defaults(settings):  # 设置其默认值
             widget_specific_object.Value = common_areas_value
         else:
             widget_specific_object.Value = "-1"
-        widget_specific_object.Dictionary = get_common_area_id_dict_str4common_area_name_dict_str()
+        widget_specific_object.DictionaryList = get_common_area_id_dict_str4common_area_name_dict_str()
 
     widget_specific_object = widget.Button.roomCommonAreasTrue
     if widget_specific_object.Name in update_widget_for_props_name:
@@ -11267,7 +11267,7 @@ def script_defaults(settings):  # 设置其默认值
         widget_specific_object.Enabled = bool(get_room_status())
         widget_specific_object.Text = str(get_area()["parent_area_name"]) if bool(get_area()) else "请选择一级分区"
         widget_specific_object.Value = str(get_area()["parent_area_id"]) if bool(get_area()) else "-1"
-        widget_specific_object.Dictionary = get_parent_live_area_name4parent_live_area_id()
+        widget_specific_object.DictionaryList = get_parent_live_area_name4parent_live_area_id()
 
     widget_specific_object = widget.Button.roomParentAreaTrue
     if widget_specific_object.Name in update_widget_for_props_name:
@@ -11280,7 +11280,7 @@ def script_defaults(settings):  # 设置其默认值
         widget_specific_object.Enabled = bool(get_room_status())
         widget_specific_object.Text = str(get_area()["area_name"]) if bool(get_area()) else "请确认一级分区"
         widget_specific_object.Value = str(get_area()["area_id"]) if bool(get_area()) else "-1"
-        widget_specific_object.Dictionary = get_sub_live_area_name4sub_live_area_id()
+        widget_specific_object.DictionaryList = get_sub_live_area_name4sub_live_area_id()
 
     widget_specific_object = widget.Button.roomSubAreaTrue
     if widget_specific_object.Name in update_widget_for_props_name:
@@ -11307,7 +11307,7 @@ def script_defaults(settings):  # 设置其默认值
             widget_specific_object.Text = "直播姬（pc）"
         if not bool(widget_specific_object.Value):
             widget_specific_object.Value = "pc_link"
-        widget_specific_object.Dictionary = {
+        widget_specific_object.DictionaryList = {
             "直播姬（pc）": "pc_link", "web在线直播": "web_link", "bililink": "android_link"
         }
 
@@ -11421,7 +11421,7 @@ def script_defaults(settings):  # 设置其默认值
                 widget_specific_object.Value = "-1"
         else:
             widget_specific_object.Value = "-1"
-        widget_specific_object.Dictionary = get_reserve_name4reserve_sid()
+        widget_specific_object.DictionaryList = get_reserve_name4reserve_sid()
 
     widget_specific_object = widget.Button.liveBookingsCancel
     if widget_specific_object.Name in update_widget_for_props_name:
@@ -11595,7 +11595,7 @@ def script_defaults(settings):  # 设置其默认值
         widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
         widget_specific_object.Text = str(list(get_common_danmu_roomid_dict().keys())[0]) if get_common_danmu_roomid_dict() else ""
         widget_specific_object.Value = str(list(get_common_danmu_roomid_dict().values())[0]) if get_common_danmu_roomid_dict() else ""
-        widget_specific_object.Dictionary = get_common_danmu_roomid_dict()
+        widget_specific_object.DictionaryList = get_common_danmu_roomid_dict()
 
     widget_specific_object = widget.Button.addDanmuRoomid
     if widget_specific_object.Name in update_widget_for_props_name:
@@ -11647,7 +11647,7 @@ def script_defaults(settings):  # 设置其默认值
         widget_specific_object.Enabled = True if get_common_danmu_roomid_dict() else False
         widget_specific_object.Text = ""
         widget_specific_object.Value = ""
-        widget_specific_object.Dictionary = get_common_danmu_emoticons() if get_common_danmu_roomid_dict() else {}
+        widget_specific_object.DictionaryList = get_common_danmu_emoticons() if get_common_danmu_roomid_dict() else {}
 
     widget_specific_object = widget.Button.mergeEmoticons
     if widget_specific_object.Name in update_widget_for_props_name:
@@ -11883,12 +11883,12 @@ def update_ui_interface_data():
                         combo_box_option_dictionary_key = obs.obs_property_list_item_name(w.Obj, idx)
                         combo_box_option_dictionary_value = obs.obs_property_list_item_string(w.Obj, idx)
                         combo_box_option_dictionary[combo_box_option_dictionary_key] = combo_box_option_dictionary_value
-                    if w.Dictionary != combo_box_option_dictionary:
+                    if w.DictionaryList != combo_box_option_dictionary:
                         obs.obs_property_list_clear(w.Obj)
-                        for dict_key in w.Dictionary:
+                        for dict_key in w.DictionaryList:
                             if dict_key != w.Text:
                                 obs.obs_property_list_add_string(
-                                    w.Obj, dict_key, w.Dictionary[dict_key]
+                                    w.Obj, dict_key, w.DictionaryList[dict_key]
                                 )
                             else:
                                 obs.obs_property_list_insert_string(w.Obj, 0, w.Text, w.Value)
@@ -12036,7 +12036,7 @@ class ButtonFunction:
         GlobalVariableOfData.update_widget_for_props_dict = {
             "account_props": widget.props_Collection["account_props"]
         }
-        if widget.ComboBox.uid.Dictionary == {'添加或选择一个账号登录': '-1'}:
+        if widget.ComboBox.uid.DictionaryList == {'添加或选择一个账号登录': '-1'}:
             GlobalVariableOfData.update_widget_for_props_dict =widget.props_Collection
         log_save(obs.LOG_INFO, f"更新控件配置信息")
         script_defaults(GlobalVariableOfData.script_settings)
@@ -12124,7 +12124,7 @@ class ButtonFunction:
                     else:
                         get_b_u_c_m().add_user(cookies)
                         log_save(obs.LOG_INFO, f"添加用户成功")
-                        if widget.ComboBox.uid.Dictionary == {'添加或选择一个账号登录': '-1'}:
+                        if widget.ComboBox.uid.DictionaryList == {'添加或选择一个账号登录': '-1'}:
                             get_b_u_c_m().update_user(cookies, True)
                         log_save(obs.LOG_INFO, "请点击按钮【更新账号列表】，更新用户列表")
                 else:
@@ -12625,14 +12625,14 @@ class ButtonFunction:
         widget.ComboBox.roomCommonAreas.Text = common_areas_text
         common_areas_value = list(get_common_area_id_dict_str4common_area_name_dict_str().values())[0]
         widget.ComboBox.roomCommonAreas.Value = common_areas_value
-        widget.ComboBox.roomCommonAreas.Dictionary = get_common_area_id_dict_str4common_area_name_dict_str()
+        widget.ComboBox.roomCommonAreas.DictionaryList = get_common_area_id_dict_str4common_area_name_dict_str()
 
         widget.ComboBox.roomParentArea.Text = get_area()["parent_area_name"]
         widget.ComboBox.roomParentArea.Value = get_area()["parent_area_id"]
 
         widget.ComboBox.roomSubArea.Text = get_area()["area_name"]
         widget.ComboBox.roomSubArea.Value = get_sub_live_area_name4sub_live_area_id()[str(get_area()["area_name"])]
-        widget.ComboBox.roomSubArea.Dictionary = get_sub_live_area_name4sub_live_area_id()
+        widget.ComboBox.roomSubArea.DictionaryList = get_sub_live_area_name4sub_live_area_id()
 
         clear_cache()
 
@@ -12696,7 +12696,7 @@ class ButtonFunction:
             log_save(obs.LOG_ERROR, f"开播失败：【{start_live['message']}】。")
             return True
 
-        widget.ComboBox.liveStreamingPlatform.Text = list(widget.ComboBox.liveStreamingPlatform.Dictionary.keys())[list(widget.ComboBox.liveStreamingPlatform.Dictionary.values()).index(live_streaming_platform)]
+        widget.ComboBox.liveStreamingPlatform.Text = list(widget.ComboBox.liveStreamingPlatform.DictionaryList.keys())[list(widget.ComboBox.liveStreamingPlatform.DictionaryList.values()).index(live_streaming_platform)]
         widget.ComboBox.liveStreamingPlatform.Value = live_streaming_platform
 
         # 推流地址
@@ -13233,8 +13233,8 @@ class ButtonFunction:
         if len(args) == 3:
             settings = args[2]
         room: str = obs.obs_data_get_string(GlobalVariableOfData.script_settings, widget.ComboBox.danmuRoom.Name)
-        if str(room) in list(widget.ComboBox.danmuRoom.Dictionary.keys()):
-            room = list(widget.ComboBox.danmuRoom.Dictionary.values())[list(widget.ComboBox.danmuRoom.Dictionary.keys()).index(str(room))]
+        if str(room) in list(widget.ComboBox.danmuRoom.DictionaryList.keys()):
+            room = list(widget.ComboBox.danmuRoom.DictionaryList.values())[list(widget.ComboBox.danmuRoom.DictionaryList.keys()).index(str(room))]
         log_save(obs.LOG_INFO, f"添加直播间：{room}")
         room_base_info = get_b_a_g().get_room_base_info(int(room))
         log_save(obs.LOG_INFO, f"获取直播间基本信息: {room_base_info}")
@@ -13275,8 +13275,8 @@ class ButtonFunction:
         if len(args) == 3:
             settings = args[2]
         room: str = obs.obs_data_get_string(GlobalVariableOfData.script_settings, widget.ComboBox.danmuRoom.Name)
-        if str(room) in list(widget.ComboBox.danmuRoom.Dictionary.keys()):
-            room = list(widget.ComboBox.danmuRoom.Dictionary.values())[list(widget.ComboBox.danmuRoom.Dictionary.keys()).index(str(room))]
+        if str(room) in list(widget.ComboBox.danmuRoom.DictionaryList.keys()):
+            room = list(widget.ComboBox.danmuRoom.DictionaryList.values())[list(widget.ComboBox.danmuRoom.DictionaryList.keys()).index(str(room))]
         log_save(obs.LOG_INFO, f"删除直播间：{room}")
         log_save(obs.LOG_INFO, str(get_c_d_m().remove_data(get_b_u_c_m().get_default_user_id(), "danmuRoomid", str(room))))
 
@@ -30341,7 +30341,7 @@ class ButtonFunction:
         # -----------------------------------------------------------------------------------------------------------
         # 发送弹幕----------------------------------------------------------------------------------------------------
         send_danmu_ts = [seg for seg in re.split("\n", send_danmu_t_source) if seg]
-        emjio_list = list(widget.ComboBox.danmuEmoticons.Dictionary.keys())
+        emjio_list = list(widget.ComboBox.danmuEmoticons.DictionaryList.keys())
 
         def run():
             def fastout(send_danmaku_return, send_danmu_t):

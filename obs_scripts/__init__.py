@@ -1403,12 +1403,12 @@ def update_ui_interface_data():
         elif w.ControlType == "Button":
             pass
         elif w.ControlType == "ComboBox":
-            if w.Dictionary != {
+            if w.DictionaryList != {
                 obs.obs_property_list_item_string(w.Obj, idx): obs.obs_property_list_item_name(w.Obj, idx) for idx in
                 range(obs.obs_property_list_item_count(w.Obj))}:
                 obs.obs_property_list_clear(w.Obj)
-                for common_area_id_dict_str in w.Dictionary:
-                    obs.obs_property_list_add_string(w.Obj, w.Dictionary[common_area_id_dict_str],
+                for common_area_id_dict_str in w.DictionaryList:
+                    obs.obs_property_list_add_string(w.Obj, w.DictionaryList[common_area_id_dict_str],
                                                      common_area_id_dict_str) if common_area_id_dict_str != w.Value else obs.obs_property_list_insert_string(
                         w.Obj, 0, w.Text, w.Value)
             if w.Type == obs.OBS_COMBO_TYPE_EDITABLE:

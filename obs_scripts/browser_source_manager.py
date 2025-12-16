@@ -1163,12 +1163,12 @@ def update_ui_interface_data():
                         combo_box_option_dictionary_key = obs.obs_property_list_item_string(w.Obj, idx)
                         combo_box_option_dictionary_value = obs.obs_property_list_item_name(w.Obj, idx)
                         combo_box_option_dictionary[combo_box_option_dictionary_key] = combo_box_option_dictionary_value
-                    if w.Dictionary != combo_box_option_dictionary:
+                    if w.DictionaryList != combo_box_option_dictionary:
                         obs.obs_property_list_clear(w.Obj)
-                        for common_area_id_dict_str in w.Dictionary:
+                        for common_area_id_dict_str in w.DictionaryList:
                             if common_area_id_dict_str != w.Value:
                                 obs.obs_property_list_add_string(
-                                    w.Obj, w.Dictionary[common_area_id_dict_str], common_area_id_dict_str
+                                    w.Obj, w.DictionaryList[common_area_id_dict_str], common_area_id_dict_str
                                 )
                             else:
                                 obs.obs_property_list_insert_string(w.Obj, 0, w.Text, w.Value)
