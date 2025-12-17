@@ -22,9 +22,11 @@
     [__init__.py] script_properties 被调用
     【[__init__.py] script_tick 被调用】
 """
+import json
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
+from functools import lru_cache
 from pathlib import Path
 from typing import Literal, Any, Union, Dict, List, Optional, Iterator, Callable
 
@@ -303,6 +305,247 @@ except ImportError:
         return f"{Path(__file__).parent}\\"
 
 # import 结束 ====================================================================================================
+class CommonDataManager:
+    """
+    管理用户多种类型常用数据的JSON文件
+
+    功能:
+    - 管理 {user_id: {data_type1: [item1, item2, ...], data_type2: [...]}} 格式的JSON文件
+    - 每种数据类型最多包含5个元素
+    - 支持增删改查操作
+    - 自动创建不存在的目录和文件
+    - 自动转换旧格式数据到新格式
+
+    参数:
+        directory: 文件存放目录
+        default_data_type: 默认数据类型（用于向后兼容）
+    """
+
+    def __init__(self, filepath: Union[str, Path], default_data_type: str = "title"):
+        """
+        初始化CommonDataManager
+
+        Args:
+            filepath: 文件路径
+            default_data_type: 默认数据类型（用于处理旧格式数据）
+            maximum_quantity_of_elements: 保留的最大元素数
+        """
+        self.filepath = Path(filepath)
+        self.default_data_type = default_data_type
+        self.data: Dict[str, Dict[str, List[str]]] = {}
+
+        # 确保目录存在
+        self.filepath.parent.mkdir(parents=True, exist_ok=True)
+
+        # 如果文件不存在则创建
+        if not self.filepath.exists():
+            self._save_data()
+        else:
+            self._load_data()
+            self._convert_old_format()
+
+    def _load_data(self) -> None:
+        """从文件加载数据"""
+        try:
+            with open(self.filepath, 'r', encoding='utf-8') as f:
+                self.data = json.load(f)
+        except (json.JSONDecodeError, FileNotFoundError):
+            # 文件为空或格式错误时创建新文件
+            self.data = {}
+            self._save_data()
+
+    def _save_data(self) -> None:
+        """保存数据到文件"""
+        with open(self.filepath, 'w', encoding='utf-8') as f:
+            json.dump(self.data, f, ensure_ascii=False, indent=2)
+
+    def _convert_old_format(self) -> None:
+        """将旧格式数据转换为新格式"""
+        needs_save = False
+
+        for user_id, user_data in list(self.data.items()):
+            # 如果用户数据是列表格式（旧格式），则转换为新格式
+            if isinstance(user_data, list):
+                self.data[user_id] = {self.default_data_type: user_data}
+                needs_save = True
+
+        if needs_save:
+            self._save_data()
+
+    def get_data(self, user_id: str, data_type: str) -> List[str]:
+        """
+        获取指定用户的指定类型数据列表
+
+        Args:
+            user_id: 用户ID
+            data_type: 数据类型
+
+        Returns:
+            该用户的指定类型数据列表（如果没有则为空列表）
+        """
+        if user_id not in self.data:
+            return []
+
+        return self.data[user_id].get(data_type, [])
+
+    def add_data(self, user_id: str, data_type: str, item: str, maximum: int = 5) -> None:
+        """
+        为用户添加新数据项
+
+        特点:
+        - 如果数据项已存在，则移动到列表最前面
+        - 确保列表长度不超过5个
+        - 如果用户不存在，则创建新条目
+        - 如果数据类型不存在，则创建新类型
+
+        Args:
+            maximum: 保留的最大元素数
+            user_id: 用户ID
+            data_type: 数据类型
+            item: 要添加的数据项
+        """
+        # 确保用户数据存在
+        if user_id not in self.data:
+            self.data[user_id] = {}
+
+        # 确保数据类型存在
+        if data_type not in self.data[user_id]:
+            self.data[user_id][data_type] = []
+
+        items = self.data[user_id][data_type]
+
+        # 移除重复项（如果存在）
+        if item in items:
+            items.remove(item)
+
+        # 添加到列表开头
+        items.insert(0, item)
+
+        # 确保不超过5个元素
+        if len(items) > maximum:
+            items = items[:maximum]
+
+        # 更新数据并保存
+        self.data[user_id][data_type] = items
+        self._save_data()
+
+    def remove_data(self, user_id: str, data_type: str, item: str) -> bool:
+        """
+        移除用户的指定数据项
+
+        Args:
+            user_id: 用户ID
+            data_type: 数据类型
+            item: 要移除的数据项
+
+        Returns:
+            True: 成功移除
+            False: 数据项不存在
+        """
+        if user_id not in self.data or data_type not in self.data[user_id]:
+            return False
+
+        items = self.data[user_id][data_type]
+
+        if item in items:
+            items.remove(item)
+            # 如果列表为空，则删除数据类型条目
+            if not items:
+                del self.data[user_id][data_type]
+                # 如果用户数据为空，则删除用户条目
+                if not self.data[user_id]:
+                    del self.data[user_id]
+            self._save_data()
+            return True
+        return False
+
+    def update_data(self, user_id: str, data_type: str, old_item: str, new_item: str) -> bool:
+        """
+        更新用户的数据项
+
+        Args:
+            user_id: 用户ID
+            data_type: 数据类型
+            old_item: 要替换的旧数据项
+            new_item: 新数据项
+
+        Returns:
+            True: 更新成功
+            False: 旧数据项不存在
+        """
+        if user_id not in self.data or data_type not in self.data[user_id]:
+            return False
+
+        items = self.data[user_id][data_type]
+
+        if old_item in items:
+            # 替换数据项并移动到列表前面
+            index = items.index(old_item)
+            items.pop(index)
+            items.insert(0, new_item)
+            self._save_data()
+            return True
+        return False
+
+    def clear_user_data(self, user_id: str, data_type: Optional[str] = None) -> None:
+        """
+        清除指定用户的指定类型数据或所有数据
+
+        Args:
+            user_id: 用户ID
+            data_type: 数据类型（如果为None，则清除所有数据）
+        """
+        if user_id not in self.data:
+            return
+
+        if data_type is None:
+            # 清除所有数据
+            del self.data[user_id]
+        elif data_type in self.data[user_id]:
+            # 清除指定类型数据
+            del self.data[user_id][data_type]
+            # 如果用户数据为空，则删除用户条目
+            if not self.data[user_id]:
+                del self.data[user_id]
+
+        self._save_data()
+
+    def get_all_users(self) -> List[str]:
+        """
+        获取所有有数据的用户ID列表
+
+        Returns:
+            用户ID列表
+        """
+        return list(self.data.keys())
+
+    def get_user_data_types(self, user_id: str) -> List[str]:
+        """
+        获取指定用户的所有数据类型
+
+        Args:
+            user_id: 用户ID
+
+        Returns:
+            数据类型列表
+        """
+        if user_id not in self.data:
+            return []
+
+        return list(self.data[user_id].keys())
+
+    def get_all_data(self) -> Dict[str, Dict[str, List[str]]]:
+        """
+        获取所有数据
+
+        Returns:
+            完整的{user_id: {data_type: items}}字典
+        """
+        return self.data.copy()
+
+    def __str__(self) -> str:
+        """返回数据的字符串表示"""
+        return json.dumps(self.data, ensure_ascii=False, indent=2)
 
 
 # ====================================================================================================================
@@ -316,11 +559,71 @@ script_version = bytes.fromhex('302e302e30').decode('utf-8')
 """脚本版本.encode().hex()"""
 
 
-class GlobalVariableOfData:
-    script_settings: Dict[str, Any] = {}
+class FunctionCache:
+    @staticmethod
+    @lru_cache(maxsize=None)
+    def get_c_d_m():
+        # 创建用户常用数据实例
+        c_d_m = CommonDataManager(Path(GlobalVariableOfData.scriptsDataDirpath) / "commonData.json")
+        return c_d_m
 
-    log_text: str = ""
+    @staticmethod
+    @lru_cache(maxsize=None)
+    def get_common_widget_groups_visibility() -> dict[str, int]:
+        """"""
+        widget_visibility_dict = {}
+        widget_visibility_setting = FunctionCache.get_c_d_m().get_data("setting", "widgetVisibility")
+        if not widget_visibility_setting:
+            widget_visibility_dict_ = json.dumps({}, ensure_ascii=False)
+            FunctionCache.get_c_d_m().add_data("setting", "widgetVisibility", widget_visibility_dict_, 1)
+        widget_visibility_dict_list = FunctionCache.get_c_d_m().get_data("setting", "widgetVisibility")
+        for widget_visibility in json.loads(widget_visibility_dict_list[0]):
+            widget_visibility_dict[widget_visibility] = int(json.loads(widget_visibility_dict_list[0])[widget_visibility])
+        return widget_visibility_dict
+
+    @staticmethod
+    def clear():
+        FunctionCache.get_c_d_m.cache_clear()
+        FunctionCache.get_common_widget_groups_visibility.cache_clear()
+
+
+class GlobalVariableOfData:
+    """定义了一些全局变量"""
+    props_dict: Dict[str, Any] = {}
+    """属性集字典"""
+    causeOfTheFrontDeskIncident = ""
+    """前台事件引起的原因"""
+    update_widget_for_props_dict: dict[str, set[str]] = {}
+    """根据控件属性集更新控件"""
+    script_loading_is: bool = False
+    """是否正式加载脚本"""
+    isScript_propertiesIs: bool = False  # Script_properties()被调用
+    """是否允许Script_properties()被调用"""
+    script_settings: bool = None  # #脚本的所有设定属性集
+    """脚本的所有设定属性集"""
+
+    logRecording: str = ""  # #日志记录的文本
     """日志记录的文本"""
+
+    # 网络配置类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    networkConnectionStatus: bool = False  # #网络连接状态
+    """网络连接状态"""
+    sslVerification: bool = False
+    """SSL验证"""
+
+    # 文件配置类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    scriptsDataDirpath: Optional[Path] = None  # #脚本所在目录
+    """脚本所在目录"""
+    scriptsUsersConfigFilepath: Optional[Path] = None  # #用户配置文件路径
+    """用户配置文件路径"""
+    scriptsTempDir: Optional[Path] = None  # #临时文件文件夹
+    """临时文件文件夹"""
+    scriptsLogDir: Optional[Path] = None  # #日志文件文件夹
+    """日志文件文件夹"""
+    scriptsCacheDir: Optional[Path] = None  # #缓存文件文件夹
+    """缓存文件文件夹"""
+
+    # 用户类-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 
 class ExplanatoryDictionary:
@@ -433,21 +736,31 @@ def log_save(log_level, log_str: str) -> None:
 class ControlBase:
     """控件基类"""
     ControlType: Literal[
-        "Base", "CheckBox", "DigitalDisplay", "TextBox", "Button", "ComboBox", "PathBox", "Group"] = "Base"
+        "Base",
+        "CheckBox",
+        "DigitalDisplay",
+        "TextBox",
+        "Button",
+        "ComboBox",
+        "PathBox",
+        "Group"
+    ] = "Base"
     """📵控件的基本类型"""
     Obj: Any = None
     """📵控件的obs对象"""
-    Props: Union[str, Any] = None
-    """📵控件属于哪个属性集"""
+    Props: Any = None
+    """📵控控件所属属性集"""
+    PropsName: str = "props"
+    """📵控件所属属性集的名称"""
     Number: int = 0
     """📵控件的加载顺序数"""
     Name: str = ""
     """📵控件的唯一名"""
     Description: str = ""
     """📵控件显示给用户的信息"""
-    Visible: bool = False
+    Visible: bool = True
     """控件的可见状态"""
-    Enabled: bool = False
+    Enabled: bool = True
     """控件的可用状态"""
     ModifiedIs: bool = False
     """📵控件变动是否触发钩子函数"""
@@ -527,8 +840,12 @@ class Widget:
             """数字框控件实例"""
             ControlType: str = "DigitalDisplay"
             """📵数字框的控件类型为 PathBox"""
-            Type: Literal["ThereIsASlider", "NoSlider"] = ""
-            """📵数字框的类型"""
+            Type: Literal["ThereIsASlider", "NoSlider"] = "NoSlider"
+            """
+            📵数字框的类型
+            ThereIsASlider 表示有滑块，
+            ONoSlider 表示没有滑块
+            """
             Value: int = 0
             """数字框显示的数值"""
             Suffix: str = ""
@@ -600,14 +917,23 @@ class Widget:
             """文本框控件实例"""
             ControlType: str = "TextBox"
             """📵文本框的控件类型为 TextBox"""
-            Type: Optional[int] = None  # 文本框类型
-            """📵文本框的类型"""
+            Type: Optional[int] = obs.OBS_TEXT_DEFAULT  # 文本框类型
+            """📵文本框的类型
+            OBS_TEXT_DEFAULT 表示单行文本框，
+            OBS_TEXT_PASSWORD 表示单行密码文本框，
+            OBS_TEXT_MULTILINE 表示多行文本框，
+            OBS_TEXT_INFO 表示不可编辑的只读文本框，效果类似于标签。
+            """
+            LongDescription: str = ""
+            """📵长描述"""
             Text: str = ""
             """文本框显示的文字"""
             InfoType: Any = obs.OBS_TEXT_INFO_NORMAL  # 信息类型
             """
-            文本框中文字的警告类型
-            obs.OBS_TEXT_INFO_NORMAL, obs.OBS_TEXT_INFO_WARNING, obs.OBS_TEXT_INFO_ERROR
+            只读文本框控件的信息类型
+            OBS_TEXT_INFO_NORMAL 表示正常信息，
+            OBS_TEXT_INFO_WARNING 表示警告信息，
+            OBS_TEXT_INFO_ERROR 表示错误信息
             """
 
             def __repr__(self) -> str:
@@ -678,8 +1004,12 @@ class Widget:
             """按钮控件实例"""
             ControlType: str = "Button"
             """📵按钮的控件类型为 Button"""
-            Type: Optional[int] = None  # 按钮类型
-            """📵按钮的类型 """
+            Type: Optional[int] = obs.OBS_BUTTON_DEFAULT  # 按钮类型
+            """
+            📵按钮的类型 
+            OBS_BUTTON_DEFAULT 表示标准普通按钮，
+            OBS_BUTTON_URL 表示可打开指定 URL 的链接按钮。
+            """
             Callback: Optional[Callable[[Any, Any], Literal[True, False]]] = None  # 回调函数
             """📵按钮被按下后触发的回调函数"""
             Url: str = ""  # 需要打开的 URL
@@ -749,14 +1079,20 @@ class Widget:
             """组合框控件实例"""
             ControlType: str = "ComboBox"
             """📵组合框的控件类型为 ComboBox"""
-            Type: Optional[int] = None  # 组合框类型
-            """📵组合框类型"""
+            Type: Optional[int] = obs.OBS_COMBO_TYPE_LIST  # 组合框类型
+            """
+            📵组合框类型
+            OBS_COMBO_TYPE_EDITABLE 表示可编辑组合框，仅适用于字符串格式，用户可以输入自己的内容，
+            OBS_COMBO_TYPE_LIST 表示不可编辑组合框
+            """
+            LongDescription: str = ""
+            """📵长描述"""
             Text: str = ""
             """组合框显示的文字"""
             Value: str = ""
             """组合框显示的文字对应的值"""
-            Dictionary: Dict[str, Any] = field(default_factory=dict)  # 数据字典
-            """组合框选项字典"""
+            DictionaryList: List[Dict[str, Any]] = field(default_factory=list)  # 数据字典
+            """组合框选项数据列表 显示文字为键label 选项值为键value"""
 
             def __repr__(self) -> str:
                 type_name = "未知类组合框"
@@ -824,8 +1160,13 @@ class Widget:
             """路径对话框控件实例"""
             ControlType: str = "PathBox"
             """📵路径对话框的控件类型为 PathBox"""
-            Type: Optional[int] = None  # 路径对话框类型
-            """📵路径对话框的类型"""
+            Type: Optional[int] = obs.OBS_PATH_FILE  # 路径对话框类型
+            """
+            📵路径对话框的类型
+            OBS_PATH_FILE 表示读取文件的对话框，
+            OBS_PATH_FILE_SAVE 表示写入文件的对话框，
+            OBS_PATH_DIRECTORY 表示选择文件夹的对话框。
+            """
             Text: str = ""
             """路径对话框显示的路径"""
             Filter: Optional[str] = ""  # 文件种类（筛选条件）
@@ -899,15 +1240,20 @@ class Widget:
             """分组框控件实例（独立控件）"""
             ControlType: str = "Group"
             """📵分组框的控件类型为 Group"""
-            Type: Any = None  # 分组框类型
+            Type: Any = obs.OBS_GROUP_NORMAL  # 分组框类型
             """
             📵分组框的类型
-            [obs.OBS_GROUP_NORMAL, obs.OBS_GROUP_CHECKABLE]
+            OBS_GROUP_NORMAL 表示标准普通分组框，
+            OBS_GROUP_CHECKABLE 表示拥有复选框的分组框。
             """
+            GroupPropsName: str = "GroupProps"
+            """📵分组框的自身控件属性集的名称"""
             GroupProps: Any = None  # 统辖属性集
             """📵分组框的自身控件属性集"""
-            Bool: Any = False
+            Bool: bool = True
             """带复选框的分组框的选中状态"""
+            ObjFolding: Any = None  # 折叠后的对象
+            """带复选框的分组框折叠后的对象"""
 
             def __repr__(self) -> str:
                 type_name = "未知类分组框"
@@ -997,13 +1343,13 @@ class Widget:
         """复选框控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
         self.widget_list: List[str] = []
         """一个用于规定控件加载顺序的列表"""
-        self.props_Collection: set[str] = set()
+        self.props_Collection: dict[str, set[str]] = {}
         """一个用于记录控件属性集名称的集合"""
         self._all_controls: List[Any] = []
         self._loading_dict: Dict[int, Any] = {}
 
     @property
-    def widget_dict_all(self) -> dict[Literal["Button", "Group", "TextBox", "ComboBox", "PathBox", "DigitalDisplay", "CheckBox"],dict[str, dict[str, dict[str, Union[Callable[[Any, Any], bool], str]]]]]:
+    def widget_dict_all(self) -> dict[Literal["Button", "Group", "TextBox", "ComboBox", "PathBox", "DigitalDisplay", "CheckBox"], dict[str, dict[str, dict[str, Union[Callable[[Any, Any], bool], str]]]]]:
         """记录7大控件类型的所有控件的不变属性"""
         return {
             "Button": self.widget_Button_dict,
@@ -1099,36 +1445,39 @@ class Widget:
         return self  # 支持链式调用
 
     def preliminary_configuration_control(self):
-        """
-        创建初始控件
-        """
+        """创建初始控件数据"""
         for basic_types_controls in self.widget_dict_all:
             log_save(obs.LOG_INFO, f"{basic_types_controls}")
-            for Ps in self.widget_dict_all[basic_types_controls]:
-                self.props_Collection.add(Ps)
-                log_save(obs.LOG_INFO, f"\t{Ps}")
-                for name in self.widget_dict_all[basic_types_controls][Ps]:
+            for PropsName in self.widget_dict_all[basic_types_controls]:
+                if PropsName not in self.props_Collection:
+                    self.props_Collection[PropsName] = set()
+                log_save(obs.LOG_INFO, f"\t{PropsName}")
+                for objName in self.widget_dict_all[basic_types_controls][PropsName]:
                     widget_types_controls = getattr(self, basic_types_controls)
-                    widget_types_controls.add(name)
-                    log_save(obs.LOG_INFO, f"\t\t添加{name}")
-                    obj = getattr(widget_types_controls, name)
-                    obj.Name = self.widget_dict_all[basic_types_controls][Ps][name]["Name"]
+                    widget_types_controls.add(objName)
+                    log_save(obs.LOG_INFO, f"\t\t添加 {objName}")
+                    obj = getattr(widget_types_controls, objName)
+                    obj.Name = self.widget_dict_all[basic_types_controls][PropsName][objName]["Name"]
+                    self.props_Collection[PropsName].add(obj.Name)
                     if obj.ControlType in ["DigitalDisplay", "TextBox", "Button", "ComboBox", "PathBox", "Group"]:
-                        obj.Type = self.widget_dict_all[basic_types_controls][Ps][name]["Type"]
+                        obj.Type = self.widget_dict_all[basic_types_controls][PropsName][objName]["Type"]
                     if obj.ControlType in ["Button"]:
-                        obj.Callback = self.widget_dict_all[basic_types_controls][Ps][name]["Callback"]
+                        obj.Callback = self.widget_dict_all[basic_types_controls][PropsName][objName]["Callback"]
+                        if obj.Type == obs.OBS_BUTTON_URL:
+                            obj.Url = self.widget_dict_all[basic_types_controls][PropsName][objName]["Url"]
                     if obj.ControlType in ["Group"]:
-                        obj.GroupProps = self.widget_dict_all[basic_types_controls][Ps][name]["GroupProps"]
+                        obj.GroupPropsName = self.widget_dict_all[basic_types_controls][PropsName][objName]["GroupPropsName"]
+                    if obj.ControlType in ["TextBox", "ComboBox"]:
+                        obj.LongDescription = self.widget_dict_all[basic_types_controls][PropsName][objName].get("LongDescription", "")
                     if obj.ControlType in ["DigitalDisplay"]:
-                        obj.Suffix = self.widget_dict_all[basic_types_controls][Ps][name]["Suffix"]
+                        obj.Suffix = self.widget_dict_all[basic_types_controls][PropsName][objName]["Suffix"]
                     if obj.ControlType in ["PathBox"]:
-                        obj.Filter = self.widget_dict_all[basic_types_controls][Ps][name]["Filter"]
-                        obj.StartPath = self.widget_dict_all[basic_types_controls][Ps][name]["StartPath"]
+                        obj.Filter = self.widget_dict_all[basic_types_controls][PropsName][objName]["Filter"]
+                        obj.StartPath = self.widget_dict_all[basic_types_controls][PropsName][objName]["StartPath"]
                     obj.Number = self.widget_list.index(obj.Name)
-                    obj.ModifiedIs = self.widget_dict_all[basic_types_controls][Ps][name]["ModifiedIs"]
-                    obj.Description = self.widget_dict_all[basic_types_controls][Ps][name]["Description"]
-                    obj.Props = Ps
-        print(self.props_Collection)
+                    obj.ModifiedIs = self.widget_dict_all[basic_types_controls][PropsName][objName]["ModifiedIs"]
+                    obj.Description = self.widget_dict_all[basic_types_controls][PropsName][objName]["Description"]
+                    obj.PropsName = PropsName
 
     def __repr__(self) -> str:
         """返回表单的可读表示形式"""
@@ -1145,78 +1494,20 @@ def trigger_frontend_event(event):
     Returns:
 
     """
-    information4frontend_event = {
-        # 推流相关事件
-        obs.OBS_FRONTEND_EVENT_STREAMING_STARTING: "推流正在启动",
-        obs.OBS_FRONTEND_EVENT_STREAMING_STARTED: "推流已开始",
-        obs.OBS_FRONTEND_EVENT_STREAMING_STOPPING: "推流正在停止",
-        obs.OBS_FRONTEND_EVENT_STREAMING_STOPPED: "推流已停止",
+    log_save(obs.LOG_INFO, f"监测到obs前端事件: {ExplanatoryDictionary.information4frontend_event[event]}")
 
-        # 录制相关事件
-        obs.OBS_FRONTEND_EVENT_RECORDING_STARTING: "录制正在启动",
-        obs.OBS_FRONTEND_EVENT_RECORDING_STARTED: "录制已开始",
-        obs.OBS_FRONTEND_EVENT_RECORDING_STOPPING: "录制正在停止",
-        obs.OBS_FRONTEND_EVENT_RECORDING_STOPPED: "录制已停止",
-        obs.OBS_FRONTEND_EVENT_RECORDING_PAUSED: "录制已暂停",
-        obs.OBS_FRONTEND_EVENT_RECORDING_UNPAUSED: "录制已恢复",
+    if GlobalVariableOfData.causeOfTheFrontDeskIncident:
+        log_save(obs.LOG_INFO, f"此次 事件 由【{GlobalVariableOfData.causeOfTheFrontDeskIncident}】引起")
 
-        # 回放缓存相关事件
-        obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTING: "回放缓存正在启动",
-        obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTED: "回放缓存已开始",
-        obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPING: "回放缓存正在停止",
-        obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPED: "回放缓存已停止",
-        obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED: "回放已保存",
+    if event == obs.OBS_FRONTEND_EVENT_FINISHED_LOADING:
+        if not GlobalVariableOfData.causeOfTheFrontDeskIncident:
+            log_save(obs.LOG_INFO, f"此次 OBS 完成加载 事件 由前台事件引起")
 
-        # 场景相关事件
-        obs.OBS_FRONTEND_EVENT_SCENE_CHANGED: "当前场景已改变",
-        obs.OBS_FRONTEND_EVENT_PREVIEW_SCENE_CHANGED: "预览场景已改变",
-        obs.OBS_FRONTEND_EVENT_SCENE_LIST_CHANGED: "场景列表已改变",
-
-        # 转场相关事件
-        obs.OBS_FRONTEND_EVENT_TRANSITION_CHANGED: "转场效果已改变",
-        obs.OBS_FRONTEND_EVENT_TRANSITION_STOPPED: "转场效果已停止",
-        obs.OBS_FRONTEND_EVENT_TRANSITION_LIST_CHANGED: "转场列表已改变",
-        obs.OBS_FRONTEND_EVENT_TRANSITION_DURATION_CHANGED: "转场持续时间已更改",
-
-        # 配置文件相关事件
-        obs.OBS_FRONTEND_EVENT_PROFILE_CHANGING: "配置文件即将切换",
-        obs.OBS_FRONTEND_EVENT_PROFILE_CHANGED: "配置文件已切换",
-        obs.OBS_FRONTEND_EVENT_PROFILE_LIST_CHANGED: "配置文件列表已改变",
-        obs.OBS_FRONTEND_EVENT_PROFILE_RENAMED: "配置文件已重命名",
-
-        # 场景集合相关事件
-        obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_CHANGING: "场景集合即将切换",
-        obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_CHANGED: "场景集合已切换",
-        obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_LIST_CHANGED: "场景集合列表已改变",
-        obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_RENAMED: "场景集合已重命名",
-        obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_CLEANUP: "场景集合清理完成",
-
-        # 工作室模式事件
-        obs.OBS_FRONTEND_EVENT_STUDIO_MODE_ENABLED: "工作室模式已启用",
-        obs.OBS_FRONTEND_EVENT_STUDIO_MODE_DISABLED: "工作室模式已禁用",
-
-        # 系统级事件
-        obs.OBS_FRONTEND_EVENT_EXIT: "OBS 即将退出",
-        obs.OBS_FRONTEND_EVENT_FINISHED_LOADING: "OBS 完成加载",
-        obs.OBS_FRONTEND_EVENT_SCRIPTING_SHUTDOWN: "脚本关闭中",
-
-        # 虚拟摄像头事件
-        obs.OBS_FRONTEND_EVENT_VIRTUALCAM_STARTED: "虚拟摄像头已启动",
-        obs.OBS_FRONTEND_EVENT_VIRTUALCAM_STOPPED: "虚拟摄像头已停止",
-
-        # 控制条事件
-        obs.OBS_FRONTEND_EVENT_TBAR_VALUE_CHANGED: "转场控制条(T-Bar)值已改变",
-
-        # OBS 28+ 新增事件
-        obs.OBS_FRONTEND_EVENT_SCREENSHOT_TAKEN: "截图已完成",
-        obs.OBS_FRONTEND_EVENT_THEME_CHANGED: "主题已更改"
-    }
-    """obs前台事件文本"""
-
-    log_save(obs.LOG_INFO, f"监测到obs前端事件: {information4frontend_event[event]}")
-    if event == obs.OBS_FRONTEND_EVENT_STREAMING_STARTED:
         pass
-    elif event == obs.OBS_FRONTEND_EVENT_STREAMING_STOPPED:
+    elif event == obs.OBS_FRONTEND_EVENT_SCRIPTING_SHUTDOWN:
+        if not GlobalVariableOfData.causeOfTheFrontDeskIncident:
+            log_save(obs.LOG_INFO,f"此次 脚本关闭中 事件 由前台事件引起")
+
         pass
     return True
 
@@ -1238,6 +1529,7 @@ def property_modified(name: str) -> bool:
         log_save(obs.LOG_INFO, f"检测到脚本构造控件体结束，启动控件事件钩子")
         GlobalVariableOfData.isScript_propertiesIs = False
     if not GlobalVariableOfData.isScript_propertiesIs:
+        #  执行触发事件动作
         pass
     else:
         log_save(obs.LOG_INFO, f"控件事件钩子已断开")
@@ -1252,6 +1544,25 @@ def script_defaults(settings):  # 设置其默认值
     :param settings:与脚本关联的设置。
     """
     log_save(obs.LOG_INFO, "script_defaults 被调用")
+    # =================================================================================================================
+    # 设置脚本属性=======================================================================================================
+    GlobalVariableOfData.script_settings = settings
+
+    group_folding_props_names = set()
+    for group_folding_props_name in FunctionCache.get_common_widget_groups_visibility():
+        if not bool(FunctionCache.get_common_widget_groups_visibility().get(group_folding_props_name, True)):
+            group_folding_props_names |= group_folding_props_name
+    log_save(obs.LOG_INFO, f"关闭显示：{group_folding_props_names}")
+
+    if not GlobalVariableOfData.update_widget_for_props_dict:
+        GlobalVariableOfData.update_widget_for_props_dict = widget.props_Collection
+    log_save(obs.LOG_INFO, f"║║💫更新属性集为{GlobalVariableOfData.update_widget_for_props_dict}的控件")
+
+    update_widget_for_props_name = set()
+    for props_name in GlobalVariableOfData.update_widget_for_props_dict:
+        update_widget_for_props_name |= GlobalVariableOfData.update_widget_for_props_dict[props_name]
+
+
     widget.Button.top.Visible = True
     widget.Button.top.Enabled = False
 
@@ -1317,61 +1628,60 @@ def script_properties():  # 建立控件
     obs_properties_t 类型的属性对象。这个属性对象通常用于枚举 libobs 对象的可用设置，
     """
     log_save(obs.LOG_INFO, "script_properties 被调用")
-    # 创建一个 OBS 属性集对象，他将包含所有控件对应的属性对象
-    props = obs.obs_properties_create()
-    props_dict = {
-        "props": props,
-    }
-    """控件属性集的字典，仅在这里赋值一次，避免重复赋值导致溢出或者obs崩溃"""
+    # 为每个属性集名称创建对应的属性集
+    props_dict = {"group_folding_props": obs.obs_properties_create()}
+    for props_name in widget.props_Collection:
+        props_dict[props_name] = obs.obs_properties_create()
+    # 根据属性集名称为控件对象设定属性集属性
+    for w in widget.get_sorted_controls().copy():
+        w.Props = props_dict[w.PropsName]
+        if w.ControlType == "Group":
+            w.GroupProps = props_dict[w.GroupPropsName]
 
-    for w in widget.get_sorted_controls():
+    # 创建控件实现
+    for w in widget.get_sorted_controls().copy():
         # 获取按载入次序排序的所有控件列表
-        if w.ControlType == "CheckBox":
-            # 添加复选框控件
+        if w.ControlType == "CheckBox":  # 添加复选框控件
             log_save(obs.LOG_INFO, f"复选框控件: {w.Name} 【{w.Description}】")
-            obs.obs_properties_add_bool(props_dict[w.Props], w.Name, w.Description)
-        elif w.ControlType == "DigitalDisplay":
-            # 添加数字控件
+            obs.obs_properties_add_bool(w.Props, w.Name, w.Description)
+        elif w.ControlType == "DigitalDisplay":  # 添加数字控件
             log_save(obs.LOG_INFO, f"数字框控件: {w.Name} 【{w.Description}】")
-            if w.SliderIs:  # 是否为数字控件添加滑动条
-                w.Obj = obs.obs_properties_add_int_slider(props_dict[w.Props], w.Name, w.Description, w.Min, w.Max,
-                                                          w.Step)
+            if w.Type == "ThereIsASlider":  # 是否为数字控件添加滑动条
+                w.Obj = obs.obs_properties_add_int_slider(w.Props, w.Name, w.Description, w.Min, w.Max, w.Step)
             else:
-                w.Obj = obs.obs_properties_add_int(props_dict[w.Props], w.Name, w.Description, w.Min, w.Max, w.Step)
+                w.Obj = obs.obs_properties_add_int(w.Props, w.Name, w.Description, w.Min, w.Max, w.Step)
             obs.obs_property_int_set_suffix(w.Obj, w.Suffix)
-        elif w.ControlType == "TextBox":
-            # 添加文本框控件
+        elif w.ControlType == "TextBox":  # 添加文本框控件
             log_save(obs.LOG_INFO, f"文本框控件: {w.Name} 【{w.Description}】")
-            w.Obj = obs.obs_properties_add_text(props_dict[w.Props], w.Name, w.Description, w.Type)
-        elif w.ControlType == "Button":
-            # 添加按钮控件
+            w.Obj = obs.obs_properties_add_text(w.Props, w.Name, w.Description, w.Type)
+            if w.LongDescription:
+                obs.obs_property_set_long_description(w.Obj, w.LongDescription)
+        elif w.ControlType == "Button":  # 添加按钮控件
             log_save(obs.LOG_INFO, f"按钮控件: {w.Name} 【{w.Description}】")
-            w.Obj = obs.obs_properties_add_button(props_dict[w.Props], w.Name, w.Description, w.Callback)
+            w.Obj = obs.obs_properties_add_button(w.Props, w.Name, w.Description, w.Callback)
             obs.obs_property_button_set_type(w.Obj, w.Type)
             if w.Type == obs.OBS_BUTTON_URL:  # 是否为链接跳转按钮
                 obs.obs_property_button_set_url(w.Obj, w.Url)
-        elif w.ControlType == "ComboBox":
-            # 添加组合框控件
+        elif w.ControlType == "ComboBox":  # 添加组合框控件
             log_save(obs.LOG_INFO, f"组合框控件: {w.Name} 【{w.Description}】")
-            w.Obj = obs.obs_properties_add_list(props_dict[w.Props], w.Name, w.Description, w.Type,
-                                                obs.OBS_COMBO_FORMAT_STRING)
-        elif w.ControlType == "PathBox":
-            # 添加路径对话框控件
+            w.Obj = obs.obs_properties_add_list(w.Props, w.Name, w.Description, w.Type, obs.OBS_COMBO_FORMAT_STRING)
+            if w.LongDescription:
+                obs.obs_property_set_long_description(w.Obj, w.LongDescription)
+        elif w.ControlType == "PathBox":  # 添加路径对话框控件
             log_save(obs.LOG_INFO, f"路径对话框控件: {w.Name} 【{w.Description}】")
-            w.Obj = obs.obs_properties_add_path(props_dict[w.Props], w.Name, w.Description, w.Type, w.Filter,
-                                                w.StartPath)
-        elif w.ControlType == "Group":
-            # 分组框控件
+            w.Obj = obs.obs_properties_add_path(w.Props, w.Name, w.Description, w.Type, w.Filter, w.StartPath)
+        elif w.ControlType == "Group":  # 分组框控件
             log_save(obs.LOG_INFO, f"分组框控件: {w.Name} 【{w.Description}】")
-            w.Obj = obs.obs_properties_add_group(props_dict[w.Props], w.Name, w.Description, w.Type,
-                                                 props_dict[w.GroupProps])
-
+            w.Obj = obs.obs_properties_add_group(w.Props, w.Name, w.Description, w.Type, w.GroupProps)
+            if w.Type == obs.OBS_GROUP_CHECKABLE:
+                w.ObjFolding = obs.obs_properties_add_group(w.Props, f"{w.Name}Folding", f"{w.Description}[折叠]", w.Type, props_dict["group_folding_props"])
+        # 添加控件变动触发回调
         if w.ModifiedIs:
-            log_save(obs.LOG_INFO, f"为{w.ControlType}: 【{w.Description}】添加钩子函数")
+            log_save(obs.LOG_INFO, f"为{w.ControlType}: 【{w.Description}】添加触发回调")
             obs.obs_property_set_modified_callback(w.Obj, lambda ps, p, st, name=w.Name: property_modified(name))
     update_ui_interface_data()
     pass
-    return props
+    return props_dict["props"]
 
 
 def update_ui_interface_data():
@@ -1380,53 +1690,68 @@ def update_ui_interface_data():
     Returns:
     """
     for w in widget.get_sorted_controls():
-        if obs.obs_property_visible(w.Obj) != w.Visible:
-            obs.obs_property_set_visible(w.Obj, w.Visible)
-        if obs.obs_property_enabled(w.Obj) != w.Enabled:
-            obs.obs_property_set_enabled(w.Obj, w.Enabled)
+        if w.Props in GlobalVariableOfData.update_widget_for_props_dict:
+            if w.Name in GlobalVariableOfData.update_widget_for_props_dict[w.Props]:
+                if obs.obs_property_visible(w.Obj) != w.Visible:
+                    obs.obs_property_set_visible(w.Obj, w.Visible)
+                if obs.obs_property_enabled(w.Obj) != w.Enabled:
+                    obs.obs_property_set_enabled(w.Obj, w.Enabled)
 
-        if w.ControlType == "CheckBox":
-            if obs.obs_data_get_bool(GlobalVariableOfData.script_settings, w.Name) != w.Bool:
-                obs.obs_data_set_bool(GlobalVariableOfData.script_settings, w.Name, w.Bool)
-        elif w.ControlType == "DigitalDisplay":
-            if w.Min != obs.obs_property_int_min(w.Obj) or w.Max != obs.obs_property_int_max(
-                    w.Obj) or w.Step != obs.obs_property_int_step(w.Obj):
-                obs.obs_property_int_set_limits(w.Obj, w.Min, w.Max, w.Step)
-            if obs.obs_data_get_int(GlobalVariableOfData.script_settings, w.Name) != w.Value:
-                obs.obs_data_set_int(GlobalVariableOfData.script_settings, w.Name, w.Value)
-        elif w.ControlType == "TextBox":
-            if w.Type == obs.OBS_TEXT_INFO:
-                if obs.obs_property_text_info_type(w.Obj) != w.InfoType:
-                    obs.obs_property_text_set_info_type(w.Obj, w.InfoType)
-            if obs.obs_data_get_string(GlobalVariableOfData.script_settings, w.Name) != w.Text:
-                obs.obs_data_set_string(GlobalVariableOfData.script_settings, w.Name, w.Text)
-        elif w.ControlType == "Button":
-            pass
-        elif w.ControlType == "ComboBox":
-            if w.DictionaryList != {
-                obs.obs_property_list_item_string(w.Obj, idx): obs.obs_property_list_item_name(w.Obj, idx) for idx in
-                range(obs.obs_property_list_item_count(w.Obj))}:
-                obs.obs_property_list_clear(w.Obj)
-                for common_area_id_dict_str in w.DictionaryList:
-                    obs.obs_property_list_add_string(w.Obj, w.DictionaryList[common_area_id_dict_str],
-                                                     common_area_id_dict_str) if common_area_id_dict_str != w.Value else obs.obs_property_list_insert_string(
-                        w.Obj, 0, w.Text, w.Value)
-            if w.Type == obs.OBS_COMBO_TYPE_EDITABLE:
-                if obs.obs_data_get_string(GlobalVariableOfData.script_settings, w.Name) != w.Text:
-                    obs.obs_data_set_string(GlobalVariableOfData.script_settings, w.Name,
-                                            obs.obs_property_list_item_name(w.Obj, 0))
-            else:
-                if obs.obs_data_get_string(GlobalVariableOfData.script_settings, w.Name) != w.Value:
-                    obs.obs_data_set_string(GlobalVariableOfData.script_settings, w.Name,
-                                            obs.obs_property_list_item_string(w.Obj, 0))
-        elif w.ControlType == "PathBox":
-            if obs.obs_data_get_string(GlobalVariableOfData.script_settings, w.Name) != w.Text:
-                obs.obs_data_set_string(GlobalVariableOfData.script_settings, w.Name, w.Text)
-        elif w.ControlType == "Group":
-            if w.Type == obs.OBS_GROUP_CHECKABLE:
-                if obs.obs_data_get_bool(GlobalVariableOfData.script_settings, w.Name) != w.Bool:
-                    obs.obs_data_set_bool(GlobalVariableOfData.script_settings, w.Name, w.Bool)
-                pass
+                if w.ControlType == "CheckBox":
+                    if obs.obs_data_get_bool(GlobalVariableOfData.script_settings, w.Name) != w.Bool:
+                        obs.obs_data_set_bool(GlobalVariableOfData.script_settings, w.Name, w.Bool)
+                elif w.ControlType == "DigitalDisplay":
+                    if w.Min != obs.obs_property_int_min(w.Obj) or w.Max != obs.obs_property_int_max(
+                            w.Obj) or w.Step != obs.obs_property_int_step(w.Obj):
+                        obs.obs_property_int_set_limits(w.Obj, w.Min, w.Max, w.Step)
+                    if obs.obs_data_get_int(GlobalVariableOfData.script_settings, w.Name) != w.Value:
+                        obs.obs_data_set_int(GlobalVariableOfData.script_settings, w.Name, w.Value)
+                elif w.ControlType == "TextBox":
+                    if w.Type == obs.OBS_TEXT_INFO:
+                        if obs.obs_property_text_info_type(w.Obj) != w.InfoType:
+                            obs.obs_property_text_set_info_type(w.Obj, w.InfoType)
+                    if obs.obs_data_get_string(GlobalVariableOfData.script_settings, w.Name) != w.Text:
+                        obs.obs_data_set_string(GlobalVariableOfData.script_settings, w.Name, w.Text)
+                elif w.ControlType == "Button":
+                    pass
+                elif w.ControlType == "ComboBox":
+                    combo_box_option_dictionary_list = []
+                    for idx in range(obs.obs_property_list_item_count(w.Obj)):
+                        combo_box_option_label = obs.obs_property_list_item_name(w.Obj, idx)
+                        combo_box_option_value = obs.obs_property_list_item_string(w.Obj, idx)
+                        combo_box_option_dictionary_list.append({
+                            "label": combo_box_option_label,
+                            "value": combo_box_option_value
+                        })
+                    if w.DictionaryList != combo_box_option_dictionary_list:
+                        obs.obs_property_list_clear(w.Obj)
+                        for Dictionary in w.DictionaryList:
+                            if Dictionary["label"] != w.Text:
+                                obs.obs_property_list_add_string(
+                                    w.Obj, Dictionary["label"], Dictionary["value"]
+                                )
+                            else:
+                                obs.obs_property_list_insert_string(w.Obj, 0, w.Text, w.Value)
+                    if w.Type == obs.OBS_COMBO_TYPE_EDITABLE:
+                        if obs.obs_data_get_string(GlobalVariableOfData.script_settings, w.Name) != w.Text:
+                            obs.obs_data_set_string(
+                                GlobalVariableOfData.script_settings, w.Name, obs.obs_property_list_item_name(w.Obj, 0)
+                            )
+                    elif w.Type == obs.OBS_COMBO_TYPE_LIST:
+                        if obs.obs_data_get_string(GlobalVariableOfData.script_settings, w.Name) != w.Value:
+                            obs.obs_data_set_string(
+                                GlobalVariableOfData.script_settings, w.Name, obs.obs_property_list_item_string(w.Obj, 0)
+                            )
+                elif w.ControlType == "PathBox":
+                    if obs.obs_data_get_string(GlobalVariableOfData.script_settings, w.Name) != w.Text:
+                        obs.obs_data_set_string(GlobalVariableOfData.script_settings, w.Name, w.Text)
+                elif w.ControlType == "Group":
+                    if w.Type == obs.OBS_GROUP_CHECKABLE:
+                        if obs.obs_data_get_bool(GlobalVariableOfData.script_settings, w.Name) != w.Bool:
+                            obs.obs_data_set_bool(GlobalVariableOfData.script_settings, w.Name, w.Bool)
+                        obs.obs_data_set_bool(GlobalVariableOfData.script_settings, f"{w.Name}Folding", not w.Bool)
+                        obs.obs_property_set_visible(w.Obj, not w.Visible)
+                        pass
     return True
 
 
@@ -1491,6 +1816,13 @@ widget.widget_Button_dict = {
             "Callback": ButtonFunction.button_function_top,
             "ModifiedIs": True
         },
+        "test": {
+            "Name": "test_button",
+            "Description": "测试按钮",
+            "Type": obs.OBS_BUTTON_DEFAULT,
+            "Callback": ButtonFunction.button_function_bottom,
+            "ModifiedIs": False
+        },
         "bottom": {
             "Name": "bottom_button",
             "Description": "Bottom",
@@ -1515,6 +1847,7 @@ widget.widget_CheckBox_dict = {}
 
 widget.widget_list = [
     "top_button",
+    "test_button",
     "bottom_button",
 ]
 
