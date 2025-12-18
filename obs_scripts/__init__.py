@@ -23,6 +23,7 @@
     【[__init__.py] script_tick 被调用】
 """
 import json
+import os
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -569,17 +570,21 @@ class FunctionCache:
 
     @staticmethod
     @lru_cache(maxsize=None)
-    def get_common_widget_groups_visibility() -> dict[str, int]:
-        """"""
-        widget_visibility_dict = {}
-        widget_visibility_setting = FunctionCache.get_c_d_m().get_data("setting", "widgetVisibility")
-        if not widget_visibility_setting:
-            widget_visibility_dict_ = json.dumps({}, ensure_ascii=False)
-            FunctionCache.get_c_d_m().add_data("setting", "widgetVisibility", widget_visibility_dict_, 1)
-        widget_visibility_dict_list = FunctionCache.get_c_d_m().get_data("setting", "widgetVisibility")
-        for widget_visibility in json.loads(widget_visibility_dict_list[0]):
-            widget_visibility_dict[widget_visibility] = int(json.loads(widget_visibility_dict_list[0])[widget_visibility])
-        return widget_visibility_dict
+    def get_common_widget_groups_visibility() -> set[str]:
+        """
+        可折叠分组框中处于折叠状态的分组框名称的集合
+        Returns:
+            折叠状态的分组框名称的集合
+        """
+        widget_groups_visibility_data_precursor_list: list[str] = FunctionCache.get_c_d_m().get_data("setting", "widgetVisibility")
+        if not widget_groups_visibility_data_precursor_list:  # 如果没有 widgetVisibility 记录 就创建默认的数据
+            widget_groups_visibility_data_precursor_item: str = json.dumps([], ensure_ascii=False)
+            """可折叠分组框控件可见性数据前体 记录 元素"""
+            FunctionCache.get_c_d_m().add_data("setting", "widgetVisibility", widget_groups_visibility_data_precursor_item, 1)
+        else:
+            widget_groups_visibility_data_precursor_item = widget_groups_visibility_data_precursor_list[0]
+        widget_groups_visibility_data_precursor_set = set(json.loads(widget_groups_visibility_data_precursor_item))
+        return widget_groups_visibility_data_precursor_set
 
     @staticmethod
     def clear():
@@ -593,8 +598,10 @@ class GlobalVariableOfData:
     """属性集字典"""
     causeOfTheFrontDeskIncident = ""
     """前台事件引起的原因"""
-    update_widget_for_props_dict: dict[str, set[str]] = {}
-    """根据控件属性集更新控件"""
+    update_widget_attribute_dict: dict[str, set[str]] = {}
+    """需要更新的控件 控件属性集名称为键 控件名称组成的集合为值 的字典"""
+    group_folding_names: set[str] = set()
+    """可折叠分组框中处于折叠状态的分组框名称的集合"""
     script_loading_is: bool = False
     """是否正式加载脚本"""
     isScript_propertiesIs: bool = False  # Script_properties()被调用
@@ -729,7 +736,7 @@ def log_save(log_level, log_str: str) -> None:
     formatted: str = now.strftime("%Y/%m/%d %H:%M:%S")
     log_text: str = f"{script_version} 【{formatted}】【{ExplanatoryDictionary.log_type[log_level]}】 \t{log_str}"
     obs.script_log(log_level, log_str)
-    GlobalVariableOfData.log_text += log_text + "\n"
+    GlobalVariableOfData.logRecording += log_text + "\n"
 
 
 @dataclass
@@ -1342,9 +1349,9 @@ class Widget:
         self.widget_CheckBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
         """复选框控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
         self.widget_list: List[str] = []
-        """一个用于规定控件加载顺序的列表"""
+        """一个用于规定控件加载顺序的列表，内容是控件名称"""
         self.props_Collection: dict[str, set[str]] = {}
-        """一个用于记录控件属性集名称的集合"""
+        """控件属性集名称为键 控件名称组成的集合为值 的字典"""
         self._all_controls: List[Any] = []
         self._loading_dict: Dict[int, Any] = {}
 
@@ -1450,7 +1457,7 @@ class Widget:
             log_save(obs.LOG_INFO, f"{basic_types_controls}")
             for PropsName in self.widget_dict_all[basic_types_controls]:
                 if PropsName not in self.props_Collection:
-                    self.props_Collection[PropsName] = set()
+                    self.props_Collection[PropsName] = set()  # 添加键 属性集名称
                 log_save(obs.LOG_INFO, f"\t{PropsName}")
                 for objName in self.widget_dict_all[basic_types_controls][PropsName]:
                     widget_types_controls = getattr(self, basic_types_controls)
@@ -1458,7 +1465,7 @@ class Widget:
                     log_save(obs.LOG_INFO, f"\t\t添加 {objName}")
                     obj = getattr(widget_types_controls, objName)
                     obj.Name = self.widget_dict_all[basic_types_controls][PropsName][objName]["Name"]
-                    self.props_Collection[PropsName].add(obj.Name)
+                    self.props_Collection[PropsName].add(obj.Name)  # 添加值 控件名称
                     if obj.ControlType in ["DigitalDisplay", "TextBox", "Button", "ComboBox", "PathBox", "Group"]:
                         obj.Type = self.widget_dict_all[basic_types_controls][PropsName][objName]["Type"]
                     if obj.ControlType in ["Button"]:
@@ -1548,27 +1555,48 @@ def script_defaults(settings):  # 设置其默认值
     # 设置脚本属性=======================================================================================================
     GlobalVariableOfData.script_settings = settings
 
-    group_folding_props_names = set()
-    for group_folding_props_name in FunctionCache.get_common_widget_groups_visibility():
-        if not bool(FunctionCache.get_common_widget_groups_visibility().get(group_folding_props_name, True)):
-            group_folding_props_names |= group_folding_props_name
-    log_save(obs.LOG_INFO, f"关闭显示：{group_folding_props_names}")
+    # 设置控件属性参数
+    GlobalVariableOfData.scriptsDataDirpath = Path(f"{script_path()}ObsScriptsFrameworkTesting")
+    log_save(obs.LOG_INFO, f"║║脚本用户数据文件夹路径：{GlobalVariableOfData.scriptsDataDirpath}")
+    GlobalVariableOfData.scriptsTempDir = Path(GlobalVariableOfData.scriptsDataDirpath) / "temp"
+    os.makedirs(GlobalVariableOfData.scriptsTempDir, exist_ok=True)
+    log_save(obs.LOG_INFO, f"║║脚本临时文件夹路径：{GlobalVariableOfData.scriptsTempDir}")
+    GlobalVariableOfData.scriptsLogDir = Path(GlobalVariableOfData.scriptsDataDirpath) / "log"
+    os.makedirs(GlobalVariableOfData.scriptsLogDir, exist_ok=True)
+    log_save(obs.LOG_INFO, f"║║脚本日志文件夹路径：{GlobalVariableOfData.scriptsLogDir}")
+    GlobalVariableOfData.scriptsCacheDir = Path(GlobalVariableOfData.scriptsDataDirpath) / "cache"
+    os.makedirs(GlobalVariableOfData.scriptsCacheDir, exist_ok=True)
+    log_save(obs.LOG_INFO, f"║║脚本缓存文件夹路径：{GlobalVariableOfData.scriptsCacheDir}")
 
-    if not GlobalVariableOfData.update_widget_for_props_dict:
-        GlobalVariableOfData.update_widget_for_props_dict = widget.props_Collection
-    log_save(obs.LOG_INFO, f"║║💫更新属性集为{GlobalVariableOfData.update_widget_for_props_dict}的控件")
+    # =================================================================================================================
+    # 设置属性集合=======================================================================================================
+    update_widget_name = set()
+    """需要更新的控件的名称的集合"""
+    if not GlobalVariableOfData.update_widget_attribute_dict:
+        GlobalVariableOfData.update_widget_attribute_dict = widget.props_Collection
+    for props_name in GlobalVariableOfData.update_widget_attribute_dict:
+        update_widget_name |= GlobalVariableOfData.update_widget_attribute_dict[props_name]
+    log_save(obs.LOG_INFO, f"║║💫更新以下控件：{update_widget_name}")
+    update_widget_name |= GlobalVariableOfData.group_folding_names | FunctionCache.get_common_widget_groups_visibility()
 
-    update_widget_for_props_name = set()
-    for props_name in GlobalVariableOfData.update_widget_for_props_dict:
-        update_widget_for_props_name |= GlobalVariableOfData.update_widget_for_props_dict[props_name]
+    GlobalVariableOfData.group_folding_names = FunctionCache.get_common_widget_groups_visibility()
+    """需要折叠的分组框名称的集合"""
+    log_save(obs.LOG_INFO, f"关闭显示：{GlobalVariableOfData.group_folding_names}")
 
+    # =================================================================================================================
+    # 设置控件属性=======================================================================================================
+    widget_specific_object = widget.Button.top
+    if widget_specific_object.Name in update_widget_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in GlobalVariableOfData.group_folding_names else False
+        widget_specific_object.Enabled = False
 
-    widget.Button.top.Visible = True
-    widget.Button.top.Enabled = False
+    widget_specific_object = widget.Button.bottom
+    if widget_specific_object.Name in update_widget_name:
+        widget_specific_object.Visible = False if widget_specific_object.Name in GlobalVariableOfData.group_folding_names else False
+        widget_specific_object.Enabled = False
 
-    widget.Button.bottom.Visible = True
-    widget.Button.bottom.Enabled = False
-    pass
+    FunctionCache.clear()
+    return True
 
 
 # --- 一个名为script_description的函数返回显示给的描述
@@ -1690,8 +1718,8 @@ def update_ui_interface_data():
     Returns:
     """
     for w in widget.get_sorted_controls():
-        if w.Props in GlobalVariableOfData.update_widget_for_props_dict:
-            if w.Name in GlobalVariableOfData.update_widget_for_props_dict[w.Props]:
+        if w.Props in GlobalVariableOfData.update_widget_attribute_dict:
+            if w.Name in GlobalVariableOfData.update_widget_attribute_dict[w.Props]:
                 if obs.obs_property_visible(w.Obj) != w.Visible:
                     obs.obs_property_set_visible(w.Obj, w.Visible)
                 if obs.obs_property_enabled(w.Obj) != w.Enabled:
@@ -1776,7 +1804,7 @@ def script_unload():
     """
     log_save(obs.LOG_INFO, "script_unload 被调用")
     obs.obs_frontend_remove_event_callback(trigger_frontend_event)
-    log_save(obs.LOG_INFO, GlobalVariableOfData.log_text)
+    log_save(obs.LOG_INFO, GlobalVariableOfData.logRecording)
     pass
 
 
@@ -1883,5 +1911,5 @@ if __name__ == "__main__":
         stop_event.set()  # 设置事件，通知线程停止
         thread_script_tick.join()
         script_unload()
-        print(GlobalVariableOfData.log_text)
+        print(GlobalVariableOfData.logRecording)
     pass
