@@ -587,8 +587,24 @@ class FunctionCache:
         return widget_groups_visibility_data_precursor_set
 
     @staticmethod
-    def clear():
+    @lru_cache(maxsize=None)
+    def get_combobox_test_load_data():
+        return {
+            "Text": "测试选项3",
+            "Value": "option-test3",
+            "DictionaryList": [
+                {"label": "测试选项0", "value": "option-test0"},
+                {"label": "测试选项1", "value": "option-test1"},
+                {"label": "测试选项2", "value": "option-test2"},
+                {"label": "测试选项3", "value": "option-test3"},
+                {"label": "测试选项4", "value": "option-test4"},
+            ]
+        }
+
+    @staticmethod
+    def cache_clear():
         FunctionCache.get_c_d_m.cache_clear()
+        FunctionCache.get_combobox_test_load_data.cache_clear()
         FunctionCache.get_common_widget_groups_visibility.cache_clear()
 
 
@@ -750,6 +766,9 @@ class ControlBase:
         "Button",
         "ComboBox",
         "PathBox",
+        "ColorBox",
+        "FontBox",
+        "ListBox",
         "Group"
     ] = "Base"
     """📵控件的基本类型"""
@@ -1017,6 +1036,8 @@ class Widget:
             OBS_BUTTON_DEFAULT 表示标准普通按钮，
             OBS_BUTTON_URL 表示可打开指定 URL 的链接按钮。
             """
+            LongDescription: str = ""
+            """📵长描述"""
             Callback: Optional[Callable[[Any, Any], Literal[True, False]]] = None  # 回调函数
             """📵按钮被按下后触发的回调函数"""
             Url: str = ""  # 需要打开的 URL
@@ -1098,7 +1119,7 @@ class Widget:
             """组合框显示的文字"""
             Value: str = ""
             """组合框显示的文字对应的值"""
-            DictionaryList: List[Dict[str, Any]] = field(default_factory=list)  # 数据字典
+            DictionaryList: List[Dict[str, str]] = field(default_factory=list)  # 数据字典
             """组合框选项数据列表 显示文字为键label 选项值为键value"""
 
             def __repr__(self) -> str:
@@ -1335,19 +1356,96 @@ class Widget:
         self.Group = Widget.GroupPs()
         """分组框"""
         self.widget_Button_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
-        """按钮控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
+        """
+        按钮控件不变属性的整体数据字典[
+            控件所属属性集名称,
+            控件不变属性字典[
+                控件在类中的对象名, 
+                按钮控件的不变属性字典[
+                    "Name"|"Description"|“Type”|“Callback”｜“ModifiedIs”, 
+                    控件唯一名|控件用户层介绍｜按钮类型｜按钮回调｜控件改动是否触发控件变动事件
+                ]
+            ]
+        ]
+        """
         self.widget_Group_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
-        """分组框控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
+        """
+        分组框控件不变属性的整体数据字典[
+            控件所属属性集名称,
+            控件不变属性字典[
+                控件在类中的对象名, 
+                分组框控件的不变属性字典[
+                    "Name"|"Description"|“Type”|“GroupProps”｜“ModifiedIs”, 
+                    控件唯一名|控件用户层介绍｜分组框类型｜分组框携带属性集名称｜控件改动是否触发控件变动事件
+                ]
+            ]
+        ]
+        """
         self.widget_TextBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
-        """文本框控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
+        """
+        文本框控件不变属性的整体数据字典[
+            控件所属属性集名称,
+            控件不变属性字典[
+                控件在类中的对象名, 
+                文本框控件的不变属性字典[
+                    "Name"|"Description"|“Type”|“LongDescription”｜“ModifiedIs”, 
+                    控件唯一名|控件用户层介绍｜文本框类型｜控件用户层长介绍｜控件改动是否触发控件变动事件
+                ]
+            ]
+        ]
+        """
         self.widget_ComboBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
-        """组合框控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
+        """
+        组合框控件不变属性的整体数据字典[
+            控件所属属性集名称,
+            控件不变属性字典[
+                控件在类中的对象名, 
+                组合框控件的不变属性字典[
+                    "Name"|"Description"|“Type”|“LongDescription”｜“ModifiedIs”, 
+                    控件唯一名|控件用户层介绍｜组合框类型｜控件用户层长介绍｜控件改动是否触发控件变动事件
+                ]
+            ]
+        ]
+        """
         self.widget_PathBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
-        """路径对话框控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
+        """
+        路径对话框不变属性的整体数据字典[
+            控件所属属性集名称,
+            控件不变属性字典[
+                控件在类中的对象名, 
+                路径对话框的不变属性字典[
+                    "Name"|"Description"|“Type”|“Filter”|“StartPath”｜“ModifiedIs”, 
+                    控件唯一名|控件用户层介绍｜路径对话框类型｜文件格式筛选｜起步路径｜控件改动是否触发控件变动事件
+                ]
+            ]
+        ]
+        """
         self.widget_DigitalDisplay_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
-        """数字框控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
+        """
+        数字框不变属性的整体数据字典[
+            控件所属属性集名称,
+            控件不变属性字典[
+                控件在类中的对象名, 
+                数字框的不变属性字典[
+                    "Name"|"Description"|“Type”|“Suffix”|“ModifiedIs”, 
+                    控件唯一名|控件用户层介绍｜数字框类型｜单位后缀｜控件改动是否触发控件变动事件
+                ]
+            ]
+        ]
+        """
         self.widget_CheckBox_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
-        """复选框控件名称列表【属性集ps】【控件在自己类中的对象名】【"Name"|"Description"】【控件唯一名|控件用户层介绍】"""
+        """
+        复选框不变属性的整体数据字典[
+            控件所属属性集名称,
+            控件不变属性字典[
+                控件在类中的对象名, 
+                复选框的不变属性字典[
+                    "Name"|"Description"|“ModifiedIs”, 
+                    控件唯一名|控件用户层介绍｜控件改动是否触发控件变动事件
+                ]
+            ]
+        ]
+        """
         self.widget_list: List[str] = []
         """一个用于规定控件加载顺序的列表，内容是控件名称"""
         self.props_Collection: dict[str, set[str]] = {}
@@ -1357,7 +1455,10 @@ class Widget:
 
     @property
     def widget_dict_all(self) -> dict[Literal["Button", "Group", "TextBox", "ComboBox", "PathBox", "DigitalDisplay", "CheckBox"], dict[str, dict[str, dict[str, Union[Callable[[Any, Any], bool], str]]]]]:
-        """记录7大控件类型的所有控件的不变属性"""
+        """
+        记录7大控件类型的所有控件的不变属性
+        控件类型为键 注册控件时设置的控件不变属性字典为值 的字典
+        """
         return {
             "Button": self.widget_Button_dict,
             "Group": self.widget_Group_dict,
@@ -1455,6 +1556,11 @@ class Widget:
         """创建初始控件数据"""
         for basic_types_controls in self.widget_dict_all:
             log_save(obs.LOG_INFO, f"{basic_types_controls}")
+            if basic_types_controls == "Group":
+                for prop_attribute in self.widget_dict_all[basic_types_controls].values():
+                    for attribute in prop_attribute.values():
+                        if attribute["GroupPropsName"] not in self.props_Collection:
+                            self.props_Collection[attribute["GroupPropsName"]] = set()
             for PropsName in self.widget_dict_all[basic_types_controls]:
                 if PropsName not in self.props_Collection:
                     self.props_Collection[PropsName] = set()  # 添加键 属性集名称
@@ -1474,7 +1580,7 @@ class Widget:
                             obj.Url = self.widget_dict_all[basic_types_controls][PropsName][objName]["Url"]
                     if obj.ControlType in ["Group"]:
                         obj.GroupPropsName = self.widget_dict_all[basic_types_controls][PropsName][objName]["GroupPropsName"]
-                    if obj.ControlType in ["TextBox", "ComboBox"]:
+                    if obj.ControlType in ["Button", "TextBox", "ComboBox", "CheckBox"]:
                         obj.LongDescription = self.widget_dict_all[basic_types_controls][PropsName][objName].get("LongDescription", "")
                     if obj.ControlType in ["DigitalDisplay"]:
                         obj.Suffix = self.widget_dict_all[basic_types_controls][PropsName][objName]["Suffix"]
@@ -1519,24 +1625,34 @@ def trigger_frontend_event(event):
     return True
 
 
-def property_modified(name: str) -> bool:
+def property_modified(widget_name: str) -> bool:
     """
     控件变动拉钩
     Args:
-        name: 控件全局唯一名
+        widget_name: 控件全局唯一名
 
     Returns:
 
     """
-    log_save(obs.LOG_INFO, f"检测到控件【{name}】变动事件")
-    if name == "bottom_button":  # 这个按钮用来标记脚本开始构造控件
+    log_save(obs.LOG_INFO, f"检测到控件【{widget_name}】变动事件")
+    if widget_name == "bottom_button":  # 这个按钮用来标记脚本开始构造控件
         log_save(obs.LOG_INFO, f"检测到脚本构造控件体开始，断开控件事件钩子")
         GlobalVariableOfData.isScript_propertiesIs = True
-    if name == "top_button":
+    if widget_name == "top_button":
         log_save(obs.LOG_INFO, f"检测到脚本构造控件体结束，启动控件事件钩子")
         GlobalVariableOfData.isScript_propertiesIs = False
-    if not GlobalVariableOfData.isScript_propertiesIs:
-        #  执行触发事件动作
+    if not GlobalVariableOfData.isScript_propertiesIs:  #  执行触发事件动作
+        group_widget_attribute: List[str] = []
+        """所有分组框名称的列表"""
+        for prop_attribute in widget.widget_Group_dict.values():
+            for attribute in prop_attribute.values():
+                group_widget_attribute.append(attribute["Name"])
+                if attribute["Type"] == obs.OBS_GROUP_CHECKABLE:
+                    group_widget_attribute.append(f'{attribute["Name"]}_folding')
+        if widget_name in group_widget_attribute:
+            return ButtonFunction.button_function_fold_group()
+        else:
+            log_save(obs.LOG_INFO, widget_name)
         pass
     else:
         log_save(obs.LOG_INFO, f"控件事件钩子已断开")
@@ -1580,22 +1696,41 @@ def script_defaults(settings):  # 设置其默认值
     update_widget_name |= GlobalVariableOfData.group_folding_names | FunctionCache.get_common_widget_groups_visibility()
 
     GlobalVariableOfData.group_folding_names = FunctionCache.get_common_widget_groups_visibility()
-    """需要折叠的分组框名称的集合"""
-    log_save(obs.LOG_INFO, f"关闭显示：{GlobalVariableOfData.group_folding_names}")
+
+    log_save(obs.LOG_INFO, f"折叠以下分组框：{GlobalVariableOfData.group_folding_names}")
+
+    widget_specific_object = widget.Group.test
+    if widget_specific_object.Name in update_widget_name:
+        widget_specific_object.Visible = widget_specific_object.Name not in GlobalVariableOfData.group_folding_names
+        widget_specific_object.Enabled = widget_specific_object.Name not in GlobalVariableOfData.group_folding_names
+        widget_specific_object.Bool = widget_specific_object.Name not in GlobalVariableOfData.group_folding_names
 
     # =================================================================================================================
     # 设置控件属性=======================================================================================================
     widget_specific_object = widget.Button.top
     if widget_specific_object.Name in update_widget_name:
-        widget_specific_object.Visible = False if widget_specific_object.Name in GlobalVariableOfData.group_folding_names else False
+        widget_specific_object.Visible = False
         widget_specific_object.Enabled = False
+
+    widget_specific_object = widget.ComboBox.test
+    if widget_specific_object.Name in update_widget_name:
+        widget_specific_object.Visible = True
+        widget_specific_object.Enabled = True
+        widget_specific_object.Text = FunctionCache.get_combobox_test_load_data()["Text"]
+        widget_specific_object.Value = FunctionCache.get_combobox_test_load_data()["Value"]
+        widget_specific_object.DictionaryList = FunctionCache.get_combobox_test_load_data()["DictionaryList"]
+
+    widget_specific_object = widget.Button.test
+    if widget_specific_object.Name in update_widget_name:
+        widget_specific_object.Visible = True
+        widget_specific_object.Enabled = True
 
     widget_specific_object = widget.Button.bottom
     if widget_specific_object.Name in update_widget_name:
-        widget_specific_object.Visible = False if widget_specific_object.Name in GlobalVariableOfData.group_folding_names else False
+        widget_specific_object.Visible = False
         widget_specific_object.Enabled = False
 
-    FunctionCache.clear()
+    FunctionCache.cache_clear()
     return True
 
 
@@ -1671,7 +1806,9 @@ def script_properties():  # 建立控件
         # 获取按载入次序排序的所有控件列表
         if w.ControlType == "CheckBox":  # 添加复选框控件
             log_save(obs.LOG_INFO, f"复选框控件: {w.Name} 【{w.Description}】")
-            obs.obs_properties_add_bool(w.Props, w.Name, w.Description)
+            w.Obj = obs.obs_properties_add_bool(w.Props, w.Name, w.Description)
+            if w.LongDescription:
+                obs.obs_property_set_long_description(w.Obj, w.LongDescription)
         elif w.ControlType == "DigitalDisplay":  # 添加数字控件
             log_save(obs.LOG_INFO, f"数字框控件: {w.Name} 【{w.Description}】")
             if w.Type == "ThereIsASlider":  # 是否为数字控件添加滑动条
@@ -1688,6 +1825,8 @@ def script_properties():  # 建立控件
             log_save(obs.LOG_INFO, f"按钮控件: {w.Name} 【{w.Description}】")
             w.Obj = obs.obs_properties_add_button(w.Props, w.Name, w.Description, w.Callback)
             obs.obs_property_button_set_type(w.Obj, w.Type)
+            if w.LongDescription:
+                obs.obs_property_set_long_description(w.Obj, w.LongDescription)
             if w.Type == obs.OBS_BUTTON_URL:  # 是否为链接跳转按钮
                 obs.obs_property_button_set_url(w.Obj, w.Url)
         elif w.ControlType == "ComboBox":  # 添加组合框控件
@@ -1702,13 +1841,16 @@ def script_properties():  # 建立控件
             log_save(obs.LOG_INFO, f"分组框控件: {w.Name} 【{w.Description}】")
             w.Obj = obs.obs_properties_add_group(w.Props, w.Name, w.Description, w.Type, w.GroupProps)
             if w.Type == obs.OBS_GROUP_CHECKABLE:
-                w.ObjFolding = obs.obs_properties_add_group(w.Props, f"{w.Name}Folding", f"{w.Description}[折叠]", w.Type, props_dict["group_folding_props"])
+                w.FoldingObj = obs.obs_properties_add_group(w.Props, f"{w.Name}_folding", f"{w.Description}[折叠]", w.Type, props_dict["group_folding_props"])
         # 添加控件变动触发回调
-        if w.ModifiedIs:
+        if w.ModifiedIs or (w.ControlType == "Group" and w.Type == obs.OBS_GROUP_CHECKABLE):
             log_save(obs.LOG_INFO, f"为{w.ControlType}: 【{w.Description}】添加触发回调")
             obs.obs_property_set_modified_callback(w.Obj, lambda ps, p, st, name=w.Name: property_modified(name))
+            if w.ControlType == "Group":
+                obs.obs_property_set_modified_callback(w.FoldingObj, lambda ps, p, st, name=f"{w.Name}_folding": property_modified(
+                    name))
+
     update_ui_interface_data()
-    pass
     return props_dict["props"]
 
 
@@ -1718,8 +1860,8 @@ def update_ui_interface_data():
     Returns:
     """
     for w in widget.get_sorted_controls():
-        if w.Props in GlobalVariableOfData.update_widget_attribute_dict:
-            if w.Name in GlobalVariableOfData.update_widget_attribute_dict[w.Props]:
+        if w.PropsName in GlobalVariableOfData.update_widget_attribute_dict:
+            if w.Name in GlobalVariableOfData.update_widget_attribute_dict[w.PropsName]:
                 if obs.obs_property_visible(w.Obj) != w.Visible:
                     obs.obs_property_set_visible(w.Obj, w.Visible)
                 if obs.obs_property_enabled(w.Obj) != w.Enabled:
@@ -1754,11 +1896,9 @@ def update_ui_interface_data():
                     if w.DictionaryList != combo_box_option_dictionary_list:
                         obs.obs_property_list_clear(w.Obj)
                         for Dictionary in w.DictionaryList:
-                            if Dictionary["label"] != w.Text:
-                                obs.obs_property_list_add_string(
-                                    w.Obj, Dictionary["label"], Dictionary["value"]
-                                )
-                            else:
+                            if Dictionary["label"] != w.Text:  # 排除默认选项防止默认选项重复
+                                obs.obs_property_list_add_string(w.Obj, Dictionary["label"], Dictionary["value"])
+                            else:  # 设置默认选项
                                 obs.obs_property_list_insert_string(w.Obj, 0, w.Text, w.Value)
                     if w.Type == obs.OBS_COMBO_TYPE_EDITABLE:
                         if obs.obs_data_get_string(GlobalVariableOfData.script_settings, w.Name) != w.Text:
@@ -1777,8 +1917,8 @@ def update_ui_interface_data():
                     if w.Type == obs.OBS_GROUP_CHECKABLE:
                         if obs.obs_data_get_bool(GlobalVariableOfData.script_settings, w.Name) != w.Bool:
                             obs.obs_data_set_bool(GlobalVariableOfData.script_settings, w.Name, w.Bool)
-                        obs.obs_data_set_bool(GlobalVariableOfData.script_settings, f"{w.Name}Folding", not w.Bool)
-                        obs.obs_property_set_visible(w.Obj, not w.Visible)
+                        obs.obs_data_set_bool(GlobalVariableOfData.script_settings, f"{w.Name}_folding", w.Bool)
+                        obs.obs_property_set_visible(w.FoldingObj, not w.Visible)
                         pass
     return True
 
@@ -1794,7 +1934,7 @@ def script_tick(seconds):
     Returns:
 
     """
-    log_save(obs.LOG_INFO, "script_tick 被调用")
+    # log_save(obs.LOG_INFO, "script_tick 被调用")
     pass
 
 
@@ -1822,6 +1962,49 @@ class ButtonFunction:
         return True
 
     @staticmethod
+    def button_function_test(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        log_save(obs.LOG_INFO, f"【{'测试按钮'}】按钮被触发")
+        return True
+
+    @staticmethod
+    def button_function_fold_group(*args):
+        if len(args) == 2:
+            props = args[0]
+            prop = args[1]
+        if len(args) == 3:
+            settings = args[2]
+        log_save(obs.LOG_INFO, f"【{'折叠分组框'}】按钮被触发")
+        folded_group_name: List = []
+        """折叠的分组框的名称"""
+        for prop_attribute in widget.widget_Group_dict.values():
+            for attribute in prop_attribute.values():
+                if attribute["Type"] == obs.OBS_GROUP_CHECKABLE:
+                    group_bool = obs.obs_data_get_bool(GlobalVariableOfData.script_settings, attribute["Name"])
+                    group_folded_bool = obs.obs_data_get_bool(GlobalVariableOfData.script_settings, f'{attribute["Name"]}_folding')
+                    if group_bool != group_folded_bool:
+                        if attribute["Name"] not in FunctionCache.get_common_widget_groups_visibility():
+                            folded_group_name.append(attribute["Name"])
+
+        FunctionCache.get_c_d_m().add_data("setting", "widgetVisibility", json.dumps(folded_group_name, ensure_ascii=False),1)
+
+        FunctionCache.cache_clear()
+
+        # 更新脚本控制台中的控件
+        GlobalVariableOfData.update_widget_for_props_dict = {}
+        log_save(obs.LOG_INFO, f"更新控件配置信息")
+        script_defaults(GlobalVariableOfData.script_settings)
+        # 更新脚本用户小部件
+        log_save(obs.LOG_INFO, f"更新控件UI")
+        update_ui_interface_data()
+        GlobalVariableOfData.update_widget_for_props_dict = widget.props_Collection
+        return True
+
+    @staticmethod
     def button_function_bottom(*args):
         if len(args) == 2:
             props = args[0]
@@ -1844,13 +2027,6 @@ widget.widget_Button_dict = {
             "Callback": ButtonFunction.button_function_top,
             "ModifiedIs": True
         },
-        "test": {
-            "Name": "test_button",
-            "Description": "测试按钮",
-            "Type": obs.OBS_BUTTON_DEFAULT,
-            "Callback": ButtonFunction.button_function_bottom,
-            "ModifiedIs": False
-        },
         "bottom": {
             "Name": "bottom_button",
             "Description": "Bottom",
@@ -1859,23 +2035,75 @@ widget.widget_Button_dict = {
             "ModifiedIs": True
         },
     },
+    "test_props": {
+        "test": {
+            "Name": "test_button",
+            "Description": "测试按钮",
+            "LongDescription": "长介绍测试",
+            "Type": obs.OBS_BUTTON_DEFAULT,
+            "Callback": ButtonFunction.button_function_test,
+            "ModifiedIs": False
+        },
+    },
 }
 
-widget.widget_Group_dict = {}
+widget.widget_Group_dict = {
+    "props": {
+        "test": {
+            "Name": "test_group",
+            "Description": "测试",
+            "Type": obs.OBS_GROUP_CHECKABLE,
+            "GroupPropsName": "test_props",
+            "ModifiedIs": True
+        },
+    },
+}
 
 widget.widget_TextBox_dict = {}
 
-widget.widget_ComboBox_dict = {}
+widget.widget_ComboBox_dict = {
+    "props": {
+        "textTest": {
+            "Name": "text_test_comboBox",
+            "Description": "文本组合框测试",
+            "LongDescription": "长介绍测试",
+            "Type": obs.OBS_COMBO_TYPE_EDITABLE,
+            "ModifiedIs": True
+        },
+    },
+    "test_props": {
+        "test": {
+            "Name": "test_comboBox",
+            "Description": "测试",
+            "LongDescription": "长介绍测试",
+            "Type": obs.OBS_COMBO_TYPE_LIST,
+            "ModifiedIs": True
+        },
+    },
+}
 
 widget.widget_PathBox_dict = {}
 
 widget.widget_DigitalDisplay_dict = {}
 
-widget.widget_CheckBox_dict = {}
+widget.widget_CheckBox_dict = {
+    "props": {
+        "test": {
+            "Name": "test_checkBox",
+            "Description": "测试",
+            "LongDescription": "长介绍测试",
+            "ModifiedIs": True
+        },
+    },
+}
 
 widget.widget_list = [
     "top_button",
+    "test_group",
+    "test_comboBox",
+    "text_test_comboBox",
     "test_button",
+    "test_checkBox",
     "bottom_button",
 ]
 
