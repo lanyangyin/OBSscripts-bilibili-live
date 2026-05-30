@@ -1,0 +1,350 @@
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[e58581e8aeb8e689a7e8a18ce68ea7e4bbb6e4bfaee694b9e59b9ee8b083]天赋属性：顶部按钮控件属性组
+1.0.0 【2026/05/30 14:07:22】【INFO】 	test_checkBox
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_checkBox]天赋属性：{'props_name': 'props', 'description': '测试复选框', 'long_description': '测试复选框（test）', 'widget_variant': None, 'modified_callback_enabled': True, 'modified_callback': <function ModifiedFunction.property_modified.<locals>.build_pm at 0x000001FE36E211B0>, 'widget_category': <WidgetCategory.CHECKBOX: 'CheckBox'>}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	test_digitalBox
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_digitalBox]天赋属性：{'props_name': 'props', 'description': '测试数字框', 'long_description': '测试数字框（test）', 'widget_variant': <DigitalBoxVariant.INT: 'Int'>, 'modified_callback_enabled': True, 'modified_callback': <function ModifiedFunction.property_modified.<locals>.build_pm at 0x000001FE36E21240>, 'suffix': 'px', 'widget_category': <WidgetCategory.DIGITALBOX: 'DigitalBox'>}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	test1_digitalBox
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_digitalBox]天赋属性：{'props_name': 'props', 'description': '测试数字框', 'long_description': '测试数字框（test）', 'widget_variant': <DigitalBoxVariant.INT_SLIDER: 'IntSlider'>, 'modified_callback_enabled': True, 'modified_callback': <function ModifiedFunction.property_modified.<locals>.build_pm at 0x000001FE36E21000>, 'suffix': 'px', 'widget_category': <WidgetCategory.DIGITALBOX: 'DigitalBox'>}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	test_textBox
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_textBox]天赋属性：{'props_name': 'props', 'description': '测试文本框', 'long_description': '测试文本框（test）', 'widget_variant': <TextBoxVariant.DEFAULT: 0>, 'modified_callback_enabled': True, 'modified_callback': <function ModifiedFunction.property_modified.<locals>.build_pm at 0x000001FE36E21360>, 'widget_category': <WidgetCategory.TEXTBOX: 'TextBox'>}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	test_button
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_button]天赋属性：{'props_name': 'props', 'description': '测试按钮', 'long_description': '测试按钮（test）', 'widget_variant': <ButtonVariant.DEFAULT: 0>, 'modified_callback_enabled': False, 'modified_callback': 'test', 'click_callback': <function ObsScriptButtonFunction.select.<locals>.build_bf at 0x000001FE36E213F0>, 'widget_category': <WidgetCategory.BUTTON: 'Button'>}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	test_comboBox
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_comboBox]天赋属性：{'props_name': 'props', 'description': '测试组合框', 'long_description': '测试组合框（test）', 'widget_variant': <ComboBoxVariant.LIST: 2>, 'modified_callback_enabled': True, 'modified_callback': <function ModifiedFunction.property_modified.<locals>.build_pm at 0x000001FE36E21480>, 'widget_category': <WidgetCategory.COMBOBOX: 'ComboBox'>}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	test_pathBox
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_pathBox]天赋属性：{'props_name': 'props', 'description': '测试路径选择框', 'long_description': '测试路径选择框（test）', 'widget_variant': <PathBoxVariant.FILE: 0>, 'modified_callback_enabled': True, 'modified_callback': <function ModifiedFunction.property_modified.<locals>.build_pm at 0x000001FE36E21510>, 'filter_str': '*.*', 'default_path': '', 'widget_category': <WidgetCategory.PATHBOX: 'PathBox'>}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	test_colorBox
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_colorBox]天赋属性：{'props_name': 'props', 'description': '测试颜色选择框', 'long_description': '测试颜色选择框（test）', 'widget_variant': <ColorBoxVariant.ALPHA: 'alpha'>, 'modified_callback_enabled': True, 'modified_callback': <function ModifiedFunction.property_modified.<locals>.build_pm at 0x000001FE36E21630>, 'widget_category': <WidgetCategory.COLORBOX: 'ColorBox'>}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	test_fontBox
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_fontBox]天赋属性：{'props_name': 'props', 'description': '测试字体选择框', 'long_description': '测试字体选择框（test）', 'widget_variant': None, 'modified_callback_enabled': True, 'modified_callback': <function ModifiedFunction.property_modified.<locals>.build_pm at 0x000001FE36E216C0>, 'widget_category': <WidgetCategory.FONTBOX: 'FontBox'>}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	test_listBox
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_listBox]天赋属性：{'props_name': 'props', 'description': '测试列表框', 'long_description': '测试列表框（test）', 'widget_variant': <ListBoxVariant.STRINGS: 0>, 'modified_callback_enabled': True, 'modified_callback': <function ModifiedFunction.property_modified.<locals>.build_pm at 0x000001FE36E21750>, 'filter_str': '*.*', 'default_path': '', 'widget_category': <WidgetCategory.LISTBOX: 'ListBox'>}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	test_group
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_group]天赋属性：{'props_name': 'props', 'description': '测试分组框', 'long_description': '测试分组框（test）', 'widget_variant': <GroupVariant.CHECKABLE: 2>, 'modified_callback_enabled': True, 'modified_callback': <function build_controls.<locals>.group_folded_modified_callback at 0x000001FE36E217E0>, 'group_props_name': 'group_props', 'widget_category': <WidgetCategory.GROUP: 'Group'>}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	test1_comboBox
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_comboBox]天赋属性：{'props_name': 'group_props', 'description': '测试组合框', 'long_description': '测试组合框（test）', 'widget_variant': <ComboBoxVariant.EDITABLE: 1>, 'modified_callback_enabled': True, 'modified_callback': <function ModifiedFunction.property_modified.<locals>.build_pm at 0x000001FE36E21870>, 'widget_category': <WidgetCategory.COMBOBOX: 'ComboBox'>}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	test1_pathBox
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_pathBox]天赋属性：{'props_name': 'group_props', 'description': '测试路径选择框', 'long_description': '测试路径选择框（test）', 'widget_variant': <PathBoxVariant.DIRECTORY: 2>, 'modified_callback_enabled': True, 'modified_callback': <function ModifiedFunction.property_modified.<locals>.build_pm at 0x000001FE36E21900>, 'filter_str': '*.*', 'default_path': '', 'widget_category': <WidgetCategory.PATHBOX: 'PathBox'>}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	test2_pathBox
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test2_pathBox]天赋属性：{'props_name': 'group_props', 'description': '测试路径选择框', 'long_description': '测试路径选择框（test）', 'widget_variant': <PathBoxVariant.FILE_SAVE: 1>, 'modified_callback_enabled': True, 'modified_callback': <function ModifiedFunction.property_modified.<locals>.build_pm at 0x000001FE36E21990>, 'filter_str': '*.*', 'default_path': '', 'widget_category': <WidgetCategory.PATHBOX: 'PathBox'>}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	test1_colorBox
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_colorBox]天赋属性：{'props_name': 'group_props', 'description': '测试颜色选择框', 'long_description': '测试颜色选择框（test）', 'widget_variant': <ColorBoxVariant.ALPHA: 'alpha'>, 'modified_callback_enabled': True, 'modified_callback': <function ModifiedFunction.property_modified.<locals>.build_pm at 0x000001FE36E21A20>, 'widget_category': <WidgetCategory.COLORBOX: 'ColorBox'>}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	test1_group
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_group]天赋属性：{'props_name': 'group_props', 'description': '测试分组框', 'long_description': '测试分组框（test）', 'widget_variant': <GroupVariant.CHECKABLE: 2>, 'modified_callback_enabled': True, 'modified_callback': <function build_controls.<locals>.group_folded_modified_callback at 0x000001FE36E21AB0>, 'group_props_name': 'group1_props', 'widget_category': <WidgetCategory.GROUP: 'Group'>}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	test2_digitalBox
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test2_digitalBox]天赋属性：{'props_name': 'group1_props', 'description': '测试数字框', 'long_description': '测试数字框（test）', 'widget_variant': <DigitalBoxVariant.FLOAT: 'Float'>, 'modified_callback_enabled': True, 'modified_callback': <function ModifiedFunction.property_modified.<locals>.build_pm at 0x000001FE36E21B40>, 'suffix': 'px', 'widget_category': <WidgetCategory.DIGITALBOX: 'DigitalBox'>}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	test3_digitalBox
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test3_digitalBox]天赋属性：{'props_name': 'group1_props', 'description': '测试数字框', 'long_description': '测试数字框（test）', 'widget_variant': <DigitalBoxVariant.FLOAT_SLIDER: 'FloatSlider'>, 'modified_callback_enabled': True, 'modified_callback': <function ModifiedFunction.property_modified.<locals>.build_pm at 0x000001FE36E21BD0>, 'suffix': 'px', 'widget_category': <WidgetCategory.DIGITALBOX: 'DigitalBox'>}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	test1_textBox
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_textBox]天赋属性：{'props_name': 'group1_props', 'description': '测试文本框', 'long_description': '测试文本框（test）', 'widget_variant': <TextBoxVariant.INFO: 3>, 'modified_callback_enabled': True, 'modified_callback': <function ModifiedFunction.property_modified.<locals>.build_pm at 0x000001FE36E21C60>, 'widget_category': <WidgetCategory.TEXTBOX: 'TextBox'>}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	test2_textBox
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test2_textBox]天赋属性：{'props_name': 'group1_props', 'description': '测试文本框', 'long_description': '测试文本框（test）', 'widget_variant': <TextBoxVariant.INFO: 3>, 'modified_callback_enabled': True, 'modified_callback': <function ModifiedFunction.property_modified.<locals>.build_pm at 0x000001FE36E21CF0>, 'widget_category': <WidgetCategory.TEXTBOX: 'TextBox'>}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	test3_textBox
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test3_textBox]天赋属性：{'props_name': 'group1_props', 'description': '测试文本框', 'long_description': '测试文本框（test）', 'widget_variant': <TextBoxVariant.INFO: 3>, 'modified_callback_enabled': True, 'modified_callback': <function ModifiedFunction.property_modified.<locals>.build_pm at 0x000001FE36E21D80>, 'widget_category': <WidgetCategory.TEXTBOX: 'TextBox'>}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	test3_button
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test3_button]天赋属性：{'props_name': 'props', 'description': '测试按钮', 'long_description': '测试按钮（test）', 'widget_variant': <ButtonVariant.URL: 1>, 'modified_callback_enabled': False, 'modified_callback': 'test', 'click_callback': <function ObsScriptButtonFunction.select.<locals>.build_bf at 0x000001FE36E21E10>, 'widget_category': <WidgetCategory.BUTTON: 'Button'>}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	test2_group
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test2_group]天赋属性：{'props_name': 'props', 'description': '测试分组框', 'long_description': '测试分组框（test）', 'widget_variant': <GroupVariant.NORMAL: 1>, 'modified_callback_enabled': True, 'modified_callback': <function ModifiedFunction.property_modified.<locals>.build_pm at 0x000001FE36E21EA0>, 'group_props_name': 'group2_props', 'widget_category': <WidgetCategory.GROUP: 'Group'>}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[e7a681e6ada2e689a7e8a18ce68ea7e4bbb6e4bfaee694b9e59b9ee8b083]天赋属性：底部按钮控件属性组
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_checkBox]自由属性：{'visible': 'default_true', 'enabled': 'default_true', 'checked': 'checked_reference_data'}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_checkBox]自由属性：visible|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_checkBox]自由属性：enabled|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_checkBox]自由属性：checked|属性值获取回调函数名：checked_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_digitalBox]自由属性：{'visible': 'default_true', 'enabled': 'default_true', 'min_val': 'min_val_reference_data', 'max_val': 'max_val_reference_data', 'step': 'step_reference_data', 'digital': 'digital_reference_data'}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_digitalBox]自由属性：visible|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_digitalBox]自由属性：enabled|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_digitalBox]自由属性：min_val|属性值获取回调函数名：min_val_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_digitalBox]自由属性：max_val|属性值获取回调函数名：max_val_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_digitalBox]自由属性：step|属性值获取回调函数名：step_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_digitalBox]自由属性：digital|属性值获取回调函数名：digital_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_digitalBox]自由属性：{'visible': 'default_true', 'enabled': 'default_true', 'min_val': 'min_val_reference_data', 'max_val': 'max_val_reference_data', 'step': 'step_reference_data', 'digital': 'digital_reference_data'}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_digitalBox]自由属性：visible|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_digitalBox]自由属性：enabled|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_digitalBox]自由属性：min_val|属性值获取回调函数名：min_val_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_digitalBox]自由属性：max_val|属性值获取回调函数名：max_val_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_digitalBox]自由属性：step|属性值获取回调函数名：step_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_digitalBox]自由属性：digital|属性值获取回调函数名：digital_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_textBox]自由属性：{'visible': 'default_true', 'enabled': 'default_true', 'info_type': None, 'text': 'text_reference_data'}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_textBox]自由属性：visible|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_textBox]自由属性：enabled|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	⭕拉取[test_textBox]自由属性：info_type|该控件无此属性值
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_textBox]自由属性：text|属性值获取回调函数名：text_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_button]自由属性：{'visible': 'default_true', 'enabled': 'default_true', 'url': 'url_reference_data'}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_button]自由属性：visible|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_button]自由属性：enabled|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_button]自由属性：url|属性值获取回调函数名：url_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_comboBox]自由属性：{'visible': 'default_true', 'enabled': 'default_true', 'label': 'label_reference_data', 'value': 'value_reference_data', 'items': 'items_reference_data'}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_comboBox]自由属性：visible|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_comboBox]自由属性：enabled|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_comboBox]自由属性：label|属性值获取回调函数名：label_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_comboBox]自由属性：value|属性值获取回调函数名：value_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_comboBox]自由属性：items|属性值获取回调函数名：items_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_pathBox]自由属性：{'visible': 'default_true', 'enabled': 'default_true', 'path_text': 'path_text_reference_data'}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_pathBox]自由属性：visible|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_pathBox]自由属性：enabled|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_pathBox]自由属性：path_text|属性值获取回调函数名：path_text_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_colorBox]自由属性：{'visible': 'default_true', 'enabled': 'default_true', 'color_alpha': 'color_alpha_reference_data', 'color_red': 'color_red_reference_data', 'color_green': 'color_green_reference_data', 'color_blue': 'color_blue_reference_data'}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_colorBox]自由属性：visible|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_colorBox]自由属性：enabled|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_colorBox]自由属性：color_alpha|属性值获取回调函数名：color_alpha_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_colorBox]自由属性：color_red|属性值获取回调函数名：color_red_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_colorBox]自由属性：color_green|属性值获取回调函数名：color_green_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_colorBox]自由属性：color_blue|属性值获取回调函数名：color_blue_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_fontBox]自由属性：{'visible': 'default_true', 'enabled': 'default_true', 'font_face': 'font_face_reference_data', 'font_size': 'font_size_reference_data', 'font_style': 'font_style_reference_data', 'font_bold': 'font_bold_reference_data', 'font_italic': 'font_italic_reference_data', 'font_underline': 'font_underline_reference_data', 'font_strikeout': 'font_strikeout_reference_data'}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_fontBox]自由属性：visible|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_fontBox]自由属性：enabled|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_fontBox]自由属性：font_face|属性值获取回调函数名：font_face_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_fontBox]自由属性：font_size|属性值获取回调函数名：font_size_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_fontBox]自由属性：font_style|属性值获取回调函数名：font_style_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_fontBox]自由属性：font_bold|属性值获取回调函数名：font_bold_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_fontBox]自由属性：font_italic|属性值获取回调函数名：font_italic_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_fontBox]自由属性：font_underline|属性值获取回调函数名：font_underline_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_fontBox]自由属性：font_strikeout|属性值获取回调函数名：font_strikeout_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_listBox]自由属性：{'visible': 'default_true', 'enabled': 'default_true', 'items': 'items_reference_data0'}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_listBox]自由属性：visible|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_listBox]自由属性：enabled|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_listBox]自由属性：items|属性值获取回调函数名：items_reference_data0
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_group]自由属性：{'visible': 'default_true', 'enabled': 'default_true', 'checked': 'checked_reference_data'}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_group]自由属性：visible|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_group]自由属性：enabled|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test_group]自由属性：checked|属性值获取回调函数名：checked_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_comboBox]自由属性：{'visible': 'default_true', 'enabled': 'default_true', 'label': 'label_reference_data', 'value': 'value_reference_data', 'items': 'items_reference_data'}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_comboBox]自由属性：visible|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_comboBox]自由属性：enabled|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_comboBox]自由属性：label|属性值获取回调函数名：label_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_comboBox]自由属性：value|属性值获取回调函数名：value_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_comboBox]自由属性：items|属性值获取回调函数名：items_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_pathBox]自由属性：{'visible': 'default_true', 'enabled': 'default_true', 'path_text': 'path_text_reference_data'}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_pathBox]自由属性：visible|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_pathBox]自由属性：enabled|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_pathBox]自由属性：path_text|属性值获取回调函数名：path_text_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test2_pathBox]自由属性：{'visible': 'default_true', 'enabled': 'default_true', 'path_text': 'path_text_reference_data'}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test2_pathBox]自由属性：visible|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test2_pathBox]自由属性：enabled|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test2_pathBox]自由属性：path_text|属性值获取回调函数名：path_text_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_colorBox]自由属性：{'visible': 'default_true', 'enabled': 'default_true', 'color_alpha': 'color_alpha_reference_data', 'color_red': 'color_red_reference_data', 'color_green': 'color_green_reference_data', 'color_blue': 'color_blue_reference_data'}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_colorBox]自由属性：visible|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_colorBox]自由属性：enabled|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_colorBox]自由属性：color_alpha|属性值获取回调函数名：color_alpha_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_colorBox]自由属性：color_red|属性值获取回调函数名：color_red_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_colorBox]自由属性：color_green|属性值获取回调函数名：color_green_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_colorBox]自由属性：color_blue|属性值获取回调函数名：color_blue_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_group]自由属性：{'visible': 'default_true', 'enabled': 'default_true', 'checked': 'checked_reference_data'}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_group]自由属性：visible|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_group]自由属性：enabled|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_group]自由属性：checked|属性值获取回调函数名：checked_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test2_digitalBox]自由属性：{'visible': 'default_true', 'enabled': 'default_true', 'min_val': 'min_val_reference_data', 'max_val': 'max_val_reference_data', 'step': 'step_reference_data', 'digital': 'digital_reference_data'}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test2_digitalBox]自由属性：visible|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test2_digitalBox]自由属性：enabled|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test2_digitalBox]自由属性：min_val|属性值获取回调函数名：min_val_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test2_digitalBox]自由属性：max_val|属性值获取回调函数名：max_val_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test2_digitalBox]自由属性：step|属性值获取回调函数名：step_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test2_digitalBox]自由属性：digital|属性值获取回调函数名：digital_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test3_digitalBox]自由属性：{'visible': 'default_true', 'enabled': 'default_true', 'min_val': 'min_val_reference_data', 'max_val': 'max_val_reference_data', 'step': 'step_reference_data', 'digital': 'digital_reference_data'}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test3_digitalBox]自由属性：visible|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test3_digitalBox]自由属性：enabled|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test3_digitalBox]自由属性：min_val|属性值获取回调函数名：min_val_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test3_digitalBox]自由属性：max_val|属性值获取回调函数名：max_val_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test3_digitalBox]自由属性：step|属性值获取回调函数名：step_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test3_digitalBox]自由属性：digital|属性值获取回调函数名：digital_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_textBox]自由属性：{'visible': 'default_true', 'enabled': 'default_true', 'info_type': 'info_type_reference_data', 'text': 'text_reference_data'}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_textBox]自由属性：visible|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_textBox]自由属性：enabled|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_textBox]自由属性：info_type|属性值获取回调函数名：info_type_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test1_textBox]自由属性：text|属性值获取回调函数名：text_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test2_textBox]自由属性：{'visible': 'default_true', 'enabled': 'default_true', 'info_type': 'info_type_reference_data0', 'text': 'text_reference_data'}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test2_textBox]自由属性：visible|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test2_textBox]自由属性：enabled|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test2_textBox]自由属性：info_type|属性值获取回调函数名：info_type_reference_data0
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test2_textBox]自由属性：text|属性值获取回调函数名：text_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test3_textBox]自由属性：{'visible': 'default_true', 'enabled': 'default_true', 'info_type': 'info_type_reference_data1', 'text': 'text_reference_data'}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test3_textBox]自由属性：visible|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test3_textBox]自由属性：enabled|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test3_textBox]自由属性：info_type|属性值获取回调函数名：info_type_reference_data1
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test3_textBox]自由属性：text|属性值获取回调函数名：text_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test3_button]自由属性：{'visible': 'default_true', 'enabled': 'default_true', 'url': 'url_reference_data'}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test3_button]自由属性：visible|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test3_button]自由属性：enabled|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test3_button]自由属性：url|属性值获取回调函数名：url_reference_data
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test2_group]自由属性：{'visible': 'default_true', 'enabled': 'default_true', 'checked': None}
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test2_group]自由属性：visible|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	拉取[test2_group]自由属性：enabled|属性值获取回调函数名：default_true
+1.0.0 【2026/05/30 14:07:22】【INFO】 	⭕拉取[test2_group]自由属性：checked|该控件无此属性值
+1.0.0 【2026/05/30 14:07:22】【INFO】 	obsScriptFramework 加载成功
+1.0.0 【2026/05/30 14:07:22】【INFO】 	监测到obs前端事件: 场景集合列表已改变
+1.0.0 【2026/05/30 14:07:22】【INFO】 	允许执行前端事件回调
+1.0.0 【2026/05/30 14:07:22】【DEBUG】 	未找到【SCENE_COLLECTION_LIST_CHANGED】回调函数
+1.0.0 【2026/05/30 14:07:22】【INFO】 	监测到obs前端事件: 场景集合已切换
+1.0.0 【2026/05/30 14:07:22】【INFO】 	允许执行前端事件回调
+1.0.0 【2026/05/30 14:07:22】【DEBUG】 	未找到【SCENE_COLLECTION_CHANGED】回调函数
+1.0.0 【2026/05/30 14:07:22】【INFO】 	监测到obs前端事件: 当前场景已改变
+1.0.0 【2026/05/30 14:07:22】【INFO】 	允许执行前端事件回调
+1.0.0 【2026/05/30 14:07:22】【DEBUG】 	未找到【SCENE_CHANGED】回调函数
+1.0.0 【2026/05/30 14:07:22】【INFO】 	监测到obs前端事件: 预览场景已改变
+1.0.0 【2026/05/30 14:07:22】【INFO】 	允许执行前端事件回调
+1.0.0 【2026/05/30 14:07:22】【DEBUG】 	未找到【PREVIEW_SCENE_CHANGED】回调函数
+1.0.0 【2026/05/30 14:07:22】【INFO】 	监测到obs前端事件: OBS 完成加载
+1.0.0 【2026/05/30 14:07:22】【INFO】 	允许执行前端事件回调
+1.0.0 【2026/05/30 14:07:22】【DEBUG】 	未找到【FINISHED_LOADING】回调函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	生成控件
+1.0.0 【2026/05/30 14:07:31】【INFO】 	构建属性集: group2_props
+1.0.0 【2026/05/30 14:07:31】【INFO】 	构建属性集: group1_props
+1.0.0 【2026/05/30 14:07:31】【INFO】 	构建属性集: group_props
+1.0.0 【2026/05/30 14:07:31】【INFO】 	构建属性集: props
+1.0.0 【2026/05/30 14:07:31】【INFO】 	按钮控件: e58581e8aeb8e689a7e8a18ce68ea7e4bbb6e4bfaee694b9e59b9ee8b083 【允许执行控件修改回调】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.BUTTON: 【允许执行控件修改回调】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	复选框控件: test_checkBox 【测试复选框】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.CHECKBOX: 【测试复选框】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	数字框控件: test_digitalBox 【测试数字框】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.DIGITALBOX: 【测试数字框】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	数字框控件: test1_digitalBox 【测试数字框】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.DIGITALBOX: 【测试数字框】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	文本框控件: test_textBox 【测试文本框】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.TEXTBOX: 【测试文本框】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	按钮控件: test_button 【测试按钮】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	组合框控件: test_comboBox 【测试组合框】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.COMBOBOX: 【测试组合框】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	路径对话框控件: test_pathBox 【测试路径选择框】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.PATHBOX: 【测试路径选择框】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	颜色对话框控件: test_colorBox 【测试颜色选择框】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.COLORBOX: 【测试颜色选择框】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	字体对话框控件: test_fontBox 【测试字体选择框】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.FONTBOX: 【测试字体选择框】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	列表对话框控件: test_listBox 【测试列表框】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.LISTBOX: 【测试列表框】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	分组框控件: test_group 【测试分组框】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	折叠分组框[复选框控件]: test_group 【测试分组框】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.GROUP: 【测试分组框】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.GROUP: 【测试分组框】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	组合框控件: test1_comboBox 【测试组合框】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.COMBOBOX: 【测试组合框】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	路径对话框控件: test1_pathBox 【测试路径选择框】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.PATHBOX: 【测试路径选择框】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	路径对话框控件: test2_pathBox 【测试路径选择框】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.PATHBOX: 【测试路径选择框】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	颜色对话框控件: test1_colorBox 【测试颜色选择框】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.COLORBOX: 【测试颜色选择框】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	分组框控件: test1_group 【测试分组框】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	折叠分组框[复选框控件]: test1_group 【测试分组框】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.GROUP: 【测试分组框】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.GROUP: 【测试分组框】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	数字框控件: test2_digitalBox 【测试数字框】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.DIGITALBOX: 【测试数字框】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	数字框控件: test3_digitalBox 【测试数字框】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.DIGITALBOX: 【测试数字框】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	文本框控件: test1_textBox 【测试文本框】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.TEXTBOX: 【测试文本框】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	文本框控件: test2_textBox 【测试文本框】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.TEXTBOX: 【测试文本框】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	文本框控件: test3_textBox 【测试文本框】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.TEXTBOX: 【测试文本框】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	按钮控件: test3_button 【测试按钮】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	分组框控件: test2_group 【测试分组框】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.GROUP: 【测试分组框】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	按钮控件: e7a681e6ada2e689a7e8a18ce68ea7e4bbb6e4bfaee694b9e59b9ee8b083 【禁止执行控件修改回调】
+1.0.0 【2026/05/30 14:07:31】【INFO】 	为WidgetCategory.BUTTON: 【禁止执行控件修改回调】添加钩子函数
+1.0.0 【2026/05/30 14:07:31】【INFO】 	e58581e8aeb8e689a7e8a18ce68ea7e4bbb6e4bfaee694b9e59b9ee8b083可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	e58581e8aeb8e689a7e8a18ce68ea7e4bbb6e4bfaee694b9e59b9ee8b083启用状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_checkBox可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_checkBox启用状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_checkBox的勾选状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_digitalBox可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_digitalBox启用状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_digitalBox最小值0⏩0
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_digitalBox最大值100⏩100
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_digitalBox步数1⏩1
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_digitalBox数值50⏩50
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test1_digitalBox可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test1_digitalBox启用状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test1_digitalBox最小值0⏩0
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test1_digitalBox最大值100⏩100
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test1_digitalBox步数1⏩1
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test1_digitalBox数值50⏩50
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_textBox可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_textBox启用状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_textBox文本这是一段文本测试⏩这是一段文本测试
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_button可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_button启用状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_comboBox可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_comboBox启用状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_comboBox组合框列表[]⏩[{'label': '这是组合框/列表框元素标签测试', 'value': 'v这是组合框/列表框元素值测试'}, {'label': '这是组合框/列表框元素标签测试0', 'value': 'v这是组合框/列表框元素值测试0'}, {'label': '这是组合框/列表框元素标签测试1', 'value': 'v这是组合框/列表框元素值测试1'}, {'label': '这是组合框/列表框元素标签测试1', 'value': 'v这是组合框/列表框元素值测试1'}, {'label': '这是组合框/列表框元素标签测试1', 'value': 'v这是组合框/列表框元素值测试1'}]
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_comboBox组合框显示文本v这是组合框/列表框元素值测试1⏩这是组合框/列表框元素标签测试1
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_pathBox可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_pathBox启用状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_pathBox路径框C:\⏩C:\
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_colorBox可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_colorBox启用状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_colorBox的颜色#EA80FF C8⏩#EA80FF C8
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_fontBox可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_fontBox启用状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_fontBox的字体系列名称Kai⏩Kai
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_fontBox的字体大小36px⏩36px
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_fontBox的字体样式Regular⏩Regular
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_fontBox的字体标志位0⏩0
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_fontBox的标志粗体False⏩False
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_fontBox的标志斜体False⏩False
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_fontBox的标志下划线False⏩False
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_fontBox的标志删除线False⏩False
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_listBox可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_listBox启用状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_group可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	--test_group折叠状态True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_group启用状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	--test_group折叠状态True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test_group分组框True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test1_comboBox可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test1_comboBox启用状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test1_comboBox组合框列表[]⏩[{'label': '这是组合框/列表框元素标签测试', 'value': 'v这是组合框/列表框元素值测试'}, {'label': '这是组合框/列表框元素标签测试0', 'value': 'v这是组合框/列表框元素值测试0'}, {'label': '这是组合框/列表框元素标签测试1', 'value': 'v这是组合框/列表框元素值测试1'}, {'label': '这是组合框/列表框元素标签测试1', 'value': 'v这是组合框/列表框元素值测试1'}, {'label': '这是组合框/列表框元素标签测试1', 'value': 'v这是组合框/列表框元素值测试1'}]
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test1_comboBox组合框显示文本这是组合框/列表框元素标签测试1⏩这是组合框/列表框元素标签测试1
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test1_pathBox可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test1_pathBox启用状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test1_pathBox路径框C:\⏩C:\
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test2_pathBox可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test2_pathBox启用状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test2_pathBox路径框C:\⏩C:\
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test1_colorBox可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test1_colorBox启用状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test1_colorBox的颜色#EA80FF C8⏩#EA80FF C8
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test1_group可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	--test1_group折叠状态True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test1_group启用状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	--test1_group折叠状态True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test1_group分组框True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test2_digitalBox可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test2_digitalBox启用状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【WARNING】 	数字框 test2_digitalBox 期望 float，实际为 <class 'int'>
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test2_digitalBox最小值0.0⏩0
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test2_digitalBox最大值100.0⏩100
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test2_digitalBox步数1.0⏩1
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test2_digitalBox数值50.0⏩50
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test3_digitalBox可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test3_digitalBox启用状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【WARNING】 	数字框 test3_digitalBox 期望 float，实际为 <class 'int'>
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test3_digitalBox最小值0.0⏩0
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test3_digitalBox最大值100.0⏩100
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test3_digitalBox步数1.0⏩1
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test3_digitalBox数值50.0⏩50
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test1_textBox可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test1_textBox启用状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test1_textBox文本提示类型0⏩TextBoxInfoVariant.NORMAL
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test1_textBox文本这是一段文本测试⏩这是一段文本测试
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test2_textBox可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test2_textBox启用状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test2_textBox文本提示类型0⏩TextBoxInfoVariant.ERROR
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test2_textBox文本这是一段文本测试⏩这是一段文本测试
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test3_textBox可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test3_textBox启用状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test3_textBox文本提示类型0⏩TextBoxInfoVariant.WARNING
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test3_textBox文本这是一段文本测试⏩这是一段文本测试
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test3_button可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test3_button启用状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test2_group可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	test2_group启用状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	e7a681e6ada2e689a7e8a18ce68ea7e4bbb6e4bfaee694b9e59b9ee8b083可见状态True⏩True
+1.0.0 【2026/05/30 14:07:31】【INFO】 	e7a681e6ada2e689a7e8a18ce68ea7e4bbb6e4bfaee694b9e59b9ee8b083启用状态True⏩True
+1.0.0 【2026/05/30 14:07:48】【INFO】 	监测到obs前端事件: 脚本关闭中
+1.0.0 【2026/05/30 14:07:48】【INFO】 	允许执行前端事件回调
+1.0.0 【2026/05/30 14:07:48】【DEBUG】 	未找到【SCRIPTING_SHUTDOWN】回调函数
+1.0.0 【2026/05/30 14:07:48】【INFO】 	监测到obs前端事件: 场景集合清理完成
+1.0.0 【2026/05/30 14:07:48】【INFO】 	允许执行前端事件回调
+1.0.0 【2026/05/30 14:07:48】【DEBUG】 	未找到【SCENE_COLLECTION_CLEANUP】回调函数
