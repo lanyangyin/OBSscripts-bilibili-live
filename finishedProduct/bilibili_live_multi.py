@@ -331,8 +331,8 @@ class Tools:
 
             # 检查响应状态
             if response.status_code >= 400:
-                result['success'] = False
-                result['code'] = SslErrorCode.SSL_NETWORK_ERROR
+                # result['success'] = False
+                # result['code'] = SslErrorCode.SSL_NETWORK_ERROR
                 result['message'] = f"测试请求返回错误状态: {response.status_code}"
 
         except SSLError as e:
@@ -357,14 +357,16 @@ class Tools:
             # 其他网络错误
             result['success'] = False
             result['code'] = SslErrorCode.SSL_NETWORK_ERROR
-            result['data']['ssl_verification_enabled'] = False
+            # result['data']['ssl_context_modified'] = False
+            result['data']['ssl_verification_enabled'] = True
             result['message'] = f"网络请求错误: {str(e)}"
 
         except Exception as e:
             # 其他未知错误
             result['success'] = False
             result['code'] = SslErrorCode.SSL_UNKNOWN_ERROR
-            result['data']['ssl_verification_enabled'] = False
+            # result['data']['ssl_context_modified'] = False
+            result['data']['ssl_verification_enabled'] = True
             result['message'] = f"未知错误: {str(e)}"
 
         return result
@@ -10895,7 +10897,10 @@ def script_defaults(settings):  # 设置其默认值
         log_save(obs.LOG_ERROR, f"❌{network_connection_info.get('error', '')}")
         return None
     ssl_verification_info = Tools.check_ssl_verification()
-    GlobalVariableOfData.sslVerification = ssl_verification_info['success']
+    # GlobalVariableOfData.sslVerification = ssl_verification_info['success']
+    GlobalVariableOfData.sslVerification = bool(
+        ssl_verification_info.get('data', {}).get('ssl_verification_enabled', True)
+    )
     log_save(obs.LOG_DEBUG, f"🥓[SSL] {ssl_verification_info['message']}")
 
     # 设置控件属性参数
