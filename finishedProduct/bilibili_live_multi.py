@@ -3686,51 +3686,47 @@ class ImproveCookies:
 
     def fetch_buvid3_and_bnut(self) -> Dict[str, Any]:
         """
-        获取 buvid3 和 b_nut 认证信息
+        获取 buvid3 和 b_nut 认证信息（模拟 curl 行为）
         """
         try:
-            # 第一次尝试：使用 SSL 验证
-            response = requests.get(
-                url='https://www.bilibili.com/',
-                headers=self.headers,
-                verify=True,  # 强制验证，避免因证书问题被拒绝
+            # 使用与 curl -I "https://www.bilibili.com/" -A "awa" 完全一致的请求头
+            headers = {
+                'User-Agent': 'awa',  # 关键！与 curl 命令相同
+                'Accept': '*/*',
+                'Accept-Language': 'zh-CN,zh;q=0.9',
+                'Connection': 'keep-alive',
+            }
+            # 发送 HEAD 请求，与 curl -I 一致
+            response = requests.head(
+                'https://www.bilibili.com/',
+                headers=headers,
+                verify=False,  # 忽略证书验证
                 timeout=30,
-                allow_redirects=False  # 不跟随重定向，直接获取响应头
+                allow_redirects=True  # 允许重定向，以便捕获所有 Set-Cookie
             )
-            # 如果返回状态码不是 200（可能被重定向或拦截），则尝试不使用验证
-            if response.status_code != 200:
-                response = requests.get(
-                    url='https://www.bilibili.com/',
-                    headers=self.headers,
-                    verify=False,
-                    timeout=30,
-                    allow_redirects=False
-                )
-                if response.status_code != 200:
-                    return {
-                        "success": False,
-                        "message": "获取认证信息失败",
-                        "error": f"HTTP错误: {response.status_code}",
-                        "status_code": response.status_code,
-                        "data": None
-                    }
 
-            # 从响应头中提取 Set-Cookie
-            # 使用 response.cookies 获取解析后的字典，但有时可能不完整，辅助手动解析
-            cookies_dict = response.cookies.get_dict()
-            # 如果 cookies_dict 为空，尝试从 headers 中解析 Set-Cookie
-            if not cookies_dict:
-                set_cookie = response.headers.get('Set-Cookie')
-                if set_cookie:
-                    # 简单解析，取第一个分号前的 key=value
-                    for item in set_cookie.split(','):
-                        if '=' in item:
-                            key, value = item.split('=', 1)
-                            cookies_dict[key.strip()] = value.split(';')[0].strip()
+            # 收集所有响应（包括重定向）中的 Set-Cookie
+            cookies_dict = {}
+            all_responses = [response] + response.history
+            for resp in all_responses:
+                set_cookie_headers = resp.headers.get('Set-Cookie', '')
+                if set_cookie_headers:
+                    # 可能包含多个 Set-Cookie，用逗号分隔（但注意有些 cookie 值内包含逗号，简单处理）
+                    # 更稳妥：遍历 resp.cookies，但有时 resp.cookies 不完整
+                    for cookie in resp.cookies:
+                        cookies_dict[cookie.name] = cookie.value
+                    # 同时尝试解析原始的 Set-Cookie 头
+                    for part in set_cookie_headers.split(','):
+                        if '=' in part:
+                            key, value = part.split('=', 1)
+                            key = key.strip()
+                            value = value.split(';')[0].strip()
+                            if key and value:
+                                cookies_dict[key] = value
 
-            # 检查必需字段
-            required = ["buvid3", "b_nut"]
-            missing = [c for c in required if c not in cookies_dict]
+            # 检查必须字段
+            required = ['buvid3', 'b_nut']
+            missing = [k for k in required if k not in cookies_dict]
             if missing:
                 return {
                     "success": False,
@@ -3745,8 +3741,8 @@ class ImproveCookies:
                 "success": True,
                 "message": "认证信息获取成功",
                 "data": {
-                    "buvid3": cookies_dict["buvid3"],
-                    "b_nut": cookies_dict["b_nut"]
+                    "buvid3": cookies_dict['buvid3'],
+                    "b_nut": cookies_dict['b_nut']
                 },
                 "status_code": response.status_code
             }
