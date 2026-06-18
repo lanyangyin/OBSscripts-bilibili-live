@@ -1,4 +1,4 @@
-object_name,widget_category,|,control_name,description,long_description,widget_variant,modified_callback_enabled,modified_callback,||,suffix,click_callback,filter_str,default_path,group_props_name,|,visible,enabled,||,url,checked,min_val,max_val,step,digital,info_type,text,label,value,items,color_alpha,color_red,color_green,color_blue,font_face,font_size,font_style,font_bold,font_italic,font_underline,font_strikeout,path_text,|,load_order,props,obj,||,group_props,folding_control_obj,folding_visible,folding_enabled,color_value,font_data,font_flags
+control_name,widget_category,|,object_name,description,long_description,widget_variant,modified_callback_enabled,modified_callback,||,suffix,click_callback,filter_str,default_path,group_props_name,|,visible,enabled,||,url,checked,min_val,max_val,step,digital,info_type,text,label,value,items,color_alpha,color_red,color_green,color_blue,font_face,font_size,font_style,font_bold,font_italic,font_underline,font_strikeout,path_text,|,load_order,props,obj,||,group_props,folding_control_obj,folding_visible,folding_enabled,color_value,font_data,font_flags
 -,CHECKBOX,|,O,O,O,O,O,O,||,X,X,X,X,X,|,O,O,||,X,O,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,|,O,O,O,||,X,X,X,X,X,X,X
 -,DIGITALBOX,|,O,O,O,O,O,O,||,O,X,X,X,X,|,O,O,||,X,X,O,O,O,O,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,|,O,O,O,||,X,X,X,X,X,X,X
 -,TEXTBOX,|,O,O,O,O,O,O,||,X,X,X,X,X,|,O,O,||,X,X,X,X,X,X,O,O,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,|,O,O,O,||,X,X,X,X,X,X,X
@@ -9,4 +9,4 @@ object_name,widget_category,|,control_name,description,long_description,widget_v
 -,FONTBOX,|,O,O,O,O,O,O,||,X,X,X,X,X,|,O,O,||,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,O,O,O,O,O,O,O,X,|,O,O,O,||,X,X,X,X,X,O,O
 -,LISTBOX,|,O,O,O,O,O,O,||,X,X,O,O,X,|,O,O,||,X,X,X,X,X,X,X,X,X,X,O,X,X,X,X,X,X,X,X,X,X,X,X,|,O,O,O,||,X,X,X,X,X,X,X
 -,GROUP,|,O,O,O,O,O,O,||,X,X,X,X,O,|,O,O,||,X,O,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,|,O,O,O,||,O,O,O,O,X,X,X
-,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,NULL,NULL,NULL,NULL

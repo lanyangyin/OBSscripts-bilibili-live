@@ -37,7 +37,15 @@ def apply_user_properties(
             log_manager.log_info(f'被折叠的控件：{controls_data["group_properties"]["group_1"]["control_name"]}')
             # continue
         if props_name in all_props_mapping:
-            control_name = controls_data["group_properties"]["group_1"]["control_name"]
+            # 合并所有属性
+            all_props = {}
+            all_props.update(controls_data.get("properties", {}))
+            for group_key, group_props in controls_data.get("group_properties", {}).items():
+                all_props.update(group_props)
+
+            control_name = all_props.get("control_name")
+            if not control_name:
+                continue  # 或记录错误并跳过
             if control_name in all_props_mapping[props_name]:
                 # 合并公共自由属性和私有自由属性
                 control_properties = controls_data["group_properties"].get("group_3", {})

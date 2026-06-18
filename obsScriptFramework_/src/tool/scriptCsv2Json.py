@@ -136,7 +136,7 @@ class ControlTemplateParser:
 
     def _parse_data_rows_with_props(self, headers: List[str], rows: List[List[str]], initial_props_name) -> Tuple[
         List[Dict[str, Any]], List[Dict[str, Any]]]:
-        """解析数据行，处理props层级（与原代码完全相同）"""
+        """解析数据行，处理props层级（增加跳过无效行的健壮性）"""
         all_controls = []
         stack = []
         root_controls = []
@@ -145,8 +145,22 @@ class ControlTemplateParser:
             if not any(row):
                 continue
 
-            object_name = row[0].strip()
-            widget_type = row[1]
+            # 确保有足够的列数
+            if len(row) < 4:
+                continue
+
+            object_name = row[3].strip()
+            widget_type = row[1].strip()
+
+            # 跳过控件类型为空的行
+            if not widget_type:
+                continue
+
+            # 跳过没有模板的控件类型（可选，打印警告）
+            if widget_type not in self.templates:
+                print(f"Warning: Skipping unknown widget type '{widget_type}' for object '{object_name}'")
+                continue
+
             level = 0
             original_name = object_name
             while object_name.startswith('→'):
@@ -171,9 +185,6 @@ class ControlTemplateParser:
                         else:
                             current_props_name = stack_node.get('props_name', initial_props_name)
                         break
-
-            if widget_type not in self.templates:
-                raise TypeError(f"Warning: No template for widget type {widget_type}")
 
             template = self.templates[widget_type]
 
