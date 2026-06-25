@@ -14,9 +14,7 @@
 #         You should have received a copy of the GNU General Public License
 #         along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #         2436725966@qq.com
-import urllib3
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 import asyncio
 import base64
 import hashlib
@@ -49,6 +47,7 @@ import pyperclip as cb
 import qrcode.main  # 必须这样，不能只 import qrcode
 import requests
 import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 import websockets
 from PIL import Image, ImageOps
 from requests.exceptions import SSLError
@@ -56,8 +55,6 @@ from werkzeug.serving import make_server
 
 import obspython as obs
 
-
-# import websockets
 
 def script_path():
     """
@@ -11575,8 +11572,8 @@ def script_defaults(settings):  # 设置其默认值
 
     widget_specific_object = widget.Button.addDanmuBrowser
     if widget_specific_object.Name in update_widget_for_props_name:
-        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
-        widget_specific_object.Enabled = False
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
     widget_specific_object = widget.Button.startDanmu
     if widget_specific_object.Name in update_widget_for_props_name:
@@ -11585,18 +11582,18 @@ def script_defaults(settings):  # 设置其默认值
 
     widget_specific_object = widget.Button.stopDanmuForwardingService
     if widget_specific_object.Name in update_widget_for_props_name:
-        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
-        widget_specific_object.Enabled = False
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
     widget_specific_object = widget.Button.removeDanmuBrowser
     if widget_specific_object.Name in update_widget_for_props_name:
-        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
-        widget_specific_object.Enabled = False
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
 
     widget_specific_object = widget.Button.stopDanmu
     if widget_specific_object.Name in update_widget_for_props_name:
-        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else True if get_b_u_c_m().get_default_user_id() else False
-        widget_specific_object.Enabled = True if get_b_u_c_m().get_default_user_id() else False
+        widget_specific_object.Visible = False if widget_specific_object.Name in psg_unv_name else False
+        widget_specific_object.Enabled = False
 
     # 分组框【弹幕发送】
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -30234,7 +30231,8 @@ class ButtonFunction:
         ButtonFunction.button_function_start_danmu_forwarding_service()
         # -----------------------------------------------------------------------------------------------------------
         # 添加网页源-------------------------------------------------------------------------------------------------
-        ButtonFunction.button_function_add_danmu_browser()
+        if widget.CheckBox.resetDanmuSource.Bool:
+            ButtonFunction.button_function_add_danmu_browser()
 
         return True
 
@@ -30330,7 +30328,8 @@ class ButtonFunction:
         ButtonFunction.button_function_stop_danmu_forwarding_service()
         # -----------------------------------------------------------------------------------------------------------
         # 移除浏览器源-------------------------------------------------------------------------------------------------
-        ButtonFunction.button_function_remove_danmu_browser()
+        if widget.CheckBox.resetDanmuSource.Bool:
+            ButtonFunction.button_function_remove_danmu_browser()
 
         return True
 
@@ -30651,7 +30650,7 @@ widget.widget_Group_dict = {
         },
         "danmuOnOff": {
             "Name": "danmu_onoff_group",
-            "Description": "on/off",
+            "Description": "弹幕显示开关",
             "Type": obs.OBS_GROUP_CHECKABLE,
             "GroupProps": "danmu_onoff_props",
             "ModifiedIs": True
@@ -30799,8 +30798,8 @@ widget.widget_ComboBox_dict = {
     "danmu_props": {
         "danmuRoom": {
             "Name": "danmu_room_comboBox",
-            "Description": "直播间",
-            "LongDescription": "发送和接收弹幕的直播间，输入房间号也可以添加",
+            "Description": "目标直播间",
+            "LongDescription": "发送和接收弹幕的直播间（可以不是当前直播的帐号），输入房间号也可以添加",
             "Type": obs.OBS_COMBO_TYPE_EDITABLE,
             "ModifiedIs": True
         },
