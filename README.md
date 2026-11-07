@@ -31,6 +31,18 @@ obs_studio版本：30+ or 26.1.1+ (for Win7 only)
 * [MacOS配置方法](doc/MacOS.md)
 * [Ubuntu配置方法](doc/Ubuntu.md)
 
+## 登录问题修复版（新增，不改动原脚本）
+扫码后提示「登录成功」但没有账号、或提示「二维码已失效」、或更新账号列表报 `KeyError: 'data'`，
+是原脚本所依赖的接口返回格式已变更（登录字段改由 `Set-Cookie` 响应头返回，旧版 UA 标识也已不被接口接受），
+而脚本未做相应适配。
+
+- 脚本：[finishedProduct/bilibili_live_multi_py36_obs27_loginfix.py](finishedProduct/bilibili_live_multi_py36_obs27_loginfix.py)
+- **使用说明**：[doc/loginfix使用说明.md](doc/loginfix使用说明.md)（安装位置、在 OBS 里怎么切换、首次扫码添加账号、切换/登出/删除账号、数据备份位置）
+- 问题成因与修复清单：[doc/登录问题修复说明.md](doc/登录问题修复说明.md)
+- 验证脚本：[test/loginfix/](test/loginfix/)（全部使用合成数据，不含真实账号信息）
+
+原 `bilibili_live_multi_py36_obs27.py` 保持不变，两版可在 OBS「脚本」窗口里切换，不要同时启用。
+
 ## 功能
 >☑ 为已实现
 >
